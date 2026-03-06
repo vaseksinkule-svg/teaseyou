@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tease you — Build your perfect tea blend</title>
+    <meta name="description" content="Create your own custom tea blend from 6 premium bases, 9 flavors and 9 extras. Named, packed and shipped fresh to your door.">
+    <meta property="og:title" content="Tease you — Build your perfect blend">
+    <meta property="og:description" content="Mix, name and order your own unique tea blend. 500+ combinations, shipped fresh.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://teaseyou.cz">
+    <meta property="og:image" content="https://teaseyou.cz/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tease you — Build your perfect blend">
+    <meta name="twitter:description" content="Mix, name and order your own unique tea blend.">
+    <meta name="theme-color" content="#3d5a3e">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- PROMO BAR -->
+<div id="promo-bar" class="promo-bar">
+    🍵 Free shipping on orders over $15 · Use code <strong>FIRSTBLEND</strong> for 10% off your first order
+    <button class="promo-close" onclick="this.closest('#promo-bar').style.display='none'" aria-label="Close">×</button>
+</div>
+
+<!-- COOKIE CONSENT -->
+<div id="cookie-banner" class="cookie-banner" style="display:none;">
+    <div class="cookie-inner">
+        <div class="cookie-text">
+            <strong>We use cookies</strong>
+            <p>We use cookies to improve your experience and remember your preferences. By continuing you agree to our <a href="#" class="cookie-link">Cookie Policy</a>.</p>
+        </div>
+        <div class="cookie-actions">
+            <button class="btn btn-secondary cookie-decline" onclick="handleCookies(false)">Decline</button>
+            <button class="btn cookie-accept" onclick="handleCookies(true)">Accept all</button>
+        </div>
+    </div>
+</div>
+
+<!-- BACK TO TOP -->
+<button id="back-to-top" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+<nav id="sidebar" class="sidebar">
+    <button class="sidebar-close" onclick="closeSidebar()">&#x2715;</button>
+    <div class="sidebar-logo">Tease you</div>
+    <ul class="sidebar-nav">
+        <li onclick="closeSidebar(); showPage('quiz-page')">Find my blend ✨</li>
+        <li onclick="closeSidebar(); showPage('home-page')">Home</li>
+        <li onclick="closeSidebar(); showPage('product-page')">Create your own</li>
+        <li onclick="closeSidebar(); showPage('saved-page')">My Blends</li>
+        <li onclick="closeSidebar(); showPage('about-page')">About</li>
+        <li onclick="closeSidebar(); showPage('cart-page')">Cart</li>
+    </ul>
+    <div class="sidebar-footer"><p>Handcrafted blends,<br>made just for you.</p></div>
+</nav>
+
+<nav class="main-nav">
+    <div class="nav-container">
+        <div class="nav-menu-icon" onclick="openSidebar()"><span></span><span></span><span></span></div>
+        <div class="nav-logo" onclick="showPage('home-page')">Tease you</div>
+        <div class="nav-right">
+            <button class="dark-mode-btn" onclick="toggleDarkMode()" aria-label="Toggle dark mode">
+                <span class="dm-icon dm-light">&#x2600;&#xFE0F;</span>
+                <span class="dm-icon dm-dark">&#x1F319;</span>
+            </button>
+            <div class="nav-cart-icon" onclick="showPage('cart-page')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="content-wrapper">
+
+<!-- ═══ HOME ═══ -->
+<section id="home-page" class="page active">
+
+    <div class="hero-section">
+        <div class="hero-text">
+            <span class="hero-tag font-chaos">Handcrafted &middot; Personal &middot; Fresh</span>
+            <h1 class="logo big-logo">Tease<br>you</h1>
+            <p class="subtitle">Your taste, your tea.<br>Mix it, name it, love it.</p>
+            <div class="hero-actions">
+                <button class="btn btn-large" onclick="showPage('product-page')">Create your own</button>
+                <button class="btn btn-ghost btn-large" onclick="document.querySelector('.how-section').scrollIntoView({behavior:'smooth'})">How it works &darr;</button>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="hero-glasses">
+                <div class="hero-glass hero-glass--a">
+                    <div style="background:#ffe066"></div><div style="background:#4caf50"></div><div style="background:#8da676"></div>
+                </div>
+                <div class="hero-glass hero-glass--b">
+                    <div style="background:#ffc107"></div><div style="background:#cc4747"></div><div style="background:#f5e6d3"></div>
+                </div>
+                <div class="hero-glass hero-glass--c">
+                    <div style="background:#f3e5ab"></div><div style="background:#ff9800"></div><div style="background:#4a3b32"></div>
+                </div>
+            </div>
+            <div class="hero-visual-label font-chaos">500+ combinations</div>
+        </div>
+    </div>
+
+    <!-- QUIZ CTA STRIP -->
+    <div class="quiz-strip reveal-section">
+        <span class="font-chaos quiz-strip-text">Not sure where to start?</span>
+        <button class="btn btn-secondary" onclick="showPage('quiz-page'); startQuiz()">Take the Tea Finder Quiz →</button>
+    </div>
+
+    <div class="stats-bar reveal-section">
+        <div class="stats-bar-inner">
+            <div class="stat-item"><span class="stat-num">6</span><span class="stat-label">Tea bases</span></div>
+            <div class="stat-sep"></div>
+            <div class="stat-item"><span class="stat-num">9</span><span class="stat-label">Flavors</span></div>
+            <div class="stat-sep"></div>
+            <div class="stat-item"><span class="stat-num">9</span><span class="stat-label">Extras</span></div>
+            <div class="stat-sep"></div>
+            <div class="stat-item"><span class="stat-num">500+</span><span class="stat-label">Unique blends</span></div>
+            <div class="stat-sep"></div>
+            <div class="stat-item"><span class="stat-num">100%</span><span class="stat-label">Your recipe</span></div>
+        </div>
+    </div>
+
+    <div class="how-section reveal-section">
+        <h2 class="font-cosmico section-subtitle">How it works</h2>
+        <div class="how-grid">
+            <div class="how-step">
+                <div class="how-num font-cosmico">01</div>
+                <div class="how-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 010 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+                </div>
+                <h3 class="font-cosmico">Pick your base</h3>
+                <p>Start with one of six premium tea bases &mdash; from bold black to soothing chamomile.</p>
+            </div>
+            <div class="how-connector"></div>
+            <div class="how-step">
+                <div class="how-num font-cosmico">02</div>
+                <div class="how-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                </div>
+                <h3 class="font-cosmico">Add flavors</h3>
+                <p>Layer in your favourite fruits, flowers or spices and watch your blend come alive.</p>
+            </div>
+            <div class="how-connector"></div>
+            <div class="how-step">
+                <div class="how-num font-cosmico">03</div>
+                <div class="how-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10V4a2 2 0 00-2-2H5a2 2 0 00-2 2v6"/><path d="M3 10h18v10a2 2 0 01-2 2H5a2 2 0 01-2-2V10z"/><path d="M8 10V6m8 4V6"/></svg>
+                </div>
+                <h3 class="font-cosmico">We ship it fresh</h3>
+                <p>Your unique blend is packed to order and delivered straight to your door.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="ready-made-section reveal-section">
+        <h2 class="font-cosmico section-subtitle">Signature Blends</h2>
+        <div class="ready-grid">
+            <div class="ready-card" onclick="openDetail('Zen Master','Fresh green tea base infused with cooling peppermint and a bright zesty lemon finish.',3.50,['Green Tea','Mint','Lemon'],['#8da676','#4caf50','#ffe066'])">
+                <div class="ready-glass-mini"><div style="background:#ffe066"></div><div style="background:#4caf50"></div><div style="background:#8da676"></div></div>
+                <h3 class="font-cosmico">Zen Master</h3>
+                <p class="font-chaos">Green tea, Mint &amp; Lemon</p>
+                <span class="ready-price">from $1.99</span>
+            </div>
+            <div class="ready-card" onclick="openDetail('Berry Blast','A delicate white tea base combined with sun-ripened strawberries and natural honey.',3.50,['White Tea','Strawberry','Honey'],['#f5e6d3','#cc4747','#ffc107'])">
+                <div class="ready-glass-mini"><div style="background:#ffc107"></div><div style="background:#cc4747"></div><div style="background:#f5e6d3"></div></div>
+                <h3 class="font-cosmico">Berry Blast</h3>
+                <p class="font-chaos">White tea, Strawberry &amp; Honey</p>
+                <span class="ready-price">from $1.99</span>
+            </div>
+            <div class="ready-card" onclick="openDetail('Ginger Soul','Strong black tea with warming ginger pieces and smooth vanilla.',3.50,['Black Tea','Ginger','Vanilla'],['#4a3b32','#ff9800','#f3e5ab'])">
+                <div class="ready-glass-mini"><div style="background:#f3e5ab"></div><div style="background:#ff9800"></div><div style="background:#4a3b32"></div></div>
+                <h3 class="font-cosmico">Ginger Soul</h3>
+                <p class="font-chaos">Black tea, Ginger &amp; Vanilla</p>
+                <span class="ready-price">from $1.99</span>
+            </div>
+            <div class="ready-card" onclick="openDetail('Midnight Rose','Elegant oolong tea with dried rose petals and a hint of lavender.',3.50,['Oolong Tea','Rose','Lavender'],['#c8a0b4','#e8607a','#b8a0cc'])">
+                <div class="ready-glass-mini"><div style="background:#b8a0cc"></div><div style="background:#e8607a"></div><div style="background:#c8a0b4"></div></div>
+                <h3 class="font-cosmico">Midnight Rose</h3>
+                <p class="font-chaos">Oolong, Rose &amp; Lavender</p>
+                <span class="ready-price">from $1.99</span>
+            </div>
+            <div class="ready-card" onclick="openDetail('Citrus Storm','Vibrant rooibos base bursting with orange zest and a cooling spearmint finish.',3.50,['Rooibos','Orange','Spearmint'],['#e8720c','#ffb347','#a8d8a8'])">
+                <div class="ready-glass-mini"><div style="background:#a8d8a8"></div><div style="background:#ffb347"></div><div style="background:#e8720c"></div></div>
+                <h3 class="font-cosmico">Citrus Storm</h3>
+                <p class="font-chaos">Rooibos, Orange &amp; Spearmint</p>
+                <span class="ready-price">from $1.99</span>
+            </div>
+            <div class="ready-card" onclick="openDetail('Golden Calm','Smooth chamomile with warming turmeric and a touch of cinnamon spice.',3.50,['Chamomile','Turmeric','Cinnamon'],['#f5d78e','#d4a017','#c8824a'])">
+                <div class="ready-glass-mini"><div style="background:#c8824a"></div><div style="background:#d4a017"></div><div style="background:#f5d78e"></div></div>
+                <h3 class="font-cosmico">Golden Calm</h3>
+                <p class="font-chaos">Chamomile, Turmeric &amp; Cinnamon</p>
+                <span class="ready-price">from $1.99</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="reviews-section reveal-section">
+        <h2 class="font-cosmico section-subtitle">What people say</h2>
+        <div class="reviews-grid">
+            <div class="review-card">
+                <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                <p class="review-text font-chaos">"I never thought I'd care about tea this much. My Morning Magic blend has become a non-negotiable part of my day."</p>
+                <div class="review-author">
+                    <div class="review-avatar" style="background:#d4e09b;">K</div>
+                    <div><strong>Karol&iacute;na M.</strong><span class="review-meta"> &middot; Prague</span></div>
+                </div>
+            </div>
+            <div class="review-card">
+                <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                <p class="review-text font-chaos">"Ordered the Ginger Soul and then immediately made my own version with extra vanilla. Both were incredible."</p>
+                <div class="review-author">
+                    <div class="review-avatar" style="background:#ffc107;">T</div>
+                    <div><strong>Tom&aacute;&scaron; R.</strong><span class="review-meta"> &middot; Brno</span></div>
+                </div>
+            </div>
+            <div class="review-card">
+                <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div>
+                <p class="review-text font-chaos">"Great concept, amazing quality. I gave a custom blend as a gift and she absolutely loved it."</p>
+                <div class="review-author">
+                    <div class="review-avatar" style="background:#f8bbd0;">L</div>
+                    <div><strong>Lucie H.</strong><span class="review-meta"> &middot; Ostrava</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq-section reveal-section">
+        <h2 class="font-cosmico section-subtitle">Frequently asked</h2>
+        <div class="faq-list">
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    <span>How long does delivery take?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-a">We blend your order the same day and ship within 24 hours. Czech Republic: 2&ndash;3 business days via Zásilkovna or Česká pošta. Slovakia: 3&ndash;5 business days.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    <span>What are the allergens?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-a">All our blends are naturally free of gluten, dairy and nuts. We do handle nut-adjacent spices (cardamom, cinnamon) in our facility. If you have a severe allergy, please contact us before ordering. All ingredients are 100% natural with no artificial flavourings.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    <span>Can I return or exchange an order?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-a">Because every blend is made to order, we cannot accept returns for custom blends. If your order arrives damaged or incorrect, we will reship at no charge. Contact us within 7 days of delivery.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    <span>How do I brew my blend?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-a">Use 2&ndash;3 grams per 200ml of water. Green and white teas: 75&ndash;80&deg;C for 2&ndash;3 minutes. Black and oolong: 90&ndash;95&deg;C for 3&ndash;4 minutes. Herbal (rooibos, chamomile): 100&deg;C for 5&ndash;7 minutes. Each package includes a brewing guide card.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    <span>Can I send a blend as a gift?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-a">Absolutely &mdash; it's one of our most popular uses! During checkout, add a personal message in the note field and we'll include a handwritten card. We also offer gift wrapping on request.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    <span>How long does the tea stay fresh?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-a">All our blends are packed in resealable, food-grade kraft pouches with an airtight seal. Stored in a cool, dry place away from direct light, your blend will stay fresh for 12&ndash;18 months.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta-banner reveal-section">
+        <div class="cta-banner-text">
+            <h2 class="font-cosmico">Ready to build your blend?</h2>
+            <p>It takes less than 2 minutes. No account needed.</p>
+        </div>
+        <button class="btn btn-large cta-btn" onclick="showPage('product-page')">Start creating &rarr;</button>
+    </div>
+
+</section>
+
+<!-- ═══ PRODUCT DETAIL ═══ -->
+<section id="product-detail-page" class="page">
+    <div class="detail-container">
+        <div class="detail-visual">
+            <div class="glass-container">
+                <div class="glass-frame" id="detail-glass-frame">
+                    <div id="detail-part1" class="glass-part"></div>
+                    <div id="detail-part2" class="glass-part"></div>
+                    <div id="detail-part3" class="glass-part"></div>
+                </div>
+                <div class="glass-platform"></div>
+            </div>
+        </div>
+        <div class="detail-info">
+            <span class="detail-tag font-chaos">Signature Blend</span>
+            <h1 id="detail-title" class="logo detail-title">Tea Name</h1>
+            <p id="detail-desc" class="detail-desc font-chaos">Description...</p>
+            <p id="detail-ingredients-list" class="detail-ingredients"></p>
+            <!-- Brewing guide -->
+            <div class="brew-guide">
+                <button class="brew-guide-toggle" onclick="toggleBrewGuide(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 010 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/></svg>
+                    <span>Brewing guide</span>
+                    <svg class="brew-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="brew-guide-body">
+                    <div class="brew-steps">
+                        <div class="brew-step">
+                            <div class="brew-step-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 0c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6z"/></svg>
+                            </div>
+                            <div><strong>2&ndash;3g</strong><span>per 200ml</span></div>
+                        </div>
+                        <div class="brew-step">
+                            <div class="brew-step-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
+                            </div>
+                            <div><strong id="detail-temp">90&ndash;95&deg;C</strong><span>water temp</span></div>
+                        </div>
+                        <div class="brew-step">
+                            <div class="brew-step-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <div><strong id="detail-time">3&ndash;4 min</strong><span>steep time</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-divider"></div>
+            <p class="form-section-label">Select weight</p>
+            <div class="qty-options">
+                <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">$1.99</span></button>
+                <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">$3.50</span></button>
+                <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">$7.50</span></button>
+            </div>
+            <div class="detail-actions">
+                <button id="detail-add-btn" class="btn disabled" onclick="confirmOrder()" disabled>Add to Cart</button>
+                <button class="btn btn-secondary" onclick="modifyReadyMade()">Customize Recipe</button>
+            </div>
+            <span onclick="showPage('home-page')" class="back-link">&#8592; Back to blends</span>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ CONFIGURATOR ═══ -->
+<section id="product-page" class="page product-grid">
+    <div class="options-column">
+        <div class="config-header">
+            <span onclick="showPage('home-page')" class="back-link">&#8592; Back</span>
+            <div>
+                <h2 class="font-cosmico config-title">Build your blend</h2>
+                <p class="config-subtitle">Pick one from each category</p>
+            </div>
+        </div>
+        <div class="progress-bar-wrap">
+            <div class="progress-step" id="prog-1"><div class="progress-dot"></div><span>Base</span></div>
+            <div class="progress-line" id="prog-line-1"></div>
+            <div class="progress-step" id="prog-2"><div class="progress-dot"></div><span>Flavor</span></div>
+            <div class="progress-line" id="prog-line-2"></div>
+            <div class="progress-step" id="prog-3"><div class="progress-dot"></div><span>Extras</span></div>
+            <div class="progress-line" id="prog-line-3"></div>
+            <div class="progress-step" id="prog-4"><div class="progress-dot"></div><span>Name</span></div>
+        </div>
+        <div class="info-wrapper">
+            <div id="base-info" class="info-box">
+                <h4 id="info-title" class="font-chaos">Select a base</h4>
+                <p id="info-text">Choose your preferred tea base to start.</p>
+            </div>
+        </div>
+        <div class="selection-group">
+            <h3 class="font-cosmico">1. Base</h3>
+            <div class="btn-grid">
+                <button class="ingredient-btn" data-target="part1" data-color="#8da676" data-name="Green Tea" data-desc="Fresh and earthy, light caffeine.">Green Tea</button>
+                <button class="ingredient-btn" data-target="part1" data-color="#4a3b32" data-name="Black Tea" data-desc="Strong and bold, high caffeine.">Black Tea</button>
+                <button class="ingredient-btn" data-target="part1" data-color="#f5e6d3" data-name="White Tea" data-desc="Delicate and sweet, low caffeine.">White Tea</button>
+                <button class="ingredient-btn" data-target="part1" data-color="#c8a0b4" data-name="Oolong Tea" data-desc="Complex and floral, medium caffeine.">Oolong Tea</button>
+                <button class="ingredient-btn" data-target="part1" data-color="#e8720c" data-name="Rooibos" data-desc="Earthy and sweet, caffeine-free.">Rooibos</button>
+                <button class="ingredient-btn" data-target="part1" data-color="#f5d78e" data-name="Chamomile" data-desc="Calm and soothing, caffeine-free.">Chamomile</button>
+            </div>
+            <button class="clear-btn" data-target="part1">&#x2715; Clear</button>
+        </div>
+        <div class="selection-group">
+            <h3 class="font-cosmico">2. Flavor</h3>
+            <div class="btn-grid">
+                <button class="ingredient-btn" data-target="part2" data-color="#cc4747" data-name="Strawberry">Strawberry</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#4caf50" data-name="Mint">Mint</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#f3e5ab" data-name="Vanilla">Vanilla</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#e8607a" data-name="Rose">Rose</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#ffb347" data-name="Orange">Orange</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#9b59b6" data-name="Blueberry">Blueberry</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#e91e8c" data-name="Raspberry">Raspberry</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#795548" data-name="Cocoa">Cocoa</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#4fc3f7" data-name="Coconut">Coconut</button>
+            </div>
+            <button class="clear-btn" data-target="part2">&#x2715; Clear</button>
+        </div>
+        <div class="selection-group">
+            <h3 class="font-cosmico">3. Extras</h3>
+            <div class="btn-grid">
+                <button class="ingredient-btn" data-target="part3" data-color="#ffc107" data-name="Honey">Honey</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#ffe066" data-name="Lemon">Lemon</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#ff9800" data-name="Ginger">Ginger</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#b8a0cc" data-name="Lavender">Lavender</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#d4a017" data-name="Turmeric">Turmeric</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#c8824a" data-name="Cinnamon">Cinnamon</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#a8d8a8" data-name="Spearmint">Spearmint</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#f8bbd0" data-name="Rose Hip">Rose Hip</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#80cbc4" data-name="Cardamom">Cardamom</button>
+            </div>
+            <button class="clear-btn" data-target="part3">&#x2715; Clear</button>
+        </div>
+        <div class="selection-group">
+            <h3 class="font-cosmico">4. Name your mix</h3>
+            <input type="text" id="mix-name" placeholder="E.g. Morning Magic" class="name-input" maxlength="32">
+            <p class="name-hint font-chaos">Give it a name you'll remember &#x2728;</p>
+        </div>
+        <div class="action-area">
+            <button id="save-mix-btn" class="btn btn-large disabled" onclick="showSummary()" disabled>Preview my blend &rarr;</button>
+            <button class="random-blend-btn" onclick="randomBlend()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+                Surprise me
+            </button>
+        </div>
+    </div>
+    <div class="visualizer-column">
+        <div class="glass-panel">
+            <p class="glass-panel-title">Your blend</p>
+            <div class="glass-container">
+                <div class="glass-frame" id="main-glass-frame">
+                    <div id="part1" class="glass-part"></div>
+                    <div id="part2" class="glass-part"></div>
+                    <div id="part3" class="glass-part"></div>
+                </div>
+                <div class="glass-labels">
+                    <div class="glass-label"><div class="glass-label-dot" id="label-dot-1"></div><span id="label-text-1">Base</span></div>
+                    <div class="glass-label"><div class="glass-label-dot" id="label-dot-2"></div><span id="label-text-2">Flavor</span></div>
+                    <div class="glass-label"><div class="glass-label-dot" id="label-dot-3"></div><span id="label-text-3">Extras</span></div>
+                </div>
+                <div class="glass-platform"></div>
+            </div>
+            <div class="glass-mix-name" id="glass-mix-name-display">Name your mix</div>
+            <div class="glass-completion">
+                <div class="completion-bar"><div class="completion-fill" id="completion-fill"></div></div>
+                <span class="completion-label" id="completion-label">0 / 3 selected</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ SUMMARY ═══ -->
+<section id="summary-page" class="page">
+    <div class="summary-reveal">
+        <div class="summary-visual">
+            <span class="summary-badge font-chaos">Your blend</span>
+            <h1 id="display-mix-name" class="logo summary-logo">Name</h1>
+            <div class="summary-glass-wrap">
+                <div class="glass-frame summary-glass-frame">
+                    <div id="summary-part1" class="glass-part"></div>
+                    <div id="summary-part2" class="glass-part"></div>
+                    <div id="summary-part3" class="glass-part"></div>
+                </div>
+                <div class="summary-glass-shadow"></div>
+            </div>
+        </div>
+        <div class="summary-info">
+            <p class="summary-label">What's inside</p>
+            <div id="summary-chips" class="summary-chips"></div>
+            <div class="summary-divider-line"></div>
+            <p class="summary-label">Choose weight to order</p>
+            <div class="qty-options">
+                <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">$1.99</span></button>
+                <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">$3.50</span></button>
+                <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">$7.50</span></button>
+            </div>
+            <div class="summary-actions">
+                <button id="summary-order-btn" class="btn disabled" onclick="confirmOrder()" disabled>Add to Cart</button>
+                <button class="btn btn-secondary" onclick="showPage('product-page')">Edit Recipe</button>
+                <button class="btn btn-ghost" onclick="saveBlend()" title="Save blend">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    Save
+                </button>
+                <button class="btn btn-ghost" onclick="shareBlend()" title="Share blend">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    Share
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ SAVED BLENDS ═══ -->
+<section id="saved-page" class="page">
+    <h2 class="logo section-title cart-title">My Blends</h2>
+    <div class="saved-container">
+        <div id="saved-list"></div>
+        <div id="saved-empty" class="cart-empty">
+            <p class="font-chaos">No saved blends yet.</p>
+            <button class="btn btn-secondary" style="margin-top:20px" onclick="showPage('product-page')">Create your first blend</button>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ CART ═══ -->
+<section id="cart-page" class="page">
+    <h2 class="logo section-title cart-title">Your Cart</h2>
+    <div class="cart-container">
+        <div class="cart-header"><span>Product</span><span>Price</span><span>Quantity</span><span>Subtotal</span></div>
+        <div id="cart-items-list"></div>
+        <div id="cart-empty" class="cart-empty" style="display:none;">
+            <p class="font-chaos">Your cart is empty.</p>
+            <button class="btn btn-secondary" style="margin-top:20px" onclick="showPage('home-page')">Start shopping</button>
+        </div>
+        <div class="cart-footer">
+            <button class="clear-btn" onclick="showPage('home-page')" style="text-decoration:none;">&#8592; Continue shopping</button>
+            <div class="cart-total-box">
+                <p id="cart-shipping-line" class="cart-shipping-line">+ Shipping: calculated at checkout</p>
+                <h3 id="cart-final-total" class="font-cosmico cart-total-text">Total: $0.00</h3>
+                <button class="btn" onclick="showPage('checkout-page')">Proceed to Checkout</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ CHECKOUT ═══ -->
+<section id="checkout-page" class="page">
+    <h2 class="logo section-title cart-title">Shipping</h2>
+    <div class="checkout-wrapper">
+        <div class="checkout-summary">
+            <h3 class="checkout-summary-title">Order Summary</h3>
+            <div id="checkout-items-summary"></div>
+            <div class="checkout-shipping-row" id="checkout-shipping-row" style="display:none;">
+                <span>Shipping</span>
+                <span id="checkout-shipping-cost">$0.00</span>
+            </div>
+            <div class="checkout-summary-total">
+                <span class="font-cosmico">Total</span>
+                <span id="checkout-total-display" class="font-cosmico checkout-total-num">$0.00</span>
+            </div>
+        </div>
+        <div class="checkout-form-col">
+            <form id="checkout-form" onsubmit="submitOrder(event)">
+                <div class="form-section-label">Contact</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">First name *</label><input type="text" name="firstName" class="name-input" required placeholder="Jan"></div>
+                    <div class="form-group"><label class="form-label">Last name *</label><input type="text" name="lastName" class="name-input" required placeholder="Nov&aacute;k"></div>
+                </div>
+                <div class="form-group"><label class="form-label">Email *</label><input type="email" name="email" class="name-input" required placeholder="jan@email.cz"></div>
+                <div class="form-group"><label class="form-label">Phone *</label><input type="tel" name="phone" class="name-input" required placeholder="+420 123 456 789"></div>
+                <div class="form-section-label" style="margin-top:32px;">Delivery address</div>
+                <div class="form-group"><label class="form-label">Street and number *</label><input type="text" name="street" class="name-input" required placeholder="N&aacute;m&#283;st&iacute; M&iacute;ru 12"></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">City *</label><input type="text" name="city" class="name-input" required placeholder="Praha"></div>
+                    <div class="form-group"><label class="form-label">ZIP *</label><input type="text" name="zip" class="name-input" required placeholder="110 00" maxlength="6"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Country *</label>
+                    <select name="country" class="name-input select-input" required>
+                        <option value="">&mdash; Select &mdash;</option>
+                        <option value="CZ">Czech Republic &#x1F1E8;&#x1F1FF;</option>
+                        <option value="SK">Slovakia &#x1F1F8;&#x1F1F0;</option>
+                    </select>
+                </div>
+                <div class="form-section-label" style="margin-top:32px;">Shipping method</div>
+                <div class="shipping-options">
+                    <label class="shipping-option"><input type="radio" name="shipping" value="post" data-price="2.50" required onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4EE; &Ccaron;esk&aacute; po&scaron;ta</span><span class="shipping-price">$2.50</span></div><span class="shipping-desc">Delivery in 3&ndash;5 business days</span></label>
+                    <label class="shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="1.80" onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4E6; Z&aacute;silkovna</span><span class="shipping-price">$1.80</span></div><span class="shipping-desc">Pick up at your nearest location</span></label>
+                    <label class="shipping-option"><input type="radio" name="shipping" value="dpd" data-price="3.50" onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F69A; DPD Courier</span><span class="shipping-price">$3.50</span></div><span class="shipping-desc">Next business day delivery</span></label>
+                </div>
+                <div class="form-section-label" style="margin-top:32px;">Note <span style="color:var(--color-ink-faint);font-weight:400;">(optional)</span></div>
+                <div class="form-group"><textarea name="note" class="name-input" rows="3" placeholder="Any special requests or gift messages..."></textarea></div>
+                <button type="submit" class="btn btn-large checkout-submit">Complete Order</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ SUCCESS ═══ -->
+<section id="success-page" class="page success-page">
+    <div class="success-inner">
+        <div class="success-icon">&#x1F375;</div>
+        <h1 class="logo big-logo">Order placed!</h1>
+        <p class="subtitle">Your blend is on its way. We'll brew it fresh and send a confirmation to your email.</p>
+        <div class="success-order-num font-chaos" id="success-order-num"></div>
+        <div class="success-steps">
+            <div class="success-step"><span class="step-num">1</span><span>Order received</span></div>
+            <div class="success-step-line"></div>
+            <div class="success-step"><span class="step-num">2</span><span>Freshly blended</span></div>
+            <div class="success-step-line"></div>
+            <div class="success-step"><span class="step-num">3</span><span>Shipped to you</span></div>
+        </div>
+        <button class="btn btn-large" onclick="location.reload()">Create another blend</button>
+    </div>
+</section>
+
+<!-- ═══ ABOUT ═══ -->
+<section id="about-page" class="page">
+    <div class="about-hero">
+        <span class="about-tag font-chaos">Our Story</span>
+        <h1 class="logo about-title">We believe tea<br>is personal.</h1>
+        <p class="subtitle">Every cup should reflect who you are &mdash; your mood, your moment, your morning ritual. That's why we built Tease you.</p>
+    </div>
+    <div class="about-grid">
+        <div class="about-card">
+            <div class="about-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <h3 class="font-cosmico">Sourced with care</h3>
+            <p>We work directly with small farms across Asia and Africa to bring you the finest, most sustainably harvested leaves and herbs.</p>
+        </div>
+        <div class="about-card">
+            <div class="about-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+            <h3 class="font-cosmico">Blended by you</h3>
+            <p>No two people are the same, and neither should their tea be. Our configurator lets you create a blend that's entirely yours.</p>
+        </div>
+        <div class="about-card">
+            <div class="about-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 4v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+            <h3 class="font-cosmico">Shipped fresh</h3>
+            <p>Every order is blended and packed to order &mdash; never sitting on a shelf. From our hands to your cup in days, not months.</p>
+        </div>
+    </div>
+    <div class="about-cta">
+        <p class="font-chaos about-cta-text">Ready to find your blend?</p>
+        <button class="btn btn-large" onclick="showPage('product-page')">Start creating</button>
+    </div>
+</section>
+
+<!-- ═══ TEA FINDER QUIZ ═══ -->
+<section id="quiz-page" class="page">
+    <div class="quiz-page">
+        <div id="quiz-progress-bar" class="quiz-progress"></div>
+        <div id="quiz-body"></div>
+    </div>
+</section>
+
+</main>
+
+<div id="order-modal" class="modal">
+    <div class="modal-content">
+        <h2 class="font-cosmico modal-title">Select Quantity</h2>
+        <div class="qty-options qty-options--center">
+            <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">$1.99</span></button>
+            <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">$3.50</span></button>
+            <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">$7.50</span></button>
+        </div>
+        <button id="final-order-btn" class="btn disabled" onclick="confirmOrder()" disabled>Confirm</button>
+        <button onclick="closeOrderModal()" class="clear-btn modal-cancel">Cancel</button>
+    </div>
+</div>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <div class="footer-logo">Tease you</div>
+            <p class="footer-tagline">Handcrafted blends,<br>made just for you.</p>
+            <div class="footer-socials">
+                <a href="#" class="social-icon" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+                <a href="#" class="social-icon" aria-label="TikTok"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.53V6.75a4.85 4.85 0 01-1.02-.06z"/></svg></a>
+                <a href="#" class="social-icon" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4 class="footer-col-title">Navigation</h4>
+            <ul class="footer-links">
+                <li><a onclick="showPage('home-page')">Home</a></li>
+                <li><a onclick="showPage('product-page')">Create your own</a></li>
+                <li><a onclick="showPage('saved-page')">My Blends</a></li>
+                <li><a onclick="showPage('about-page')">About</a></li>
+                <li><a onclick="showPage('cart-page')">Cart</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4 class="footer-col-title">Legal</h4>
+            <ul class="footer-links">
+                <li><a href="#">Terms &amp; Conditions</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">GDPR</a></li>
+                <li><a href="#">Cookie Policy</a></li>
+            </ul>
+        </div>
+        <div class="footer-col footer-col-wide">
+            <h4 class="footer-col-title">Contact</h4>
+            <ul class="footer-links footer-contact">
+                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a></li>
+                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 12 19.79 19.79 0 011.61 3.4 2 2 0 013.6 1.22h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.91 8.8a16 16 0 006.29 6.29l.96-.96a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg><a href="tel:+420123456789">+420 123 456 789</a></li>
+            </ul>
+            <h4 class="footer-col-title" style="margin-top:28px;">Newsletter</h4>
+            <p class="footer-newsletter-desc">New blends, offers and tea stories &mdash; straight to your inbox.</p>
+            <form class="footer-newsletter" onsubmit="subscribeNewsletter(event)">
+                <input type="email" placeholder="your@email.cz" class="footer-email-input" required>
+                <button type="submit" class="footer-subscribe-btn">Subscribe</button>
+            </form>
+            <p id="newsletter-success" class="newsletter-success" style="display:none;">&#x1F375; You're in! Welcome to the club.</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>&copy; 2025 Tease you. All rights reserved.</span>
+        <span>Made with &#x1F375; in Czech Republic</span>
+    </div>
+</footer>
+
+<div id="toast" class="toast" aria-live="polite"></div>
+<script src="script.js"></script>
+</body>
+</html>
