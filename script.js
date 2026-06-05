@@ -227,8 +227,16 @@ const TRANSLATIONS = {
         /* Completion label */
         completion_selected: 'selected',
         /* About page CTA */
-        about_cta:      'Ready to find your blend?',
-        btn_start_creating2: 'Start creating',
+        about_cta:          'Ready to find your blend?',
+        btn_start_creating2:'Start creating',
+        /* SEO */
+        page_title:  'Tease you — Build your perfect tea blend',
+        meta_desc:   'Create your own custom tea blend from 6 premium bases, 9 flavors and 9 extras. Named, packed and shipped fresh to your door. Free shipping over 500 Kč.',
+        /* Packeta widget */
+        packeta_choose:     'Choose pickup point',
+        packeta_change:     'Change branch',
+        packeta_required:   'Please choose a pickup point',
+        packeta_unavailable:'Widget not available — try again',
     },
     cs: {
         /* Nav / Sidebar */
@@ -450,8 +458,16 @@ const TRANSLATIONS = {
         /* Completion label */
         completion_selected: 'vybráno',
         /* About page CTA */
-        about_cta:      'Připraven/a najít svůj blend?',
-        btn_start_creating2: 'Začít vytvářet',
+        about_cta:          'Připraven/a najít svůj blend?',
+        btn_start_creating2:'Začít vytvářet',
+        /* SEO */
+        page_title:  'Tease you — Namíchej si vlastní čajový blend',
+        meta_desc:   'Namíchej si vlastní čaj ze 6 základů, 9 příchutí a 9 doplňků. Pojmenuj ho, my ho čerstvě zabalíme a doručíme. Doprava zdarma nad 500 Kč.',
+        /* Packeta widget */
+        packeta_choose:     'Vybrat výdejní místo',
+        packeta_change:     'Změnit pobočku',
+        packeta_required:   'Prosím vyberte výdejní místo',
+        packeta_unavailable:'Widget není dostupný — zkuste to znovu',
     }
 };
 
@@ -464,7 +480,6 @@ function t(key) {
 
 /* ─── APPLY TRANSLATIONS ─────────────────────── */
 function applyTranslations() {
-    if (LANG !== 'cs') return;
     document.querySelectorAll('[data-i18n]').forEach(el => {
         el.textContent = t(el.getAttribute('data-i18n'));
     });
@@ -477,7 +492,16 @@ function applyTranslations() {
     document.querySelectorAll('[data-i18n-aria]').forEach(el => {
         el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
     });
+    // Update <title> and <meta name="description"> based on detected language
+    document.title = t('page_title');
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', t('meta_desc'));
 }
+
+/* ─── ZÁSILKOVNA / PACKETA ───────────────────── */
+// Get your API key at https://app.packeta.com → Integrace → Widget
+const PACKETA_API_KEY = 'YOUR_PACKETA_API_KEY';
+let packetaPoint = null;
 
 /* ─── STATE ─────────────────────────────────── */
 let currentProduct = {
@@ -687,6 +711,48 @@ function updateShippingCost(radio) {
     if (row) row.style.display = 'flex';
     if (costEl) costEl.textContent = totals.freeShip ? 'FREE' : fmt(totals.ship);
     if (totalEl) totalEl.textContent = fmt(totals.total);
+}
+
+function handleShippingChange(radio) {
+    updateShippingCost(radio);
+    const picker = document.getElementById('packeta-picker');
+    if (!picker) return;
+    const isZasilkovna = radio.value === 'zasilkovna';
+    picker.style.display = isZasilkovna ? 'block' : 'none';
+    if (!isZasilkovna) {
+        packetaPoint = null;
+        const sel = document.getElementById('packeta-selected');
+        const btn = document.getElementById('packeta-choose-btn');
+        if (sel) sel.style.display = 'none';
+        if (btn) btn.style.display = '';
+    }
+    const errEl = document.getElementById('packeta-error');
+    if (errEl) errEl.style.display = 'none';
+}
+
+function openPacketaWidget() {
+    if (typeof Packeta === 'undefined' || !Packeta.Widget) {
+        showToast(t('packeta_unavailable'), '⚠️');
+        return;
+    }
+    Packeta.Widget.pick(PACKETA_API_KEY, onPacketaSelect, {
+        country: 'cz',
+        language: LANG === 'cs' ? 'cs' : 'en'
+    });
+}
+
+function onPacketaSelect(point) {
+    if (!point) return; // user closed the widget without selecting
+    packetaPoint = { id: point.id, name: point.name, city: point.city, zip: point.zip };
+    const sel     = document.getElementById('packeta-selected');
+    const btn     = document.getElementById('packeta-choose-btn');
+    const nameEl  = document.getElementById('packeta-branch-name');
+    const errEl   = document.getElementById('packeta-error');
+    if (nameEl)  nameEl.textContent  = `${point.name}, ${point.city}`;
+    if (sel)     sel.style.display   = 'flex';
+    if (btn)     btn.style.display   = 'none';
+    if (errEl)   errEl.style.display = 'none';
+    showToast(`📦 ${point.name}`, '✅');
 }
 
 /* ─── PROMO CODES ────────────────────────────── */
@@ -1208,6 +1274,12 @@ function validateCheckout(form) {
     });
     const ship = form.querySelector('input[name="shipping"]:checked');
     if (!ship) { ok = false; showToast(t('toast_select_shipping'), '🚚'); }
+    if (ship && ship.value === 'zasilkovna' && !packetaPoint) {
+        const errEl = document.getElementById('packeta-error');
+        if (errEl) { errEl.textContent = t('packeta_required'); errEl.style.display = 'block'; }
+        if (!firstInvalid) firstInvalid = document.getElementById('packeta-choose-btn');
+        ok = false;
+    }
     if (firstInvalid) firstInvalid.focus();
     return ok;
 }
@@ -1228,11 +1300,12 @@ function submitOrder(e) {
         num:      orderNum,
         date:     new Date().toLocaleDateString('cs-CZ'),
         items:    cart.map(i => ({ name: i.name, ingredients: [...i.ingredients], colors: [...i.colors], weight: i.weight, priceBase: i.priceBase, qty: i.qty })),
-        goods:    totals.goods,
-        discount: totals.discount,
-        promo:    appliedPromo ? appliedPromo.code : null,
-        shipping: totals.ship,
-        total:    totals.total
+        goods:       totals.goods,
+        discount:    totals.discount,
+        promo:       appliedPromo ? appliedPromo.code : null,
+        shipping:    totals.ship,
+        total:       totals.total,
+        packetaPoint: packetaPoint ? `${packetaPoint.name}, ${packetaPoint.city}` : null
     };
     orders.unshift(order);
     if (orders.length > 50) orders.pop();
@@ -1243,6 +1316,7 @@ function submitOrder(e) {
 
     cart = [];
     appliedPromo = null;
+    packetaPoint  = null;
     saveCart();
     savePromo();
     updateCartBadge();

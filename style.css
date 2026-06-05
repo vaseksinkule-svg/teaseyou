@@ -2635,3 +2635,51 @@ body.dark .brew-step-icon { background: var(--color-surface); }
     .promo-row { flex-direction: column; }
     .order-card-foot { justify-content: space-between; gap: 10px; }
 }
+
+/* =============================================
+   PACKETA / ZÁSILKOVNA WIDGET PICKER
+   ============================================= */
+.packeta-picker {
+    margin: 12px 0 4px 36px;
+    padding: 14px 16px;
+    background: var(--color-accent-pale);
+    border: 1px solid rgba(58,95,60,0.18);
+    border-radius: var(--radius-sm);
+    transition: var(--transition-fast);
+}
+.packeta-choose-btn {
+    width: 100%;
+    font-size: 14px;
+    padding: 12px 20px;
+}
+.packeta-selected {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.packeta-selected svg { color: var(--color-accent); flex-shrink: 0; }
+.packeta-branch-name {
+    flex: 1;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-ink);
+}
+.packeta-change-btn {
+    background: none;
+    border: 1.5px solid var(--color-accent);
+    color: var(--color-accent);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+.packeta-change-btn:hover { background: rgba(58,95,60,0.08); }
+.packeta-error { margin-top: 8px; display: block; }
+
+body.dark .packeta-picker { background: rgba(58,95,60,0.12); border-color: rgba(135,171,104,0.2); }
+body.dark .packeta-change-btn { border-color: var(--color-accent-soft); color: var(--color-accent-soft); }

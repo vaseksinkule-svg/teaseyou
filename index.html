@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tease you — Build your perfect tea blend</title>
-    <meta name="description" content="Create your own custom tea blend from 6 premium bases, 9 flavors and 9 extras. Named, packed and shipped fresh to your door.">
-    <meta property="og:title" content="Tease you — Build your perfect blend">
-    <meta property="og:description" content="Mix, name and order your own unique tea blend. 500+ combinations, shipped fresh.">
+    <title>Tease you — Namíchej si vlastní čajový blend</title>
+    <meta name="description" content="Namíchej si vlastní čaj ze 6 základů, 9 příchutí a 9 doplňků. Pojmenuj ho, my ho čerstvě zabalíme a doručíme. Doprava zdarma nad 500 Kč.">
+    <meta property="og:title" content="Tease you — Namíchej si vlastní čajový blend">
+    <meta property="og:description" content="Namíchej si vlastní čaj, pojmenuj ho a my ho odešleme čerstvě zabalený. 500+ kombinací, doprava od 69 Kč.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://teaseyou.cz">
     <meta property="og:image" content="https://teaseyou.cz/og-image.jpg">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Tease you — Build your perfect blend">
-    <meta name="twitter:description" content="Mix, name and order your own unique tea blend.">
+    <meta name="twitter:title" content="Tease you — Namíchej si vlastní blend">
+    <meta name="twitter:description" content="Vlastní čajová směs, pojmenovaná a odeslaná čerstvě.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://teaseyou.cz">
     <meta name="theme-color" content="#3d5a3e">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -624,9 +626,18 @@
                 </div>
                 <div class="form-section-label" style="margin-top:32px;" data-i18n="checkout_shipping">Shipping method</div>
                 <div class="shipping-options">
-                    <label class="shipping-option"><input type="radio" name="shipping" value="post" data-price="89" required onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4EE; &Ccaron;esk&aacute; po&scaron;ta</span><span class="shipping-price">89 Kč</span></div><span class="shipping-desc" data-i18n="ship_post_desc">Delivery in 3&ndash;5 business days</span></label>
-                    <label class="shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="69" onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4E6; Z&aacute;silkovna</span><span class="shipping-price">69 Kč</span></div><span class="shipping-desc" data-i18n="ship_zasilkovna_desc">Pick up at your nearest location</span></label>
-                    <label class="shipping-option"><input type="radio" name="shipping" value="dpd" data-price="119" onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F69A; DPD Courier</span><span class="shipping-price">119 Kč</span></div><span class="shipping-desc" data-i18n="ship_dpd_desc">Next business day delivery</span></label>
+                    <label class="shipping-option"><input type="radio" name="shipping" value="post" data-price="89" required onchange="handleShippingChange(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4EE; &Ccaron;esk&aacute; po&scaron;ta</span><span class="shipping-price">89 Kč</span></div><span class="shipping-desc" data-i18n="ship_post_desc">Delivery in 3&ndash;5 business days</span></label>
+                    <label class="shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="69" onchange="handleShippingChange(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4E6; Z&aacute;silkovna</span><span class="shipping-price">69 Kč</span></div><span class="shipping-desc" data-i18n="ship_zasilkovna_desc">Pick up at your nearest location</span></label>
+                    <div id="packeta-picker" class="packeta-picker" style="display:none;" aria-live="polite">
+                        <button type="button" id="packeta-choose-btn" class="btn btn-secondary packeta-choose-btn" onclick="openPacketaWidget()" data-i18n="packeta_choose">Choose pickup point</button>
+                        <div id="packeta-selected" class="packeta-selected" style="display:none;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span id="packeta-branch-name" class="packeta-branch-name">—</span>
+                            <button type="button" onclick="openPacketaWidget()" class="packeta-change-btn" data-i18n="packeta_change">Change branch</button>
+                        </div>
+                        <span id="packeta-error" class="field-error" style="display:none;" data-i18n="packeta_required">Please choose a pickup point</span>
+                    </div>
+                    <label class="shipping-option"><input type="radio" name="shipping" value="dpd" data-price="119" onchange="handleShippingChange(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F69A; DPD Courier</span><span class="shipping-price">119 Kč</span></div><span class="shipping-desc" data-i18n="ship_dpd_desc">Next business day delivery</span></label>
                 </div>
                 <div class="form-section-label" style="margin-top:32px;"><span data-i18n="checkout_note">Note</span> <span style="color:var(--color-ink-faint);font-weight:400;" data-i18n="checkout_note_opt">(optional)</span></div>
                 <div class="form-group"><textarea name="note" class="name-input" rows="3" placeholder="Any special requests or gift messages..." data-i18n-placeholder="note_placeholder"></textarea></div>
@@ -760,6 +771,7 @@
 </footer>
 
 <div id="toast" class="toast" aria-live="polite"></div>
+<script src="https://widget.packeta.com/v6/www/js/library.js" defer></script>
 <script src="script.js"></script>
 </body>
 </html>
