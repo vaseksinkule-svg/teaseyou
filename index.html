@@ -16,12 +16,30 @@
     <meta name="theme-color" content="#3d5a3e">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%233a5f3c'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23f5f1e9' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%233a5f3c'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23f5f1e9' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Store",
+        "name": "Tease you",
+        "description": "Namíchej si vlastní čajovou směs ze 6 základů, 9 příchutí a 9 doplňků. Pojmenuj ji, my ji čerstvě zabalíme a pošleme.",
+        "url": "https://teaseyou.cz",
+        "image": "https://teaseyou.cz/og-image.jpg",
+        "email": "hello@teaseyou.cz",
+        "telephone": "+420123456789",
+        "priceRange": "49–199 Kč",
+        "currenciesAccepted": "CZK",
+        "address": { "@type": "PostalAddress", "addressCountry": "CZ" },
+        "areaServed": ["CZ", "SK"]
+    }
+    </script>
 </head>
 <body>
 
 <!-- PROMO BAR -->
 <div id="promo-bar" class="promo-bar">
-    🍵 Free shipping on orders over $15 · Use code <strong>FIRSTBLEND</strong> for 10% off your first order
+    🍵 Free shipping on orders over 500 Kč · Use code <strong>FIRSTBLEND</strong> for 10% off your first order
     <button class="promo-close" onclick="this.closest('#promo-bar').style.display='none'" aria-label="Close">×</button>
 </div>
 
@@ -53,6 +71,7 @@
         <li onclick="closeSidebar(); showPage('home-page')">Home</li>
         <li onclick="closeSidebar(); showPage('product-page')">Create your own</li>
         <li onclick="closeSidebar(); showPage('saved-page')">My Blends</li>
+        <li onclick="closeSidebar(); showPage('orders-page')">My Orders</li>
         <li onclick="closeSidebar(); showPage('about-page')">About</li>
         <li onclick="closeSidebar(); showPage('cart-page')">Cart</li>
     </ul>
@@ -161,41 +180,41 @@
     <div class="ready-made-section reveal-section">
         <h2 class="font-cosmico section-subtitle">Signature Blends</h2>
         <div class="ready-grid">
-            <div class="ready-card" onclick="openDetail('Zen Master','Fresh green tea base infused with cooling peppermint and a bright zesty lemon finish.',3.50,['Green Tea','Mint','Lemon'],['#8da676','#4caf50','#ffe066'])">
+            <div class="ready-card" onclick="openDetail('Zen Master','Fresh green tea base infused with cooling peppermint and a bright zesty lemon finish.',89,['Green Tea','Mint','Lemon'],['#8da676','#4caf50','#ffe066'])">
                 <div class="ready-glass-mini"><div style="background:#ffe066"></div><div style="background:#4caf50"></div><div style="background:#8da676"></div></div>
                 <h3 class="font-cosmico">Zen Master</h3>
                 <p class="font-chaos">Green tea, Mint &amp; Lemon</p>
-                <span class="ready-price">from $1.99</span>
+                <span class="ready-price">od 49 Kč</span>
             </div>
-            <div class="ready-card" onclick="openDetail('Berry Blast','A delicate white tea base combined with sun-ripened strawberries and natural honey.',3.50,['White Tea','Strawberry','Honey'],['#f5e6d3','#cc4747','#ffc107'])">
+            <div class="ready-card" onclick="openDetail('Berry Blast','A delicate white tea base combined with sun-ripened strawberries and natural honey.',89,['White Tea','Strawberry','Honey'],['#f5e6d3','#cc4747','#ffc107'])">
                 <div class="ready-glass-mini"><div style="background:#ffc107"></div><div style="background:#cc4747"></div><div style="background:#f5e6d3"></div></div>
                 <h3 class="font-cosmico">Berry Blast</h3>
                 <p class="font-chaos">White tea, Strawberry &amp; Honey</p>
-                <span class="ready-price">from $1.99</span>
+                <span class="ready-price">od 49 Kč</span>
             </div>
-            <div class="ready-card" onclick="openDetail('Ginger Soul','Strong black tea with warming ginger pieces and smooth vanilla.',3.50,['Black Tea','Ginger','Vanilla'],['#4a3b32','#ff9800','#f3e5ab'])">
+            <div class="ready-card" onclick="openDetail('Ginger Soul','Strong black tea with warming ginger pieces and smooth vanilla.',89,['Black Tea','Ginger','Vanilla'],['#4a3b32','#ff9800','#f3e5ab'])">
                 <div class="ready-glass-mini"><div style="background:#f3e5ab"></div><div style="background:#ff9800"></div><div style="background:#4a3b32"></div></div>
                 <h3 class="font-cosmico">Ginger Soul</h3>
                 <p class="font-chaos">Black tea, Ginger &amp; Vanilla</p>
-                <span class="ready-price">from $1.99</span>
+                <span class="ready-price">od 49 Kč</span>
             </div>
-            <div class="ready-card" onclick="openDetail('Midnight Rose','Elegant oolong tea with dried rose petals and a hint of lavender.',3.50,['Oolong Tea','Rose','Lavender'],['#c8a0b4','#e8607a','#b8a0cc'])">
+            <div class="ready-card" onclick="openDetail('Midnight Rose','Elegant oolong tea with dried rose petals and a hint of lavender.',89,['Oolong Tea','Rose','Lavender'],['#c8a0b4','#e8607a','#b8a0cc'])">
                 <div class="ready-glass-mini"><div style="background:#b8a0cc"></div><div style="background:#e8607a"></div><div style="background:#c8a0b4"></div></div>
                 <h3 class="font-cosmico">Midnight Rose</h3>
                 <p class="font-chaos">Oolong, Rose &amp; Lavender</p>
-                <span class="ready-price">from $1.99</span>
+                <span class="ready-price">od 49 Kč</span>
             </div>
-            <div class="ready-card" onclick="openDetail('Citrus Storm','Vibrant rooibos base bursting with orange zest and a cooling spearmint finish.',3.50,['Rooibos','Orange','Spearmint'],['#e8720c','#ffb347','#a8d8a8'])">
+            <div class="ready-card" onclick="openDetail('Citrus Storm','Vibrant rooibos base bursting with orange zest and a cooling spearmint finish.',89,['Rooibos','Orange','Spearmint'],['#e8720c','#ffb347','#a8d8a8'])">
                 <div class="ready-glass-mini"><div style="background:#a8d8a8"></div><div style="background:#ffb347"></div><div style="background:#e8720c"></div></div>
                 <h3 class="font-cosmico">Citrus Storm</h3>
                 <p class="font-chaos">Rooibos, Orange &amp; Spearmint</p>
-                <span class="ready-price">from $1.99</span>
+                <span class="ready-price">od 49 Kč</span>
             </div>
-            <div class="ready-card" onclick="openDetail('Golden Calm','Smooth chamomile with warming turmeric and a touch of cinnamon spice.',3.50,['Chamomile','Turmeric','Cinnamon'],['#f5d78e','#d4a017','#c8824a'])">
+            <div class="ready-card" onclick="openDetail('Golden Calm','Smooth chamomile with warming turmeric and a touch of cinnamon spice.',89,['Chamomile','Turmeric','Cinnamon'],['#f5d78e','#d4a017','#c8824a'])">
                 <div class="ready-glass-mini"><div style="background:#c8824a"></div><div style="background:#d4a017"></div><div style="background:#f5d78e"></div></div>
                 <h3 class="font-cosmico">Golden Calm</h3>
                 <p class="font-chaos">Chamomile, Turmeric &amp; Cinnamon</p>
-                <span class="ready-price">from $1.99</span>
+                <span class="ready-price">od 49 Kč</span>
             </div>
         </div>
     </div>
@@ -340,9 +359,9 @@
             <div class="detail-divider"></div>
             <p class="form-section-label">Select weight</p>
             <div class="qty-options">
-                <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">$1.99</span></button>
-                <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">$3.50</span></button>
-                <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">$7.50</span></button>
+                <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">49 Kč</span></button>
+                <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">89 Kč</span></button>
+                <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">199 Kč</span></button>
             </div>
             <div class="detail-actions">
                 <button id="detail-add-btn" class="btn disabled" onclick="confirmOrder()" disabled>Add to Cart</button>
@@ -479,9 +498,9 @@
             <div class="summary-divider-line"></div>
             <p class="summary-label">Choose weight to order</p>
             <div class="qty-options">
-                <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">$1.99</span></button>
-                <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">$3.50</span></button>
-                <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">$7.50</span></button>
+                <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">49 Kč</span></button>
+                <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">89 Kč</span></button>
+                <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">199 Kč</span></button>
             </div>
             <div class="summary-actions">
                 <button id="summary-order-btn" class="btn disabled" onclick="confirmOrder()" disabled>Add to Cart</button>
@@ -511,6 +530,18 @@
     </div>
 </section>
 
+<!-- ═══ ORDER HISTORY ═══ -->
+<section id="orders-page" class="page">
+    <h2 class="logo section-title cart-title">My Orders</h2>
+    <div class="saved-container">
+        <div id="orders-list"></div>
+        <div id="orders-empty" class="cart-empty">
+            <p class="font-chaos">No orders yet.</p>
+            <button class="btn btn-secondary" style="margin-top:20px" onclick="showPage('product-page')">Create your first blend</button>
+        </div>
+    </div>
+</section>
+
 <!-- ═══ CART ═══ -->
 <section id="cart-page" class="page">
     <h2 class="logo section-title cart-title">Your Cart</h2>
@@ -521,11 +552,31 @@
             <p class="font-chaos">Your cart is empty.</p>
             <button class="btn btn-secondary" style="margin-top:20px" onclick="showPage('home-page')">Start shopping</button>
         </div>
+        <div id="cart-freeship" class="cart-freeship" style="display:none;">
+            <p id="cart-freeship-text" class="cart-freeship-text"></p>
+            <div class="cart-freeship-track"><div id="cart-freeship-fill" class="cart-freeship-fill"></div></div>
+        </div>
         <div class="cart-footer">
             <button class="clear-btn" onclick="showPage('home-page')" style="text-decoration:none;">&#8592; Continue shopping</button>
             <div class="cart-total-box">
+                <div class="promo-box">
+                    <label class="form-label" for="promo-input">Discount code</label>
+                    <div class="promo-row">
+                        <input type="text" id="promo-input" class="name-input" placeholder="FIRSTBLEND" autocomplete="off"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();applyPromo();}">
+                        <button class="btn btn-secondary promo-apply" type="button" onclick="applyPromo()">Apply</button>
+                    </div>
+                    <p id="promo-feedback" class="promo-feedback"></p>
+                </div>
+                <div class="cart-totals-lines">
+                    <div class="cart-line"><span>Subtotal</span><span id="cart-subtotal">0 Kč</span></div>
+                    <div class="cart-line cart-line-discount" id="cart-discount-line" style="display:none;">
+                        <span>Discount <span id="cart-discount-code"></span> <button class="promo-remove" type="button" onclick="removePromo()" aria-label="Remove code">&#x2715;</button></span>
+                        <span id="cart-discount-amount">0 Kč</span>
+                    </div>
+                </div>
                 <p id="cart-shipping-line" class="cart-shipping-line">+ Shipping: calculated at checkout</p>
-                <h3 id="cart-final-total" class="font-cosmico cart-total-text">Total: $0.00</h3>
+                <h3 id="cart-final-total" class="font-cosmico cart-total-text">Total: 0 Kč</h3>
                 <button class="btn" onclick="showPage('checkout-page')">Proceed to Checkout</button>
             </div>
         </div>
@@ -541,11 +592,11 @@
             <div id="checkout-items-summary"></div>
             <div class="checkout-shipping-row" id="checkout-shipping-row" style="display:none;">
                 <span>Shipping</span>
-                <span id="checkout-shipping-cost">$0.00</span>
+                <span id="checkout-shipping-cost">0 Kč</span>
             </div>
             <div class="checkout-summary-total">
                 <span class="font-cosmico">Total</span>
-                <span id="checkout-total-display" class="font-cosmico checkout-total-num">$0.00</span>
+                <span id="checkout-total-display" class="font-cosmico checkout-total-num">0 Kč</span>
             </div>
         </div>
         <div class="checkout-form-col">
@@ -573,9 +624,9 @@
                 </div>
                 <div class="form-section-label" style="margin-top:32px;">Shipping method</div>
                 <div class="shipping-options">
-                    <label class="shipping-option"><input type="radio" name="shipping" value="post" data-price="2.50" required onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4EE; &Ccaron;esk&aacute; po&scaron;ta</span><span class="shipping-price">$2.50</span></div><span class="shipping-desc">Delivery in 3&ndash;5 business days</span></label>
-                    <label class="shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="1.80" onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4E6; Z&aacute;silkovna</span><span class="shipping-price">$1.80</span></div><span class="shipping-desc">Pick up at your nearest location</span></label>
-                    <label class="shipping-option"><input type="radio" name="shipping" value="dpd" data-price="3.50" onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F69A; DPD Courier</span><span class="shipping-price">$3.50</span></div><span class="shipping-desc">Next business day delivery</span></label>
+                    <label class="shipping-option"><input type="radio" name="shipping" value="post" data-price="89" required onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4EE; &Ccaron;esk&aacute; po&scaron;ta</span><span class="shipping-price">89 Kč</span></div><span class="shipping-desc">Delivery in 3&ndash;5 business days</span></label>
+                    <label class="shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="69" onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4E6; Z&aacute;silkovna</span><span class="shipping-price">69 Kč</span></div><span class="shipping-desc">Pick up at your nearest location</span></label>
+                    <label class="shipping-option"><input type="radio" name="shipping" value="dpd" data-price="119" onchange="updateShippingCost(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F69A; DPD Courier</span><span class="shipping-price">119 Kč</span></div><span class="shipping-desc">Next business day delivery</span></label>
                 </div>
                 <div class="form-section-label" style="margin-top:32px;">Note <span style="color:var(--color-ink-faint);font-weight:400;">(optional)</span></div>
                 <div class="form-group"><textarea name="note" class="name-input" rows="3" placeholder="Any special requests or gift messages..."></textarea></div>
@@ -647,9 +698,9 @@
     <div class="modal-content">
         <h2 class="font-cosmico modal-title">Select Quantity</h2>
         <div class="qty-options qty-options--center">
-            <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">$1.99</span></button>
-            <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">$3.50</span></button>
-            <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">$7.50</span></button>
+            <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">49 Kč</span></button>
+            <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">89 Kč</span></button>
+            <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">199 Kč</span></button>
         </div>
         <button id="final-order-btn" class="btn disabled" onclick="confirmOrder()" disabled>Confirm</button>
         <button onclick="closeOrderModal()" class="clear-btn modal-cancel">Cancel</button>
@@ -673,6 +724,7 @@
                 <li><a onclick="showPage('home-page')">Home</a></li>
                 <li><a onclick="showPage('product-page')">Create your own</a></li>
                 <li><a onclick="showPage('saved-page')">My Blends</a></li>
+                <li><a onclick="showPage('orders-page')">My Orders</a></li>
                 <li><a onclick="showPage('about-page')">About</a></li>
                 <li><a onclick="showPage('cart-page')">Cart</a></li>
             </ul>
