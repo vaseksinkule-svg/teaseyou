@@ -10,9 +10,31 @@ let currentProduct = {
     priceBase: 0,
     weight: ''
 };
-let cart = [];
-let cartIdCounter = 0;
+let cart = JSON.parse(localStorage.getItem('teaseyou_cart') || '[]');
+let cartIdCounter = cart.reduce((m, i) => Math.max(m, i.id || 0), 0);
 let savedBlends = JSON.parse(localStorage.getItem('teaseyou_saved') || '[]');
+let orders = JSON.parse(localStorage.getItem('teaseyou_orders') || '[]');
+
+/* ─── PRICING & CURRENCY (CZK) ───────────────── */
+const PRICES = { 50: 49, 100: 89, 250: 199 };  // weight(g) → price (Kč)
+const FREE_SHIP_THRESHOLD = 500;                // Kč
+const PROMOS = { FIRSTBLEND: { rate: 0.10, label: '-10%' } };
+
+let appliedPromo = JSON.parse(localStorage.getItem('teaseyou_promo') || 'null');
+
+function fmt(n) { return Math.round(n) + ' Kč'; }
+function saveCart()  { localStorage.setItem('teaseyou_cart', JSON.stringify(cart)); }
+function savePromo() { localStorage.setItem('teaseyou_promo', JSON.stringify(appliedPromo)); }
+
+function cartGoods() { return cart.reduce((s, i) => s + i.priceBase * i.qty, 0); }
+function computeTotals(shipping = 0) {
+    const goods    = cartGoods();
+    const discount = appliedPromo ? goods * appliedPromo.rate : 0;
+    const afterDiscount = goods - discount;
+    const freeShip = goods >= FREE_SHIP_THRESHOLD;
+    const ship     = freeShip ? 0 : shipping;
+    return { goods, discount, afterDiscount, freeShip, ship, total: afterDiscount + ship };
+}
 
 /* ─── BREW PARAMS per base ───────────────────── */
 const BREW = {
@@ -118,6 +140,7 @@ function showPage(pageId) {
     if (pageId === 'cart-page')     renderCart();
     if (pageId === 'checkout-page') renderCheckoutSummary();
     if (pageId === 'saved-page')    renderSavedBlends();
+    if (pageId === 'orders-page')   renderOrders();
     if (pageId === 'home-page')     setTimeout(initReveal, 50);
     if (pageId === 'quiz-page')     setTimeout(startQuiz, 0);
 }
@@ -170,7 +193,7 @@ function selectQty(amount, e) {
     container.querySelectorAll('.qty-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     currentProduct.weight    = amount + 'g';
-    currentProduct.priceBase = amount === 50 ? 1.99 : (amount === 100 ? 3.50 : 7.50);
+    currentProduct.priceBase = PRICES[amount] || PRICES[100];
     ['detail-add-btn','final-order-btn','summary-order-btn'].forEach(id => {
         const b = document.getElementById(id);
         if (b) { b.disabled = false; b.classList.remove('disabled'); }
@@ -180,13 +203,67 @@ function selectQty(amount, e) {
 /* ─── SHIPPING COST ──────────────────────────── */
 function updateShippingCost(radio) {
     const cost = parseFloat(radio.getAttribute('data-price')) || 0;
+    const t = computeTotals(cost);
     const row = document.getElementById('checkout-shipping-row');
     const costEl = document.getElementById('checkout-shipping-cost');
     const totalEl = document.getElementById('checkout-total-display');
     if (row) row.style.display = 'flex';
-    if (costEl) costEl.textContent = '$' + cost.toFixed(2);
-    const goods = cart.reduce((s, i) => s + i.priceBase * i.qty, 0);
-    if (totalEl) totalEl.textContent = '$' + (goods + cost).toFixed(2);
+    if (costEl) costEl.textContent = t.freeShip ? 'FREE' : fmt(t.ship);
+    if (totalEl) totalEl.textContent = fmt(t.total);
+}
+
+/* ─── PROMO CODES ────────────────────────────── */
+function setPromoFeedback(msg, ok) {
+    const fb = document.getElementById('promo-feedback');
+    if (!fb) return;
+    fb.textContent = msg;
+    fb.classList.toggle('ok', !!ok);
+    fb.classList.toggle('err', !ok && !!msg);
+}
+function applyPromo() {
+    const input = document.getElementById('promo-input');
+    const code  = (input?.value || '').trim().toUpperCase();
+    if (!code) { setPromoFeedback('', false); return; }
+    if (cart.length === 0) { setPromoFeedback('Add something to your cart first.', false); return; }
+    const promo = PROMOS[code];
+    if (!promo) {
+        appliedPromo = null;
+        setPromoFeedback('Invalid code.', false);
+    } else {
+        appliedPromo = { code, rate: promo.rate, label: promo.label };
+        setPromoFeedback(`Code applied — ${promo.label} 🎉`, true);
+        showToast(`Discount code "${code}" applied!`, '🏷️');
+    }
+    savePromo();
+    renderCart();
+}
+function removePromo() {
+    appliedPromo = null;
+    savePromo();
+    setPromoFeedback('', false);
+    const input = document.getElementById('promo-input');
+    if (input) input.value = '';
+    renderCart();
+}
+
+/* ─── FREE SHIPPING PROGRESS ─────────────────── */
+function renderFreeShip() {
+    const wrap = document.getElementById('cart-freeship');
+    if (!wrap) return;
+    if (cart.length === 0) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    const goods = cartGoods();
+    const fill  = document.getElementById('cart-freeship-fill');
+    const text  = document.getElementById('cart-freeship-text');
+    const pct   = Math.min(100, Math.round(goods / FREE_SHIP_THRESHOLD * 100));
+    if (fill) fill.style.width = pct + '%';
+    if (goods >= FREE_SHIP_THRESHOLD) {
+        if (text) text.innerHTML = '🎉 You\'ve unlocked <strong>free shipping</strong>!';
+        wrap.classList.add('unlocked');
+    } else {
+        if (text) text.innerHTML = `Add <strong>${fmt(FREE_SHIP_THRESHOLD - goods)}</strong> more for free shipping`;
+        wrap.classList.remove('unlocked');
+    }
 }
 
 /* ─── CUSTOMIZE FROM READY-MADE ──────────────── */
@@ -444,19 +521,26 @@ document.getElementById('order-modal').addEventListener('click', function(e) {
 /* ─── CONFIRM ORDER → CART ───────────────────── */
 function confirmOrder() {
     closeOrderModal();
-    const item = {
-        id:          ++cartIdCounter,
-        name:        currentProduct.name,
-        ingredients: [...currentProduct.ingredients],
-        colors:      [...currentProduct.colors],
-        weight:      currentProduct.weight,
-        priceBase:   currentProduct.priceBase,
-        qty:         1
-    };
-    cart.push(item);
+    // Merge with an identical line if one already exists
+    const sig = JSON.stringify([currentProduct.name, currentProduct.ingredients, currentProduct.weight, currentProduct.priceBase]);
+    const existing = cart.find(i => JSON.stringify([i.name, i.ingredients, i.weight, i.priceBase]) === sig);
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        cart.push({
+            id:          ++cartIdCounter,
+            name:        currentProduct.name,
+            ingredients: [...currentProduct.ingredients],
+            colors:      [...currentProduct.colors],
+            weight:      currentProduct.weight,
+            priceBase:   currentProduct.priceBase,
+            qty:         1
+        });
+    }
+    saveCart();
     updateCartBadge();
     renderCart();
-    showToast(`${item.name} added to cart!`, '🍵');
+    showToast(`${currentProduct.name} added to cart!`, '🍵');
     showPage('cart-page');
 }
 
@@ -481,7 +565,13 @@ function renderCart() {
     list.innerHTML = '';
     if (cart.length === 0) {
         empty.style.display = 'flex';
-        document.getElementById('cart-final-total').innerText = 'Total: $0.00';
+        document.getElementById('cart-final-total').innerText = 'Total: 0 Kč';
+        const sub = document.getElementById('cart-subtotal');
+        if (sub) sub.textContent = '0 Kč';
+        const dl = document.getElementById('cart-discount-line');
+        if (dl) dl.style.display = 'none';
+        const fs = document.getElementById('cart-freeship');
+        if (fs) fs.style.display = 'none';
         return;
     }
     empty.style.display = 'none';
@@ -501,13 +591,13 @@ function renderCart() {
                     <span class="cart-item-weight">${escHtml(item.weight)}</span>
                 </div>
             </div>
-            <div class="cart-price">$${item.priceBase.toFixed(2)}</div>
+            <div class="cart-price">${fmt(item.priceBase)}</div>
             <div class="cart-qty">
                 <input type="number" value="${item.qty}" min="1" class="name-input cart-qty-input"
                     onchange="updateItemQty(${item.id}, this.value)">
             </div>
             <div class="cart-subtotal">
-                <b>$${(item.priceBase * item.qty).toFixed(2)}</b>
+                <b>${fmt(item.priceBase * item.qty)}</b>
                 <button onclick="removeCartItem(${item.id})" class="cart-remove-btn" title="Remove">\u2715</button>
             </div>
         `;
@@ -521,17 +611,42 @@ function updateItemQty(id, value) {
     const item = cart.find(i => i.id === id);
     if (!item) return;
     item.qty = qty;
+    saveCart();
     renderCart();
     updateCartBadge();
 }
 function removeCartItem(id) {
     cart = cart.filter(i => i.id !== id);
+    if (cart.length === 0 && appliedPromo) { appliedPromo = null; savePromo(); }
+    saveCart();
     renderCart();
     updateCartBadge();
 }
 function updateCartTotal() {
-    const total = cart.reduce((s, i) => s + i.priceBase * i.qty, 0);
-    document.getElementById('cart-final-total').innerText = `Total: $${total.toFixed(2)}`;
+    const t = computeTotals(0);
+    const sub = document.getElementById('cart-subtotal');
+    if (sub) sub.textContent = fmt(t.goods);
+
+    const dl = document.getElementById('cart-discount-line');
+    if (dl) {
+        if (appliedPromo && t.discount > 0) {
+            dl.style.display = 'flex';
+            document.getElementById('cart-discount-code').textContent = '(' + appliedPromo.code + ')';
+            document.getElementById('cart-discount-amount').textContent = '-' + fmt(t.discount);
+        } else {
+            dl.style.display = 'none';
+        }
+    }
+    // Keep the promo input in sync with stored state
+    const promoInput = document.getElementById('promo-input');
+    if (promoInput && appliedPromo && !promoInput.value) promoInput.value = appliedPromo.code;
+    if (appliedPromo) setPromoFeedback(`Code applied — ${appliedPromo.label || '-' + Math.round(appliedPromo.rate*100) + '%'} 🎉`, true);
+
+    const shipLine = document.getElementById('cart-shipping-line');
+    if (shipLine) shipLine.textContent = t.freeShip ? '+ Shipping: FREE' : '+ Shipping: calculated at checkout';
+
+    document.getElementById('cart-final-total').innerText = `Total: ${fmt(t.total)}`;
+    renderFreeShip();
 }
 
 /* ─── CHECKOUT SUMMARY ───────────────────────── */
@@ -553,26 +668,143 @@ function renderCheckoutSummary() {
                     <p class="checkout-item-meta">${escHtml(item.weight)} · qty ${item.qty}</p>
                 </div>
             </div>
-            <span class="checkout-item-price">$${(item.priceBase * item.qty).toFixed(2)}</span>
+            <span class="checkout-item-price">${fmt(item.priceBase * item.qty)}</span>
         `;
         el.appendChild(row);
     });
-    const total = cart.reduce((s, i) => s + i.priceBase * i.qty, 0);
-    document.getElementById('checkout-total-display').textContent = `$${total.toFixed(2)}`;
+
+    const t = computeTotals(0);
+
+    // Discount line (insert/update before the total)
+    let discRow = document.getElementById('checkout-discount-row');
+    if (appliedPromo && t.discount > 0) {
+        if (!discRow) {
+            discRow = document.createElement('div');
+            discRow.id = 'checkout-discount-row';
+            discRow.className = 'checkout-shipping-row checkout-discount-row';
+            el.parentElement.insertBefore(discRow, document.getElementById('checkout-shipping-row'));
+        }
+        discRow.innerHTML = `<span>Discount (${escHtml(appliedPromo.code)})</span><span>-${fmt(t.discount)}</span>`;
+        discRow.style.display = 'flex';
+    } else if (discRow) {
+        discRow.style.display = 'none';
+    }
+
+    document.getElementById('checkout-total-display').textContent = fmt(t.total);
     // Reset shipping row
     const row = document.getElementById('checkout-shipping-row');
     if (row) row.style.display = 'none';
 }
 
+/* ─── CHECKOUT VALIDATION ────────────────────── */
+function setFieldError(field, msg) {
+    const group = field.closest('.form-group') || field.parentElement;
+    let err = group.querySelector('.field-error');
+    if (!err) {
+        err = document.createElement('span');
+        err.className = 'field-error';
+        group.appendChild(err);
+    }
+    err.textContent = msg || '';
+    field.classList.toggle('input-error', !!msg);
+    field.setAttribute('aria-invalid', msg ? 'true' : 'false');
+}
+function validateCheckout(form) {
+    let ok = true;
+    let firstInvalid = null;
+    const checks = [
+        ['firstName', v => v.trim().length >= 2,                      'Enter your first name'],
+        ['lastName',  v => v.trim().length >= 2,                      'Enter your last name'],
+        ['email',     v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()), 'Enter a valid email address'],
+        ['phone',     v => /^\+?[\d][\d\s]{7,14}$/.test(v.trim()),    'Enter a valid phone number'],
+        ['street',    v => v.trim().length >= 3,                      'Enter your street and number'],
+        ['city',      v => v.trim().length >= 2,                      'Enter your city'],
+        ['zip',       v => /^\d{3}\s?\d{2}$/.test(v.trim()),          'ZIP must be 5 digits (e.g. 110 00)'],
+        ['country',   v => !!v,                                        'Please select a country'],
+    ];
+    checks.forEach(([name, test, msg]) => {
+        const field = form.elements[name];
+        if (!field) return;
+        const valid = test(field.value);
+        setFieldError(field, valid ? '' : msg);
+        if (!valid) { ok = false; if (!firstInvalid) firstInvalid = field; }
+    });
+    const ship = form.querySelector('input[name="shipping"]:checked');
+    if (!ship) { ok = false; showToast('Please select a shipping method', '🚚'); }
+    if (firstInvalid) firstInvalid.focus();
+    return ok;
+}
+
 /* ─── SUBMIT ORDER ───────────────────────────── */
 function submitOrder(e) {
     e.preventDefault();
+    const form = e.target;
+    if (cart.length === 0) { showToast('Your cart is empty', '🛒'); return; }
+    if (!validateCheckout(form)) { showToast('Please check the highlighted fields', '⚠️'); return; }
+
+    const shipRadio = form.querySelector('input[name="shipping"]:checked');
+    const shipPrice = shipRadio ? parseFloat(shipRadio.getAttribute('data-price')) || 0 : 0;
+    const t = computeTotals(shipPrice);
     const orderNum = 'TY-' + Date.now().toString(36).toUpperCase().slice(-6);
+
+    const order = {
+        num:      orderNum,
+        date:     new Date().toLocaleDateString('cs-CZ'),
+        items:    cart.map(i => ({ name: i.name, ingredients: [...i.ingredients], colors: [...i.colors], weight: i.weight, priceBase: i.priceBase, qty: i.qty })),
+        goods:    t.goods,
+        discount: t.discount,
+        promo:    appliedPromo ? appliedPromo.code : null,
+        shipping: t.ship,
+        total:    t.total
+    };
+    orders.unshift(order);
+    if (orders.length > 50) orders.pop();
+    localStorage.setItem('teaseyou_orders', JSON.stringify(orders));
+
     const el = document.getElementById('success-order-num');
     if (el) el.textContent = 'Order #' + orderNum;
+
     cart = [];
+    appliedPromo = null;
+    saveCart();
+    savePromo();
     updateCartBadge();
     showPage('success-page');
+}
+
+/* ─── RENDER ORDER HISTORY ───────────────────── */
+function renderOrders() {
+    const list  = document.getElementById('orders-list');
+    const empty = document.getElementById('orders-empty');
+    if (!list) return;
+    list.innerHTML = '';
+    if (orders.length === 0) { empty.style.display = 'flex'; return; }
+    empty.style.display = 'none';
+
+    orders.forEach(o => {
+        const itemsHtml = o.items.map(it => `
+            <div class="order-item-row">
+                <span>${escHtml(it.name)} <span class="order-item-meta">${escHtml(it.weight)} × ${it.qty}</span></span>
+                <span>${fmt(it.priceBase * it.qty)}</span>
+            </div>`).join('');
+        const card = document.createElement('div');
+        card.className = 'order-card';
+        card.innerHTML = `
+            <div class="order-card-head">
+                <div>
+                    <span class="order-num font-cosmico">Order #${escHtml(o.num)}</span>
+                    <span class="order-date">${escHtml(o.date)}</span>
+                </div>
+                <span class="order-status">Confirmed</span>
+            </div>
+            <div class="order-items">${itemsHtml}</div>
+            <div class="order-card-foot">
+                ${o.discount ? `<span class="order-discount">Discount${o.promo ? ' (' + escHtml(o.promo) + ')' : ''}: -${fmt(o.discount)}</span>` : ''}
+                <span class="order-ship">Shipping: ${o.shipping ? fmt(o.shipping) : 'FREE'}</span>
+                <span class="order-total">Total: ${fmt(o.total)}</span>
+            </div>`;
+        list.appendChild(card);
+    });
 }
 
 /* ─── NEWSLETTER ─────────────────────────────── */
@@ -581,6 +813,29 @@ function subscribeNewsletter(e) {
     e.target.style.display = 'none';
     document.getElementById('newsletter-success').style.display = 'block';
 }
+
+/* ─── ACCESSIBILITY ──────────────────────────── */
+function initA11y() {
+    const selectors = '.ready-card, .nav-logo, .nav-cart-icon, .nav-menu-icon, .sidebar-nav li, .footer-links a[onclick], .back-link';
+    document.querySelectorAll(selectors).forEach(el => {
+        if (!el.hasAttribute('role'))     el.setAttribute('role', 'button');
+        if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+    });
+}
+// Activate role="button" elements with keyboard (Enter / Space)
+document.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') &&
+        e.target.matches('[role="button"]:not(button):not(input):not(textarea):not(select)')) {
+        e.preventDefault();
+        e.target.click();
+    }
+});
+// Clear a field's error message as the user fixes it
+document.addEventListener('input', e => {
+    if (e.target.closest('#checkout-form') && e.target.classList.contains('input-error')) {
+        setFieldError(e.target, '');
+    }
+});
 
 /* ─── INIT ───────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
@@ -591,6 +846,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initReveal();
     initCookieBanner();
     initBackToTop();
+    initA11y();
+    updateCartBadge();   // restore badge from persisted cart
 });
 
 

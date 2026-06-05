@@ -2517,3 +2517,121 @@ body.dark .brew-step-icon { background: var(--color-surface); }
 @media (max-width: 600px) {
     .quiz-strip { flex-direction: column; text-align: center; }
 }
+/* =============================================
+   ESHOP ENHANCEMENTS — promo, free-ship,
+   validation, order history, a11y focus
+   ============================================= */
+
+/* --- Accessible focus ring for keyboard users --- */
+:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+}
+.ready-card:focus-visible,
+.nav-logo:focus-visible,
+.nav-cart-icon:focus-visible,
+.nav-menu-icon:focus-visible { outline-offset: 6px; }
+
+/* --- FREE SHIPPING PROGRESS BAR --- */
+.cart-freeship {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin: 20px 0 8px;
+    box-shadow: var(--shadow-xs);
+}
+.cart-freeship-text { font-size: 14px; color: var(--color-ink-muted); margin-bottom: 10px; }
+.cart-freeship.unlocked .cart-freeship-text { color: var(--color-accent); }
+.cart-freeship-track {
+    height: 8px;
+    background: var(--color-border);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+}
+.cart-freeship-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--color-accent-soft), var(--color-accent));
+    border-radius: var(--radius-pill);
+    transition: width var(--transition-med);
+}
+
+/* --- PROMO CODE BOX --- */
+.promo-box { margin-bottom: 18px; }
+.promo-row { display: flex; gap: 10px; margin-top: 6px; }
+.promo-row .name-input { flex: 1; text-transform: uppercase; letter-spacing: 1px; }
+.promo-apply { white-space: nowrap; padding: 12px 22px; }
+.promo-feedback { font-size: 13px; margin-top: 8px; min-height: 18px; }
+.promo-feedback.ok  { color: var(--color-accent); }
+.promo-feedback.err { color: #c0392b; }
+.promo-remove {
+    background: none; border: none; cursor: pointer;
+    color: var(--color-ink-faint); font-size: 12px; padding: 0 0 0 4px;
+}
+.promo-remove:hover { color: #c0392b; }
+
+/* --- CART TOTAL LINES --- */
+.cart-totals-lines { margin-bottom: 4px; }
+.cart-line {
+    display: flex; justify-content: space-between;
+    font-size: 14px; color: var(--color-ink-muted); padding: 4px 0;
+}
+.cart-line-discount { color: var(--color-accent); font-weight: 700; }
+.checkout-discount-row { color: var(--color-accent); font-weight: 700; }
+
+/* --- FORM VALIDATION --- */
+.field-error {
+    display: block;
+    font-size: 12.5px;
+    color: #c0392b;
+    margin-top: 6px;
+}
+.name-input.input-error,
+.select-input.input-error {
+    border-color: #c0392b !important;
+    background: rgba(192, 57, 43, 0.04);
+}
+
+/* --- ORDER HISTORY --- */
+#orders-list { display: flex; flex-direction: column; gap: 18px; }
+.order-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 22px 24px;
+    box-shadow: var(--shadow-xs);
+}
+.order-card-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 14px; margin-bottom: 14px;
+    border-bottom: 1px solid var(--color-border);
+}
+.order-num { font-size: 17px; display: block; }
+.order-date { font-size: 12.5px; color: var(--color-ink-muted); }
+.order-status {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+    color: var(--color-accent); background: var(--color-accent-pale);
+    padding: 5px 12px; border-radius: var(--radius-pill);
+}
+.order-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.order-item-row {
+    display: flex; justify-content: space-between;
+    font-size: 14px; color: var(--color-ink);
+}
+.order-item-meta { color: var(--color-ink-faint); font-size: 12.5px; }
+.order-card-foot {
+    display: flex; justify-content: flex-end; align-items: center; gap: 18px;
+    flex-wrap: wrap;
+    padding-top: 14px; border-top: 1px solid var(--color-border);
+    font-size: 14px;
+}
+.order-discount { color: var(--color-accent); font-weight: 700; }
+.order-ship { color: var(--color-ink-muted); }
+.order-total { font-weight: 700; font-size: 16px; }
+
+@media (max-width: 600px) {
+    .promo-row { flex-direction: column; }
+    .order-card-foot { justify-content: space-between; gap: 10px; }
+}
