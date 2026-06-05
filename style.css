@@ -2707,4 +2707,107 @@ body.dark .brew-step-icon { background: var(--color-surface); }
 .packeta-error { margin-top: 8px; display: block; }
 
 body.dark .packeta-picker { background: rgba(58,95,60,0.12); border-color: rgba(135,171,104,0.2); }
+
+/* =============================================
+   MOBILE OPTIMISATION
+   ============================================= */
+
+/* --- Scale hero glasses down on stacked layout --- */
+@media (max-width: 860px) {
+    .hero-glasses { gap: 12px; padding: var(--space-sm) var(--space-md); }
+    .hero-glass--a { width: 50px; height: 94px; }
+    .hero-glass--b { width: 60px; height: 116px; }
+    .hero-glass--c { width: 50px; height: 86px; }
+}
+
+/* --- Tablet / large phone (≤ 768px) --- */
+@media (max-width: 768px) {
+    /* Cart: left-align items (override the 992px centred layout) */
+    .cart-item { text-align: left; justify-items: start; }
+    .cart-product-info { flex-direction: row; align-items: flex-start; gap: var(--space-sm); }
+
+    /* Cart footer: stack vertically */
+    .cart-footer { flex-direction: column; align-items: stretch; gap: var(--space-md); }
+    .cart-total-box { text-align: left; }
+
+    /* Touch targets: at least 44px */
+    .btn { min-height: 44px; }
+    .ingredient-btn { min-height: 44px; }
+    .qty-btn { min-height: 52px; }
+
+    /* Success steps: tighten */
+    .success-step-line { min-width: 24px; }
+}
+
+/* --- Mobile (≤ 600px) --- */
+@media (max-width: 600px) {
+    /* Tighter page padding */
+    .page { padding: var(--space-md) 14px; }
+
+    /* Promo bar: tighter, text doesn't overlap close button */
+    .promo-bar { font-size: 12px; padding: 8px 40px 8px 12px; text-align: left; justify-content: flex-start; }
+
+    /* Form rows: single column */
+    .form-row { grid-template-columns: 1fr; }
+
+    /* Cart items: 2-col card layout */
+    .cart-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-areas: "product product" "qty subtotal";
+        gap: var(--space-xs) var(--space-sm);
+        padding: var(--space-md) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+    .cart-product-info { grid-area: product; }
+    .cart-price { display: none; } /* price visible in subtotal */
+    .cart-qty { grid-area: qty; align-self: center; }
+    .cart-subtotal { grid-area: subtotal; justify-self: end; align-items: flex-end; flex-direction: column; gap: 4px; }
+
+    /* Checkout */
+    .checkout-wrapper { gap: var(--space-md); }
+
+    /* Success steps: compact */
+    .success-steps { padding: var(--space-sm) var(--space-md); gap: 0; }
+    .success-step { font-size: 12px; }
+    .success-step-line { min-width: 16px; }
+
+    /* About story */
+    .about-story { padding: 0 4px; }
+    .about-callout { padding-left: 14px; }
+
+    /* Qty buttons: full row on mobile */
+    .qty-options { gap: 8px; }
+    .qty-btn { flex: 1; padding: 14px 8px; }
+
+    /* Config header */
+    .config-header { flex-direction: column; align-items: flex-start; gap: var(--space-xs); }
+    .config-header .back-link { position: static; }
+}
+
+/* --- Small phones (≤ 480px) --- */
+@media (max-width: 480px) {
+    /* Hero visual: hide on very small screens — text + CTA is enough */
+    .hero-visual { display: none; }
+
+    /* Hero actions: full-width stacked buttons */
+    .hero-actions { flex-direction: column; align-items: stretch; }
+
+    /* Btn font size */
+    .btn { font-size: 14px; }
+
+    /* Glass visualizer in configurator: hide, save vertical space */
+    .visualizer-column { display: none; }
+
+    /* Config: full-width 1-col layout */
+    .page.product-grid.active { grid-template-columns: 1fr; }
+}
+
+/* --- Very small phones (≤ 360px) --- */
+@media (max-width: 360px) {
+    .stat-num { font-size: 1.5rem; }
+    .stat-label { font-size: 10px; }
+    .stats-bar-inner { padding: var(--space-md) var(--space-sm); }
+    .nav-logo { font-size: 20px; }
+}
 body.dark .packeta-change-btn { border-color: var(--color-accent-soft); color: var(--color-accent-soft); }
