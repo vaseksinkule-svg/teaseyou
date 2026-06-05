@@ -27,15 +27,15 @@ const TRANSLATIONS = {
         stat_flavors:       'Flavors',
         stat_extras:        'Extras',
         stat_blends:        'Unique blends',
-        stat_recipe:        'Your recipe',
+        stat_recipe:        'Dispatch',
         /* How it works */
         how_title:          'How it works',
         how_1_title:        'Pick your base',
-        how_1_desc:         'Start with one of six premium tea bases — from bold black to soothing chamomile.',
+        how_1_desc:         'Choose from six tea bases — green, black, white, oolong, rooibos or chamomile. Each has a different character.',
         how_2_title:        'Add flavors',
-        how_2_desc:         'Layer in your favourite fruits, flowers or spices and watch your blend come alive.',
+        how_2_desc:         'Pick a fruit, flower or spice that sounds good to you. This is the part where it gets personal.',
         how_3_title:        'We ship it fresh',
-        how_3_desc:         'Your unique blend is packed to order and delivered straight to your door.',
+        how_3_desc:         'We mix your blend the day you order it and send it straight to you. No warehouse, no shelf time.',
         /* Reviews section */
         reviews_title:      'What people say',
         /* FAQ */
@@ -53,8 +53,8 @@ const TRANSLATIONS = {
         faq_q6:             'How long does the tea stay fresh?',
         faq_a6:             'All our blends are packed in resealable, food-grade kraft pouches with an airtight seal. Stored in a cool, dry place away from direct light, your blend will stay fresh for 12–18 months.',
         /* CTA banner */
-        cta_title:          'Ready to build your blend?',
-        cta_desc:           'It takes less than 2 minutes. No account needed.',
+        cta_title:          'Start with what sounds good.',
+        cta_desc:           'Pick a base, add what you like, name it.',
         btn_start_creating: 'Start creating →',
         /* Product detail page */
         btn_add_cart:       'Add to Cart',
@@ -226,9 +226,29 @@ const TRANSLATIONS = {
         btn_back_home:   'Back home',
         /* Completion label */
         completion_selected: 'selected',
-        /* About page CTA */
-        about_cta:      'Ready to find your blend?',
+        /* About page */
+        about_tag:           'Our Story',
+        about_hero_title:    'Tea is personal.',
+        about_hero_subtitle: 'Not some brand\'s version. Yours.',
+        about_story_p1:      'Tease you started with a school thesis. The founder spent months studying tea house culture, going from one tea house to the next, and thinking about what makes a good cup worth going back to.',
+        about_story_p2:      'That turned into this — a place where you choose every part of your blend yourself. No brand deciding for you. Just your base, your flavour, your name.',
+        about_callout_text:  'Every order is mixed on the day it\'s placed. Not before.',
+        about_card1_title:   'Fresh every time',
+        about_card1_desc:    'We blend when you order. Not pre-packed, not sitting on a shelf — made the day it ships.',
+        about_card2_title:   'Your recipe',
+        about_card2_desc:    'The configurator is the whole point. Pick your base, your flavour, your extra. Name it. That\'s your tea.',
+        about_card3_title:   'Real ingredients',
+        about_card3_desc:    'No artificial flavours, no fillers. Six bases, nine flavours, nine extras — all real, all listed.',
+        about_cta:           'Ready to find your blend?',
         btn_start_creating2: 'Start creating',
+        /* SEO */
+        page_title:  'Tease you — Build your perfect tea blend',
+        meta_desc:   'Create your own custom tea blend from 6 premium bases, 9 flavors and 9 extras. Named, packed and shipped fresh to your door. Free shipping over 500 Kč.',
+        /* Packeta widget */
+        packeta_choose:     'Choose pickup point',
+        packeta_change:     'Change branch',
+        packeta_required:   'Please choose a pickup point',
+        packeta_unavailable:'Widget not available — try again',
     },
     cs: {
         /* Nav / Sidebar */
@@ -250,15 +270,15 @@ const TRANSLATIONS = {
         stat_flavors:       'Příchutě',
         stat_extras:        'Doplňky',
         stat_blends:        'Unikátních blendů',
-        stat_recipe:        'Tvůj recept',
+        stat_recipe:        'Expedice',
         /* How it works */
         how_title:          'Jak to funguje',
         how_1_title:        'Vyber základ',
-        how_1_desc:         'Začni jedním ze šesti prémiových základů čaje — od silného černého po uklidňující heřmánek.',
+        how_1_desc:         'Vyber ze šesti základů čaje — zelený, černý, bílý, oolong, rooibos nebo heřmánek. Každý má jiný charakter.',
         how_2_title:        'Přidej příchutě',
-        how_2_desc:         'Přidej oblíbené ovoce, květiny nebo koření a sleduj, jak tvůj blend ožívá.',
+        how_2_desc:         'Vyber ovoce, květ nebo koření, které ti říká. Tady to začne být osobní.',
         how_3_title:        'Čerstvě odešleme',
-        how_3_desc:         'Tvůj unikátní blend zabalíme na objednávku a doručíme přímo k tobě domů.',
+        how_3_desc:         'Blend smícháme ve stejný den, kdy objednáváš, a pošleme přímo k tobě. Žádný sklad, žádné čekání na polici.',
         /* Reviews section */
         reviews_title:      'Co říkají lidé',
         /* FAQ */
@@ -276,8 +296,8 @@ const TRANSLATIONS = {
         faq_q6:             'Jak dlouho čaj vydrží čerstvý?',
         faq_a6:             'Všechny naše blendy jsou zabaleny v opakovaně uzavíratelných, potravinářských kraft sáčcích se vzduchotěsným uzávěrem. Uskladněny na chladném, suchém místě mimo přímé světlo vydrží čerstvé 12–18 měsíců.',
         /* CTA banner */
-        cta_title:          'Připraven/a namíchat svůj blend?',
-        cta_desc:           'Trvá to méně než 2 minuty. Účet není potřeba.',
+        cta_title:          'Začni s tím, co ti zní dobře.',
+        cta_desc:           'Vyber základ, přidej co chceš, pojmenuj to.',
         btn_start_creating: 'Začít vytvářet →',
         /* Product detail page */
         btn_add_cart:       'Přidat do košíku',
@@ -449,9 +469,29 @@ const TRANSLATIONS = {
         btn_back_home:   'Zpět domů',
         /* Completion label */
         completion_selected: 'vybráno',
-        /* About page CTA */
-        about_cta:      'Připraven/a najít svůj blend?',
+        /* About page */
+        about_tag:           'Náš příběh',
+        about_hero_title:    'Čaj je osobní.',
+        about_hero_subtitle: 'Ne to, co si o čaji myslí někdo jiný. Ten tvůj.',
+        about_story_p1:      'Tease you vzniklo kvůli maturitní práci. Zakladatel strávil měsíce studováním kultury čajoven, přecházel z jedné do druhé a přemýšlel, co dělá dobrý šálek takovým, ke kterému se vrátíš.',
+        about_story_p2:      'Z toho vzniklo toto — místo, kde si každou část svého blendu vybereš sám. Žádná značka nerozhoduje za tebe. Jen tvůj základ, tvá příchuť, tvůj název.',
+        about_callout_text:  'Každá objednávka se míchá v den, kdy ji zadáš. Ne dřív.',
+        about_card1_title:   'Vždy čerstvé',
+        about_card1_desc:    'Mícháme, když objednáváš. Nepředbaleno, neležící na polici — připraveno v den odeslání.',
+        about_card2_title:   'Tvůj recept',
+        about_card2_desc:    'Konfigurátor je celý smysl. Vyber základ, příchuť, doplněk. Pojmenuj to. To je tvůj čaj.',
+        about_card3_title:   'Skutečné ingredience',
+        about_card3_desc:    'Žádné umělé aromatizátory, žádná plnidla. Šest základů, devět příchutí, devět doplňků — všechno skutečné, vše uvedené.',
+        about_cta:           'Připraven/a najít svůj blend?',
         btn_start_creating2: 'Začít vytvářet',
+        /* SEO */
+        page_title:  'Tease you — Namíchej si vlastní čajový blend',
+        meta_desc:   'Namíchej si vlastní čaj ze 6 základů, 9 příchutí a 9 doplňků. Pojmenuj ho, my ho čerstvě zabalíme a doručíme. Doprava zdarma nad 500 Kč.',
+        /* Packeta widget */
+        packeta_choose:     'Vybrat výdejní místo',
+        packeta_change:     'Změnit pobočku',
+        packeta_required:   'Prosím vyberte výdejní místo',
+        packeta_unavailable:'Widget není dostupný — zkuste to znovu',
     }
 };
 
@@ -464,7 +504,6 @@ function t(key) {
 
 /* ─── APPLY TRANSLATIONS ─────────────────────── */
 function applyTranslations() {
-    if (LANG !== 'cs') return;
     document.querySelectorAll('[data-i18n]').forEach(el => {
         el.textContent = t(el.getAttribute('data-i18n'));
     });
@@ -477,7 +516,16 @@ function applyTranslations() {
     document.querySelectorAll('[data-i18n-aria]').forEach(el => {
         el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
     });
+    // Update <title> and <meta name="description"> based on detected language
+    document.title = t('page_title');
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', t('meta_desc'));
 }
+
+/* ─── ZÁSILKOVNA / PACKETA ───────────────────── */
+// Get your API key at https://app.packeta.com → Integrace → Widget
+const PACKETA_API_KEY = 'YOUR_PACKETA_API_KEY';
+let packetaPoint = null;
 
 /* ─── STATE ─────────────────────────────────── */
 let currentProduct = {
@@ -687,6 +735,48 @@ function updateShippingCost(radio) {
     if (row) row.style.display = 'flex';
     if (costEl) costEl.textContent = totals.freeShip ? 'FREE' : fmt(totals.ship);
     if (totalEl) totalEl.textContent = fmt(totals.total);
+}
+
+function handleShippingChange(radio) {
+    updateShippingCost(radio);
+    const picker = document.getElementById('packeta-picker');
+    if (!picker) return;
+    const isZasilkovna = radio.value === 'zasilkovna';
+    picker.style.display = isZasilkovna ? 'block' : 'none';
+    if (!isZasilkovna) {
+        packetaPoint = null;
+        const sel = document.getElementById('packeta-selected');
+        const btn = document.getElementById('packeta-choose-btn');
+        if (sel) sel.style.display = 'none';
+        if (btn) btn.style.display = '';
+    }
+    const errEl = document.getElementById('packeta-error');
+    if (errEl) errEl.style.display = 'none';
+}
+
+function openPacketaWidget() {
+    if (typeof Packeta === 'undefined' || !Packeta.Widget) {
+        showToast(t('packeta_unavailable'), '⚠️');
+        return;
+    }
+    Packeta.Widget.pick(PACKETA_API_KEY, onPacketaSelect, {
+        country: 'cz',
+        language: LANG === 'cs' ? 'cs' : 'en'
+    });
+}
+
+function onPacketaSelect(point) {
+    if (!point) return; // user closed the widget without selecting
+    packetaPoint = { id: point.id, name: point.name, city: point.city, zip: point.zip };
+    const sel     = document.getElementById('packeta-selected');
+    const btn     = document.getElementById('packeta-choose-btn');
+    const nameEl  = document.getElementById('packeta-branch-name');
+    const errEl   = document.getElementById('packeta-error');
+    if (nameEl)  nameEl.textContent  = `${point.name}, ${point.city}`;
+    if (sel)     sel.style.display   = 'flex';
+    if (btn)     btn.style.display   = 'none';
+    if (errEl)   errEl.style.display = 'none';
+    showToast(`📦 ${point.name}`, '✅');
 }
 
 /* ─── PROMO CODES ────────────────────────────── */
@@ -1208,6 +1298,12 @@ function validateCheckout(form) {
     });
     const ship = form.querySelector('input[name="shipping"]:checked');
     if (!ship) { ok = false; showToast(t('toast_select_shipping'), '🚚'); }
+    if (ship && ship.value === 'zasilkovna' && !packetaPoint) {
+        const errEl = document.getElementById('packeta-error');
+        if (errEl) { errEl.textContent = t('packeta_required'); errEl.style.display = 'block'; }
+        if (!firstInvalid) firstInvalid = document.getElementById('packeta-choose-btn');
+        ok = false;
+    }
     if (firstInvalid) firstInvalid.focus();
     return ok;
 }
@@ -1228,11 +1324,12 @@ function submitOrder(e) {
         num:      orderNum,
         date:     new Date().toLocaleDateString('cs-CZ'),
         items:    cart.map(i => ({ name: i.name, ingredients: [...i.ingredients], colors: [...i.colors], weight: i.weight, priceBase: i.priceBase, qty: i.qty })),
-        goods:    totals.goods,
-        discount: totals.discount,
-        promo:    appliedPromo ? appliedPromo.code : null,
-        shipping: totals.ship,
-        total:    totals.total
+        goods:       totals.goods,
+        discount:    totals.discount,
+        promo:       appliedPromo ? appliedPromo.code : null,
+        shipping:    totals.ship,
+        total:       totals.total,
+        packetaPoint: packetaPoint ? `${packetaPoint.name}, ${packetaPoint.city}` : null
     };
     orders.unshift(order);
     if (orders.length > 50) orders.pop();
@@ -1243,6 +1340,7 @@ function submitOrder(e) {
 
     cart = [];
     appliedPromo = null;
+    packetaPoint  = null;
     saveCart();
     savePromo();
     updateCartBadge();
@@ -1378,43 +1476,43 @@ const QUIZ_QUESTIONS = [
 const QUIZ_BLENDS = [
     {
         tags:["bold","caffeine"],
-        name:"Ginger Soul",
-        desc:"Strong black tea with warming ginger and smooth vanilla. Bold, rich, and energising.",
+        name:"Deep Winter",
+        desc:"Black tea with warming ginger and smooth vanilla. Full-bodied and rich — best on a cold morning.",
         ingredients:["Black Tea","Ginger","Vanilla"],
         colors:["#4a3b32","#ff9800","#f3e5ab"]
     },
     {
         tags:["fresh","mild"],
-        name:"Zen Master",
-        desc:"Bright green tea with cooling mint and a lemon lift. Refreshing any time of day.",
+        name:"Morning Window",
+        desc:"Green tea with mint and lemon. Clean and bright — the kind of cup that gets the day started right.",
         ingredients:["Green Tea","Mint","Lemon"],
         colors:["#8da676","#4caf50","#ffe066"]
     },
     {
         tags:["herbal","calm"],
-        name:"Golden Calm",
-        desc:"Soothing chamomile with turmeric warmth and cinnamon spice. Perfect for unwinding.",
+        name:"Slow Tuesday",
+        desc:"Chamomile with turmeric and cinnamon. Earthy and warm — for when you have nowhere to be.",
         ingredients:["Chamomile","Turmeric","Cinnamon"],
         colors:["#f5d78e","#d4a017","#c8824a"]
     },
     {
         tags:["citrus","fresh"],
-        name:"Citrus Storm",
-        desc:"Vibrant rooibos with orange zest and spearmint. Uplifting and naturally sweet.",
+        name:"Open Air",
+        desc:"Rooibos with orange and spearmint. Naturally sweet and caffeine-free — good any time.",
         ingredients:["Rooibos","Orange","Spearmint"],
         colors:["#e8720c","#ffb347","#a8d8a8"]
     },
     {
         tags:["floral","mild"],
-        name:"Midnight Rose",
-        desc:"Elegant oolong with rose petals and a hint of lavender. Delicate and aromatic.",
+        name:"Late Light",
+        desc:"Oolong with rose and lavender. Soft and a little floral — for the quiet part of the afternoon.",
         ingredients:["Oolong Tea","Rose","Lavender"],
         colors:["#c8a0b4","#e8607a","#b8a0cc"]
     },
     {
         tags:["fruit","mild"],
-        name:"Berry Blast",
-        desc:"White tea with strawberry and honey. Gently sweet and beautifully fragrant.",
+        name:"Still Evening",
+        desc:"White tea with strawberry and honey. Gently sweet and unhurried — a soft end to the day.",
         ingredients:["White Tea","Strawberry","Honey"],
         colors:["#f5e6d3","#cc4747","#ffc107"]
     },
@@ -1535,8 +1633,8 @@ function randomBlend() {
     });
 
     // Random name
-    const adjectives = ['Morning','Mystic','Wild','Golden','Twilight','Secret','Smoky','Velvet','Crisp','Bold'];
-    const nouns      = ['Hour','Dream','Ritual','Escape','Garden','Story','Moment','Harmony'];
+    const adjectives = ['Morning','Early','Late','Slow','Dark','Quiet','Warm','Still','Deep','Open'];
+    const nouns      = ['Window','Tuesday','Winter','Light','Air','Evening','Hour','Field','Corner','Shelf'];
     const randomName = pick(adjectives) + ' ' + pick(nouns);
     const nameInput  = document.getElementById('mix-name');
     if (nameInput) nameInput.value = randomName;
