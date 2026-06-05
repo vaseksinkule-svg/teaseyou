@@ -2,6 +2,483 @@
    TEASE YOU — script.js  v2.0
    ============================================= */
 
+/* ─── LANGUAGE DETECTION ─────────────────────── */
+const LANG = navigator.language.startsWith('cs') ? 'cs' : 'en';
+
+/* ─── TRANSLATIONS ───────────────────────────── */
+const TRANSLATIONS = {
+    en: {
+        /* Nav / Sidebar */
+        nav_home:           'Home',
+        nav_create:         'Create your own',
+        nav_blends:         'My Blends',
+        nav_orders:         'My Orders',
+        nav_about:          'About',
+        nav_cart:           'Cart',
+        nav_quiz:           'Find my blend ✨',
+        /* Hero buttons */
+        btn_create_own:     'Create your own',
+        btn_how_works:      'How it works ↓',
+        /* Quiz strip */
+        quiz_strip_text:    'Not sure where to start?',
+        btn_quiz:           'Take the Tea Finder Quiz →',
+        /* Stats */
+        stat_bases:         'Tea bases',
+        stat_flavors:       'Flavors',
+        stat_extras:        'Extras',
+        stat_blends:        'Unique blends',
+        stat_recipe:        'Your recipe',
+        /* How it works */
+        how_title:          'How it works',
+        how_1_title:        'Pick your base',
+        how_1_desc:         'Start with one of six premium tea bases — from bold black to soothing chamomile.',
+        how_2_title:        'Add flavors',
+        how_2_desc:         'Layer in your favourite fruits, flowers or spices and watch your blend come alive.',
+        how_3_title:        'We ship it fresh',
+        how_3_desc:         'Your unique blend is packed to order and delivered straight to your door.',
+        /* Reviews section */
+        reviews_title:      'What people say',
+        /* FAQ */
+        faq_title:          'Frequently asked',
+        faq_q1:             'How long does delivery take?',
+        faq_a1:             'We blend your order the same day and ship within 24 hours. Czech Republic: 2–3 business days via Zásilkovna or Česká pošta. Slovakia: 3–5 business days.',
+        faq_q2:             'What are the allergens?',
+        faq_a2:             'All our blends are naturally free of gluten, dairy and nuts. We do handle nut-adjacent spices (cardamom, cinnamon) in our facility. If you have a severe allergy, please contact us before ordering. All ingredients are 100% natural with no artificial flavourings.',
+        faq_q3:             'Can I return or exchange an order?',
+        faq_a3:             'Because every blend is made to order, we cannot accept returns for custom blends. If your order arrives damaged or incorrect, we will reship at no charge. Contact us within 7 days of delivery.',
+        faq_q4:             'How do I brew my blend?',
+        faq_a4:             'Use 2–3 grams per 200ml of water. Green and white teas: 75–80°C for 2–3 minutes. Black and oolong: 90–95°C for 3–4 minutes. Herbal (rooibos, chamomile): 100°C for 5–7 minutes. Each package includes a brewing guide card.',
+        faq_q5:             'Can I send a blend as a gift?',
+        faq_a5:             'Absolutely — it\'s one of our most popular uses! During checkout, add a personal message in the note field and we\'ll include a handwritten card. We also offer gift wrapping on request.',
+        faq_q6:             'How long does the tea stay fresh?',
+        faq_a6:             'All our blends are packed in resealable, food-grade kraft pouches with an airtight seal. Stored in a cool, dry place away from direct light, your blend will stay fresh for 12–18 months.',
+        /* CTA banner */
+        cta_title:          'Ready to build your blend?',
+        cta_desc:           'It takes less than 2 minutes. No account needed.',
+        btn_start_creating: 'Start creating →',
+        /* Product detail page */
+        btn_add_cart:       'Add to Cart',
+        btn_customize:      'Customize Recipe',
+        back_to_blends:     '← Back to blends',
+        lbl_select_weight:  'Select weight',
+        /* Configurator */
+        back_btn:           '← Back',
+        config_title:       'Build your blend',
+        config_subtitle:    'Pick one from each category',
+        prog_base:          'Base',
+        prog_flavor:        'Flavor',
+        prog_extras:        'Extras',
+        prog_name:          'Name',
+        section_base:       '1. Base',
+        section_flavor:     '2. Flavor',
+        section_extras:     '3. Extras',
+        section_name:       '4. Name your mix',
+        info_default_title: 'Select a base',
+        info_default_text:  'Choose your preferred tea base to start.',
+        name_placeholder:   'E.g. Morning Magic',
+        name_hint:          'Give it a name you\'ll remember ✨',
+        btn_preview:        'Preview my blend →',
+        btn_surprise:       'Surprise me',
+        /* Glass panel */
+        glass_title:        'Your blend',
+        glass_label_base:   'Base',
+        glass_label_flavor: 'Flavor',
+        glass_label_extras: 'Extras',
+        glass_name_default: 'Name your mix',
+        /* Summary page */
+        summary_badge:      'Your blend',
+        summary_inside:     'What\'s inside',
+        summary_weight:     'Choose weight to order',
+        btn_edit_recipe:    'Edit Recipe',
+        btn_save:           'Save',
+        btn_share:          'Share',
+        /* Saved blends */
+        saved_title:        'My Blends',
+        saved_empty:        'No saved blends yet.',
+        btn_create_first:   'Create your first blend',
+        btn_load_order:     'Load & Order',
+        btn_remove:         'Remove',
+        saved_date_prefix:  'Saved',
+        /* Orders */
+        orders_title:       'My Orders',
+        orders_empty:       'No orders yet.',
+        order_num_prefix:   'Order #',
+        order_status:       'Confirmed',
+        order_discount:     'Discount',
+        order_shipping:     'Shipping',
+        order_total:        'Total',
+        /* Cart */
+        cart_title:         'Your Cart',
+        cart_col_product:   'Product',
+        cart_col_price:     'Price',
+        cart_col_qty:       'Quantity',
+        cart_col_subtotal:  'Subtotal',
+        cart_empty:         'Your cart is empty.',
+        btn_start_shopping: 'Start shopping',
+        btn_continue:       '← Continue shopping',
+        lbl_promo:          'Discount code',
+        btn_apply:          'Apply',
+        lbl_subtotal:       'Subtotal',
+        ship_calculated:    '+ Shipping: calculated at checkout',
+        ship_free:          '+ Shipping: FREE',
+        btn_checkout:       'Proceed to Checkout',
+        /* Checkout */
+        checkout_title:     'Shipping',
+        checkout_summary:   'Order Summary',
+        checkout_contact:   'Contact',
+        lbl_firstname:      'First name *',
+        lbl_lastname:       'Last name *',
+        lbl_email:          'Email *',
+        lbl_phone:          'Phone *',
+        checkout_address:   'Delivery address',
+        lbl_street:         'Street and number *',
+        lbl_city:           'City *',
+        lbl_zip:            'ZIP *',
+        lbl_country:        'Country *',
+        country_select:     '— Select —',
+        checkout_shipping:  'Shipping method',
+        ship_post_desc:     'Delivery in 3–5 business days',
+        ship_zasilkovna_desc: 'Pick up at your nearest location',
+        ship_dpd_desc:      'Next business day delivery',
+        checkout_note:      'Note',
+        checkout_note_opt:  '(optional)',
+        note_placeholder:   'Any special requests or gift messages...',
+        btn_complete_order: 'Complete Order',
+        /* Success page */
+        success_title:      'Order placed!',
+        success_desc:       'Your blend is on its way. We\'ll brew it fresh and send a confirmation to your email.',
+        success_step1:      'Order received',
+        success_step2:      'Freshly blended',
+        success_step3:      'Shipped to you',
+        btn_create_another: 'Create another blend',
+        /* Modal */
+        modal_qty_title:    'Select Quantity',
+        btn_confirm:        'Confirm',
+        btn_cancel:         'Cancel',
+        /* Cookie */
+        cookie_title:       'We use cookies',
+        cookie_text:        'We use cookies to improve your experience and remember your preferences. By continuing you agree to our',
+        cookie_policy_link: 'Cookie Policy',
+        btn_decline:        'Decline',
+        btn_accept:         'Accept all',
+        /* Footer */
+        footer_nav:         'Navigation',
+        footer_legal:       'Legal',
+        footer_contact:     'Contact',
+        footer_newsletter:  'Newsletter',
+        footer_newsletter_desc: 'New blends, offers and tea stories — straight to your inbox.',
+        footer_subscribe:   'Subscribe',
+        footer_copyright:   '© 2025 Tease you. All rights reserved.',
+        /* Promo feedback */
+        promo_cart_first:   'Add something to your cart first.',
+        promo_invalid:      'Invalid code.',
+        promo_applied:      'Code applied',
+        /* Free shipping bar */
+        freeship_add:       'Add',
+        freeship_more:      'more for free shipping',
+        freeship_unlocked:  'You\'ve unlocked <strong>free shipping</strong>!',
+        /* Toast / system messages */
+        toast_already_saved:    'Blend already saved!',
+        toast_saved:            'saved to My Blends!',
+        toast_copied:           'Blend description copied!',
+        toast_removed:          'Blend removed',
+        toast_added_cart:       'added to cart!',
+        toast_discount_applied: 'applied!',
+        toast_cart_empty:       'Your cart is empty',
+        toast_check_fields:     'Please check the highlighted fields',
+        toast_select_shipping:  'Please select a shipping method',
+        toast_random:           'Random blend:',
+        /* Validation errors */
+        err_firstname:  'Enter your first name',
+        err_lastname:   'Enter your last name',
+        err_email:      'Enter a valid email address',
+        err_phone:      'Enter a valid phone number',
+        err_street:     'Enter your street and number',
+        err_city:       'Enter your city',
+        err_zip:        'ZIP must be 5 digits (e.g. 110 00)',
+        err_country:    'Please select a country',
+        /* Quiz */
+        quiz_q1:        'What time of day do you drink most tea?',
+        quiz_q1_o1:     'Morning — I need a kick-start',
+        quiz_q1_o2:     'Afternoon — calm but refreshing',
+        quiz_q1_o3:     'Evening — wind-down ritual',
+        quiz_q1_o4:     'Any time, any mood',
+        quiz_q2:        'What flavour calls to you most?',
+        quiz_q2_o1:     'Bright & citrusy',
+        quiz_q2_o2:     'Floral & delicate',
+        quiz_q2_o3:     'Warm & spicy',
+        quiz_q2_o4:     'Sweet & fruity',
+        quiz_q3:        'How do you feel about caffeine?',
+        quiz_q3_o1:     'Give me all of it',
+        quiz_q3_o2:     'A little is fine',
+        quiz_q3_o3:     'None please — herbal only',
+        quiz_q3_o4:     'Don\'t mind either way',
+        quiz_q4:        'Pick your brewing mood:',
+        quiz_q4_o1:     'Quick — under 3 minutes',
+        quiz_q4_o2:     'Slow & mindful — I\'ll wait',
+        quiz_q4_o3:     'Strong steep, big flavour',
+        quiz_q4_o4:     'Surprise me every time',
+        quiz_question_of: 'Question',
+        quiz_of:        'of',
+        quiz_result_label: 'Your perfect blend is',
+        btn_order_blend: 'Order this blend',
+        btn_try_again:   'Try again',
+        btn_back_home:   'Back home',
+        /* Completion label */
+        completion_selected: 'selected',
+        /* About page CTA */
+        about_cta:      'Ready to find your blend?',
+        btn_start_creating2: 'Start creating',
+    },
+    cs: {
+        /* Nav / Sidebar */
+        nav_home:           'Domů',
+        nav_create:         'Namíchej si vlastní',
+        nav_blends:         'Moje blendy',
+        nav_orders:         'Moje objednávky',
+        nav_about:          'O nás',
+        nav_cart:           'Košík',
+        nav_quiz:           'Najdi svůj blend ✨',
+        /* Hero buttons */
+        btn_create_own:     'Namíchej si vlastní',
+        btn_how_works:      'Jak to funguje ↓',
+        /* Quiz strip */
+        quiz_strip_text:    'Nevíš, kde začít?',
+        btn_quiz:           'Spusť kvíz pro hledání blendu →',
+        /* Stats */
+        stat_bases:         'Základy čaje',
+        stat_flavors:       'Příchutě',
+        stat_extras:        'Doplňky',
+        stat_blends:        'Unikátních blendů',
+        stat_recipe:        'Tvůj recept',
+        /* How it works */
+        how_title:          'Jak to funguje',
+        how_1_title:        'Vyber základ',
+        how_1_desc:         'Začni jedním ze šesti prémiových základů čaje — od silného černého po uklidňující heřmánek.',
+        how_2_title:        'Přidej příchutě',
+        how_2_desc:         'Přidej oblíbené ovoce, květiny nebo koření a sleduj, jak tvůj blend ožívá.',
+        how_3_title:        'Čerstvě odešleme',
+        how_3_desc:         'Tvůj unikátní blend zabalíme na objednávku a doručíme přímo k tobě domů.',
+        /* Reviews section */
+        reviews_title:      'Co říkají lidé',
+        /* FAQ */
+        faq_title:          'Časté otázky',
+        faq_q1:             'Jak dlouho trvá doručení?',
+        faq_a1:             'Blend smícháme ve stejný den a expedujeme do 24 hodin. Česká republika: 2–3 pracovní dny přes Zásilkovnu nebo Českou poštu. Slovensko: 3–5 pracovních dní.',
+        faq_q2:             'Jaké jsou alergeny?',
+        faq_a2:             'Všechny naše blendy jsou přirozeně bez lepku, mléčných výrobků a ořechů. V naší provozovně manipulujeme s kořením příbuzným ořechům (kardamom, skořice). Pokud máš silnou alergii, kontaktuj nás před objednávkou. Všechny ingredience jsou 100% přírodní bez umělých aromatizátorů.',
+        faq_q3:             'Mohu vrátit nebo vyměnit objednávku?',
+        faq_a3:             'Protože každý blend připravujeme na objednávku, nemůžeme přijímat vrácení u vlastních blendů. Pokud objednávka dorazí poškozená nebo nesprávná, zašleme ji znovu zdarma. Kontaktuj nás do 7 dnů od doručení.',
+        faq_q4:             'Jak připravit svůj blend?',
+        faq_a4:             'Použij 2–3 gramy na 200 ml vody. Zelené a bílé čaje: 75–80 °C po dobu 2–3 minut. Černý čaj a oolong: 90–95 °C po dobu 3–4 minut. Bylinkové čaje (rooibos, heřmánek): 100 °C po dobu 5–7 minut. Každé balení obsahuje kartičku s návodem na přípravu.',
+        faq_q5:             'Mohu blend poslat jako dárek?',
+        faq_a5:             'Rozhodně — je to jedno z nejoblíbenějších použití! Při objednávce přidej osobní zprávu do pole pro poznámky a my přiložíme ručně psanou kartičku. Na vyžádání nabízíme také dárkové balení.',
+        faq_q6:             'Jak dlouho čaj vydrží čerstvý?',
+        faq_a6:             'Všechny naše blendy jsou zabaleny v opakovaně uzavíratelných, potravinářských kraft sáčcích se vzduchotěsným uzávěrem. Uskladněny na chladném, suchém místě mimo přímé světlo vydrží čerstvé 12–18 měsíců.',
+        /* CTA banner */
+        cta_title:          'Připraven/a namíchat svůj blend?',
+        cta_desc:           'Trvá to méně než 2 minuty. Účet není potřeba.',
+        btn_start_creating: 'Začít vytvářet →',
+        /* Product detail page */
+        btn_add_cart:       'Přidat do košíku',
+        btn_customize:      'Upravit recept',
+        back_to_blends:     '← Zpět na blendy',
+        lbl_select_weight:  'Vyber gramáž',
+        /* Configurator */
+        back_btn:           '← Zpět',
+        config_title:       'Namíchej svůj blend',
+        config_subtitle:    'Zvol po jednom z každé kategorie',
+        prog_base:          'Základ',
+        prog_flavor:        'Příchuť',
+        prog_extras:        'Doplňky',
+        prog_name:          'Název',
+        section_base:       '1. Základ',
+        section_flavor:     '2. Příchuť',
+        section_extras:     '3. Doplňky',
+        section_name:       '4. Pojmenuj svůj mix',
+        info_default_title: 'Zvol základ',
+        info_default_text:  'Vyber svůj oblíbený základ čaje pro začátek.',
+        name_placeholder:   'Např. Ranní magie',
+        name_hint:          'Dej mu jméno, které si zapamatuješ ✨',
+        btn_preview:        'Náhled mého blendu →',
+        btn_surprise:       'Překvap mě',
+        /* Glass panel */
+        glass_title:        'Tvůj blend',
+        glass_label_base:   'Základ',
+        glass_label_flavor: 'Příchuť',
+        glass_label_extras: 'Doplňky',
+        glass_name_default: 'Pojmenuj svůj mix',
+        /* Summary page */
+        summary_badge:      'Tvůj blend',
+        summary_inside:     'Co je uvnitř',
+        summary_weight:     'Zvol gramáž k objednání',
+        btn_edit_recipe:    'Upravit recept',
+        btn_save:           'Uložit',
+        btn_share:          'Sdílet',
+        /* Saved blends */
+        saved_title:        'Moje blendy',
+        saved_empty:        'Zatím žádné uložené blendy.',
+        btn_create_first:   'Vytvoř svůj první blend',
+        btn_load_order:     'Načíst a objednat',
+        btn_remove:         'Odebrat',
+        saved_date_prefix:  'Uloženo',
+        /* Orders */
+        orders_title:       'Moje objednávky',
+        orders_empty:       'Zatím žádné objednávky.',
+        order_num_prefix:   'Objednávka #',
+        order_status:       'Potvrzeno',
+        order_discount:     'Sleva',
+        order_shipping:     'Doprava',
+        order_total:        'Celkem',
+        /* Cart */
+        cart_title:         'Tvůj košík',
+        cart_col_product:   'Produkt',
+        cart_col_price:     'Cena',
+        cart_col_qty:       'Množství',
+        cart_col_subtotal:  'Mezisoučet',
+        cart_empty:         'Tvůj košík je prázdný.',
+        btn_start_shopping: 'Začít nakupovat',
+        btn_continue:       '← Pokračovat v nákupu',
+        lbl_promo:          'Slevový kód',
+        btn_apply:          'Použít',
+        lbl_subtotal:       'Mezisoučet',
+        ship_calculated:    '+ Doprava: bude vypočtena při pokladně',
+        ship_free:          '+ Doprava: ZDARMA',
+        btn_checkout:       'Přejít k pokladně',
+        /* Checkout */
+        checkout_title:     'Doručení',
+        checkout_summary:   'Shrnutí objednávky',
+        checkout_contact:   'Kontakt',
+        lbl_firstname:      'Jméno *',
+        lbl_lastname:       'Příjmení *',
+        lbl_email:          'E-mail *',
+        lbl_phone:          'Telefon *',
+        checkout_address:   'Doručovací adresa',
+        lbl_street:         'Ulice a číslo *',
+        lbl_city:           'Město *',
+        lbl_zip:            'PSČ *',
+        lbl_country:        'Země *',
+        country_select:     '— Vyberte —',
+        checkout_shipping:  'Způsob dopravy',
+        ship_post_desc:     'Doručení za 3–5 pracovních dní',
+        ship_zasilkovna_desc: 'Vyzvednutí na nejbližším výdejním místě',
+        ship_dpd_desc:      'Doručení následující pracovní den',
+        checkout_note:      'Poznámka',
+        checkout_note_opt:  '(nepovinné)',
+        note_placeholder:   'Speciální přání nebo dárkové zprávy...',
+        btn_complete_order: 'Dokončit objednávku',
+        /* Success page */
+        success_title:      'Objednávka odeslána!',
+        success_desc:       'Tvůj blend je na cestě. Čerstvě ho namícháme a potvrzení pošleme na tvůj e-mail.',
+        success_step1:      'Objednávka přijata',
+        success_step2:      'Čerstvě namícháno',
+        success_step3:      'Odesláno k tobě',
+        btn_create_another: 'Vytvořit další blend',
+        /* Modal */
+        modal_qty_title:    'Vyber gramáž',
+        btn_confirm:        'Potvrdit',
+        btn_cancel:         'Zrušit',
+        /* Cookie */
+        cookie_title:       'Používáme cookies',
+        cookie_text:        'Používáme cookies ke zlepšení vašeho zážitku a zapamatování preferencí. Pokračováním souhlasíte s naší',
+        cookie_policy_link: 'Cookie Policy',
+        btn_decline:        'Odmítnout',
+        btn_accept:         'Přijmout vše',
+        /* Footer */
+        footer_nav:         'Navigace',
+        footer_legal:       'Právní info',
+        footer_contact:     'Kontakt',
+        footer_newsletter:  'Newsletter',
+        footer_newsletter_desc: 'Nové blendy, nabídky a čajové příběhy — přímo do tvé schránky.',
+        footer_subscribe:   'Odebírat',
+        footer_copyright:   '© 2025 Tease you. Všechna práva vyhrazena.',
+        /* Promo feedback */
+        promo_cart_first:   'Nejdřív přidej něco do košíku.',
+        promo_invalid:      'Neplatný kód.',
+        promo_applied:      'Kód použit',
+        /* Free shipping bar */
+        freeship_add:       'Přidej',
+        freeship_more:      'ještě pro dopravu zdarma',
+        freeship_unlocked:  'Odemkl/a jsi <strong>dopravu zdarma</strong>! 🎉',
+        /* Toast / system messages */
+        toast_already_saved:    'Blend je již uložen!',
+        toast_saved:            'uložen do Moje blendy!',
+        toast_copied:           'Popis blendu zkopírován!',
+        toast_removed:          'Blend odstraněn',
+        toast_added_cart:       'přidán do košíku!',
+        toast_discount_applied: 'použit!',
+        toast_cart_empty:       'Tvůj košík je prázdný',
+        toast_check_fields:     'Zkontroluj zvýrazněná pole',
+        toast_select_shipping:  'Vyber způsob dopravy',
+        toast_random:           'Náhodný blend:',
+        /* Validation errors */
+        err_firstname:  'Zadej své jméno',
+        err_lastname:   'Zadej své příjmení',
+        err_email:      'Zadej platnou e-mailovou adresu',
+        err_phone:      'Zadej platné telefonní číslo',
+        err_street:     'Zadej ulici a číslo',
+        err_city:       'Zadej město',
+        err_zip:        'PSČ musí mít 5 číslic (např. 110 00)',
+        err_country:    'Vyber zemi',
+        /* Quiz */
+        quiz_q1:        'Kdy nejčastěji piješ čaj?',
+        quiz_q1_o1:     'Ráno — potřebuji nakopnout',
+        quiz_q1_o2:     'Odpoledne — klidný, ale osvěžující',
+        quiz_q1_o3:     'Večer — rituál pro zklidnění',
+        quiz_q1_o4:     'Kdykoli, jakoukoli náladu',
+        quiz_q2:        'Jaká příchuť tě láká nejvíc?',
+        quiz_q2_o1:     'Svěží & citrusová',
+        quiz_q2_o2:     'Květinová & jemná',
+        quiz_q2_o3:     'Teplá & kořeněná',
+        quiz_q2_o4:     'Sladká & ovocná',
+        quiz_q3:        'Jak se stavíš ke kofeinu?',
+        quiz_q3_o1:     'Dejte mi všechen',
+        quiz_q3_o2:     'Trochu nevadí',
+        quiz_q3_o3:     'Žádný prosím — jen bylinky',
+        quiz_q3_o4:     'Je mi to jedno',
+        quiz_q4:        'Vyber svoji náladou při přípravě:',
+        quiz_q4_o1:     'Rychle — do 3 minut',
+        quiz_q4_o2:     'Pomalu & vědomě — počkám',
+        quiz_q4_o3:     'Silný louh, velká chuť',
+        quiz_q4_o4:     'Pokaždé mě překvap',
+        quiz_question_of: 'Otázka',
+        quiz_of:        'z',
+        quiz_result_label: 'Tvůj ideální blend je',
+        btn_order_blend: 'Objednat tento blend',
+        btn_try_again:   'Zkusit znovu',
+        btn_back_home:   'Zpět domů',
+        /* Completion label */
+        completion_selected: 'vybráno',
+        /* About page CTA */
+        about_cta:      'Připraven/a najít svůj blend?',
+        btn_start_creating2: 'Začít vytvářet',
+    }
+};
+
+/* ─── TRANSLATION HELPER ─────────────────────── */
+function t(key) {
+    return LANG === 'cs'
+        ? (TRANSLATIONS.cs[key] !== undefined ? TRANSLATIONS.cs[key] : key)
+        : (TRANSLATIONS.en[key] !== undefined ? TRANSLATIONS.en[key] : key);
+}
+
+/* ─── APPLY TRANSLATIONS ─────────────────────── */
+function applyTranslations() {
+    if (LANG !== 'cs') return;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        el.innerHTML = t(el.getAttribute('data-i18n-html'));
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+        el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
+    });
+}
+
 /* ─── STATE ─────────────────────────────────── */
 let currentProduct = {
     name: 'Custom Mix',
@@ -203,13 +680,13 @@ function selectQty(amount, e) {
 /* ─── SHIPPING COST ──────────────────────────── */
 function updateShippingCost(radio) {
     const cost = parseFloat(radio.getAttribute('data-price')) || 0;
-    const t = computeTotals(cost);
+    const totals = computeTotals(cost);
     const row = document.getElementById('checkout-shipping-row');
     const costEl = document.getElementById('checkout-shipping-cost');
     const totalEl = document.getElementById('checkout-total-display');
     if (row) row.style.display = 'flex';
-    if (costEl) costEl.textContent = t.freeShip ? 'FREE' : fmt(t.ship);
-    if (totalEl) totalEl.textContent = fmt(t.total);
+    if (costEl) costEl.textContent = totals.freeShip ? 'FREE' : fmt(totals.ship);
+    if (totalEl) totalEl.textContent = fmt(totals.total);
 }
 
 /* ─── PROMO CODES ────────────────────────────── */
@@ -224,15 +701,15 @@ function applyPromo() {
     const input = document.getElementById('promo-input');
     const code  = (input?.value || '').trim().toUpperCase();
     if (!code) { setPromoFeedback('', false); return; }
-    if (cart.length === 0) { setPromoFeedback('Add something to your cart first.', false); return; }
+    if (cart.length === 0) { setPromoFeedback(t('promo_cart_first'), false); return; }
     const promo = PROMOS[code];
     if (!promo) {
         appliedPromo = null;
-        setPromoFeedback('Invalid code.', false);
+        setPromoFeedback(t('promo_invalid'), false);
     } else {
         appliedPromo = { code, rate: promo.rate, label: promo.label };
-        setPromoFeedback(`Code applied — ${promo.label} 🎉`, true);
-        showToast(`Discount code "${code}" applied!`, '🏷️');
+        setPromoFeedback(`${t('promo_applied')} — ${promo.label} 🎉`, true);
+        showToast(`${t('lbl_promo')} "${code}" ${t('toast_discount_applied')}`, '🏷️');
     }
     savePromo();
     renderCart();
@@ -258,10 +735,10 @@ function renderFreeShip() {
     const pct   = Math.min(100, Math.round(goods / FREE_SHIP_THRESHOLD * 100));
     if (fill) fill.style.width = pct + '%';
     if (goods >= FREE_SHIP_THRESHOLD) {
-        if (text) text.innerHTML = '🎉 You\'ve unlocked <strong>free shipping</strong>!';
+        if (text) text.innerHTML = '🎉 ' + t('freeship_unlocked');
         wrap.classList.add('unlocked');
     } else {
-        if (text) text.innerHTML = `Add <strong>${fmt(FREE_SHIP_THRESHOLD - goods)}</strong> more for free shipping`;
+        if (text) text.innerHTML = `${t('freeship_add')} <strong>${fmt(FREE_SHIP_THRESHOLD - goods)}</strong> ${t('freeship_more')}`;
         wrap.classList.remove('unlocked');
     }
 }
@@ -299,7 +776,7 @@ function pulseGlassPart(partId) {
 
 /* ─── UPDATE GLASS LABELS ────────────────────── */
 function updateGlassLabels() {
-    const defaults = { 1:'Base', 2:'Flavor', 3:'Extras' };
+    const defaults = { 1: t('glass_label_base'), 2: t('glass_label_flavor'), 3: t('glass_label_extras') };
     ['part1','part2','part3'].forEach((partId, i) => {
         const idx = i + 1;
         const sel = document.querySelector(`[data-target="${partId}"].selected`);
@@ -317,7 +794,7 @@ function updateGlassLabels() {
     const nameEl  = document.getElementById('glass-mix-name-display');
     const nameVal = document.getElementById('mix-name')?.value?.trim();
     if (nameEl) {
-        nameEl.textContent = nameVal || 'Name your mix';
+        nameEl.textContent = nameVal || t('glass_name_default');
         nameEl.classList.toggle('has-name', !!nameVal);
     }
 }
@@ -356,8 +833,8 @@ document.addEventListener('click', function(e) {
         currentProduct.colors[idx]      = 'transparent';
         currentProduct.ingredients[idx] = 'Empty';
         if (tid === 'part1') {
-            document.getElementById('info-title').innerText = 'Select a base';
-            document.getElementById('info-text').innerText  = 'Choose your preferred tea base to start.';
+            document.getElementById('info-title').innerText = t('info_default_title');
+            document.getElementById('info-text').innerText  = t('info_default_text');
         }
         validateSelection();
         updateGlassLabels();
@@ -380,7 +857,7 @@ function updateCompletion() {
     const fill  = document.getElementById('completion-fill');
     const label = document.getElementById('completion-label');
     if (fill)  fill.style.width = Math.round((count/3)*100) + '%';
-    if (label) label.textContent = `${count} / 3 selected`;
+    if (label) label.textContent = `${count} / 3 ${t('completion_selected')}`;
 }
 
 /* ─── VALIDATION ─────────────────────────────── */
@@ -434,11 +911,11 @@ function saveBlend() {
     };
     // Avoid exact duplicates
     const exists = savedBlends.some(b => b.name === blend.name && b.ingredients.join() === blend.ingredients.join());
-    if (exists) { showToast('Blend already saved!', '📌'); return; }
+    if (exists) { showToast(t('toast_already_saved'), '📌'); return; }
     savedBlends.unshift(blend);
     if (savedBlends.length > 20) savedBlends.pop(); // max 20
     localStorage.setItem('teaseyou_saved', JSON.stringify(savedBlends));
-    showToast(`"${blend.name}" saved to My Blends!`, '📌');
+    showToast(`"${blend.name}" ${t('toast_saved')}`, '📌');
 }
 
 /* ─── SHARE BLEND ────────────────────────────── */
@@ -447,7 +924,7 @@ function shareBlend() {
     if (navigator.share) {
         navigator.share({ title: 'My tea blend', text });
     } else {
-        navigator.clipboard.writeText(text).then(() => showToast('Blend description copied!', '📋'));
+        navigator.clipboard.writeText(text).then(() => showToast(t('toast_copied'), '📋'));
     }
 }
 
@@ -478,11 +955,11 @@ function renderSavedBlends() {
             <div class="saved-card-info">
                 <h3 class="font-cosmico saved-card-name">${escHtml(blend.name)}</h3>
                 <p class="saved-card-ingredients font-chaos">${escHtml(blend.ingredients.filter(i=>i!=='Empty').join(' · '))}</p>
-                <span class="saved-card-date">Saved ${escHtml(blend.savedAt)}</span>
+                <span class="saved-card-date">${t('saved_date_prefix')} ${escHtml(blend.savedAt)}</span>
             </div>
             <div class="saved-card-actions">
-                <button class="btn btn-secondary" onclick="loadSavedBlend(${blend.id})">Load &amp; Order</button>
-                <button class="clear-btn" onclick="deleteSavedBlend(${blend.id})" style="color:var(--color-ink-faint)">Remove</button>
+                <button class="btn btn-secondary" onclick="loadSavedBlend(${blend.id})">${t('btn_load_order')}</button>
+                <button class="clear-btn" onclick="deleteSavedBlend(${blend.id})" style="color:var(--color-ink-faint)">${t('btn_remove')}</button>
             </div>
         `;
         list.appendChild(card);
@@ -500,7 +977,7 @@ function deleteSavedBlend(id) {
     savedBlends = savedBlends.filter(b => b.id !== id);
     localStorage.setItem('teaseyou_saved', JSON.stringify(savedBlends));
     renderSavedBlends();
-    showToast('Blend removed', '🗑️');
+    showToast(t('toast_removed'), '🗑️');
 }
 
 /* ─── ORDER MODAL ────────────────────────────── */
@@ -540,7 +1017,7 @@ function confirmOrder() {
     saveCart();
     updateCartBadge();
     renderCart();
-    showToast(`${currentProduct.name} added to cart!`, '🍵');
+    showToast(`${currentProduct.name} ${t('toast_added_cart')}`, '🍵');
     showPage('cart-page');
 }
 
@@ -565,7 +1042,7 @@ function renderCart() {
     list.innerHTML = '';
     if (cart.length === 0) {
         empty.style.display = 'flex';
-        document.getElementById('cart-final-total').innerText = 'Total: 0 Kč';
+        document.getElementById('cart-final-total').innerText = t('order_total') + ': 0 Kč';
         const sub = document.getElementById('cart-subtotal');
         if (sub) sub.textContent = '0 Kč';
         const dl = document.getElementById('cart-discount-line');
@@ -623,16 +1100,16 @@ function removeCartItem(id) {
     updateCartBadge();
 }
 function updateCartTotal() {
-    const t = computeTotals(0);
+    const totals = computeTotals(0);
     const sub = document.getElementById('cart-subtotal');
-    if (sub) sub.textContent = fmt(t.goods);
+    if (sub) sub.textContent = fmt(totals.goods);
 
     const dl = document.getElementById('cart-discount-line');
     if (dl) {
-        if (appliedPromo && t.discount > 0) {
+        if (appliedPromo && totals.discount > 0) {
             dl.style.display = 'flex';
             document.getElementById('cart-discount-code').textContent = '(' + appliedPromo.code + ')';
-            document.getElementById('cart-discount-amount').textContent = '-' + fmt(t.discount);
+            document.getElementById('cart-discount-amount').textContent = '-' + fmt(totals.discount);
         } else {
             dl.style.display = 'none';
         }
@@ -640,12 +1117,12 @@ function updateCartTotal() {
     // Keep the promo input in sync with stored state
     const promoInput = document.getElementById('promo-input');
     if (promoInput && appliedPromo && !promoInput.value) promoInput.value = appliedPromo.code;
-    if (appliedPromo) setPromoFeedback(`Code applied — ${appliedPromo.label || '-' + Math.round(appliedPromo.rate*100) + '%'} 🎉`, true);
+    if (appliedPromo) setPromoFeedback(`${t('promo_applied')} — ${appliedPromo.label || '-' + Math.round(appliedPromo.rate*100) + '%'} 🎉`, true);
 
     const shipLine = document.getElementById('cart-shipping-line');
-    if (shipLine) shipLine.textContent = t.freeShip ? '+ Shipping: FREE' : '+ Shipping: calculated at checkout';
+    if (shipLine) shipLine.textContent = totals.freeShip ? t('ship_free') : t('ship_calculated');
 
-    document.getElementById('cart-final-total').innerText = `Total: ${fmt(t.total)}`;
+    document.getElementById('cart-final-total').innerText = `${t('order_total')}: ${fmt(totals.total)}`;
     renderFreeShip();
 }
 
@@ -673,24 +1150,24 @@ function renderCheckoutSummary() {
         el.appendChild(row);
     });
 
-    const t = computeTotals(0);
+    const totals = computeTotals(0);
 
     // Discount line (insert/update before the total)
     let discRow = document.getElementById('checkout-discount-row');
-    if (appliedPromo && t.discount > 0) {
+    if (appliedPromo && totals.discount > 0) {
         if (!discRow) {
             discRow = document.createElement('div');
             discRow.id = 'checkout-discount-row';
             discRow.className = 'checkout-shipping-row checkout-discount-row';
             el.parentElement.insertBefore(discRow, document.getElementById('checkout-shipping-row'));
         }
-        discRow.innerHTML = `<span>Discount (${escHtml(appliedPromo.code)})</span><span>-${fmt(t.discount)}</span>`;
+        discRow.innerHTML = `<span>${t('order_discount')} (${escHtml(appliedPromo.code)})</span><span>-${fmt(totals.discount)}</span>`;
         discRow.style.display = 'flex';
     } else if (discRow) {
         discRow.style.display = 'none';
     }
 
-    document.getElementById('checkout-total-display').textContent = fmt(t.total);
+    document.getElementById('checkout-total-display').textContent = fmt(totals.total);
     // Reset shipping row
     const row = document.getElementById('checkout-shipping-row');
     if (row) row.style.display = 'none';
@@ -713,14 +1190,14 @@ function validateCheckout(form) {
     let ok = true;
     let firstInvalid = null;
     const checks = [
-        ['firstName', v => v.trim().length >= 2,                      'Enter your first name'],
-        ['lastName',  v => v.trim().length >= 2,                      'Enter your last name'],
-        ['email',     v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()), 'Enter a valid email address'],
-        ['phone',     v => /^\+?[\d][\d\s]{7,14}$/.test(v.trim()),    'Enter a valid phone number'],
-        ['street',    v => v.trim().length >= 3,                      'Enter your street and number'],
-        ['city',      v => v.trim().length >= 2,                      'Enter your city'],
-        ['zip',       v => /^\d{3}\s?\d{2}$/.test(v.trim()),          'ZIP must be 5 digits (e.g. 110 00)'],
-        ['country',   v => !!v,                                        'Please select a country'],
+        ['firstName', v => v.trim().length >= 2,                      t('err_firstname')],
+        ['lastName',  v => v.trim().length >= 2,                      t('err_lastname')],
+        ['email',     v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()), t('err_email')],
+        ['phone',     v => /^\+?[\d][\d\s]{7,14}$/.test(v.trim()),    t('err_phone')],
+        ['street',    v => v.trim().length >= 3,                      t('err_street')],
+        ['city',      v => v.trim().length >= 2,                      t('err_city')],
+        ['zip',       v => /^\d{3}\s?\d{2}$/.test(v.trim()),          t('err_zip')],
+        ['country',   v => !!v,                                        t('err_country')],
     ];
     checks.forEach(([name, test, msg]) => {
         const field = form.elements[name];
@@ -730,7 +1207,7 @@ function validateCheckout(form) {
         if (!valid) { ok = false; if (!firstInvalid) firstInvalid = field; }
     });
     const ship = form.querySelector('input[name="shipping"]:checked');
-    if (!ship) { ok = false; showToast('Please select a shipping method', '🚚'); }
+    if (!ship) { ok = false; showToast(t('toast_select_shipping'), '🚚'); }
     if (firstInvalid) firstInvalid.focus();
     return ok;
 }
@@ -739,30 +1216,30 @@ function validateCheckout(form) {
 function submitOrder(e) {
     e.preventDefault();
     const form = e.target;
-    if (cart.length === 0) { showToast('Your cart is empty', '🛒'); return; }
-    if (!validateCheckout(form)) { showToast('Please check the highlighted fields', '⚠️'); return; }
+    if (cart.length === 0) { showToast(t('toast_cart_empty'), '🛒'); return; }
+    if (!validateCheckout(form)) { showToast(t('toast_check_fields'), '⚠️'); return; }
 
     const shipRadio = form.querySelector('input[name="shipping"]:checked');
     const shipPrice = shipRadio ? parseFloat(shipRadio.getAttribute('data-price')) || 0 : 0;
-    const t = computeTotals(shipPrice);
+    const totals = computeTotals(shipPrice);
     const orderNum = 'TY-' + Date.now().toString(36).toUpperCase().slice(-6);
 
     const order = {
         num:      orderNum,
         date:     new Date().toLocaleDateString('cs-CZ'),
         items:    cart.map(i => ({ name: i.name, ingredients: [...i.ingredients], colors: [...i.colors], weight: i.weight, priceBase: i.priceBase, qty: i.qty })),
-        goods:    t.goods,
-        discount: t.discount,
+        goods:    totals.goods,
+        discount: totals.discount,
         promo:    appliedPromo ? appliedPromo.code : null,
-        shipping: t.ship,
-        total:    t.total
+        shipping: totals.ship,
+        total:    totals.total
     };
     orders.unshift(order);
     if (orders.length > 50) orders.pop();
     localStorage.setItem('teaseyou_orders', JSON.stringify(orders));
 
     const el = document.getElementById('success-order-num');
-    if (el) el.textContent = 'Order #' + orderNum;
+    if (el) el.textContent = t('order_num_prefix') + orderNum;
 
     cart = [];
     appliedPromo = null;
@@ -792,16 +1269,16 @@ function renderOrders() {
         card.innerHTML = `
             <div class="order-card-head">
                 <div>
-                    <span class="order-num font-cosmico">Order #${escHtml(o.num)}</span>
+                    <span class="order-num font-cosmico">${t('order_num_prefix')}${escHtml(o.num)}</span>
                     <span class="order-date">${escHtml(o.date)}</span>
                 </div>
-                <span class="order-status">Confirmed</span>
+                <span class="order-status">${t('order_status')}</span>
             </div>
             <div class="order-items">${itemsHtml}</div>
             <div class="order-card-foot">
-                ${o.discount ? `<span class="order-discount">Discount${o.promo ? ' (' + escHtml(o.promo) + ')' : ''}: -${fmt(o.discount)}</span>` : ''}
-                <span class="order-ship">Shipping: ${o.shipping ? fmt(o.shipping) : 'FREE'}</span>
-                <span class="order-total">Total: ${fmt(o.total)}</span>
+                ${o.discount ? `<span class="order-discount">${t('order_discount')}${o.promo ? ' (' + escHtml(o.promo) + ')' : ''}: -${fmt(o.discount)}</span>` : ''}
+                <span class="order-ship">${t('order_shipping')}: ${o.shipping ? fmt(o.shipping) : 'FREE'}</span>
+                <span class="order-total">${t('order_total')}: ${fmt(o.total)}</span>
             </div>`;
         list.appendChild(card);
     });
@@ -839,10 +1316,14 @@ document.addEventListener('input', e => {
 
 /* ─── INIT ───────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
+    applyTranslations();
     document.querySelectorAll('.ingredient-btn').forEach(btn => {
         const c = btn.getAttribute('data-color');
         if (c) btn.style.setProperty('--dot-color', c);
     });
+    // Initialize completion label with correct language
+    const completionLabel = document.getElementById('completion-label');
+    if (completionLabel) completionLabel.textContent = `0 / 3 ${t('completion_selected')}`;
     initReveal();
     initCookieBanner();
     initBackToTop();
@@ -857,39 +1338,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const QUIZ_QUESTIONS = [
     {
-        q: "What time of day do you drink most tea?",
+        q: "quiz_q1",
         options: [
-            { icon:"🌅", text:"Morning — I need a kick-start",   tags:["bold","caffeine"] },
-            { icon:"☀️", text:"Afternoon — calm but refreshing",  tags:["fresh","mild"] },
-            { icon:"🌙", text:"Evening — wind-down ritual",       tags:["herbal","calm"] },
-            { icon:"🌀", text:"Any time, any mood",               tags:["versatile"] },
+            { icon:"🌅", text:"quiz_q1_o1", tags:["bold","caffeine"] },
+            { icon:"☀️", text:"quiz_q1_o2", tags:["fresh","mild"] },
+            { icon:"🌙", text:"quiz_q1_o3", tags:["herbal","calm"] },
+            { icon:"🌀", text:"quiz_q1_o4", tags:["versatile"] },
         ]
     },
     {
-        q: "What flavour calls to you most?",
+        q: "quiz_q2",
         options: [
-            { icon:"🍋", text:"Bright & citrusy",   tags:["citrus"] },
-            { icon:"🌸", text:"Floral & delicate",  tags:["floral"] },
-            { icon:"🫚", text:"Warm & spicy",        tags:["spice"] },
-            { icon:"🍓", text:"Sweet & fruity",     tags:["fruit"] },
+            { icon:"🍋", text:"quiz_q2_o1", tags:["citrus"] },
+            { icon:"🌸", text:"quiz_q2_o2", tags:["floral"] },
+            { icon:"🫚", text:"quiz_q2_o3", tags:["spice"] },
+            { icon:"🍓", text:"quiz_q2_o4", tags:["fruit"] },
         ]
     },
     {
-        q: "How do you feel about caffeine?",
+        q: "quiz_q3",
         options: [
-            { icon:"⚡", text:"Give me all of it",       tags:["caffeine"] },
-            { icon:"🔆", text:"A little is fine",        tags:["mild"] },
-            { icon:"🌿", text:"None please — herbal only", tags:["herbal","calm"] },
-            { icon:"🤷", text:"Don't mind either way",   tags:["versatile"] },
+            { icon:"⚡", text:"quiz_q3_o1", tags:["caffeine"] },
+            { icon:"🔆", text:"quiz_q3_o2", tags:["mild"] },
+            { icon:"🌿", text:"quiz_q3_o3", tags:["herbal","calm"] },
+            { icon:"🤷", text:"quiz_q3_o4", tags:["versatile"] },
         ]
     },
     {
-        q: "Pick your brewing mood:",
+        q: "quiz_q4",
         options: [
-            { icon:"⏱", text:"Quick — under 3 minutes",   tags:["fresh","mild"] },
-            { icon:"🧘", text:"Slow & mindful — I'll wait", tags:["calm","herbal"] },
-            { icon:"💪", text:"Strong steep, big flavour", tags:["bold","caffeine"] },
-            { icon:"🎲", text:"Surprise me every time",    tags:["versatile"] },
+            { icon:"⏱", text:"quiz_q4_o1", tags:["fresh","mild"] },
+            { icon:"🧘", text:"quiz_q4_o2", tags:["calm","herbal"] },
+            { icon:"💪", text:"quiz_q4_o3", tags:["bold","caffeine"] },
+            { icon:"🎲", text:"quiz_q4_o4", tags:["versatile"] },
         ]
     },
 ];
@@ -966,13 +1447,13 @@ function renderQuizStep() {
     const q = QUIZ_QUESTIONS[quizStep];
     body.innerHTML = `
         <div class="quiz-card">
-            <p class="font-chaos" style="font-size:12px;color:var(--color-ink-faint);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;">Question ${quizStep+1} of ${QUIZ_QUESTIONS.length}</p>
-            <h2 class="quiz-question font-cosmico">${q.q}</h2>
+            <p class="font-chaos" style="font-size:12px;color:var(--color-ink-faint);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;">${t('quiz_question_of')} ${quizStep+1} ${t('quiz_of')} ${QUIZ_QUESTIONS.length}</p>
+            <h2 class="quiz-question font-cosmico">${t(q.q)}</h2>
             <div class="quiz-options">
                 ${q.options.map(opt => `
                     <button class="quiz-option" data-tags="${opt.tags.join(',')}">
                         <span class="quiz-option-icon">${opt.icon}</span>
-                        <span>${opt.text}</span>
+                        <span>${t(opt.text)}</span>
                     </button>
                 `).join('')}
             </div>
@@ -1006,7 +1487,7 @@ function renderQuizResult() {
 
     body.innerHTML = `
         <div class="quiz-result">
-            <p class="quiz-result-label font-chaos">Your perfect blend is</p>
+            <p class="quiz-result-label font-chaos">${t('quiz_result_label')}</p>
             <h1 class="logo quiz-result-name">${escHtml(best.name)}</h1>
             <div class="quiz-result-glass">
                 <div class="glass-frame" style="width:100%;height:100%;border-color:rgba(0,0,0,0.15)">
@@ -1017,9 +1498,9 @@ function renderQuizResult() {
             </div>
             <p class="quiz-result-desc font-chaos">${escHtml(best.desc)}</p>
             <div class="quiz-actions">
-                <button class="btn btn-large" id="quiz-order-btn">Order this blend</button>
-                <button class="btn btn-secondary" onclick="startQuiz()">Try again</button>
-                <button class="btn btn-ghost" onclick="showPage('home-page')">Back home</button>
+                <button class="btn btn-large" id="quiz-order-btn">${t('btn_order_blend')}</button>
+                <button class="btn btn-secondary" onclick="startQuiz()">${t('btn_try_again')}</button>
+                <button class="btn btn-ghost" onclick="showPage('home-page')">${t('btn_back_home')}</button>
             </div>
         </div>
     `;
@@ -1070,5 +1551,5 @@ function randomBlend() {
     animateGlass('main-glass-frame');
     validateSelection();
     updateGlassLabels();
-    showToast(`Random blend: ${randomName} 🎲`, '🎲');
+    showToast(`${t('toast_random')} ${randomName} 🎲`, '🎲');
 }
