@@ -1619,6 +1619,31 @@ body::before {
     border-radius: var(--radius-pill);
 }
 
+.about-story {
+    max-width: 620px;
+    margin: 0 auto var(--space-xl);
+    padding: 0 var(--space-md);
+    text-align: center;
+}
+
+.about-story p {
+    font-size: 1.05rem;
+    line-height: 1.85;
+    color: var(--color-ink-muted);
+    margin-bottom: var(--space-md);
+}
+
+.about-callout {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-ink) !important;
+    border-left: 3px solid var(--color-accent);
+    padding-left: 20px;
+    margin-top: var(--space-md);
+    text-align: left;
+    line-height: 1.6;
+}
+
 .about-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
