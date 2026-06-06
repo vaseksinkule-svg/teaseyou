@@ -814,15 +814,6 @@ body::before {
 }
 
 /* --- PRODUCT DETAIL --- */
-/* Back nav row above the detail card */
-.detail-nav {
-    width: 100%;
-    padding: var(--space-xs) 0 var(--space-md);
-}
-.detail-nav .back-link {
-    position: static;
-}
-
 .detail-container {
     display: grid;
     grid-template-columns: 1fr 1.1fr;
@@ -834,6 +825,15 @@ body::before {
     border-radius: var(--radius-xl);
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-lg);
+    position: relative;
+}
+
+/* Back link anchored to the top-left corner of the detail card */
+.detail-back-btn {
+    position: absolute;
+    top: var(--space-md);
+    left: var(--space-lg);
+    grid-column: 1 / -1;
 }
 .detail-visual {
     display: flex;
@@ -2137,7 +2137,7 @@ body.dark .ingredient-btn { background: #1e1e1c; }
 /* --- RESPONSIVE --- */
 @media (max-width: 992px) {
     .product-grid { grid-template-columns: 1fr; gap: var(--space-lg); }
-    .detail-container { grid-template-columns: 1fr; padding: var(--space-lg); border-radius: var(--radius-lg); }
+    .detail-container { grid-template-columns: 1fr; padding: var(--space-lg); padding-top: calc(var(--space-lg) + 36px); border-radius: var(--radius-lg); }
     .detail-visual { padding: var(--space-lg); }
     .detail-title { text-align: center; }
     .detail-desc { text-align: center; }
