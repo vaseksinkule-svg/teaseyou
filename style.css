@@ -44,7 +44,11 @@
 /* --- RESET & BASE --- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 84px; /* keep anchored sections clear of the sticky nav */
+    overflow-x: hidden;
+}
 
 body {
     background-color: var(--color-bg);
@@ -53,7 +57,6 @@ body {
     line-height: 1.6;
     color: var(--color-ink);
     min-height: 100vh;
-    overflow-x: hidden;
 }
 
 /* Subtle grain texture on the background */
@@ -78,7 +81,7 @@ body::before {
     background: rgba(247, 245, 240, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    position: fixed;
+    position: sticky;
     top: 0;
     z-index: 2000;
     border-bottom: 1px solid var(--color-border);
@@ -122,7 +125,6 @@ body::before {
 
 /* --- PAGE SYSTEM --- */
 .content-wrapper {
-    padding-top: 68px;
     display: flex;
     flex-direction: column;
 }
@@ -1738,6 +1740,21 @@ body.dark .hero-glasses { background: rgba(255,255,255,0.03); border-color: rgba
 body.dark .progress-dot { background: #2e2e2a; }
 body.dark .ingredient-btn { background: #1e1e1c; }
 
+/* --- DARK MODE: button & footer contrast fixes --- */
+/* Primary buttons use --color-ink as background, which flips to a light tone in
+   dark mode. Flip the label dark so it stays readable (light button, dark text). */
+body.dark .btn            { color: var(--color-bg); }
+body.dark .btn-secondary  { color: var(--color-accent-soft); }
+body.dark .btn-ghost      { color: var(--color-ink); }
+body.dark .btn.disabled   { color: var(--color-ink-faint); }
+
+/* Footer background is --color-ink (would flip light). Keep it dark. */
+body.dark .site-footer { background: #0e0e0c; }
+
+/* Dark cards sit on a near-black page — add a hairline so they keep definition. */
+body.dark .stats-bar,
+body.dark .cta-banner { border: 1px solid var(--color-border); }
+
 .dm-light { display: block; }
 .dm-dark  { display: none; }
 
@@ -1907,73 +1924,6 @@ body.dark .ingredient-btn { background: #1e1e1c; }
         border-left-color: transparent;
     }
 }
-
-/* =============================================
-   REVIEWS
-   ============================================= */
-.reviews-section {
-    width: 100%;
-    padding: var(--space-xl) 0 var(--space-lg);
-}
-
-.reviews-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--space-md);
-    width: 100%;
-}
-
-.review-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-xl);
-    padding: var(--space-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-    transition: var(--transition-med);
-}
-.review-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-}
-
-.review-stars {
-    color: #f5a623;
-    font-size: 16px;
-    letter-spacing: 2px;
-}
-
-.review-text {
-    font-size: 15px;
-    line-height: 1.7;
-    color: var(--color-ink-muted);
-    flex: 1;
-}
-
-.review-author {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    margin-top: var(--space-xs);
-}
-
-.review-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--color-ink);
-    flex-shrink: 0;
-}
-
-.review-author strong { font-size: 14px; color: var(--color-ink); }
-.review-meta { font-size: 12px; color: var(--color-ink-faint); }
-
 
 .site-footer {
     background: var(--color-ink);
