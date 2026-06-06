@@ -827,15 +827,42 @@ body::before {
     border-radius: var(--radius-xl);
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-lg);
-    position: relative;
 }
 
-/* Back link anchored to the top-left corner of the detail card */
+/* Back-link row above the detail card */
+.detail-page-nav {
+    width: 100%;
+    padding: var(--space-sm) 0 var(--space-md);
+}
 .detail-back-btn {
-    position: absolute;
-    top: var(--space-md);
-    left: var(--space-lg);
-    grid-column: 1 / -1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-ink-muted);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+    text-decoration: none;
+}
+.detail-back-btn:hover { color: var(--color-ink); }
+
+/* Extensible info-block area below the detail card */
+.detail-extras {
+    width: 100%;
+    margin-top: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+.detail-extras .brew-guide {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+.detail-extras .brew-guide-toggle {
+    padding: var(--space-md) var(--space-lg);
 }
 .detail-visual {
     display: flex;
@@ -1749,7 +1776,17 @@ body.dark .btn-ghost      { color: var(--color-ink); }
 body.dark .btn.disabled   { color: var(--color-ink-faint); }
 
 /* Footer background is --color-ink (would flip light). Keep it dark. */
-body.dark .site-footer { background: #0e0e0c; }
+body.dark .site-footer { background: #0e0e0c; color: var(--color-ink); }
+body.dark .site-footer a,
+body.dark .footer-links a,
+body.dark .footer-tagline,
+body.dark .footer-logo,
+body.dark .footer-col-title,
+body.dark .footer-newsletter-desc,
+body.dark .footer-bottom { color: var(--color-ink); }
+
+/* Signature blend card prices — accent color stays readable in dark mode */
+body.dark .ready-price { color: var(--color-accent-soft); }
 
 /* Dark cards sit on a near-black page — add a hairline so they keep definition. */
 body.dark .stats-bar,
@@ -2087,7 +2124,7 @@ body.dark .cta-banner { border: 1px solid var(--color-border); }
 /* --- RESPONSIVE --- */
 @media (max-width: 992px) {
     .product-grid { grid-template-columns: 1fr; gap: var(--space-lg); }
-    .detail-container { grid-template-columns: 1fr; padding: var(--space-lg); padding-top: calc(var(--space-lg) + 36px); border-radius: var(--radius-lg); }
+    .detail-container { grid-template-columns: 1fr; padding: var(--space-lg); border-radius: var(--radius-lg); }
     .detail-visual { padding: var(--space-lg); }
     .detail-title { text-align: center; }
     .detail-desc { text-align: center; }
