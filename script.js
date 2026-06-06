@@ -247,6 +247,8 @@ const TRANSLATIONS = {
         packeta_change:     'Change branch',
         packeta_required:   'Please choose a pickup point',
         packeta_unavailable:'Widget not available — try again',
+        /* Promo bar */
+        promo_text:  '🍵 Free shipping on orders over 500 Kč · Use code FIRSTBLEND for 10% off your first order',
     },
     cs: {
         /* Nav / Sidebar */
@@ -488,6 +490,8 @@ const TRANSLATIONS = {
         packeta_change:     'Změnit pobočku',
         packeta_required:   'Prosím vyberte výdejní místo',
         packeta_unavailable:'Widget není dostupný — zkuste to znovu',
+        /* Promo bar */
+        promo_text:  '🍵 Doprava zdarma při objednávce nad 500 Kč · Použij kód FIRSTBLEND a získej 10 % slevy na první nákup',
     }
 };
 
@@ -512,6 +516,8 @@ function applyTranslations() {
     document.querySelectorAll('[data-i18n-aria]').forEach(el => {
         el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
     });
+    // Sync <html lang> with the detected language
+    document.documentElement.lang = LANG;
     // Update <title> and <meta name="description"> based on detected language
     document.title = t('page_title');
     const metaDesc = document.querySelector('meta[name="description"]');
