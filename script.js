@@ -36,8 +36,6 @@ const TRANSLATIONS = {
         how_2_desc:         'Pick a fruit, flower or spice that sounds good to you. This is the part where it gets personal.',
         how_3_title:        'We ship it fresh',
         how_3_desc:         'We mix your blend the day you order it and send it straight to you. No warehouse, no shelf time.',
-        /* Reviews section */
-        reviews_title:      'What people say',
         /* FAQ */
         faq_title:          'Frequently asked',
         faq_q1:             'How long does delivery take?',
@@ -75,7 +73,7 @@ const TRANSLATIONS = {
         section_name:       '4. Name your mix',
         info_default_title: 'Select a base',
         info_default_text:  'Choose your preferred tea base to start.',
-        name_placeholder:   'E.g. Morning Magic',
+        name_placeholder:   'e.g. Slow Tuesday',
         name_hint:          'Give it a name you\'ll remember ✨',
         btn_preview:        'Preview my blend →',
         btn_surprise:       'Surprise me',
@@ -279,8 +277,6 @@ const TRANSLATIONS = {
         how_2_desc:         'Vyber ovoce, květ nebo koření, které ti říká. Tady to začne být osobní.',
         how_3_title:        'Čerstvě odešleme',
         how_3_desc:         'Blend smícháme ve stejný den, kdy objednáváš, a pošleme přímo k tobě. Žádný sklad, žádné čekání na polici.',
-        /* Reviews section */
-        reviews_title:      'Co říkají lidé',
         /* FAQ */
         faq_title:          'Časté otázky',
         faq_q1:             'Jak dlouho trvá doručení?',
@@ -318,7 +314,7 @@ const TRANSLATIONS = {
         section_name:       '4. Pojmenuj svůj mix',
         info_default_title: 'Zvol základ',
         info_default_text:  'Vyber svůj oblíbený základ čaje pro začátek.',
-        name_placeholder:   'Např. Ranní magie',
+        name_placeholder:   'Např. Pomalé úterý',
         name_hint:          'Dej mu jméno, které si zapamatuješ ✨',
         btn_preview:        'Náhled mého blendu →',
         btn_surprise:       'Překvap mě',
@@ -1603,7 +1599,7 @@ function renderQuizResult() {
         </div>
     `;
     document.getElementById('quiz-order-btn').addEventListener('click', () => {
-        openDetail(best.name, best.desc, 3.50, best.ingredients, best.colors);
+        openDetail(best.name, best.desc, 89, best.ingredients, best.colors);
     });
 }
 
