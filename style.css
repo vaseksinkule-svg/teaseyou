@@ -814,6 +814,15 @@ body::before {
 }
 
 /* --- PRODUCT DETAIL --- */
+/* Back nav row above the detail card */
+.detail-nav {
+    width: 100%;
+    padding: var(--space-xs) 0 var(--space-md);
+}
+.detail-nav .back-link {
+    position: static;
+}
+
 .detail-container {
     display: grid;
     grid-template-columns: 1fr 1.1fr;
@@ -2134,8 +2143,7 @@ body.dark .ingredient-btn { background: #1e1e1c; }
     .detail-desc { text-align: center; }
     .detail-ingredients { text-align: center; }
     .detail-tag { display: block; text-align: center; }
-    .detail-actions { justify-content: center; }
-    .back-link { display: block; text-align: center; }
+    .detail-actions { justify-content: center; flex-wrap: wrap; }
     .form-section-label { text-align: center; }
     .qty-options { justify-content: center; }
     .glass-container { position: relative; top: 0; }
@@ -2330,12 +2338,13 @@ body.dark .cookie-banner { background: #f0ede8; color: #141412; }
 .brew-guide-body {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.35s ease;
+    transition: max-height 0.4s ease;
 }
-.brew-guide.open .brew-guide-body { max-height: 200px; }
+.brew-guide.open .brew-guide-body { max-height: 500px; }
 .brew-steps {
     display: flex;
-    gap: var(--space-lg);
+    flex-wrap: wrap;
+    gap: var(--space-md);
     padding: var(--space-md) var(--space-lg) var(--space-lg);
     background: var(--color-accent-pale);
 }
