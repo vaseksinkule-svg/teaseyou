@@ -282,8 +282,10 @@
 
 <!-- ═══ PRODUCT DETAIL ═══ -->
 <section id="product-detail-page" class="page">
-    <div class="detail-container">
+    <div class="detail-page-nav">
         <span onclick="showPage('home-page')" class="back-link detail-back-btn" data-i18n="back_to_blends">&#8592; Back to blends</span>
+    </div>
+    <div class="detail-container">
         <div class="detail-visual">
             <div class="glass-container">
                 <div class="glass-frame" id="detail-glass-frame">
@@ -299,36 +301,6 @@
             <h1 id="detail-title" class="logo detail-title">Tea Name</h1>
             <p id="detail-desc" class="detail-desc font-chaos">Description...</p>
             <p id="detail-ingredients-list" class="detail-ingredients"></p>
-            <!-- Brewing guide -->
-            <div class="brew-guide">
-                <button class="brew-guide-toggle" onclick="toggleBrewGuide(this)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 010 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/></svg>
-                    <span>Brewing guide</span>
-                    <svg class="brew-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="brew-guide-body">
-                    <div class="brew-steps">
-                        <div class="brew-step">
-                            <div class="brew-step-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 0c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6z"/></svg>
-                            </div>
-                            <div><strong>2&ndash;3g</strong><span>per 200ml</span></div>
-                        </div>
-                        <div class="brew-step">
-                            <div class="brew-step-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
-                            </div>
-                            <div><strong id="detail-temp">90&ndash;95&deg;C</strong><span>water temp</span></div>
-                        </div>
-                        <div class="brew-step">
-                            <div class="brew-step-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            </div>
-                            <div><strong id="detail-time">3&ndash;4 min</strong><span>steep time</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div class="detail-divider"></div>
             <p class="form-section-label" data-i18n="lbl_select_weight">Select weight</p>
             <div class="qty-options">
@@ -339,6 +311,38 @@
             <div class="detail-actions">
                 <button id="detail-add-btn" class="btn disabled" onclick="confirmOrder()" disabled data-i18n="btn_add_cart">Add to Cart</button>
                 <button class="btn btn-secondary" onclick="modifyReadyMade()" data-i18n="btn_customize">Customize Recipe</button>
+            </div>
+        </div>
+    </div>
+    <!-- Brew guide block — sits below the product card, extensible area for future info blocks -->
+    <div class="detail-extras">
+        <div class="brew-guide">
+            <button class="brew-guide-toggle" onclick="toggleBrewGuide(this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 010 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/></svg>
+                <span>Brewing guide</span>
+                <svg class="brew-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="brew-guide-body">
+                <div class="brew-steps">
+                    <div class="brew-step">
+                        <div class="brew-step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 0c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6z"/></svg>
+                        </div>
+                        <div><strong>2&ndash;3g</strong><span>per 200ml</span></div>
+                    </div>
+                    <div class="brew-step">
+                        <div class="brew-step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
+                        </div>
+                        <div><strong id="detail-temp">90&ndash;95&deg;C</strong><span>water temp</span></div>
+                    </div>
+                    <div class="brew-step">
+                        <div class="brew-step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <div><strong id="detail-time">3&ndash;4 min</strong><span>steep time</span></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
