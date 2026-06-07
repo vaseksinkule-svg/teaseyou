@@ -525,8 +525,13 @@
         <div class="cart-header"><span data-i18n="cart_col_product">Product</span><span data-i18n="cart_col_price">Price</span><span data-i18n="cart_col_qty">Quantity</span><span data-i18n="cart_col_subtotal">Subtotal</span></div>
         <div id="cart-items-list"></div>
         <div id="cart-empty" class="cart-empty" style="display:none;">
-            <p class="font-chaos" data-i18n="cart_empty">Your cart is empty.</p>
-            <button class="btn btn-secondary" style="margin-top:20px" onclick="showPage('home-page')" data-i18n="btn_start_shopping">Start shopping</button>
+            <div class="cart-empty-icon">🍵</div>
+            <p class="font-cosmico cart-empty-title" data-i18n="cart_empty_title">Your cart is empty</p>
+            <p class="font-chaos cart-empty-sub" data-i18n="cart_empty">Start by picking a blend or creating your own.</p>
+            <div class="cart-empty-actions">
+                <button class="btn" onclick="showPage('home-page')" data-i18n="btn_browse_blends">Browse blends</button>
+                <button class="btn btn-secondary" onclick="showPage('product-page')" data-i18n="btn_create_own">Create your own</button>
+            </div>
         </div>
         <div id="cart-freeship" class="cart-freeship" style="display:none;">
             <p id="cart-freeship-text" class="cart-freeship-text"></p>
@@ -682,6 +687,97 @@
     </div>
 </section>
 
+<!-- ═══ TERMS ═══ -->
+<section id="terms-page" class="page">
+    <div class="legal-page">
+        <h1 class="logo legal-title">Obchodní podmínky</h1>
+        <div class="legal-body">
+            <h2>1. Provozovatel</h2>
+            <p><strong>[DOPLNIT: Jméno / název firmy]</strong>, IČO: [DOPLNIT], se sídlem [DOPLNIT adresa], email: hello@teaseyou.cz, tel.: [DOPLNIT]</p>
+
+            <h2>2. Objednávka a uzavření smlouvy</h2>
+            <p>Odesláním objednávky zákazník potvrzuje, že se seznámil s těmito obchodními podmínkami. Smlouva je uzavřena potvrzením objednávky ze strany prodávajícího.</p>
+
+            <h2>3. Ceny a platba</h2>
+            <p>Všechny ceny jsou uvedeny v Kč včetně DPH. Platba probíhá [DOPLNIT: bankovním převodem / kartou online]. Objednávka je expedována po přijetí platby.</p>
+
+            <h2>4. Dodání</h2>
+            <p>Každý blend je namíchán v den objednávky a expedován do 24 hodin. Doručení na území ČR: 2–3 pracovní dny (Zásilkovna), 3–5 dní (Česká pošta). Slovensko: 3–5 pracovních dní.</p>
+
+            <h2>5. Odstoupení od smlouvy</h2>
+            <p>Zákazník má právo odstoupit od smlouvy do 14 dní od převzetí zboží bez udání důvodu, s výjimkou zboží vyrobeného na zakázku (§ 1837 písm. d) OZ). Blendy namíchané na míru jsou zboží vyrobené na zakázku — na ně právo na odstoupení nevzniká. U poškozené nebo nesprávné zásilky provádíme bezplatné opakované zaslání, kontaktujte nás do 7 dní od doručení.</p>
+
+            <h2>6. Reklamace</h2>
+            <p>Reklamaci uplatňujte emailem na hello@teaseyou.cz s popisem závady a fotografií. Reklamaci vyřídíme do 30 dnů.</p>
+
+            <h2>7. Závěrečná ustanovení</h2>
+            <p>Tyto podmínky se řídí právem České republiky. Spotřebitelské spory lze řešit mimosoudně přes Českou obchodní inspekci (coi.cz).</p>
+            <p class="legal-updated">Platné od [DOPLNIT datum]</p>
+        </div>
+        <button class="btn btn-secondary" onclick="history.back()">← Zpět</button>
+    </div>
+</section>
+
+<!-- ═══ PRIVACY ═══ -->
+<section id="privacy-page" class="page">
+    <div class="legal-page">
+        <h1 class="logo legal-title">Ochrana osobních údajů</h1>
+        <div class="legal-body">
+            <h2>1. Správce osobních údajů</h2>
+            <p><strong>[DOPLNIT: Jméno / název firmy]</strong>, IČO: [DOPLNIT], email: hello@teaseyou.cz</p>
+
+            <h2>2. Jaké údaje zpracováváme</h2>
+            <p>Při objednávce zpracováváme: jméno a příjmení, doručovací adresu, email a telefon. Tyto údaje jsou nezbytné pro splnění smlouvy.</p>
+
+            <h2>3. Účel zpracování</h2>
+            <p>Osobní údaje zpracováváme výhradně za účelem: vyřízení objednávky a doručení zboží, zasílání novinek (pouze se souhlasem), plnění zákonných povinností.</p>
+
+            <h2>4. Příjemci údajů</h2>
+            <p>Vaše údaje předáváme pouze dopravcům (Zásilkovna / Česká pošta / DPD) v rozsahu nezbytném pro doručení. Údaje neprodáváme třetím stranám.</p>
+
+            <h2>5. Doba uchovávání</h2>
+            <p>Objednávkové údaje uchováváme po dobu 5 let (daňová povinnost). Souhlas s newsletterem můžete kdykoli odvolat emailem.</p>
+
+            <h2>6. Vaše práva</h2>
+            <p>Máte právo na přístup ke svým údajům, jejich opravu, výmaz nebo omezení zpracování. Žádosti zasílejte na hello@teaseyou.cz. Máte také právo podat stížnost u ÚOOÚ (uoou.cz).</p>
+
+            <h2>7. Cookies</h2>
+            <p>Web používá pouze technické cookies (localStorage) pro uložení košíku a preferencí. Nepoužíváme reklamní ani analytické cookies třetích stran.</p>
+            <p class="legal-updated">Platné od [DOPLNIT datum]</p>
+        </div>
+        <button class="btn btn-secondary" onclick="history.back()">← Zpět</button>
+    </div>
+</section>
+
+<!-- ═══ COOKIES ═══ -->
+<section id="cookies-page" class="page">
+    <div class="legal-page">
+        <h1 class="logo legal-title">Cookie Policy</h1>
+        <div class="legal-body">
+            <h2>Co jsou cookies</h2>
+            <p>Cookies jsou malé datové soubory ukládané ve vašem prohlížeči. Slouží k zapamatování preferencí a obsahu košíku.</p>
+
+            <h2>Jaké cookies používáme</h2>
+            <table class="legal-table">
+                <thead><tr><th>Název</th><th>Účel</th><th>Typ</th><th>Platnost</th></tr></thead>
+                <tbody>
+                    <tr><td>teaseyou_cart</td><td>Obsah košíku</td><td>Nezbytné</td><td>Trvalé (localStorage)</td></tr>
+                    <tr><td>teaseyou_saved</td><td>Uložené blendy</td><td>Nezbytné</td><td>Trvalé (localStorage)</td></tr>
+                    <tr><td>teaseyou_orders</td><td>Historie objednávek</td><td>Nezbytné</td><td>Trvalé (localStorage)</td></tr>
+                    <tr><td>teaseyou_dark</td><td>Tmavý režim</td><td>Nezbytné</td><td>Trvalé (localStorage)</td></tr>
+                    <tr><td>teaseyou_cookies</td><td>Souhlas s cookies</td><td>Nezbytné</td><td>Trvalé (localStorage)</td></tr>
+                </tbody>
+            </table>
+            <p style="margin-top:16px">Nepoužíváme žádné analytické, reklamní ani cookies třetích stran.</p>
+
+            <h2>Správa cookies</h2>
+            <p>Cookies můžete smazat nebo zablokovat v nastavení prohlížeče. Upozorňujeme, že smazání nezbytných cookies může narušit funkčnost webu (košík, uložené blendy).</p>
+            <p class="legal-updated">Platné od [DOPLNIT datum]</p>
+        </div>
+        <button class="btn btn-secondary" onclick="history.back()">← Zpět</button>
+    </div>
+</section>
+
 </main>
 
 <div id="order-modal" class="modal">
@@ -722,10 +818,10 @@
         <div class="footer-col">
             <h4 class="footer-col-title" data-i18n="footer_legal">Legal</h4>
             <ul class="footer-links">
-                <li><a href="#">Terms &amp; Conditions</a></li>
-                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#" onclick="showPage('terms-page')">Terms &amp; Conditions</a></li>
+                <li><a href="#" onclick="showPage('privacy-page')">Privacy Policy</a></li>
                 <li><a href="#">GDPR</a></li>
-                <li><a href="#">Cookie Policy</a></li>
+                <li><a href="#" onclick="showPage('cookies-page')">Cookie Policy</a></li>
             </ul>
         </div>
         <div class="footer-col footer-col-wide">
