@@ -111,8 +111,10 @@ const TRANSLATIONS = {
         cart_col_price:     'Price',
         cart_col_qty:       'Quantity',
         cart_col_subtotal:  'Subtotal',
+        cart_empty_title:   'Your cart is empty',
         cart_empty:         'Your cart is empty.',
         btn_start_shopping: 'Start shopping',
+        btn_browse_blends:  'Browse blends',
         btn_continue:       '← Continue shopping',
         lbl_promo:          'Discount code',
         btn_apply:          'Apply',
@@ -354,8 +356,10 @@ const TRANSLATIONS = {
         cart_col_price:     'Cena',
         cart_col_qty:       'Množství',
         cart_col_subtotal:  'Mezisoučet',
+        cart_empty_title:   'Košík je prázdný',
         cart_empty:         'Tvůj košík je prázdný.',
         btn_start_shopping: 'Začít nakupovat',
+        btn_browse_blends:  'Prohlédnout blendy',
         btn_continue:       '← Pokračovat v nákupu',
         lbl_promo:          'Slevový kód',
         btn_apply:          'Použít',
@@ -1110,6 +1114,14 @@ function confirmOrder() {
     updateCartBadge();
     renderCart();
     showToast(`${currentProduct.name} ${t('toast_added_cart')}`, '🍵');
+
+    // Pulse the cart icon to confirm add
+    const cartIcon = document.querySelector('.nav-cart-icon');
+    if (cartIcon) {
+        cartIcon.classList.add('cart-pulse');
+        setTimeout(() => cartIcon.classList.remove('cart-pulse'), 600);
+    }
+
     showPage('cart-page');
 }
 
@@ -1313,6 +1325,7 @@ function validateCheckout(form) {
 /* ─── SUBMIT ORDER ───────────────────────────── */
 function submitOrder(e) {
     e.preventDefault();
+    const FORMSPREE_ID = 'YOUR_FORM_ID';
     const form = e.target;
     if (cart.length === 0) { showToast(t('toast_cart_empty'), '🛒'); return; }
     if (!validateCheckout(form)) { showToast(t('toast_check_fields'), '⚠️'); return; }
@@ -1333,6 +1346,15 @@ function submitOrder(e) {
         total:       totals.total,
         packetaPoint: packetaPoint ? `${packetaPoint.name}, ${packetaPoint.city}` : null
     };
+
+    if (FORMSPREE_ID !== 'YOUR_FORM_ID') {
+        const fd = new FormData(form);
+        fd.append('_subject', `Nová objednávka ${orderNum} — Tease you`);
+        fd.append('order_json', JSON.stringify(order, null, 2));
+        fetch(`https://formspree.io/f/${FORMSPREE_ID}`, { method: 'POST', body: fd, headers: { Accept: 'application/json' } })
+            .catch(() => {}); // fire-and-forget, don't block UX
+    }
+
     orders.unshift(order);
     if (orders.length > 50) orders.pop();
     localStorage.setItem('teaseyou_orders', JSON.stringify(orders));
