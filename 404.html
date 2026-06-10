@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stránka nenalezena — Tease you</title>
+    <meta http-equiv="refresh" content="3;url=/">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%233a5f3c'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23f5f1e9' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 40px 20px; }
+        .not-found { max-width: 480px; }
+        .not-found-icon { font-size: 72px; margin-bottom: 24px; }
+        .not-found-title { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2rem, 6vw, 3.5rem); color: var(--color-ink); margin-bottom: 16px; }
+        .not-found-sub { color: var(--color-ink-muted); margin-bottom: 8px; font-size: 1rem; line-height: 1.6; }
+        .not-found-redirect { color: var(--color-ink-faint); font-size: 0.85rem; margin-bottom: 32px; }
+        .not-found-btn { display: inline-block; background: var(--color-accent); color: white; padding: 14px 32px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 0.95rem; transition: opacity 0.2s; }
+        .not-found-btn:hover { opacity: 0.85; }
+    </style>
+</head>
+<body>
+    <div class="not-found">
+        <div class="not-found-icon">🍵</div>
+        <h1 class="not-found-title">Stránka nenalezena</h1>
+        <p class="not-found-sub">Tuhle stránku jsme nenašli — možná jsi zaklepal na špatné dveře.</p>
+        <p class="not-found-redirect">Přesměrováváme tě za 3 sekundy…</p>
+        <a href="/" class="not-found-btn">Zpět domů →</a>
+    </div>
+</body>
+</html>
