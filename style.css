@@ -2996,3 +2996,7 @@ body.dark .packeta-picker { background: rgba(58,95,60,0.12); border-color: rgba(
     .nav-logo { font-size: 20px; }
 }
 body.dark .packeta-change-btn { border-color: var(--color-accent-soft); color: var(--color-accent-soft); }
+
+/* Legal table scrolls horizontally on narrow screens instead of overflowing */
+.legal-table-wrap { overflow-x: auto; margin-top: var(--space-sm); -webkit-overflow-scrolling: touch; }
+.legal-table-wrap .legal-table { margin-top: 0; min-width: 460px; }

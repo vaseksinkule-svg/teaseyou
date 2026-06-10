@@ -290,6 +290,13 @@ const TRANSLATIONS = {
         footer_privacy:       'Privacy Policy',
         footer_gdpr:          'GDPR',
         footer_cookies:       'Cookie Policy',
+        btn_clear:          '\u2715 Clear',
+        blend_sub_1:        'Green tea, Mint & Lemon',
+        blend_sub_2:        'White tea, Strawberry & Honey',
+        blend_sub_3:        'Black tea, Ginger & Vanilla',
+        blend_sub_4:        'Oolong, Rose & Lavender',
+        blend_sub_5:        'Rooibos, Orange & Spearmint',
+        blend_sub_6:        'Chamomile, Turmeric & Cinnamon',
         social_coming_soon:   'Not on social media yet — coming soon!',
         /* Packeta widget */
         packeta_choose:     'Choose pickup point',
@@ -582,6 +589,13 @@ const TRANSLATIONS = {
         footer_privacy:       'Ochrana osobních údajů',
         footer_gdpr:          'GDPR',
         footer_cookies:       'Cookie Policy',
+        btn_clear:          '\u2715 Vymazat',
+        blend_sub_1:        'Zelen\u00fd \u010daj, m\u00e1ta a citron',
+        blend_sub_2:        'B\u00edl\u00fd \u010daj, jahoda a med',
+        blend_sub_3:        '\u010cern\u00fd \u010daj, z\u00e1zvor a vanilka',
+        blend_sub_4:        'Oolong, r\u016f\u017ee a levandule',
+        blend_sub_5:        'Rooibos, pomeran\u010d a m\u00e1ta',
+        blend_sub_6:        'He\u0159m\u00e1nek, kurkuma a sko\u0159ice',
         social_coming_soon:   'Na sociálních sítích zatím nejsme — brzy!',
         /* Packeta widget */
         packeta_choose:     'Vybrat výdejní místo',
@@ -599,6 +613,20 @@ function t(key) {
         ? (TRANSLATIONS.cs[key] !== undefined ? TRANSLATIONS.cs[key] : key)
         : (TRANSLATIONS.en[key] !== undefined ? TRANSLATIONS.en[key] : key);
 }
+
+/* Ingredient names are stored in English internally (data-name keys);
+   translate them for display via the ing_* translation keys. */
+const ING_KEYS = {
+    'Green Tea':'ing_green_tea','Black Tea':'ing_black_tea','White Tea':'ing_white_tea',
+    'Oolong Tea':'ing_oolong','Rooibos':'ing_rooibos','Chamomile':'ing_chamomile',
+    'Strawberry':'ing_strawberry','Mint':'ing_mint','Vanilla':'ing_vanilla','Rose':'ing_rose',
+    'Orange':'ing_orange','Blueberry':'ing_blueberry','Raspberry':'ing_raspberry',
+    'Cocoa':'ing_cocoa','Coconut':'ing_coconut',
+    'Honey':'ing_honey','Lemon':'ing_lemon','Ginger':'ing_ginger','Lavender':'ing_lavender',
+    'Turmeric':'ing_turmeric','Cinnamon':'ing_cinnamon','Spearmint':'ing_spearmint',
+    'Rose Hip':'ing_rose_hip','Cardamom':'ing_cardamom'
+};
+function tIng(name) { return ING_KEYS[name] ? t(ING_KEYS[name]) : name; }
 
 /* ─── APPLY TRANSLATIONS ─────────────────────── */
 function applyTranslations() {
@@ -806,7 +834,7 @@ function openDetail(name, desc, price, ingredients, colors) {
     document.getElementById('detail-title').innerText = name;
     const localDesc = LANG === 'cs' && BLEND_DESCS_CS[name] ? BLEND_DESCS_CS[name] : desc;
     document.getElementById('detail-desc').innerText = localDesc;
-    document.getElementById('detail-ingredients-list').innerText = ingredients.join(' • ');
+    document.getElementById('detail-ingredients-list').innerText = ingredients.map(tIng).join(' • ');
     document.getElementById('detail-part1').style.backgroundColor = colors[0];
     document.getElementById('detail-part2').style.backgroundColor = colors[1];
     document.getElementById('detail-part3').style.backgroundColor = colors[2];
@@ -1103,7 +1131,7 @@ function showSummary() {
         if (name === 'Empty') return;
         const chip = document.createElement('div');
         chip.className = 'summary-chip';
-        chip.innerHTML = `<div class="summary-chip-dot" style="background:${currentProduct.colors[i]}"></div><span>${name}</span>`;
+        chip.innerHTML = `<div class="summary-chip-dot" style="background:${currentProduct.colors[i]}"></div><span>${tIng(name)}</span>`;
         chipsEl.appendChild(chip);
     });
     const btn = document.getElementById('summary-order-btn');
@@ -1169,7 +1197,7 @@ function renderSavedBlends() {
             </div>
             <div class="saved-card-info">
                 <h3 class="font-cosmico saved-card-name">${escHtml(blend.name)}</h3>
-                <p class="saved-card-ingredients font-chaos">${escHtml(blend.ingredients.filter(i=>i!=='Empty').join(' · '))}</p>
+                <p class="saved-card-ingredients font-chaos">${escHtml(blend.ingredients.filter(i=>i!=='Empty').map(tIng).join(' · '))}</p>
                 <span class="saved-card-date">${t('saved_date_prefix')} ${escHtml(blend.savedAt)}</span>
             </div>
             <div class="saved-card-actions">
@@ -1287,7 +1315,7 @@ function renderCart() {
                 </div>
                 <div class="cart-text">
                     <h4 class="font-cosmico cart-item-name">${escHtml(item.name)}</h4>
-                    <p class="font-chaos cart-item-ingredients">${escHtml(item.ingredients.join(' \u2022 '))}</p>
+                    <p class="font-chaos cart-item-ingredients">${escHtml(item.ingredients.map(tIng).join(' \u2022 '))}</p>
                     <span class="cart-item-weight">${escHtml(item.weight)}</span>
                 </div>
             </div>
@@ -1365,7 +1393,7 @@ function renderCheckoutSummary() {
                 </div>
                 <div>
                     <p class="font-cosmico checkout-item-name">${escHtml(item.name)}</p>
-                    <p class="checkout-item-meta">${escHtml(item.weight)} · qty ${item.qty}</p>
+                    <p class="checkout-item-meta">${escHtml(item.weight)} · ${LANG === 'cs' ? item.qty + ' ks' : 'qty ' + item.qty}</p>
                 </div>
             </div>
             <span class="checkout-item-price">${fmt(item.priceBase * item.qty)}</span>
