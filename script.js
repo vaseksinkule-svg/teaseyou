@@ -980,6 +980,13 @@ function pulseGlassPart(partId) {
     void part.offsetWidth;
     part.classList.add('part-pulse');
 }
+function fillGlassPart(partId) {
+    const part = document.getElementById(partId);
+    if (!part) return;
+    part.classList.remove('part-fill');
+    void part.offsetWidth;
+    part.classList.add('part-fill');
+}
 
 /* ─── UPDATE GLASS LABELS ────────────────────── */
 function updateGlassLabels() {
@@ -1017,6 +1024,7 @@ document.addEventListener('click', function(e) {
         ingBtn.classList.add('selected');
         document.getElementById(targetId).style.backgroundColor = color;
         pulseGlassPart(targetId);
+        fillGlassPart(targetId);
         animateGlass('main-glass-frame');
         const idx = parseInt(targetId.replace('part','')) - 1;
         currentProduct.colors[idx]      = color;
@@ -1480,6 +1488,29 @@ function submitOrder(e) {
     savePromo();
     updateCartBadge();
     showPage('success-page');
+    launchConfetti();
+}
+
+function launchConfetti() {
+    const colors = ['#3a5f3c','#87ab68','#f5d78e','#e8607a','#ffc107','#f5f1e9'];
+    const count = 80;
+    const container = document.body;
+    for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.cssText = `
+            left: ${Math.random() * 100}vw;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            width: ${6 + Math.random() * 8}px;
+            height: ${6 + Math.random() * 8}px;
+            animation-delay: ${Math.random() * 0.8}s;
+            animation-duration: ${1.2 + Math.random() * 1.2}s;
+            border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+            transform: rotate(${Math.random() * 360}deg);
+        `;
+        container.appendChild(el);
+        el.addEventListener('animationend', () => el.remove());
+    }
 }
 
 /* ─── RENDER ORDER HISTORY ───────────────────── */
@@ -1566,6 +1597,25 @@ document.addEventListener('DOMContentLoaded', () => {
     initBackToTop();
     initA11y();
     updateCartBadge();   // restore badge from persisted cart
+
+    // Hero parallax on scroll
+    (function() {
+        const glasses = document.querySelectorAll('.hero-glass');
+        if (!glasses.length) return;
+        const speeds = [0.12, 0.20, 0.08];
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (ticking) return;
+            requestAnimationFrame(() => {
+                const y = window.scrollY;
+                glasses.forEach((g, i) => {
+                    g.style.transform = `translateY(${-y * speeds[i]}px)`;
+                });
+                ticking = false;
+            });
+            ticking = true;
+        }, { passive: true });
+    })();
 });
 
 
