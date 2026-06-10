@@ -582,14 +582,20 @@
         </div>
         <div class="checkout-form-col">
             <form id="checkout-form" onsubmit="submitOrder(event)">
-                <div class="form-section-label" data-i18n="checkout_contact">Contact</div>
+                <div class="checkout-step-header">
+                    <span class="checkout-step-num">1</span>
+                    <div class="form-section-label" data-i18n="checkout_contact">Contact</div>
+                </div>
                 <div class="form-row">
                     <div class="form-group"><label class="form-label" data-i18n="lbl_firstname">First name *</label><input type="text" name="firstName" class="name-input" required placeholder="Jan"></div>
                     <div class="form-group"><label class="form-label" data-i18n="lbl_lastname">Last name *</label><input type="text" name="lastName" class="name-input" required placeholder="Nov&aacute;k"></div>
                 </div>
                 <div class="form-group"><label class="form-label" data-i18n="lbl_email">Email *</label><input type="email" name="email" class="name-input" required placeholder="jan@email.cz"></div>
                 <div class="form-group"><label class="form-label" data-i18n="lbl_phone">Phone *</label><input type="tel" name="phone" class="name-input" required placeholder="+420 123 456 789"></div>
-                <div class="form-section-label" style="margin-top:32px;" data-i18n="checkout_address">Delivery address</div>
+                <div class="checkout-step-header" style="margin-top:32px;">
+                    <span class="checkout-step-num">2</span>
+                    <div class="form-section-label" data-i18n="checkout_address">Delivery address</div>
+                </div>
                 <div class="form-group"><label class="form-label" data-i18n="lbl_street">Street and number *</label><input type="text" name="street" class="name-input" required placeholder="N&aacute;m&#283;st&iacute; M&iacute;ru 12"></div>
                 <div class="form-row">
                     <div class="form-group"><label class="form-label" data-i18n="lbl_city">City *</label><input type="text" name="city" class="name-input" required placeholder="Praha"></div>
@@ -603,7 +609,10 @@
                         <option value="SK">Slovakia &#x1F1F8;&#x1F1F0;</option>
                     </select>
                 </div>
-                <div class="form-section-label" style="margin-top:32px;" data-i18n="checkout_shipping">Shipping method</div>
+                <div class="checkout-step-header" style="margin-top:32px;">
+                    <span class="checkout-step-num">3</span>
+                    <div class="form-section-label" data-i18n="checkout_shipping">Shipping method</div>
+                </div>
                 <div class="shipping-options">
                     <label class="shipping-option"><input type="radio" name="shipping" value="post" data-price="89" required onchange="handleShippingChange(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4EE; &Ccaron;esk&aacute; po&scaron;ta</span><span class="shipping-price">89 Kč</span></div><span class="shipping-desc" data-i18n="ship_post_desc">Delivery in 3&ndash;5 business days</span></label>
                     <label class="shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="69" onchange="handleShippingChange(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4E6; Z&aacute;silkovna</span><span class="shipping-price">69 Kč</span></div><span class="shipping-desc" data-i18n="ship_zasilkovna_desc">Pick up at your nearest location</span></label>
