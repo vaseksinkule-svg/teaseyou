@@ -42,7 +42,7 @@
 <!-- PROMO BAR -->
 <div id="promo-bar" class="promo-bar">
     <span data-i18n="promo_text">🍵 Free shipping on orders over 500 Kč · Use code FIRSTBLEND for 10% off your first order</span>
-    <button class="promo-close" onclick="this.closest('#promo-bar').style.display='none'" aria-label="Close">×</button>
+    <button class="promo-close" onclick="dismissPromoBar()" aria-label="Close">×</button>
 </div>
 
 <!-- COOKIE CONSENT -->
@@ -50,7 +50,7 @@
     <div class="cookie-inner">
         <div class="cookie-text">
             <strong data-i18n="cookie_title">We use cookies</strong>
-            <p><span data-i18n="cookie_text">We use cookies to improve your experience and remember your preferences. By continuing you agree to our</span> <a href="#" class="cookie-link" data-i18n="cookie_policy_link">Cookie Policy</a>.</p>
+            <p><span data-i18n="cookie_text">We use cookies to improve your experience and remember your preferences. By continuing you agree to our</span> <a href="#" class="cookie-link" onclick="showPage('cookies-page')" data-i18n="cookie_policy_link">Cookie Policy</a>.</p>
         </div>
         <div class="cookie-actions">
             <button class="btn btn-secondary cookie-decline" onclick="handleCookies(false)" data-i18n="btn_decline">Decline</button>
@@ -180,7 +180,7 @@
     </div>
 
     <div class="ready-made-section reveal-section">
-        <h2 class="font-cosmico section-subtitle">Signature Blends</h2>
+        <h2 class="font-cosmico section-subtitle" data-i18n="lbl_signature_blends">Signature Blends</h2>
         <div class="ready-grid">
             <div class="ready-card" onclick="openDetail('Morning Window','Green tea with mint and lemon. Clean and bright — the kind of cup that gets the day started right.',89,['Green Tea','Mint','Lemon'],['#8da676','#4caf50','#ffe066'])">
                 <div class="ready-glass-mini"><div style="background:#ffe066"></div><div style="background:#4caf50"></div><div style="background:#8da676"></div></div>
@@ -283,7 +283,7 @@
 <!-- ═══ PRODUCT DETAIL ═══ -->
 <section id="product-detail-page" class="page">
     <div class="detail-page-nav">
-        <span onclick="showPage('home-page')" class="back-link detail-back-btn" data-i18n="back_to_blends">&#8592; Back to blends</span>
+        <button onclick="showPage('home-page')" class="back-link detail-back-btn" data-i18n="back_to_blends">&#8592; Back to blends</button>
     </div>
     <div class="detail-container">
         <div class="detail-visual">
@@ -297,7 +297,7 @@
             </div>
         </div>
         <div class="detail-info">
-            <span class="detail-tag font-chaos">Signature Blend</span>
+            <span class="detail-tag font-chaos" data-i18n="lbl_signature_blend">Signature Blend</span>
             <h1 id="detail-title" class="logo detail-title">Tea Name</h1>
             <p id="detail-desc" class="detail-desc font-chaos">Description...</p>
             <p id="detail-ingredients-list" class="detail-ingredients"></p>
@@ -319,7 +319,7 @@
         <div class="brew-guide">
             <button class="brew-guide-toggle" onclick="toggleBrewGuide(this)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 010 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/></svg>
-                <span>Brewing guide</span>
+                <span data-i18n="lbl_brewing_guide">Brewing guide</span>
                 <svg class="brew-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
             <div class="brew-guide-body">
@@ -328,19 +328,19 @@
                         <div class="brew-step-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 0c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6z"/></svg>
                         </div>
-                        <div><strong>2&ndash;3g</strong><span>per 200ml</span></div>
+                        <div><strong>2&ndash;3g</strong><span data-i18n="lbl_per_200ml">per 200ml</span></div>
                     </div>
                     <div class="brew-step">
                         <div class="brew-step-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
                         </div>
-                        <div><strong id="detail-temp">90&ndash;95&deg;C</strong><span>water temp</span></div>
+                        <div><strong id="detail-temp">90&ndash;95&deg;C</strong><span data-i18n="lbl_water_temp">water temp</span></div>
                     </div>
                     <div class="brew-step">
                         <div class="brew-step-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         </div>
-                        <div><strong id="detail-time">3&ndash;4 min</strong><span>steep time</span></div>
+                        <div><strong id="detail-time">3&ndash;4 min</strong><span data-i18n="lbl_steep_time">steep time</span></div>
                     </div>
                 </div>
             </div>
@@ -352,7 +352,7 @@
 <section id="product-page" class="page product-grid">
     <div class="options-column">
         <div class="config-header">
-            <span onclick="showPage('home-page')" class="back-link" data-i18n="back_btn">&#8592; Back</span>
+            <button onclick="showPage('home-page')" class="back-link" data-i18n="back_btn">&#8592; Back</button>
             <div>
                 <h2 class="font-cosmico config-title" data-i18n="config_title">Build your blend</h2>
                 <p class="config-subtitle" data-i18n="config_subtitle">Pick one from each category</p>
@@ -376,42 +376,42 @@
         <div class="selection-group">
             <h3 class="font-cosmico" data-i18n="section_base">1. Base</h3>
             <div class="btn-grid">
-                <button class="ingredient-btn" data-target="part1" data-color="#8da676" data-name="Green Tea" data-desc="Fresh and earthy, light caffeine.">Green Tea</button>
-                <button class="ingredient-btn" data-target="part1" data-color="#4a3b32" data-name="Black Tea" data-desc="Strong and bold, high caffeine.">Black Tea</button>
-                <button class="ingredient-btn" data-target="part1" data-color="#f5e6d3" data-name="White Tea" data-desc="Delicate and sweet, low caffeine.">White Tea</button>
-                <button class="ingredient-btn" data-target="part1" data-color="#c8a0b4" data-name="Oolong Tea" data-desc="Complex and floral, medium caffeine.">Oolong Tea</button>
-                <button class="ingredient-btn" data-target="part1" data-color="#e8720c" data-name="Rooibos" data-desc="Earthy and sweet, caffeine-free.">Rooibos</button>
-                <button class="ingredient-btn" data-target="part1" data-color="#f5d78e" data-name="Chamomile" data-desc="Calm and soothing, caffeine-free.">Chamomile</button>
+                <button class="ingredient-btn" data-target="part1" data-color="#8da676" data-name="Green Tea" data-desc="Fresh and earthy, light caffeine." data-i18n="ing_green_tea" data-i18n-desc="ing_green_tea_desc">Green Tea</button>
+                <button class="ingredient-btn" data-target="part1" data-color="#4a3b32" data-name="Black Tea" data-desc="Strong and bold, high caffeine." data-i18n="ing_black_tea" data-i18n-desc="ing_black_tea_desc">Black Tea</button>
+                <button class="ingredient-btn" data-target="part1" data-color="#f5e6d3" data-name="White Tea" data-desc="Delicate and sweet, low caffeine." data-i18n="ing_white_tea" data-i18n-desc="ing_white_tea_desc">White Tea</button>
+                <button class="ingredient-btn" data-target="part1" data-color="#c8a0b4" data-name="Oolong Tea" data-desc="Complex and floral, medium caffeine." data-i18n="ing_oolong" data-i18n-desc="ing_oolong_desc">Oolong Tea</button>
+                <button class="ingredient-btn" data-target="part1" data-color="#e8720c" data-name="Rooibos" data-desc="Earthy and sweet, caffeine-free." data-i18n="ing_rooibos" data-i18n-desc="ing_rooibos_desc">Rooibos</button>
+                <button class="ingredient-btn" data-target="part1" data-color="#f5d78e" data-name="Chamomile" data-desc="Calm and soothing, caffeine-free." data-i18n="ing_chamomile" data-i18n-desc="ing_chamomile_desc">Chamomile</button>
             </div>
             <button class="clear-btn" data-target="part1">&#x2715; Clear</button>
         </div>
         <div class="selection-group">
             <h3 class="font-cosmico" data-i18n="section_flavor">2. Flavor</h3>
             <div class="btn-grid">
-                <button class="ingredient-btn" data-target="part2" data-color="#cc4747" data-name="Strawberry">Strawberry</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#4caf50" data-name="Mint">Mint</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#f3e5ab" data-name="Vanilla">Vanilla</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#e8607a" data-name="Rose">Rose</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#ffb347" data-name="Orange">Orange</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#9b59b6" data-name="Blueberry">Blueberry</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#e91e8c" data-name="Raspberry">Raspberry</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#795548" data-name="Cocoa">Cocoa</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#4fc3f7" data-name="Coconut">Coconut</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#cc4747" data-name="Strawberry" data-i18n="ing_strawberry">Strawberry</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#4caf50" data-name="Mint" data-i18n="ing_mint">Mint</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#f3e5ab" data-name="Vanilla" data-i18n="ing_vanilla">Vanilla</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#e8607a" data-name="Rose" data-i18n="ing_rose">Rose</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#ffb347" data-name="Orange" data-i18n="ing_orange">Orange</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#9b59b6" data-name="Blueberry" data-i18n="ing_blueberry">Blueberry</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#e91e8c" data-name="Raspberry" data-i18n="ing_raspberry">Raspberry</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#795548" data-name="Cocoa" data-i18n="ing_cocoa">Cocoa</button>
+                <button class="ingredient-btn" data-target="part2" data-color="#4fc3f7" data-name="Coconut" data-i18n="ing_coconut">Coconut</button>
             </div>
             <button class="clear-btn" data-target="part2">&#x2715; Clear</button>
         </div>
         <div class="selection-group">
             <h3 class="font-cosmico" data-i18n="section_extras">3. Extras</h3>
             <div class="btn-grid">
-                <button class="ingredient-btn" data-target="part3" data-color="#ffc107" data-name="Honey">Honey</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#ffe066" data-name="Lemon">Lemon</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#ff9800" data-name="Ginger">Ginger</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#b8a0cc" data-name="Lavender">Lavender</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#d4a017" data-name="Turmeric">Turmeric</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#c8824a" data-name="Cinnamon">Cinnamon</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#a8d8a8" data-name="Spearmint">Spearmint</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#f8bbd0" data-name="Rose Hip">Rose Hip</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#80cbc4" data-name="Cardamom">Cardamom</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#ffc107" data-name="Honey" data-i18n="ing_honey">Honey</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#ffe066" data-name="Lemon" data-i18n="ing_lemon">Lemon</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#ff9800" data-name="Ginger" data-i18n="ing_ginger">Ginger</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#b8a0cc" data-name="Lavender" data-i18n="ing_lavender">Lavender</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#d4a017" data-name="Turmeric" data-i18n="ing_turmeric">Turmeric</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#c8824a" data-name="Cinnamon" data-i18n="ing_cinnamon">Cinnamon</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#a8d8a8" data-name="Spearmint" data-i18n="ing_spearmint">Spearmint</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#f8bbd0" data-name="Rose Hip" data-i18n="ing_rose_hip">Rose Hip</button>
+                <button class="ingredient-btn" data-target="part3" data-color="#80cbc4" data-name="Cardamom" data-i18n="ing_cardamom">Cardamom</button>
             </div>
             <button class="clear-btn" data-target="part3">&#x2715; Clear</button>
         </div>
@@ -797,11 +797,11 @@
     <div class="footer-inner">
         <div class="footer-brand">
             <div class="footer-logo">Tease you</div>
-            <p class="footer-tagline">Handcrafted blends,<br>made just for you.</p>
+            <p class="footer-tagline" data-i18n-html="footer_tagline">Handcrafted blends,<br>made just for you.</p>
             <div class="footer-socials">
-                <a href="#" class="social-icon" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
-                <a href="#" class="social-icon" aria-label="TikTok"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.53V6.75a4.85 4.85 0 01-1.02-.06z"/></svg></a>
-                <a href="#" class="social-icon" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+                <a href="#" class="social-icon" aria-label="Instagram" onclick="showSocialComingSoon(event)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+                <a href="#" class="social-icon" aria-label="TikTok" onclick="showSocialComingSoon(event)"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.53V6.75a4.85 4.85 0 01-1.02-.06z"/></svg></a>
+                <a href="#" class="social-icon" aria-label="Facebook" onclick="showSocialComingSoon(event)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
             </div>
         </div>
         <div class="footer-col">
@@ -818,10 +818,10 @@
         <div class="footer-col">
             <h4 class="footer-col-title" data-i18n="footer_legal">Legal</h4>
             <ul class="footer-links">
-                <li><a href="#" onclick="showPage('terms-page')">Terms &amp; Conditions</a></li>
-                <li><a href="#" onclick="showPage('privacy-page')">Privacy Policy</a></li>
-                <li><a href="#">GDPR</a></li>
-                <li><a href="#" onclick="showPage('cookies-page')">Cookie Policy</a></li>
+                <li><a href="#" onclick="showPage('terms-page')" data-i18n="footer_terms">Terms &amp; Conditions</a></li>
+                <li><a href="#" onclick="showPage('privacy-page')" data-i18n="footer_privacy">Privacy Policy</a></li>
+                <li><a href="#" onclick="showPage('privacy-page')" data-i18n="footer_gdpr">GDPR</a></li>
+                <li><a href="#" onclick="showPage('cookies-page')" data-i18n="footer_cookies">Cookie Policy</a></li>
             </ul>
         </div>
         <div class="footer-col footer-col-wide">
@@ -841,7 +841,7 @@
     </div>
     <div class="footer-bottom">
         <span data-i18n="footer_copyright">&copy; 2025 Tease you. All rights reserved.</span>
-        <span>Made with &#x1F375; in Czech Republic</span>
+        <span data-i18n="footer_made_with">Made with &#x1F375; in Czech Republic</span>
     </div>
 </footer>
 

@@ -244,6 +244,53 @@ const TRANSLATIONS = {
         /* SEO */
         page_title:  'Tease you — Build your perfect tea blend',
         meta_desc:   'Create your own custom tea blend from 6 premium bases, 9 flavors and 9 extras. Named, packed and shipped fresh to your door. Free shipping over 500 Kč.',
+        /* Ingredients — bases */
+        ing_green_tea:      'Green Tea',
+        ing_black_tea:      'Black Tea',
+        ing_white_tea:      'White Tea',
+        ing_oolong:         'Oolong Tea',
+        ing_rooibos:        'Rooibos',
+        ing_chamomile:      'Chamomile',
+        ing_green_tea_desc:  'Fresh and earthy, light caffeine.',
+        ing_black_tea_desc:  'Strong and bold, high caffeine.',
+        ing_white_tea_desc:  'Delicate and sweet, low caffeine.',
+        ing_oolong_desc:     'Complex and floral, medium caffeine.',
+        ing_rooibos_desc:    'Earthy and sweet, caffeine-free.',
+        ing_chamomile_desc:  'Calm and soothing, caffeine-free.',
+        /* Ingredients — flavors */
+        ing_strawberry:     'Strawberry',
+        ing_mint:           'Mint',
+        ing_vanilla:        'Vanilla',
+        ing_rose:           'Rose',
+        ing_orange:         'Orange',
+        ing_blueberry:      'Blueberry',
+        ing_raspberry:      'Raspberry',
+        ing_cocoa:          'Cocoa',
+        ing_coconut:        'Coconut',
+        /* Ingredients — extras */
+        ing_honey:          'Honey',
+        ing_lemon:          'Lemon',
+        ing_ginger:         'Ginger',
+        ing_lavender:       'Lavender',
+        ing_turmeric:       'Turmeric',
+        ing_cinnamon:       'Cinnamon',
+        ing_spearmint:      'Spearmint',
+        ing_rose_hip:       'Rose Hip',
+        ing_cardamom:       'Cardamom',
+        /* UI labels */
+        lbl_signature_blends: 'Signature Blends',
+        lbl_signature_blend:  'Signature Blend',
+        lbl_brewing_guide:    'Brewing guide',
+        lbl_per_200ml:        'per 200ml',
+        lbl_water_temp:       'water temp',
+        lbl_steep_time:       'steep time',
+        footer_tagline:       'Handcrafted blends,<br>made just for you.',
+        footer_made_with:     'Made with 🍵 in Czech Republic',
+        footer_terms:         'Terms & Conditions',
+        footer_privacy:       'Privacy Policy',
+        footer_gdpr:          'GDPR',
+        footer_cookies:       'Cookie Policy',
+        social_coming_soon:   'Not on social media yet — coming soon!',
         /* Packeta widget */
         packeta_choose:     'Choose pickup point',
         packeta_change:     'Change branch',
@@ -489,6 +536,53 @@ const TRANSLATIONS = {
         /* SEO */
         page_title:  'Tease you — Namíchej si vlastní čajový blend',
         meta_desc:   'Namíchej si vlastní čaj ze 6 základů, 9 příchutí a 9 doplňků. Pojmenuj ho, my ho čerstvě zabalíme a doručíme. Doprava zdarma nad 500 Kč.',
+        /* Ingredience — základy */
+        ing_green_tea:      'Zelený čaj',
+        ing_black_tea:      'Černý čaj',
+        ing_white_tea:      'Bílý čaj',
+        ing_oolong:         'Oolong',
+        ing_rooibos:        'Rooibos',
+        ing_chamomile:      'Heřmánek',
+        ing_green_tea_desc:  'Svěží a zemitý, nízký kofein.',
+        ing_black_tea_desc:  'Silný a výrazný, vysoký kofein.',
+        ing_white_tea_desc:  'Jemný a sladký, nízký kofein.',
+        ing_oolong_desc:     'Komplexní a květinový, střední kofein.',
+        ing_rooibos_desc:    'Zemitý a sladký, bez kofeinu.',
+        ing_chamomile_desc:  'Klidný a uklidňující, bez kofeinu.',
+        /* Ingredience — příchutě */
+        ing_strawberry:     'Jahoda',
+        ing_mint:           'Máta',
+        ing_vanilla:        'Vanilka',
+        ing_rose:           'Růže',
+        ing_orange:         'Pomeranč',
+        ing_blueberry:      'Borůvka',
+        ing_raspberry:      'Malina',
+        ing_cocoa:          'Kakao',
+        ing_coconut:        'Kokos',
+        /* Ingredience — doplňky */
+        ing_honey:          'Med',
+        ing_lemon:          'Citron',
+        ing_ginger:         'Zázvor',
+        ing_lavender:       'Levandule',
+        ing_turmeric:       'Kurkuma',
+        ing_cinnamon:       'Skořice',
+        ing_spearmint:      'Máta peprná',
+        ing_rose_hip:       'Šípek',
+        ing_cardamom:       'Kardamom',
+        /* UI popisky */
+        lbl_signature_blends: 'Signature Blendy',
+        lbl_signature_blend:  'Signature Blend',
+        lbl_brewing_guide:    'Jak připravit',
+        lbl_per_200ml:        'na 200ml',
+        lbl_water_temp:       'teplota vody',
+        lbl_steep_time:       'doba louhování',
+        footer_tagline:       'Čaje na míru,<br>jen pro tebe.',
+        footer_made_with:     'Vyrobeno s 🍵 v České republice',
+        footer_terms:         'Obchodní podmínky',
+        footer_privacy:       'Ochrana osobních údajů',
+        footer_gdpr:          'GDPR',
+        footer_cookies:       'Cookie Policy',
+        social_coming_soon:   'Na sociálních sítích zatím nejsme — brzy!',
         /* Packeta widget */
         packeta_choose:     'Vybrat výdejní místo',
         packeta_change:     'Změnit pobočku',
@@ -519,6 +613,10 @@ function applyTranslations() {
     });
     document.querySelectorAll('[data-i18n-aria]').forEach(el => {
         el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
+    });
+    // Translate ingredient button text and desc
+    document.querySelectorAll('[data-i18n-desc]').forEach(el => {
+        el.setAttribute('data-desc', t(el.getAttribute('data-i18n-desc')));
     });
     // Sync <html lang> with the detected language
     document.documentElement.lang = LANG;
@@ -585,6 +683,18 @@ function escHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+/* ─── PROMO BAR ──────────────────────────────── */
+function dismissPromoBar() {
+    document.getElementById('promo-bar').style.display = 'none';
+    localStorage.setItem('teaseyou_promo_dismissed', '1');
+}
+
+/* ─── SOCIAL COMING SOON ─────────────────────── */
+function showSocialComingSoon(e) {
+    e.preventDefault();
+    showToast(t('social_coming_soon'), '📱');
 }
 
 /* ─── TOAST ──────────────────────────────────── */
@@ -694,7 +804,8 @@ function toggleBrewGuide(btn) {
 function openDetail(name, desc, price, ingredients, colors) {
     currentProduct = { name, desc, priceBase: price, ingredients, colors, weight: '' };
     document.getElementById('detail-title').innerText = name;
-    document.getElementById('detail-desc').innerText = desc;
+    const localDesc = LANG === 'cs' && BLEND_DESCS_CS[name] ? BLEND_DESCS_CS[name] : desc;
+    document.getElementById('detail-desc').innerText = localDesc;
     document.getElementById('detail-ingredients-list').innerText = ingredients.join(' • ');
     document.getElementById('detail-part1').style.backgroundColor = colors[0];
     document.getElementById('detail-part2').style.backgroundColor = colors[1];
@@ -881,7 +992,7 @@ function updateGlassLabels() {
         if (!dot || !text) return;
         if (sel) {
             dot.style.background = sel.getAttribute('data-color');
-            text.textContent = sel.getAttribute('data-name');
+            text.textContent = t(sel.getAttribute('data-i18n') || '') || sel.getAttribute('data-name');
         } else {
             dot.style.background = 'var(--color-border)';
             text.textContent = defaults[idx];
@@ -911,7 +1022,7 @@ document.addEventListener('click', function(e) {
         currentProduct.colors[idx]      = color;
         currentProduct.ingredients[idx] = name;
         if (targetId === 'part1') {
-            document.getElementById('info-title').innerText = name;
+            document.getElementById('info-title').innerText = t(ingBtn.getAttribute('data-i18n') || '') || ingBtn.getAttribute('data-name');
             document.getElementById('info-text').innerText  = ingBtn.getAttribute('data-desc') || '';
         }
         validateSelection();
@@ -1439,6 +1550,10 @@ document.addEventListener('input', e => {
 /* ─── INIT ───────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
     applyTranslations();
+    if (localStorage.getItem('teaseyou_promo_dismissed')) {
+        const bar = document.getElementById('promo-bar');
+        if (bar) bar.style.display = 'none';
+    }
     document.querySelectorAll('.ingredient-btn').forEach(btn => {
         const c = btn.getAttribute('data-color');
         if (c) btn.style.setProperty('--dot-color', c);
@@ -1502,6 +1617,7 @@ const QUIZ_BLENDS = [
         tags:["bold","caffeine"],
         name:"Deep Winter",
         desc:"Black tea with warming ginger and smooth vanilla. Full-bodied and rich — best on a cold morning.",
+        desc_cs:'Černý čaj se zázvorem a vanilkou. Plný a hřejivý — nejlepší na chladné ráno.',
         ingredients:["Black Tea","Ginger","Vanilla"],
         colors:["#4a3b32","#ff9800","#f3e5ab"]
     },
@@ -1509,6 +1625,7 @@ const QUIZ_BLENDS = [
         tags:["fresh","mild"],
         name:"Morning Window",
         desc:"Green tea with mint and lemon. Clean and bright — the kind of cup that gets the day started right.",
+        desc_cs:'Zelený čaj s mátou a citronem. Čistý a svěží — pohár co správně nastartuje den.',
         ingredients:["Green Tea","Mint","Lemon"],
         colors:["#8da676","#4caf50","#ffe066"]
     },
@@ -1516,6 +1633,7 @@ const QUIZ_BLENDS = [
         tags:["herbal","calm"],
         name:"Slow Tuesday",
         desc:"Chamomile with turmeric and cinnamon. Earthy and warm — for when you have nowhere to be.",
+        desc_cs:'Heřmánek s kurkumou a skořicí. Zemitý a teplý — na chvíle, kdy nikam nespěcháš.',
         ingredients:["Chamomile","Turmeric","Cinnamon"],
         colors:["#f5d78e","#d4a017","#c8824a"]
     },
@@ -1523,6 +1641,7 @@ const QUIZ_BLENDS = [
         tags:["citrus","fresh"],
         name:"Open Air",
         desc:"Rooibos with orange and spearmint. Naturally sweet and caffeine-free — good any time.",
+        desc_cs:'Rooibos s pomerančem a mátou. Přirozeně sladký a bez kofeinu — kdykoli je správný čas.',
         ingredients:["Rooibos","Orange","Spearmint"],
         colors:["#e8720c","#ffb347","#a8d8a8"]
     },
@@ -1530,6 +1649,7 @@ const QUIZ_BLENDS = [
         tags:["floral","mild"],
         name:"Late Light",
         desc:"Oolong with rose and lavender. Soft and a little floral — for the quiet part of the afternoon.",
+        desc_cs:'Oolong s růží a levandulí. Měkký a květinový — na tichý kout odpoledne.',
         ingredients:["Oolong Tea","Rose","Lavender"],
         colors:["#c8a0b4","#e8607a","#b8a0cc"]
     },
@@ -1537,10 +1657,20 @@ const QUIZ_BLENDS = [
         tags:["fruit","mild"],
         name:"Still Evening",
         desc:"White tea with strawberry and honey. Gently sweet and unhurried — a soft end to the day.",
+        desc_cs:'Bílý čaj s jahodou a medem. Jemně sladký a klidný — měkký závěr dne.',
         ingredients:["White Tea","Strawberry","Honey"],
         colors:["#f5e6d3","#cc4747","#ffc107"]
     },
 ];
+
+const BLEND_DESCS_CS = {
+    'Morning Window': 'Zelený čaj s mátou a citronem. Čistý a svěží — pohár, který rozjede den správným způsobem.',
+    'Still Evening':  'Bílý čaj s jahodou a medem. Jemně sladký a klidný — měkký závěr dne.',
+    'Deep Winter':    'Černý čaj se zázvorem a vanilkou. Plný a hřejivý — nejlepší s oběma rukama kolem hrnku.',
+    'Late Light':     'Oolong s růží a levandulí. Měkký a trochu květinový — na ten tichý kus odpoledne.',
+    'Open Air':       'Rooibos s pomerančem a mátou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.',
+    'Slow Tuesday':   'Heřmánek s kurkumou a skořicí. Zemitý a teplý — čajový ekvivalent nicnedělání.',
+};
 
 let quizAnswerTags = [];
 let quizStep = 0;
@@ -1627,7 +1757,7 @@ function renderQuizResult() {
         </div>
     `;
     document.getElementById('quiz-order-btn').addEventListener('click', () => {
-        openDetail(best.name, best.desc, 89, best.ingredients, best.colors);
+        openDetail(best.name, LANG === 'cs' && best.desc_cs ? best.desc_cs : best.desc, 89, best.ingredients, best.colors);
     });
 }
 
