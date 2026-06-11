@@ -1,0 +1,16 @@
+{
+  "name": "Tease you",
+  "short_name": "Tease you",
+  "description": "Namíchej si vlastní čajový blend",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f1e9",
+  "theme_color": "#3d5a3e",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "categories": ["shopping", "food"],
+  "lang": "cs"
+}
