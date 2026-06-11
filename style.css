@@ -539,6 +539,17 @@ body::before {
 .info-box h4 { font-family: 'Playfair Display', Georgia, serif; margin-bottom: 6px; color: var(--color-accent); }
 .info-box p  { font-size: 14px; color: var(--color-ink-muted); }
 
+/* Rich ingredient info panel */
+.info-rich { display: flex; flex-direction: column; gap: 8px; }
+.info-rich-header { display: flex; align-items: flex-start; gap: 12px; }
+.info-rich-emoji { font-size: 32px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.info-rich-header h4 { margin: 0 0 3px; color: var(--color-accent); font-family: 'Playfair Display', Georgia, serif; }
+.info-rich-header p { font-size: 13px; color: var(--color-ink-muted); margin: 0; }
+.info-rich-caffeine { font-size: 13px; color: var(--color-ink-muted); display: flex; align-items: center; gap: 6px; }
+.info-rich-caffeine .ing-caffeine-dots { color: var(--color-accent); letter-spacing: 2px; }
+.info-rich-section { font-size: 13px; color: var(--color-ink-muted); line-height: 1.5; }
+.info-rich .ing-card-tags { margin: 0; }
+
 /* Selection groups */
 .selection-group {
     margin-bottom: var(--space-lg);
