@@ -305,6 +305,34 @@ const TRANSLATIONS = {
         packeta_unavailable:'Widget not available — try again',
         /* Promo bar */
         promo_text:  '🍵 Free shipping on orders over 500 Kč · Use code FIRSTBLEND for 10% off your first order',
+        /* Bottom nav */
+        nav_quiz_short: 'Quiz',
+        /* Ingredients encyclopedia */
+        nav_ingredients: 'Ingredients',
+        ing_page_title: 'Ingredient Guide',
+        ing_page_sub: 'Everything in our palette — and why.',
+        ing_cat_bases: 'Tea Bases',
+        ing_cat_flavors: 'Flavors',
+        ing_cat_extras: 'Extras',
+        ing_health: 'Benefits',
+        ing_pairs: 'Pairs well with',
+        back_btn_text: 'Back',
+        /* Process page */
+        nav_process: 'How we do it',
+        process_tag: 'From field to cup',
+        process_title: 'How we do it',
+        process_sub: 'Every order is unique. No warehouses, no batches. Just freshly mixed tea, prepared exactly for you.',
+        proc_1_title: 'Ingredient sourcing',
+        proc_1_desc: 'We work exclusively with certified suppliers of tea leaves and herbs. Each batch of ingredients undergoes sensory inspection — colour, aroma, taste.',
+        proc_2_title: 'Precise weighing',
+        proc_2_desc: 'Each component of your blend is weighed on a precision digital scale. Ratios are designed so no flavour dominates — unless you explicitly want it to.',
+        proc_3_title: 'Blending',
+        proc_3_desc: 'Components are gently hand-mixed for even distribution without damaging the leaves. Then the blend rests briefly to let aromas meld.',
+        proc_4_title: 'Packaging',
+        proc_4_desc: 'We pack in hermetically sealable kraft pouches that preserve freshness for 12–18 months. Each pouch carries your blend name and ingredients.',
+        proc_5_title: 'Dispatch',
+        proc_5_desc: 'Parcels are sent via Zásilkovna or Česká pošta, typically within 24 hours. You receive a tracking number by email.',
+        process_cta_title: 'Ready to mix your blend?',
     },
     cs: {
         /* Nav / Sidebar */
@@ -604,6 +632,34 @@ const TRANSLATIONS = {
         packeta_unavailable:'Widget není dostupný — zkuste to znovu',
         /* Promo bar */
         promo_text:  '🍵 Doprava zdarma při objednávce nad 500 Kč · Použij kód FIRSTBLEND a získej 10 % slevy na první nákup',
+        /* Bottom nav */
+        nav_quiz_short: 'Quiz',
+        /* Ingredients encyclopedia */
+        nav_ingredients: 'Ingredience',
+        ing_page_title: 'Průvodce ingrediencemi',
+        ing_page_sub: 'Vše co jsme přidali do naší palety — a proč.',
+        ing_cat_bases: 'Čajové základy',
+        ing_cat_flavors: 'Příchutě',
+        ing_cat_extras: 'Doplňky',
+        ing_health: 'Přínosy',
+        ing_pairs: 'Hodí se s',
+        back_btn_text: 'Zpět',
+        /* Process page */
+        nav_process: 'Jak to děláme',
+        process_tag: 'Od políčka do šálku',
+        process_title: 'Jak to děláme',
+        process_sub: 'Každá objednávka je unikátní. Žádné sklady, žádné šarže. Jen čerstvě namíchaný čaj, připravený přesně pro tebe.',
+        proc_1_title: 'Výběr surovin',
+        proc_1_desc: 'Pracujeme výhradně s certifikovanými dodavateli čajových listů a bylinek. Každá šarže surovin prochází smyslovou kontrolou — barva, vůně, chuť.',
+        proc_2_title: 'Přesné vážení',
+        proc_2_desc: 'Každou složku tvého blendu vážíme na přesné digitální váze. Poměry jsou navrženy tak, aby žádná příchuť nedominovala — pokud si to výslovně nepřeješ.',
+        proc_3_title: 'Namíchání',
+        proc_3_desc: 'Složky šetrně ručně mícháme, aby se rovnoměrně prolnuly bez poškození listů. Pak necháme blend chvíli odpočinout, aby vůně splynuly.',
+        proc_4_title: 'Balení',
+        proc_4_desc: 'Balíme do hermeticky uzavíratelných kraft sáčků, které zachovávají čerstvost 12–18 měsíců. Na každém sáčku je tvoje jméno blendu a složení.',
+        proc_5_title: 'Odeslání',
+        proc_5_desc: 'Balíky odesíláme přes Zásilkovnu nebo Českou poštu zpravidla do 24 hodin. Dostaneš sledovací číslo emailem.',
+        process_cta_title: 'Připraven/a namíchat svůj blend?',
     }
 };
 
@@ -809,14 +865,25 @@ function closeSidebar() {
 /* ─── PAGE NAVIGATION ────────────────────────── */
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
+    const incoming = document.getElementById(pageId);
+    if (incoming) {
+        incoming.classList.add('active');
+        incoming.classList.remove('page-enter');
+        void incoming.offsetWidth; // force reflow
+        incoming.classList.add('page-enter');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (pageId === 'cart-page')     renderCart();
-    if (pageId === 'checkout-page') renderCheckoutSummary();
-    if (pageId === 'saved-page')    renderSavedBlends();
-    if (pageId === 'orders-page')   renderOrders();
-    if (pageId === 'home-page')     setTimeout(initReveal, 50);
-    if (pageId === 'quiz-page')     setTimeout(startQuiz, 0);
+    if (pageId === 'cart-page')         renderCart();
+    if (pageId === 'checkout-page')     renderCheckoutSummary();
+    if (pageId === 'saved-page')        renderSavedBlends();
+    if (pageId === 'orders-page')       renderOrders();
+    if (pageId === 'home-page')         setTimeout(initReveal, 50);
+    if (pageId === 'quiz-page')         setTimeout(startQuiz, 0);
+    if (pageId === 'ingredients-page')  renderIngredientEncyclopedia();
+    // Update bottom nav active state
+    document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.page === pageId);
+    });
 }
 
 /* ─── FAQ ACCORDION ──────────────────────────── */
@@ -1616,6 +1683,66 @@ document.addEventListener('input', e => {
     }
 });
 
+/* ─── INGREDIENT ENCYCLOPEDIA DATA ──────────────── */
+const ING_DATA = {
+    bases: [
+        { key: 'ing_green_tea',  emoji: '🍃', caffeine: 2, flavor: ['earthy','fresh','grassy'],    health: ['Antioxidants','Focus','Metabolism'], pairs: ['Mint','Lemon','Ginger'] },
+        { key: 'ing_black_tea',  emoji: '🖤', caffeine: 4, flavor: ['bold','malty','robust'],       health: ['Energy','Heart health','Gut health'], pairs: ['Vanilla','Ginger','Cinnamon'] },
+        { key: 'ing_white_tea',  emoji: '🤍', caffeine: 1, flavor: ['delicate','sweet','floral'],   health: ['Antioxidants','Skin','Anti-aging'], pairs: ['Rose','Strawberry','Honey'] },
+        { key: 'ing_oolong',     emoji: '🍵', caffeine: 3, flavor: ['complex','floral','toasty'],   health: ['Weight mgmt','Digestion','Focus'], pairs: ['Rose','Lavender','Honey'] },
+        { key: 'ing_rooibos',    emoji: '🌿', caffeine: 0, flavor: ['earthy','sweet','nutty'],      health: ['Caffeine-free','Iron-rich','Relaxing'], pairs: ['Orange','Cinnamon','Vanilla'] },
+        { key: 'ing_chamomile',  emoji: '🌼', caffeine: 0, flavor: ['floral','apple','soothing'],   health: ['Sleep','Anxiety relief','Digestion'], pairs: ['Lavender','Lemon','Honey'] },
+    ],
+    flavors: [
+        { key: 'ing_strawberry', emoji: '🍓', flavor: ['sweet','fruity','summery'],  health: ['Vitamin C','Antioxidants'], pairs: ['White Tea','Vanilla','Lemon'] },
+        { key: 'ing_mint',       emoji: '🌱', flavor: ['cooling','fresh','bright'],  health: ['Digestion','Focus','Refresh'], pairs: ['Green Tea','Lemon','Honey'] },
+        { key: 'ing_vanilla',    emoji: '🌸', flavor: ['sweet','creamy','warm'],     health: ['Mood lift','Antioxidants'], pairs: ['Black Tea','Rooibos','Cinnamon'] },
+        { key: 'ing_rose',       emoji: '🌹', flavor: ['floral','romantic','light'], health: ['Antioxidants','Mood','Skin'], pairs: ['White Tea','Oolong','Lavender'] },
+        { key: 'ing_orange',     emoji: '🍊', flavor: ['citrusy','bright','zesty'],  health: ['Vitamin C','Immunity','Energy'], pairs: ['Rooibos','Black Tea','Ginger'] },
+        { key: 'ing_blueberry',  emoji: '🫐', flavor: ['sweet','fruity','tart'],     health: ['Antioxidants','Brain health','Anti-aging'], pairs: ['Green Tea','Lemon','Mint'] },
+        { key: 'ing_raspberry',  emoji: '🍇', flavor: ['tart','fruity','vibrant'],   health: ['Vitamin C','Antioxidants','Fiber'], pairs: ['Green Tea','Mint','Lemon'] },
+        { key: 'ing_cocoa',      emoji: '🍫', flavor: ['rich','chocolatey','earthy'],health: ['Mood','Antioxidants','Energy'], pairs: ['Black Tea','Rooibos','Cinnamon'] },
+        { key: 'ing_coconut',    emoji: '🥥', flavor: ['tropical','sweet','creamy'], health: ['MCTs','Energy','Hydration'], pairs: ['Rooibos','Oolong','Vanilla'] },
+    ],
+    extras: [
+        { key: 'ing_honey',      emoji: '🍯', flavor: ['sweet','floral','warm'],     health: ['Antimicrobial','Soothing','Energy'], pairs: ['Chamomile','Green Tea','Lemon'] },
+        { key: 'ing_lemon',      emoji: '🍋', flavor: ['bright','citrusy','tart'],   health: ['Vitamin C','Detox','Immunity'], pairs: ['Green Tea','Chamomile','Ginger'] },
+        { key: 'ing_ginger',     emoji: '🫚', flavor: ['spicy','warm','zesty'],      health: ['Digestion','Anti-nausea','Anti-inflammatory'], pairs: ['Black Tea','Lemon','Honey'] },
+        { key: 'ing_lavender',   emoji: '💜', flavor: ['floral','calming','herby'],  health: ['Sleep','Stress relief','Mood'], pairs: ['Chamomile','White Tea','Honey'] },
+        { key: 'ing_turmeric',   emoji: '🌕', flavor: ['earthy','peppery','warm'],   health: ['Anti-inflammatory','Immunity','Joints'], pairs: ['Chamomile','Black Tea','Ginger'] },
+        { key: 'ing_cinnamon',   emoji: '🪵', flavor: ['warm','spicy','sweet'],      health: ['Blood sugar','Anti-inflammatory','Energy'], pairs: ['Black Tea','Rooibos','Vanilla'] },
+        { key: 'ing_spearmint',  emoji: '🌿', flavor: ['cool','sweet','mild'],       health: ['Digestion','Focus','Breath'], pairs: ['Rooibos','Green Tea','Lemon'] },
+        { key: 'ing_rose_hip',   emoji: '🔴', flavor: ['tart','fruity','tangy'],     health: ['Vitamin C','Skin','Immunity'], pairs: ['Chamomile','Rooibos','Honey'] },
+        { key: 'ing_cardamom',   emoji: '🫛', flavor: ['exotic','spicy','floral'],   health: ['Digestion','Breath','Antioxidants'], pairs: ['Black Tea','Oolong','Vanilla'] },
+    ]
+};
+
+function renderIngredientEncyclopedia() {
+    const caffeineLabel = ['Bez kofeinu','Velmi nízký','Nízký','Střední','Vysoký','Velmi vysoký'];
+    const caffeineEn = ['Caffeine-free','Very low','Low','Medium','High','Very high'];
+    const pairsLabel = LANG === 'cs' ? 'Hodí se s' : 'Pairs well with';
+    const healthLabel = LANG === 'cs' ? 'Přínosy' : 'Benefits';
+    ['bases','flavors','extras'].forEach(cat => {
+        const el = document.getElementById('ing-grid-' + cat);
+        if (!el) return;
+        el.innerHTML = ING_DATA[cat].map(ing => {
+            const name = t(ing.key);
+            const desc = t(ing.key + '_desc') || '';
+            const caffeine = ing.caffeine !== undefined ? `<div class="ing-caffeine"><span class="ing-caffeine-dots">${'●'.repeat(ing.caffeine)}${'○'.repeat(4 - Math.min(ing.caffeine,4))}</span> ${LANG === 'cs' ? caffeineLabel[ing.caffeine] : caffeineEn[ing.caffeine]}</div>` : '';
+            return `<div class="ing-card">
+                <div class="ing-card-emoji">${ing.emoji}</div>
+                <h3 class="ing-card-name">${name}</h3>
+                <p class="ing-card-desc">${desc}</p>
+                ${caffeine}
+                <div class="ing-card-tags">${ing.flavor.map(f => `<span class="ing-tag">${f}</span>`).join('')}</div>
+                <div class="ing-card-section"><strong>${healthLabel}:</strong> ${ing.health.join(' · ')}</div>
+                <div class="ing-card-section"><strong>${pairsLabel}:</strong> ${ing.pairs.join(', ')}</div>
+                <button class="btn btn-small" onclick="closeSidebar(); showPage('product-page');" style="margin-top:auto">${LANG === 'cs' ? 'Použít →' : 'Use →'}</button>
+            </div>`;
+        }).join('');
+    });
+}
+
 /* ─── INIT ───────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
     applyTranslations();
@@ -1635,6 +1762,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initBackToTop();
     initA11y();
     updateCartBadge();   // restore badge from persisted cart
+    renderIngredientEncyclopedia();
+    renderSavedBlends();
+    renderCart();
 
     // Hero parallax on scroll
     (function() {

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Potvrzení objednávky — Tease you</title>
+<style>
+  body { margin:0; padding:0; background:#f5f1e9; font-family:'Helvetica Neue',Arial,sans-serif; color:#1a2a1a; }
+  .wrap { max-width:600px; margin:0 auto; background:#fff; border-radius:12px; overflow:hidden; }
+  .header { background:#3a5f3c; padding:40px 40px 32px; text-align:center; }
+  .logo { font-family:Georgia,serif; font-size:36px; color:#f5f1e9; letter-spacing:2px; }
+  .header-sub { color:#cdd8c4; font-size:14px; margin-top:6px; }
+  .body { padding:40px; }
+  h1 { font-size:24px; margin:0 0 8px; }
+  .order-num { font-size:13px; color:#6b8c6b; margin-bottom:24px; }
+  .blend-box { background:#f5f1e9; border-radius:10px; padding:20px 24px; margin:24px 0; }
+  .blend-name { font-family:Georgia,serif; font-size:22px; color:#3a5f3c; margin-bottom:4px; }
+  .blend-ing { font-size:14px; color:#4a6a4a; }
+  table { width:100%; border-collapse:collapse; margin:20px 0; font-size:14px; }
+  th { text-align:left; border-bottom:2px solid #e0d8cc; padding:8px 0; color:#6b8c6b; font-weight:600; }
+  td { padding:10px 0; border-bottom:1px solid #e0d8cc; }
+  .total-row td { font-weight:700; font-size:16px; border-bottom:none; padding-top:14px; }
+  .steps { display:flex; gap:0; margin:32px 0; }
+  .step { flex:1; text-align:center; padding:16px 8px; background:#f5f1e9; }
+  .step:first-child { border-radius:8px 0 0 8px; }
+  .step:last-child { border-radius:0 8px 8px 0; }
+  .step-num { width:32px; height:32px; background:#3a5f3c; color:#f5f1e9; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:700; margin-bottom:6px; font-size:14px; }
+  .step-label { font-size:12px; color:#4a6a4a; }
+  .footer { background:#f5f1e9; padding:24px 40px; text-align:center; font-size:12px; color:#6b8c6b; }
+  .btn { display:inline-block; background:#3a5f3c; color:#f5f1e9 !important; padding:14px 32px; border-radius:8px; text-decoration:none; font-weight:700; margin:16px 0; font-size:15px; }
+  a { color:#3a5f3c; }
+</style>
+</head>
+<body>
+<div style="padding:20px">
+<div class="wrap">
+  <div class="header">
+    <div class="logo">Tease you</div>
+    <div class="header-sub">Handcrafted blends, made just for you.</div>
+  </div>
+  <div class="body">
+    <h1>Objednávka přijata! 🎉</h1>
+    <p class="order-num">Číslo objednávky: <strong>#{{ORDER_ID}}</strong></p>
+    <p>Ahoj <strong>{{FIRST_NAME}}</strong>, tvůj blend dorazil k nám čerstvý a připravený k namíchání. Odešleme ho do 24 hodin.</p>
+
+    <div class="blend-box">
+      <div class="blend-name">{{BLEND_NAME}}</div>
+      <div class="blend-ing">{{BLEND_INGREDIENTS}}</div>
+    </div>
+
+    <table>
+      <thead><tr><th>Produkt</th><th>Množství</th><th style="text-align:right">Cena</th></tr></thead>
+      <tbody>
+        <tr><td>{{BLEND_NAME}} ({{WEIGHT}}g)</td><td>{{QTY}} ks</td><td style="text-align:right">{{ITEM_PRICE}} Kč</td></tr>
+        <tr><td>Doprava — {{SHIPPING_METHOD}}</td><td></td><td style="text-align:right">{{SHIPPING_PRICE}} Kč</td></tr>
+      </tbody>
+      <tfoot>
+        <tr class="total-row"><td colspan="2">Celkem</td><td style="text-align:right">{{TOTAL}} Kč</td></tr>
+      </tfoot>
+    </table>
+
+    <p style="font-size:14px"><strong>Doručovací adresa:</strong><br>{{FULL_NAME}}<br>{{STREET}}<br>{{ZIP}} {{CITY}}<br>{{COUNTRY}}</p>
+
+    <div class="steps">
+      <div class="step"><div class="step-num">✓</div><div class="step-label">Objednávka přijata</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-label">Čerstvě namícháno</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-label">Odesláno k tobě</div></div>
+    </div>
+
+    <div style="text-align:center">
+      <a class="btn" href="https://teaseyou.cz">Vytvořit další blend →</a>
+    </div>
+
+    <p style="font-size:13px;color:#6b8c6b;margin-top:24px">Dotazy? Napiš nám na <a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a> — odpovídáme do 24 hodin.</p>
+  </div>
+  <div class="footer">
+    © 2025 Tease you · <a href="https://teaseyou.cz">teaseyou.cz</a><br>
+    <small>Tento email byl odeslán protože jsi zadal/a objednávku na teaseyou.cz</small>
+  </div>
+</div>
+</div>
+</body>
+</html>
