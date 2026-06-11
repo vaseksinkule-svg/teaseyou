@@ -1106,6 +1106,44 @@ function updateGlassLabels() {
     }
 }
 
+/* ─── INFO PANEL ─────────────────────────────── */
+function showIngInfo(name) {
+    const allIng = [...ING_DATA.bases, ...ING_DATA.flavors, ...ING_DATA.extras];
+    const keyMap = Object.fromEntries(Object.entries(ING_KEYS).map(([n,k]) => [n, k]));
+    const key = keyMap[name];
+    const data = allIng.find(i => i.key === key);
+    const def = document.getElementById('info-default-state');
+    const rich = document.getElementById('info-rich');
+    if (!data || !rich) return;
+    const caffeineLabelsCs = ['Bez kofeinu','Velmi nízký','Nízký','Střední','Vysoký','Velmi vysoký'];
+    const caffeineLabelsEn = ['Caffeine-free','Very low','Low','Medium','High','Very high'];
+    document.getElementById('info-rich-emoji').textContent = data.emoji;
+    document.getElementById('info-rich-name').textContent = t(data.key);
+    document.getElementById('info-rich-desc').textContent = t(data.key + '_desc') || '';
+    if (data.caffeine !== undefined) {
+        const lvl = Math.min(data.caffeine, 4);
+        const label = LANG === 'cs' ? caffeineLabelsCs[data.caffeine] : caffeineLabelsEn[data.caffeine];
+        document.getElementById('info-rich-caffeine').innerHTML =
+            `<span class="ing-caffeine-dots">${'●'.repeat(lvl)}${'○'.repeat(4 - lvl)}</span> ${label}`;
+        document.getElementById('info-rich-caffeine').style.display = '';
+    } else {
+        document.getElementById('info-rich-caffeine').style.display = 'none';
+    }
+    document.getElementById('info-rich-tags').innerHTML = data.flavor.map(f => `<span class="ing-tag">${f}</span>`).join('');
+    const healthLabel = LANG === 'cs' ? 'Přínosy' : 'Benefits';
+    const pairsLabel  = LANG === 'cs' ? 'Hodí se s' : 'Pairs well with';
+    document.getElementById('info-rich-health').innerHTML = `<strong>${healthLabel}:</strong> ${data.health.join(' · ')}`;
+    document.getElementById('info-rich-pairs').innerHTML  = `<strong>${pairsLabel}:</strong> ${data.pairs.join(', ')}`;
+    if (def) def.style.display = 'none';
+    rich.style.display = '';
+}
+function resetIngInfo() {
+    const def = document.getElementById('info-default-state');
+    const rich = document.getElementById('info-rich');
+    if (def) def.style.display = '';
+    if (rich) rich.style.display = 'none';
+}
+
 /* ─── INGREDIENT SELECTION ───────────────────── */
 document.addEventListener('click', function(e) {
     const ingBtn = e.target.closest('.ingredient-btn');
@@ -1122,10 +1160,7 @@ document.addEventListener('click', function(e) {
         const idx = parseInt(targetId.replace('part','')) - 1;
         currentProduct.colors[idx]      = color;
         currentProduct.ingredients[idx] = name;
-        if (targetId === 'part1') {
-            document.getElementById('info-title').innerText = t(ingBtn.getAttribute('data-i18n') || '') || ingBtn.getAttribute('data-name');
-            document.getElementById('info-text').innerText  = ingBtn.getAttribute('data-desc') || '';
-        }
+        showIngInfo(name);
         validateSelection();
         updateGlassLabels();
     }
@@ -1140,10 +1175,7 @@ document.addEventListener('click', function(e) {
         const idx = parseInt(tid.replace('part','')) - 1;
         currentProduct.colors[idx]      = 'transparent';
         currentProduct.ingredients[idx] = 'Empty';
-        if (tid === 'part1') {
-            document.getElementById('info-title').innerText = t('info_default_title');
-            document.getElementById('info-text').innerText  = t('info_default_text');
-        }
+        resetIngInfo();
         validateSelection();
         updateGlassLabels();
     }
