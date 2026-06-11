@@ -76,6 +76,8 @@
         <li onclick="closeSidebar(); showPage('saved-page')" data-i18n="nav_blends">My Blends</li>
         <li onclick="closeSidebar(); showPage('orders-page')" data-i18n="nav_orders">My Orders</li>
         <li onclick="closeSidebar(); showPage('about-page')" data-i18n="nav_about">About</li>
+        <li onclick="closeSidebar(); showPage('ingredients-page')" data-i18n="nav_ingredients">Ingredience</li>
+        <li onclick="closeSidebar(); showPage('process-page')" data-i18n="nav_process">Jak to děláme</li>
         <li onclick="closeSidebar(); showPage('cart-page')" data-i18n="nav_cart">Cart</li>
     </ul>
     <div class="sidebar-footer"><p>Handcrafted blends,<br>made just for you.</p></div>
@@ -827,6 +829,82 @@
     </div>
 </section>
 
+<!-- ═══ INGREDIENTS ENCYCLOPEDIA ═══ -->
+<section id="ingredients-page" class="page">
+    <div class="page-container">
+        <button class="back-link" onclick="showPage('home-page')">← <span data-i18n="back_btn_text">Zpět</span></button>
+        <h1 class="section-title" style="margin-top:16px" data-i18n="ing_page_title">Průvodce ingrediencemi</h1>
+        <p class="section-sub" data-i18n="ing_page_sub">Vše co jsme přidali do naší palety — a proč.</p>
+
+        <h2 class="ing-cat-title" data-i18n="ing_cat_bases">Čajové základy</h2>
+        <div class="ing-grid" id="ing-grid-bases"></div>
+
+        <h2 class="ing-cat-title" data-i18n="ing_cat_flavors">Příchutě</h2>
+        <div class="ing-grid" id="ing-grid-flavors"></div>
+
+        <h2 class="ing-cat-title" data-i18n="ing_cat_extras">Doplňky</h2>
+        <div class="ing-grid" id="ing-grid-extras"></div>
+    </div>
+</section>
+
+<!-- ═══ HOW IT'S MADE ═══ -->
+<section id="process-page" class="page">
+    <div class="page-container">
+        <button class="back-link" onclick="showPage('home-page')">← <span data-i18n="back_btn_text">Zpět</span></button>
+        <div class="process-hero">
+            <span class="hero-tag font-chaos" data-i18n="process_tag">Od políčka do šálku</span>
+            <h1 data-i18n="process_title">Jak to děláme</h1>
+            <p data-i18n="process_sub">Každá objednávka je unikátní. Žádné sklady, žádné šarže. Jen čerstvě namíchaný čaj, připravený přesně pro tebe.</p>
+        </div>
+        <div class="process-timeline">
+            <div class="process-step reveal-section">
+                <div class="process-step-num">01</div>
+                <div class="process-step-content">
+                    <div class="process-step-icon">🌿</div>
+                    <h3 data-i18n="proc_1_title">Výběr surovin</h3>
+                    <p data-i18n="proc_1_desc">Pracujeme výhradně s certifikovanými dodavateli čajových listů a bylinek. Každá šarže surovin prochází smyslovou kontrolou — barva, vůně, chuť.</p>
+                </div>
+            </div>
+            <div class="process-step reveal-section">
+                <div class="process-step-num">02</div>
+                <div class="process-step-content">
+                    <div class="process-step-icon">⚖️</div>
+                    <h3 data-i18n="proc_2_title">Přesné vážení</h3>
+                    <p data-i18n="proc_2_desc">Každou složku tvého blendu vážíme na přesné digitální váze. Poměry jsou navrženy tak, aby žádná příchuť nedominovala — pokud si to výslovně nepřeješ.</p>
+                </div>
+            </div>
+            <div class="process-step reveal-section">
+                <div class="process-step-num">03</div>
+                <div class="process-step-content">
+                    <div class="process-step-icon">🫙</div>
+                    <h3 data-i18n="proc_3_title">Namíchání</h3>
+                    <p data-i18n="proc_3_desc">Složky šetrně ručně mícháme, aby se rovnoměrně prolnuly bez poškození listů. Pak necháme blend chvíli odpočinout, aby vůně splynuly.</p>
+                </div>
+            </div>
+            <div class="process-step reveal-section">
+                <div class="process-step-num">04</div>
+                <div class="process-step-content">
+                    <div class="process-step-icon">📦</div>
+                    <h3 data-i18n="proc_4_title">Balení</h3>
+                    <p data-i18n="proc_4_desc">Balíme do hermeticky uzavíratelných kraft sáčků, které zachovávají čerstvost 12–18 měsíců. Na každém sáčku je tvoje jméno blendu a složení.</p>
+                </div>
+            </div>
+            <div class="process-step reveal-section">
+                <div class="process-step-num">05</div>
+                <div class="process-step-content">
+                    <div class="process-step-icon">🚚</div>
+                    <h3 data-i18n="proc_5_title">Odeslání</h3>
+                    <p data-i18n="proc_5_desc">Balíky odesíláme přes Zásilkovnu nebo Českou poštu zpravidla do 24 hodin. Dostaneš sledovací číslo emailem.</p>
+                </div>
+            </div>
+        </div>
+        <div class="process-cta reveal-section">
+            <h2 data-i18n="process_cta_title">Připraven/a namíchat svůj blend?</h2>
+            <button class="btn btn-large" onclick="showPage('product-page')" data-i18n="btn_start_creating">Start creating →</button>
+        </div>
+    </div>
+</section>
+
 </main>
 
 <div id="order-modal" class="modal">
@@ -895,6 +973,29 @@
 </footer>
 
 <div id="toast" class="toast" aria-live="polite"></div>
+<!-- MOBILE BOTTOM NAV -->
+<nav class="bottom-nav" id="bottom-nav" aria-label="Mobile navigation">
+    <button class="bottom-nav-item" onclick="showPage('home-page')" data-page="home-page">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span data-i18n="nav_home">Home</span>
+    </button>
+    <button class="bottom-nav-item" onclick="showPage('product-page')" data-page="product-page">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-i18n="nav_create">Vytvořit</span>
+    </button>
+    <button class="bottom-nav-item" onclick="showPage('quiz-page'); startQuiz()" data-page="quiz-page">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span data-i18n="nav_quiz_short">Quiz</span>
+    </button>
+    <button class="bottom-nav-item" onclick="showPage('saved-page')" data-page="saved-page">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+        <span data-i18n="nav_blends">Blendy</span>
+    </button>
+    <button class="bottom-nav-item" onclick="showPage('cart-page')" data-page="cart-page" id="bottom-nav-cart">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span data-i18n="nav_cart">Košík</span>
+    </button>
+</nav>
 <script src="https://widget.packeta.com/v6/www/js/library.js" defer></script>
 <script src="script.js"></script>
 <script>
