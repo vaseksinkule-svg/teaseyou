@@ -674,6 +674,11 @@ let orders = JSON.parse(localStorage.getItem('teaseyou_orders') || '[]');
 
 /* ─── PRICING & CURRENCY (CZK) ───────────────── */
 const PRICES = { 50: 49, 100: 89, 250: 199 };  // weight(g) → price (Kč)
+
+/* ─── PAYMENT GATEWAY (replace with real credentials) ─────────────── */
+const PAYMENT_GATEWAY = 'none'; // 'gopay' | 'comgate' | 'none' (test mode)
+const GOPAY_GOID = 'YOUR_GOPAY_GOID';
+const COMGATE_MERCHANT = 'YOUR_COMGATE_MERCHANT';
 const FREE_SHIP_THRESHOLD = 500;                // Kč
 const PROMOS = { FIRSTBLEND: { rate: 0.10, label: '-10%' } };
 
@@ -1001,13 +1006,6 @@ function animateGlass(frameId) {
     void frame.offsetWidth;
     frame.classList.add('glass-pop');
 }
-function pulseGlassPart(partId) {
-    const part = document.getElementById(partId);
-    if (!part) return;
-    part.classList.remove('part-pulse');
-    void part.offsetWidth;
-    part.classList.add('part-pulse');
-}
 function fillGlassPart(partId) {
     const part = document.getElementById(partId);
     if (!part) return;
@@ -1051,7 +1049,7 @@ document.addEventListener('click', function(e) {
         ingBtn.parentElement.querySelectorAll('.ingredient-btn').forEach(b => b.classList.remove('selected'));
         ingBtn.classList.add('selected');
         document.getElementById(targetId).style.backgroundColor = color;
-        pulseGlassPart(targetId);
+        fillGlassPart(targetId);
         fillGlassPart(targetId);
         animateGlass('main-glass-frame');
         const idx = parseInt(targetId.replace('part','')) - 1;
@@ -1069,7 +1067,7 @@ document.addEventListener('click', function(e) {
     if (clearBtn) {
         const tid = clearBtn.getAttribute('data-target');
         document.getElementById(tid).style.backgroundColor = 'transparent';
-        pulseGlassPart(tid);
+        fillGlassPart(tid);
         animateGlass('main-glass-frame');
         clearBtn.closest('.selection-group').querySelectorAll('.ingredient-btn').forEach(b => b.classList.remove('selected'));
         const idx = parseInt(tid.replace('part','')) - 1;
@@ -1515,6 +1513,18 @@ function submitOrder(e) {
     saveCart();
     savePromo();
     updateCartBadge();
+    if (PAYMENT_GATEWAY === 'gopay') {
+        showToast('Přesměrování na GoPay platební bránu...', '💳');
+        // TODO: call your backend /api/gopay/create-payment with orderPayload
+        // backend returns { gw_url } → window.location.href = gw_url;
+        return;
+    }
+    if (PAYMENT_GATEWAY === 'comgate') {
+        showToast('Přesměrování na Comgate platební bránu...', '💳');
+        // TODO: call your backend /api/comgate/create-payment with orderPayload
+        // backend returns { redirect } → window.location.href = redirect;
+        return;
+    }
     showPage('success-page');
     launchConfetti();
 }
@@ -1858,7 +1868,7 @@ function randomBlend() {
         const btn = document.querySelector(`.ingredient-btn[data-name="${name}"]`);
         if (btn) btn.classList.add('selected');
         const part = document.getElementById(partId);
-        if (part) { part.style.backgroundColor = color; pulseGlassPart(partId); }
+        if (part) { part.style.backgroundColor = color; fillGlassPart(partId); }
         const idx = parseInt(partId.replace('part','')) - 1;
         currentProduct.colors[idx]      = color;
         currentProduct.ingredients[idx] = name;

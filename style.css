@@ -493,6 +493,30 @@ body::before {
     margin-top: var(--space-xs);
 }
 
+/* Skeleton loader */
+@keyframes shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+.skeleton {
+    background: linear-gradient(90deg, var(--color-border) 25%, var(--color-surface) 50%, var(--color-border) 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.4s infinite linear;
+    border-radius: 6px;
+}
+.skeleton-card {
+    background: var(--color-surface);
+    border-radius: 16px;
+    padding: 20px;
+    min-height: 220px;
+    border: 1px solid var(--color-border);
+    display: flex; flex-direction: column; gap: 12px;
+}
+.skeleton-glass { width: 56px; height: 120px; border-radius: 8px; align-self: center; }
+.skeleton-title { height: 20px; width: 70%; }
+.skeleton-sub { height: 14px; width: 50%; }
+.skeleton-btn { height: 36px; width: 100%; border-radius: 8px; margin-top: auto; }
+
 /* --- CONFIGURATOR LAYOUT --- */
 .product-grid {
     display: none;
@@ -1463,6 +1487,24 @@ body::before {
     align-items: center;
     gap: 12px;
 }
+
+/* Payment methods */
+.payment-methods { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.payment-option { display: flex; align-items: center; cursor: pointer; }
+.payment-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.payment-label {
+    display: flex; align-items: center; gap: 14px; width: 100%;
+    border: 2px solid var(--color-border); border-radius: 10px;
+    padding: 14px 16px; transition: border-color .2s, background .2s; cursor: pointer;
+}
+.payment-option input:checked + .payment-label {
+    border-color: var(--color-accent); background: var(--color-accent-pale);
+}
+.payment-icon { font-size: 24px; flex-shrink: 0; }
+.payment-label strong { display: block; font-size: 15px; }
+.payment-label small { color: var(--color-ink); opacity: .6; font-size: 13px; }
+body.dark .payment-label { border-color: #3a4a3a; }
+body.dark .payment-option input:checked + .payment-label { background: rgba(77,124,77,.18); }
 .checkout-step-num {
     width: 28px;
     height: 28px;
@@ -1652,21 +1694,11 @@ body::before {
     100% { transform: scale(1) translateY(0); }
 }
 
-@keyframes partPulse {
-    0%   { filter: brightness(1); }
-    35%  { filter: brightness(1.25); }
-    100% { filter: brightness(1); }
-}
-
 .glass-frame.glass-pop {
     animation: glassPop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.glass-part.part-pulse {
-    animation: partPulse 0.6s ease both;
-}
-
-/* --- FILL ANIMATION (alternative to partPulse) --- */
+/* --- FILL ANIMATION --- */
 @keyframes partFill {
     0%   { clip-path: inset(100% 0 0 0); opacity: 0.6; }
     60%  { clip-path: inset(0% 0 0 0); opacity: 1; }
