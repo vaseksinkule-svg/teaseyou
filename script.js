@@ -1201,6 +1201,49 @@ function updateCompletion() {
 }
 
 /* ─── VALIDATION ─────────────────────────────── */
+function renderSelectedIngPanel() {
+    const panel = document.getElementById('selected-ing-panel');
+    if (!panel) return;
+    const allIng = [...ING_DATA.bases, ...ING_DATA.flavors, ...ING_DATA.extras];
+    const slots = [
+        { partId: 'part1', label: t('glass_label_base') },
+        { partId: 'part2', label: t('glass_label_flavor') },
+        { partId: 'part3', label: t('glass_label_extras') },
+    ];
+    const cards = slots.map(({ partId, label }) => {
+        const btn = document.querySelector(`.ingredient-btn[data-target="${partId}"].selected`);
+        if (!btn) return '';
+        const name = btn.getAttribute('data-name');
+        const key = ING_KEYS[name];
+        const data = allIng.find(i => i.key === key);
+        if (!data) return '';
+        const caffeineLabels = LANG === 'cs'
+            ? ['Bez kofeinu','Velmi nízký','Nízký','Střední','Vysoký','Velmi vysoký']
+            : ['Caffeine-free','Very low','Low','Medium','High','Very high'];
+        const caffeine = data.caffeine !== undefined
+            ? `<div class="sip-caffeine"><span class="sip-dots">${'●'.repeat(Math.min(data.caffeine,4))}${'○'.repeat(4-Math.min(data.caffeine,4))}</span> ${caffeineLabels[data.caffeine]}</div>`
+            : '';
+        const tags = data.flavor.slice(0,3).map(f => `<span class="ing-tag">${f}</span>`).join('');
+        const pairsLabel = LANG === 'cs' ? 'Hodí se s' : 'Pairs well with';
+        return `<div class="sip-card">
+            <div class="sip-card-header">
+                <span class="sip-emoji">${data.emoji}</span>
+                <div>
+                    <div class="sip-slot-label">${label}</div>
+                    <div class="sip-name">${t(data.key)}</div>
+                </div>
+            </div>
+            <p class="sip-desc">${t(data.key + '_desc') || ''}</p>
+            ${caffeine}
+            <div class="ing-card-tags">${tags}</div>
+            <div class="sip-pairs">${pairsLabel}: ${data.pairs.slice(0,3).join(', ')}</div>
+        </div>`;
+    }).filter(Boolean);
+    panel.innerHTML = cards.length
+        ? `<div class="sip-title">${LANG === 'cs' ? 'Tvoje složení' : 'Your selection'}</div>${cards.join('')}`
+        : '';
+}
+
 function validateSelection() {
     const ok = ['part1','part2','part3'].every(p => document.querySelector(`[data-target="${p}"].selected`));
     const btn = document.getElementById('save-mix-btn');
@@ -1208,6 +1251,7 @@ function validateSelection() {
     btn.classList.toggle('disabled', !ok);
     updateProgress();
     updateCompletion();
+    renderSelectedIngPanel();
 }
 
 /* ─── LIVE NAME UPDATE ───────────────────────── */
