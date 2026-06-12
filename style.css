@@ -589,20 +589,48 @@ body::before {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 7px;
     position: relative;
 }
 .ingredient-btn::after {
     content: attr(data-desc);
-    font-size: 11px;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) scale(.95);
+    background: var(--color-ink);
+    color: var(--color-bg);
+    font-size: 12px;
     font-weight: 400;
-    color: var(--color-ink-muted);
-    line-height: 1.35;
+    line-height: 1.4;
+    padding: 7px 10px;
+    border-radius: 8px;
+    width: 160px;
     white-space: normal;
-    word-break: break-word;
-    opacity: .8;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s, transform .15s;
+    z-index: 200;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
 }
-.ingredient-btn.selected::after { color: rgba(255,255,255,.75); }
+.ingredient-btn:hover::after,
+.ingredient-btn:focus::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+.ingredient-btn.selected::after {
+    background: #1a2a1a;
+    color: #f5f1e9;
+}
+body.dark .ingredient-btn.selected::after {
+    background: #f5f1e9;
+    color: #1a2a1a;
+}
+body.dark .ingredient-btn::after {
+    background: #f5f1e9;
+    color: #1a2a1a;
+}
 
 /* Color dot generated from data-color via JS-added custom property */
 .ingredient-btn::before {
@@ -851,8 +879,26 @@ body::before {
     overflow: hidden;
 }
 
-/* ─── SELECTED INGREDIENT PANEL (under glass) ── */
-.selected-ing-panel { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; width: 100%; }
+/* ─── VISUALIZER INNER WRAPPER ── */
+.visualizer-inner {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+}
+.visualizer-inner .glass-panel {
+    flex-shrink: 0;
+    width: auto;
+    min-width: 180px;
+}
+@media (max-width: 640px) {
+    .visualizer-inner { flex-direction: column; }
+    .visualizer-inner .glass-panel { width: 100%; }
+}
+
+/* ─── SELECTED INGREDIENT PANEL (beside glass) ── */
+.selected-ing-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .sip-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--color-ink-muted); margin-bottom: 2px; }
 .sip-card {
     background: var(--color-bg);
