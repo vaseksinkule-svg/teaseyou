@@ -447,25 +447,27 @@
         </div>
     </div>
     <div class="visualizer-column">
-        <div class="glass-panel">
-            <p class="glass-panel-title" data-i18n="glass_title">Your blend</p>
-            <div class="glass-container">
-                <div class="glass-frame" id="main-glass-frame">
-                    <div id="part1" class="glass-part"></div>
-                    <div id="part2" class="glass-part"></div>
-                    <div id="part3" class="glass-part"></div>
+        <div class="visualizer-inner">
+            <div class="glass-panel">
+                <p class="glass-panel-title" data-i18n="glass_title">Your blend</p>
+                <div class="glass-container">
+                    <div class="glass-frame" id="main-glass-frame">
+                        <div id="part1" class="glass-part"></div>
+                        <div id="part2" class="glass-part"></div>
+                        <div id="part3" class="glass-part"></div>
+                    </div>
+                    <div class="glass-labels">
+                        <div class="glass-label"><div class="glass-label-dot" id="label-dot-1"></div><span id="label-text-1" data-i18n="glass_label_base">Base</span></div>
+                        <div class="glass-label"><div class="glass-label-dot" id="label-dot-2"></div><span id="label-text-2" data-i18n="glass_label_flavor">Flavor</span></div>
+                        <div class="glass-label"><div class="glass-label-dot" id="label-dot-3"></div><span id="label-text-3" data-i18n="glass_label_extras">Extras</span></div>
+                    </div>
+                    <div class="glass-platform"></div>
                 </div>
-                <div class="glass-labels">
-                    <div class="glass-label"><div class="glass-label-dot" id="label-dot-1"></div><span id="label-text-1" data-i18n="glass_label_base">Base</span></div>
-                    <div class="glass-label"><div class="glass-label-dot" id="label-dot-2"></div><span id="label-text-2" data-i18n="glass_label_flavor">Flavor</span></div>
-                    <div class="glass-label"><div class="glass-label-dot" id="label-dot-3"></div><span id="label-text-3" data-i18n="glass_label_extras">Extras</span></div>
+                <div class="glass-mix-name" id="glass-mix-name-display" data-i18n="glass_name_default">Name your mix</div>
+                <div class="glass-completion">
+                    <div class="completion-bar"><div class="completion-fill" id="completion-fill"></div></div>
+                    <span class="completion-label" id="completion-label">0 / 3 selected</span>
                 </div>
-                <div class="glass-platform"></div>
-            </div>
-            <div class="glass-mix-name" id="glass-mix-name-display" data-i18n="glass_name_default">Name your mix</div>
-            <div class="glass-completion">
-                <div class="completion-bar"><div class="completion-fill" id="completion-fill"></div></div>
-                <span class="completion-label" id="completion-label">0 / 3 selected</span>
             </div>
             <div id="selected-ing-panel" class="selected-ing-panel"></div>
         </div>
