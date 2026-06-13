@@ -520,7 +520,7 @@ body::before {
 /* --- CONFIGURATOR LAYOUT --- */
 .product-grid {
     display: none;
-    grid-template-columns: 1fr 380px;
+    grid-template-columns: 1fr 440px;
     gap: var(--space-xl);
     width: 100%;
     align-items: flex-start;
@@ -728,8 +728,10 @@ body.dark .ingredient-btn::after {
 }
 
 /* Layer labels next to glass */
+/* Glass-labels (the dots that stuck out to the right of the glass) are
+   replaced by the richer detail cards beside the glass — hidden to avoid overlap. */
 .glass-labels {
-    display: flex;
+    display: none;
     flex-direction: column-reverse;
     justify-content: space-around;
     position: absolute;
@@ -890,7 +892,7 @@ body.dark .ingredient-btn::after {
 .visualizer-inner .glass-panel {
     flex-shrink: 0;
     width: auto;
-    min-width: 180px;
+    min-width: 156px;
 }
 @media (max-width: 640px) {
     .visualizer-inner { flex-direction: column; }
@@ -901,11 +903,12 @@ body.dark .ingredient-btn::after {
 .selected-ing-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .sip-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--color-ink-muted); margin-bottom: 2px; }
 .sip-card {
-    background: var(--color-bg);
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 10px;
     padding: 12px 14px;
     display: flex; flex-direction: column; gap: 6px;
+    box-shadow: var(--shadow-sm);
     animation: pageFadeIn .25s ease;
 }
 .sip-card-header { display: flex; align-items: center; gap: 10px; }
