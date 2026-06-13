@@ -267,6 +267,15 @@ const TRANSLATIONS = {
         ing_raspberry:      'Raspberry',
         ing_cocoa:          'Cocoa',
         ing_coconut:        'Coconut',
+        ing_strawberry_desc: 'Sweet and fruity, summery.',
+        ing_mint_desc:       'Cooling and fresh, bright.',
+        ing_vanilla_desc:    'Sweet, creamy and warm.',
+        ing_rose_desc:       'Floral and delicate.',
+        ing_orange_desc:     'Citrusy, bright and zesty.',
+        ing_blueberry_desc:  'Sweet and tart, antioxidant-rich.',
+        ing_raspberry_desc:  'Tart, fruity and vibrant.',
+        ing_cocoa_desc:      'Rich, chocolatey and earthy.',
+        ing_coconut_desc:    'Tropical, sweet and creamy.',
         /* Ingredients — extras */
         ing_honey:          'Honey',
         ing_lemon:          'Lemon',
@@ -277,6 +286,15 @@ const TRANSLATIONS = {
         ing_spearmint:      'Spearmint',
         ing_rose_hip:       'Rose Hip',
         ing_cardamom:       'Cardamom',
+        ing_honey_desc:     'Naturally sweet and soothing.',
+        ing_lemon_desc:     'Bright, citrusy and tart.',
+        ing_ginger_desc:    'Spicy, warm and zesty.',
+        ing_lavender_desc:  'Floral and calming.',
+        ing_turmeric_desc:  'Earthy, peppery and warm.',
+        ing_cinnamon_desc:  'Warm, spicy and sweet.',
+        ing_spearmint_desc: 'Cool, sweet and mild.',
+        ing_rose_hip_desc:  'Tart, fruity and tangy.',
+        ing_cardamom_desc:  'Exotic, spicy and floral.',
         /* UI labels */
         lbl_signature_blends: 'Signature Blends',
         lbl_signature_blend:  'Signature Blend',
@@ -594,6 +612,15 @@ const TRANSLATIONS = {
         ing_raspberry:      'Malina',
         ing_cocoa:          'Kakao',
         ing_coconut:        'Kokos',
+        ing_strawberry_desc: 'Sladká a ovocná, letní.',
+        ing_mint_desc:       'Chladivá a svěží, výrazná.',
+        ing_vanilla_desc:    'Sladká, krémová a hřejivá.',
+        ing_rose_desc:       'Květinová a jemná.',
+        ing_orange_desc:     'Citrusový, svěží a šťavnatý.',
+        ing_blueberry_desc:  'Sladká a nakyslá, plná antioxidantů.',
+        ing_raspberry_desc:  'Nakyslá, ovocná a živá.',
+        ing_cocoa_desc:      'Bohaté, čokoládové a zemité.',
+        ing_coconut_desc:    'Tropický, sladký a krémový.',
         /* Ingredience — doplňky */
         ing_honey:          'Med',
         ing_lemon:          'Citron',
@@ -604,6 +631,15 @@ const TRANSLATIONS = {
         ing_spearmint:      'Máta peprná',
         ing_rose_hip:       'Šípek',
         ing_cardamom:       'Kardamom',
+        ing_honey_desc:     'Přirozeně sladký a hřejivý.',
+        ing_lemon_desc:     'Svěží, citrusový a nakyslý.',
+        ing_ginger_desc:    'Pikantní, hřejivý a svěží.',
+        ing_lavender_desc:  'Květinová a uklidňující.',
+        ing_turmeric_desc:  'Zemitá, pepřová a hřejivá.',
+        ing_cinnamon_desc:  'Hřejivá, kořeněná a sladká.',
+        ing_spearmint_desc: 'Chladivá, sladká a jemná.',
+        ing_rose_hip_desc:  'Nakyslý, ovocný a svěží.',
+        ing_cardamom_desc:  'Exotický, kořeněný a květinový.',
         /* UI popisky */
         lbl_signature_blends: 'Signature Blendy',
         lbl_signature_blend:  'Signature Blend',
@@ -683,6 +719,35 @@ const ING_KEYS = {
     'Rose Hip':'ing_rose_hip','Cardamom':'ing_cardamom'
 };
 function tIng(name) { return ING_KEYS[name] ? t(ING_KEYS[name]) : name; }
+
+/* Flavor-tag dictionary (EN descriptor → CS) used in ingredient cards. */
+const TAG_CS = {
+    earthy:'zemitá', fresh:'svěží', grassy:'travnatá', bold:'výrazná', malty:'sladová',
+    robust:'silná', delicate:'jemná', sweet:'sladká', floral:'květinová', complex:'komplexní',
+    toasty:'pražená', nutty:'oříšková', apple:'jablečná', soothing:'uklidňující', fruity:'ovocná',
+    summery:'letní', cooling:'chladivá', bright:'jiskřivá', creamy:'krémová', warm:'hřejivá',
+    romantic:'romantická', light:'lehká', citrusy:'citrusová', zesty:'osvěžující', tart:'nakyslá',
+    vibrant:'živá', rich:'bohatá', chocolatey:'čokoládová', tropical:'tropická', spicy:'kořeněná',
+    calming:'uklidňující', herby:'bylinková', peppery:'pepřová', cool:'chladivá', mild:'jemná',
+    exotic:'exotická'
+};
+function tTag(tag) { return LANG === 'cs' && TAG_CS[tag] ? TAG_CS[tag] : tag; }
+
+/* Health-benefit dictionary (EN → CS) used in the ingredient encyclopedia. */
+const HEALTH_CS = {
+    'Antioxidants':'Antioxidanty', 'Focus':'Soustředění', 'Metabolism':'Metabolismus',
+    'Energy':'Energie', 'Heart health':'Zdraví srdce', 'Gut health':'Zdravá střeva',
+    'Skin':'Pokožka', 'Anti-aging':'Proti stárnutí', 'Weight mgmt':'Hubnutí',
+    'Digestion':'Trávení', 'Caffeine-free':'Bez kofeinu', 'Iron-rich':'Bohaté na železo',
+    'Relaxing':'Relaxace', 'Sleep':'Spánek', 'Anxiety relief':'Úleva od úzkosti',
+    'Vitamin C':'Vitamín C', 'Refresh':'Osvěžení', 'Mood lift':'Nálada', 'Mood':'Nálada',
+    'Immunity':'Imunita', 'Brain health':'Zdraví mozku', 'Fiber':'Vláknina', 'MCTs':'MCT tuky',
+    'Hydration':'Hydratace', 'Antimicrobial':'Antimikrobiální', 'Soothing':'Zklidnění',
+    'Detox':'Detox', 'Anti-nausea':'Proti nevolnosti', 'Anti-inflammatory':'Protizánětlivé',
+    'Stress relief':'Proti stresu', 'Joints':'Klouby', 'Blood sugar':'Krevní cukr',
+    'Breath':'Svěží dech'
+};
+function tHealth(h) { return LANG === 'cs' && HEALTH_CS[h] ? HEALTH_CS[h] : h; }
 
 /* ─── APPLY TRANSLATIONS ─────────────────────── */
 function applyTranslations() {
@@ -1223,7 +1288,7 @@ function renderSelectedIngPanel() {
         const caffeine = data.caffeine !== undefined
             ? `<div class="sip-caffeine"><span class="sip-dots">${'●'.repeat(Math.min(data.caffeine,4))}${'○'.repeat(4-Math.min(data.caffeine,4))}</span> ${caffeineLabels[data.caffeine]}</div>`
             : '';
-        const tags = data.flavor.slice(0,3).map(f => `<span class="ing-tag">${f}</span>`).join('');
+        const tags = data.flavor.slice(0,3).map(f => `<span class="ing-tag">${tTag(f)}</span>`).join('');
         const pairsLabel = LANG === 'cs' ? 'Hodí se s' : 'Pairs well with';
         return `<div class="sip-card">
             <div class="sip-card-header">
@@ -1236,7 +1301,7 @@ function renderSelectedIngPanel() {
             <p class="sip-desc">${t(data.key + '_desc') || ''}</p>
             ${caffeine}
             <div class="ing-card-tags">${tags}</div>
-            <div class="sip-pairs">${pairsLabel}: ${data.pairs.slice(0,3).join(', ')}</div>
+            <div class="sip-pairs">${pairsLabel}: ${data.pairs.slice(0,3).map(tIng).join(', ')}</div>
         </div>`;
     }).filter(Boolean);
     panel.innerHTML = cards.length
@@ -1810,9 +1875,9 @@ function renderIngredientEncyclopedia() {
                 <h3 class="ing-card-name">${name}</h3>
                 <p class="ing-card-desc">${desc}</p>
                 ${caffeine}
-                <div class="ing-card-tags">${ing.flavor.map(f => `<span class="ing-tag">${f}</span>`).join('')}</div>
-                <div class="ing-card-section"><strong>${healthLabel}:</strong> ${ing.health.join(' · ')}</div>
-                <div class="ing-card-section"><strong>${pairsLabel}:</strong> ${ing.pairs.join(', ')}</div>
+                <div class="ing-card-tags">${ing.flavor.map(f => `<span class="ing-tag">${tTag(f)}</span>`).join('')}</div>
+                <div class="ing-card-section"><strong>${healthLabel}:</strong> ${ing.health.map(tHealth).join(' · ')}</div>
+                <div class="ing-card-section"><strong>${pairsLabel}:</strong> ${ing.pairs.map(tIng).join(', ')}</div>
                 <button class="btn btn-small" onclick="closeSidebar(); showPage('product-page');" style="margin-top:auto">${LANG === 'cs' ? 'Použít →' : 'Use →'}</button>
             </div>`;
         }).join('');
