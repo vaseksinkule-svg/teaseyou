@@ -84,6 +84,7 @@ const TRANSLATIONS = {
         glass_label_extras: 'Extras',
         glass_name_default: 'Name your mix',
         mix_summary_title:  'Your selection',
+        preset_label:       'Quick start:',
         /* Summary page */
         summary_badge:      'Your blend',
         summary_inside:     'What\'s inside',
@@ -182,6 +183,7 @@ const TRANSLATIONS = {
         toast_already_saved:    'Blend already saved!',
         toast_saved:            'saved to My Blends!',
         toast_copied:           'Blend description copied!',
+        toast_link_copied:      'Share link copied!',
         toast_removed:          'Blend removed',
         toast_added_cart:       'added to cart!',
         toast_discount_applied: 'applied!',
@@ -219,6 +221,14 @@ const TRANSLATIONS = {
         quiz_q4_o2:     'Slow & mindful — I\'ll wait',
         quiz_q4_o3:     'Strong steep, big flavour',
         quiz_q4_o4:     'Surprise me every time',
+        quiz_q5:        'And the taste you crave?',
+        quiz_q5_o1:     'Sweet & fruity',
+        quiz_q5_o2:     'Soft & floral',
+        quiz_q5_o3:     'Bold & spicy',
+        quiz_q5_o4:     'Surprise me',
+        quiz_match:     'match',
+        quiz_why:       'Why it fits you',
+        quiz_also:      'You might also like',
         quiz_question_of: 'Question',
         quiz_of:        'of',
         quiz_result_label: 'Your perfect blend is',
@@ -430,6 +440,7 @@ const TRANSLATIONS = {
         glass_label_extras: 'Doplňky',
         glass_name_default: 'Pojmenuj svůj mix',
         mix_summary_title:  'Tvoje složení',
+        preset_label:       'Rychlý start:',
         /* Summary page */
         summary_badge:      'Tvůj blend',
         summary_inside:     'Co je uvnitř',
@@ -528,6 +539,7 @@ const TRANSLATIONS = {
         toast_already_saved:    'Blend je již uložen!',
         toast_saved:            'uložen do Moje blendy!',
         toast_copied:           'Popis blendu zkopírován!',
+        toast_link_copied:      'Odkaz ke sdílení zkopírován!',
         toast_removed:          'Blend odstraněn',
         toast_added_cart:       'přidán do košíku!',
         toast_discount_applied: 'použit!',
@@ -565,6 +577,14 @@ const TRANSLATIONS = {
         quiz_q4_o2:     'Pomalu & vědomě — počkám',
         quiz_q4_o3:     'Silný louh, velká chuť',
         quiz_q4_o4:     'Pokaždé mě překvap',
+        quiz_q5:        'A jakou chuť si přeješ?',
+        quiz_q5_o1:     'Sladkou a ovocnou',
+        quiz_q5_o2:     'Jemnou a květinovou',
+        quiz_q5_o3:     'Výraznou a kořeněnou',
+        quiz_q5_o4:     'Překvap mě',
+        quiz_match:     'shoda',
+        quiz_why:       'Proč ti sedí',
+        quiz_also:      'Mohlo by ti chutnat i',
         quiz_question_of: 'Otázka',
         quiz_of:        'z',
         quiz_result_label: 'Tvůj ideální blend je',
@@ -1403,11 +1423,15 @@ function saveBlend() {
 
 /* ─── SHARE BLEND ────────────────────────────── */
 function shareBlend() {
-    const text = `Check out my tea blend "${currentProduct.name}" — ${currentProduct.ingredients.filter(i=>i!=='Empty').join(', ')} — made on Tease you 🍵 teaseyou.cz`;
+    const url  = buildBlendUrl();
+    const ings = currentProduct.ingredients.filter(i => i !== 'Empty').map(tIng).join(', ');
+    const text = LANG === 'cs'
+        ? `Mrkni na můj čaj „${currentProduct.name}" — ${ings} — namíchaný na Tease you 🍵`
+        : `Check out my tea blend "${currentProduct.name}" — ${ings} — made on Tease you 🍵`;
     if (navigator.share) {
-        navigator.share({ title: 'My tea blend', text });
+        navigator.share({ title: 'Tease you', text, url }).catch(() => {});
     } else {
-        navigator.clipboard.writeText(text).then(() => showToast(t('toast_copied'), '📋'));
+        navigator.clipboard.writeText(`${text} ${url}`).then(() => showToast(t('toast_link_copied'), '🔗'));
     }
 }
 
@@ -1938,8 +1962,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initA11y();
     updateCartBadge();   // restore badge from persisted cart
     renderIngredientEncyclopedia();
+    renderPresets();
     renderSavedBlends();
     renderCart();
+    loadBlendFromUrl();  // open a shared blend if ?b= is present
 
     // Hero parallax on scroll
     (function() {
@@ -2003,7 +2029,35 @@ const QUIZ_QUESTIONS = [
             { icon:"🎲", text:"quiz_q4_o4", tags:["versatile"] },
         ]
     },
+    {
+        q: "quiz_q5",
+        options: [
+            { icon:"🍯", text:"quiz_q5_o1", tags:["fruit","mild"] },
+            { icon:"🌸", text:"quiz_q5_o2", tags:["floral","mild"] },
+            { icon:"🔥", text:"quiz_q5_o3", tags:["spice","bold"] },
+            { icon:"✨", text:"quiz_q5_o4", tags:["versatile"] },
+        ]
+    },
 ];
+
+/* Human-readable labels for matched quiz traits. */
+const QUIZ_TAG_LABEL = {
+    bold:      { cs:'výrazná chuť',    en:'bold flavour' },
+    caffeine:  { cs:'více kofeinu',     en:'more caffeine' },
+    fresh:     { cs:'svěžest',          en:'freshness' },
+    mild:      { cs:'jemnost',          en:'mildness' },
+    herbal:    { cs:'bylinky',          en:'herbal notes' },
+    calm:      { cs:'klid',             en:'calm' },
+    citrus:    { cs:'citrusy',          en:'citrus' },
+    floral:    { cs:'květinové tóny',   en:'floral notes' },
+    fruit:     { cs:'ovoce',            en:'fruit' },
+    spice:     { cs:'koření',           en:'spice' },
+    versatile: { cs:'univerzálnost',    en:'versatility' },
+};
+function tQuizTag(tag) {
+    const l = QUIZ_TAG_LABEL[tag];
+    return l ? l[LANG === 'cs' ? 'cs' : 'en'] : tag;
+}
 
 const QUIZ_BLENDS = [
     {
@@ -2129,11 +2183,37 @@ function renderQuizResult() {
     }).sort((a, b) => b.score - a.score);
 
     const best = scored[0];
+    const runnerUp = scored.find(b => b.name !== best.name && b.score > 0);
+
+    // Friendly match score: 50% baseline + up to 50% from matched traits
+    const maxTags = best.tags.length || 1;
+    const matchPct = Math.round(50 + (best.score / maxTags) * 50);
+
+    // Which of the blend's traits the answers matched (fallback to its own traits)
+    let matched = best.tags.filter(tg => quizAnswerTags.includes(tg));
+    if (!matched.length) matched = best.tags.slice();
+    const whyChips = matched.map(tg => `<span class="quiz-why-chip">${escHtml(tQuizTag(tg))}</span>`).join('');
+
+    const desc = LANG === 'cs' && best.desc_cs ? best.desc_cs : best.desc;
+    const runnerUpHtml = runnerUp ? `
+        <div class="quiz-runnerup">
+            <span class="quiz-runnerup-label">${t('quiz_also')}</span>
+            <button class="quiz-runnerup-card" id="quiz-runnerup-btn">
+                <span class="quiz-runnerup-glass">
+                    <span style="background:${escHtml(runnerUp.colors[0])}"></span>
+                    <span style="background:${escHtml(runnerUp.colors[1])}"></span>
+                    <span style="background:${escHtml(runnerUp.colors[2])}"></span>
+                </span>
+                <span class="quiz-runnerup-name">${escHtml(runnerUp.name)}</span>
+                <span class="quiz-runnerup-arrow">→</span>
+            </button>
+        </div>` : '';
 
     body.innerHTML = `
         <div class="quiz-result">
             <p class="quiz-result-label font-chaos">${t('quiz_result_label')}</p>
             <h1 class="logo quiz-result-name">${escHtml(best.name)}</h1>
+            <div class="quiz-match-badge"><span class="quiz-match-pct">${matchPct}%</span> ${t('quiz_match')}</div>
             <div class="quiz-result-glass">
                 <div class="glass-frame" style="width:100%;height:100%;border-color:rgba(0,0,0,0.15)">
                     <div class="glass-part" style="background:${escHtml(best.colors[0])}"></div>
@@ -2141,16 +2221,25 @@ function renderQuizResult() {
                     <div class="glass-part" style="background:${escHtml(best.colors[2])}"></div>
                 </div>
             </div>
-            <p class="quiz-result-desc font-chaos">${escHtml(best.desc)}</p>
+            <p class="quiz-result-desc font-chaos">${escHtml(desc)}</p>
+            <div class="quiz-why">
+                <span class="quiz-why-label">${t('quiz_why')}:</span>
+                <div class="quiz-why-chips">${whyChips}</div>
+            </div>
             <div class="quiz-actions">
                 <button class="btn btn-large" id="quiz-order-btn">${t('btn_order_blend')}</button>
                 <button class="btn btn-secondary" onclick="startQuiz()">${t('btn_try_again')}</button>
                 <button class="btn btn-ghost" onclick="showPage('home-page')">${t('btn_back_home')}</button>
             </div>
+            ${runnerUpHtml}
         </div>
     `;
     document.getElementById('quiz-order-btn').addEventListener('click', () => {
-        openDetail(best.name, LANG === 'cs' && best.desc_cs ? best.desc_cs : best.desc, 89, best.ingredients, best.colors);
+        openDetail(best.name, desc, 89, best.ingredients, best.colors);
+    });
+    const ruBtn = document.getElementById('quiz-runnerup-btn');
+    if (ruBtn) ruBtn.addEventListener('click', () => {
+        openDetail(runnerUp.name, LANG === 'cs' && runnerUp.desc_cs ? runnerUp.desc_cs : runnerUp.desc, 89, runnerUp.ingredients, runnerUp.colors);
     });
 }
 
@@ -2197,4 +2286,69 @@ function randomBlend() {
     validateSelection();
     updateGlassLabels();
     showToast(`${t('toast_random')} ${randomName} 🎲`, '🎲');
+}
+
+/* ─── APPLY A BLEND TO THE CONFIGURATOR ──────── */
+/* Selects the matching ingredient buttons (by data-name) so the glass fills,
+   cards render and validation runs — reused by presets and shared links. */
+function applyBlendToConfigurator(ingredients, name) {
+    (ingredients || []).forEach(ing => {
+        if (!ing || ing === 'Empty') return;
+        const safe = String(ing).replace(/["\\]/g, '');
+        const btn = document.querySelector(`.ingredient-btn[data-name="${safe}"]`);
+        if (btn) btn.click();
+    });
+    if (name) {
+        const inp = document.getElementById('mix-name');
+        if (inp) { inp.value = name; inp.dispatchEvent(new Event('input', { bubbles: true })); }
+    }
+}
+
+/* ─── QUICK-START PRESETS (mixer) ────────────── */
+const MIX_PRESETS = [
+    { emoji:'☀️', name:'Morning Window', ingredients:['Green Tea','Mint','Lemon'] },
+    { emoji:'❄️', name:'Deep Winter',    ingredients:['Black Tea','Ginger','Vanilla'] },
+    { emoji:'🌙', name:'Slow Tuesday',   ingredients:['Chamomile','Turmeric','Cinnamon'] },
+    { emoji:'🍓', name:'Still Evening',  ingredients:['White Tea','Strawberry','Honey'] },
+];
+function renderPresets() {
+    const el = document.getElementById('preset-chips');
+    if (!el) return;
+    el.innerHTML = MIX_PRESETS.map((p, i) =>
+        `<button class="preset-chip" data-preset="${i}">${p.emoji} ${escHtml(p.name)}</button>`
+    ).join('') +
+        `<button class="preset-chip preset-chip-random" data-preset="random">🎲 ${LANG === 'cs' ? 'Náhodný' : 'Random'}</button>`;
+    el.querySelectorAll('.preset-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const v = btn.getAttribute('data-preset');
+            if (v === 'random') { randomBlend(); return; }
+            const p = MIX_PRESETS[+v];
+            applyBlendToConfigurator(p.ingredients, p.name);
+        });
+    });
+}
+
+/* ─── SHAREABLE BLEND LINK ───────────────────── */
+function buildBlendUrl() {
+    const ings = currentProduct.ingredients.filter(i => i && i !== 'Empty');
+    const params = new URLSearchParams();
+    params.set('b', ings.join('|'));
+    const nameInput = document.getElementById('mix-name');
+    const name = (nameInput && nameInput.value.trim()) ||
+                 (currentProduct.name && currentProduct.name !== 'Custom Mix' ? currentProduct.name : '');
+    if (name) params.set('n', name);
+    return `${location.origin}${location.pathname}?${params.toString()}`;
+}
+function loadBlendFromUrl() {
+    const params = new URLSearchParams(location.search);
+    const b = params.get('b');
+    if (!b) return;
+    const valid = new Set([...document.querySelectorAll('.ingredient-btn')].map(x => x.getAttribute('data-name')));
+    const ings = b.split('|').map(s => s.trim()).filter(x => valid.has(x));
+    if (!ings.length) return;
+    showPage('product-page');
+    applyBlendToConfigurator(ings, params.get('n') || '');
+    setTimeout(() => showToast(LANG === 'cs' ? 'Načetli jsme sdílený blend ✨' : 'Loaded a shared blend ✨', '🔗'), 700);
+    // Clean the URL so a refresh doesn't re-trigger
+    history.replaceState(null, '', location.origin + location.pathname);
 }
