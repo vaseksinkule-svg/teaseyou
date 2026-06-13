@@ -83,6 +83,7 @@ const TRANSLATIONS = {
         glass_label_flavor: 'Flavor',
         glass_label_extras: 'Extras',
         glass_name_default: 'Name your mix',
+        mix_summary_title:  'Your selection',
         /* Summary page */
         summary_badge:      'Your blend',
         summary_inside:     'What\'s inside',
@@ -428,6 +429,7 @@ const TRANSLATIONS = {
         glass_label_flavor: 'Příchuť',
         glass_label_extras: 'Doplňky',
         glass_name_default: 'Pojmenuj svůj mix',
+        mix_summary_title:  'Tvoje složení',
         /* Summary page */
         summary_badge:      'Tvůj blend',
         summary_inside:     'Co je uvnitř',
@@ -949,6 +951,8 @@ function showPage(pageId) {
     document.querySelectorAll('.bottom-nav-item').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.page === pageId);
     });
+    // Show/hide the mobile mix-summary drawer (mixer page only)
+    if (typeof updateMixDrawer === 'function') updateMixDrawer();
 }
 
 /* ─── FAQ ACCORDION ──────────────────────────── */
@@ -1304,9 +1308,39 @@ function renderSelectedIngPanel() {
             <div class="sip-pairs">${pairsLabel}: ${data.pairs.slice(0,3).map(tIng).join(', ')}</div>
         </div>`;
     }).filter(Boolean);
+    const cardsHtml = cards.join('');
     panel.innerHTML = cards.length
-        ? `<div class="sip-title">${LANG === 'cs' ? 'Tvoje složení' : 'Your selection'}</div>${cards.join('')}`
+        ? `<div class="sip-title">${LANG === 'cs' ? 'Tvoje složení' : 'Your selection'}</div>${cardsHtml}`
         : '';
+    // Mirror the same cards into the mobile drawer
+    const mobileCards = document.getElementById('mix-summary-cards');
+    if (mobileCards) mobileCards.innerHTML = cardsHtml;
+    updateMixDrawer();
+}
+
+/* ─── MOBILE MIX SUMMARY DRAWER ──────────────── */
+function updateMixDrawer() {
+    const drawer = document.getElementById('mix-summary-drawer');
+    if (!drawer) return;
+    const onMixer = document.getElementById('product-page')?.classList.contains('active');
+    const count = ['part1','part2','part3']
+        .filter(p => document.querySelector(`.ingredient-btn[data-target="${p}"].selected`)).length;
+    const countEl = document.getElementById('mix-summary-count');
+    if (countEl) countEl.textContent = `${count}/3`;
+    if (onMixer && count > 0) {
+        drawer.classList.add('show');
+        document.body.classList.add('has-mix-drawer');
+    } else {
+        drawer.classList.remove('show', 'open');
+        document.body.classList.remove('has-mix-drawer');
+        drawer.querySelector('.mix-summary-toggle')?.setAttribute('aria-expanded', 'false');
+    }
+}
+function toggleMixSummary() {
+    const drawer = document.getElementById('mix-summary-drawer');
+    if (!drawer) return;
+    const open = drawer.classList.toggle('open');
+    drawer.querySelector('.mix-summary-toggle')?.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
 function validateSelection() {

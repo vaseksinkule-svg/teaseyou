@@ -991,6 +991,16 @@
 </footer>
 
 <div id="toast" class="toast" aria-live="polite"></div>
+
+<!-- MOBILE MIX SUMMARY DRAWER (mixer page, mobile only) -->
+<div id="mix-summary-drawer" class="mix-summary-drawer">
+    <button class="mix-summary-toggle" onclick="toggleMixSummary()" aria-expanded="false" aria-controls="mix-summary-cards">
+        <span class="mix-summary-label"><span class="mix-summary-emoji">🍵</span><span data-i18n="mix_summary_title">Your selection</span> · <span id="mix-summary-count">0/3</span></span>
+        <svg class="mix-summary-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+    <div class="mix-summary-body" id="mix-summary-cards"></div>
+</div>
+
 <!-- MOBILE BOTTOM NAV -->
 <nav class="bottom-nav" id="bottom-nav" aria-label="Mobile navigation">
     <button class="bottom-nav-item" onclick="showPage('home-page')" data-page="home-page">
