@@ -3164,7 +3164,47 @@ body.dark .bottom-nav { background: #1a2a1a; border-top-color: #2a3a2a; }
 @media (max-width: 640px) {
     .bottom-nav { display: flex; }
     body { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+    body.has-mix-drawer { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
 }
+
+/* ─── MOBILE MIX SUMMARY DRAWER (mobile only) ── */
+.mix-summary-drawer { display: none; }
+@media (max-width: 640px) {
+    .mix-summary-drawer.show {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        left: 0; right: 0;
+        bottom: calc(60px + env(safe-area-inset-bottom));
+        z-index: 880;
+        background: var(--color-surface);
+        border-top: 1px solid var(--color-border);
+        box-shadow: 0 -6px 24px rgba(0,0,0,.16);
+        max-height: 74vh;
+    }
+    .mix-summary-toggle {
+        display: flex; align-items: center; justify-content: space-between;
+        width: 100%; padding: 13px 18px;
+        background: none; border: none; cursor: pointer;
+        font-family: inherit; font-size: 14px; font-weight: 700; color: var(--color-ink);
+        -webkit-tap-highlight-color: transparent;
+    }
+    .mix-summary-emoji { margin-right: 6px; }
+    #mix-summary-count { color: var(--color-accent); }
+    .mix-summary-chev { transition: transform .25s ease; flex-shrink: 0; }
+    .mix-summary-drawer.open .mix-summary-chev { transform: rotate(180deg); }
+    .mix-summary-body {
+        max-height: 0; overflow: hidden;
+        transition: max-height .3s ease;
+        padding: 0 16px;
+        display: flex; flex-direction: column; gap: 10px;
+    }
+    .mix-summary-drawer.open .mix-summary-body {
+        max-height: 58vh; overflow-y: auto;
+        padding: 2px 16px 16px;
+    }
+}
+body.dark .mix-summary-drawer.show { background: #1a2a1a; border-top-color: #2a3a2a; }
 
 /* ─── INGREDIENTS ENCYCLOPEDIA ──────────────────── */
 .page-container { width: 100%; max-width: 1100px; position: relative; padding-top: 40px; }
