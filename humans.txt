@@ -1,0 +1,37 @@
+             /\
+            (  )     Tease you
+             ||      teaseyou.cz
+          ___||___
+         |________|  Dík, že jsi sem zabrousil.
+
+
+/* TÝM */
+
+    Autor a provozovatel: Vašek Sinkule
+    Kontakt: hello [at] teaseyou.cz
+    Odkud: Česká republika
+
+    Web, texty, míchání čajů i balení krabiček — jeden člověk.
+    Když ti něco nefunguje, píše ti zpátky ten samý.
+
+
+/* DÍKY */
+
+    Packeta / Zásilkovna — výdejní místa a widget
+    Formspree — příjem objednávek bez vlastního backendu
+    Google Fonts — Playfair Display, Lato
+    Climate Crisis — displejové písmo
+    Lidem, co reportovali rozbité věci na mobilu. Byla to pravda.
+
+
+/* WEB */
+
+    Spuštěno: březen 2026
+    Jazyk: čeština (s anglickým i18n fallbackem)
+    Standardy: HTML5, CSS3, ES2020+
+    Komponenty: žádný framework, žádný build, žádný bundler
+    Software: prostý textový editor a hodně náhledů v prohlížeči
+    Hosting: GitHub Pages
+
+    Postaveno ručně. Bez cookies třetích stran, bez trackerů,
+    bez reklamních skriptů. Analytiku tu nenajdeš, protože tu žádná není.

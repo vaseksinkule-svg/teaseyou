@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jsi offline — Tease you</title>
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%233a5f3c'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23f5f1e9' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 40px 20px; }
+        .offline { max-width: 480px; }
+        .offline-icon { font-size: 72px; margin-bottom: 24px; }
+        .offline-title { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2rem, 6vw, 3.5rem); color: var(--color-ink); margin-bottom: 16px; }
+        .offline-sub { color: var(--color-ink-muted); margin-bottom: 8px; font-size: 1rem; line-height: 1.6; }
+        .offline-note { color: var(--color-ink-faint); font-size: 0.85rem; margin-bottom: 32px; line-height: 1.6; }
+        .offline-btn { display: inline-block; background: var(--color-accent); color: white; padding: 14px 32px; border: 0; cursor: pointer; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 0.95rem; font-family: inherit; transition: opacity 0.2s; }
+        .offline-btn:hover { opacity: 0.85; }
+    </style>
+</head>
+<body>
+    <div class="offline">
+        <div class="offline-icon">🌿</div>
+        <h1 class="offline-title">Jsi offline</h1>
+        <p class="offline-sub">Zdá se, že ti vypadlo připojení. Čaj počká.</p>
+        <p class="offline-note">Co už máš v košíku, zůstane uložené v prohlížeči — až se připojíš, najdeš to tam.</p>
+        <button class="offline-btn" onclick="location.reload()">Zkusit znovu</button>
+    </div>
+    <script>
+        addEventListener('online', () => location.reload());
+    </script>
+</body>
+</html>

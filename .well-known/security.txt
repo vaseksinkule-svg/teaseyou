@@ -1,0 +1,20 @@
+# Našel jsi na teaseyou.cz bezpečnostní problém?
+# Napiš nám. Odpovídáme a nikoho za nahlášení nežalujeme.
+# Formát podle RFC 9116 — https://securitytxt.org
+
+Contact: mailto:hello@teaseyou.cz
+Expires: 2027-09-20T00:00:00.000Z
+Preferred-Languages: cs, en, sk
+Canonical: https://teaseyou.cz/.well-known/security.txt
+
+# Co nás zajímá nejvíc:
+#   - únik nebo zneužití objednávkových dat
+#   - XSS nebo injektáž do košíku, checkoutu či sdílených odkazů na blend
+#   - cokoliv, co umožní odeslat objednávku cizím jménem
+#
+# Co naopak řešit nemusíš:
+#   - chybějící bezpečnostní hlavičky (GitHub Pages je neumí nastavit)
+#   - výsledky automatických skenerů bez ukázky, že se to dá zneužít
+#
+# Prosíme: žádné DoS testy a žádná práce s reálnými objednávkami
+# jiných zákazníků. Na reprodukci si vystačíš s vlastní.
