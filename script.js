@@ -123,6 +123,11 @@ const TRANSLATIONS = {
         lbl_subtotal:       'Subtotal',
         ship_calculated:    '+ Shipping: calculated at checkout',
         ship_free:          '+ Shipping: FREE',
+        price_from:         'from 49 Kč',
+        btn_sending:        'Sending…',
+        toast_order_failed: 'The order could not be sent. Your cart is still here — please try again.',
+        err_no_weight:      'Pick a size first.',
+        ship_free_short:    'FREE',
         btn_checkout:       'Proceed to Checkout',
         /* Checkout */
         checkout_title:     'Shipping',
@@ -479,6 +484,11 @@ const TRANSLATIONS = {
         lbl_subtotal:       'Mezisoučet',
         ship_calculated:    '+ Doprava: bude vypočtena při pokladně',
         ship_free:          '+ Doprava: ZDARMA',
+        price_from:         'od 49 Kč',
+        btn_sending:        'Odesílám…',
+        toast_order_failed: 'Objednávku se nepodařilo odeslat. Košík ti zůstal — zkus to prosím znovu.',
+        err_no_weight:      'Nejdřív vyber gramáž.',
+        ship_free_short:    'Zdarma',
         btn_checkout:       'Přejít k pokladně',
         /* Checkout */
         checkout_title:     'Doručení',
@@ -810,31 +820,91 @@ let currentProduct = {
     priceBase: 0,
     weight: ''
 };
-let cart = JSON.parse(localStorage.getItem('teaseyou_cart') || '[]');
+/* Stav z localStorage.
+ *
+ * Tohle běží na nejvyšší úrovni skriptu, takže jediná výjimka tady shodí
+ * všechno pod sebou — funkce se sice vyhoistují, ale `cart`, `appliedPromo`
+ * a spol. zůstanou v temporal dead zone. Web se pak vykreslí, jde klikat na
+ * ingredience, ale košík i checkout tiše padají. Zákazník nevidí chybu,
+ * jen mu nejde nakoupit.
+ *
+ * Proto: nikdy nevěřit tomu, co je v localStorage. Může to být poškozené
+ * půlkou zápisu při zaplněné kvótě, přepsané rozšířením prohlížeče, nebo
+ * to může mít starý tvar z minulé verze webu.
+ */
+function readStore(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (raw === null) return fallback;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(fallback) && !Array.isArray(parsed)) throw new Error('očekáváno pole');
+        return parsed;
+    } catch (err) {
+        console.warn(`[teaseyou] "${key}" v localStorage je poškozený, zahazuji.`, err);
+        try { localStorage.removeItem(key); } catch (_) {}
+        return fallback;
+    }
+}
+
+/* Položka košíku musí mít cenu a množství, jinak by se do součtu dostalo
+ * NaN nebo null a celý košík by se rozsypal. */
+function isValidCartItem(i) {
+    return !!i && typeof i === 'object'
+        && typeof i.priceBase === 'number' && isFinite(i.priceBase) && i.priceBase >= 0
+        && typeof i.qty === 'number' && isFinite(i.qty) && i.qty > 0
+        && Array.isArray(i.colors) && Array.isArray(i.ingredients);
+}
+
+let cart = readStore('teaseyou_cart', []).filter(isValidCartItem);
 let cartIdCounter = cart.reduce((m, i) => Math.max(m, i.id || 0), 0);
-let savedBlends = JSON.parse(localStorage.getItem('teaseyou_saved') || '[]');
-let orders = JSON.parse(localStorage.getItem('teaseyou_orders') || '[]');
+let savedBlends = readStore('teaseyou_saved', []).filter(b => b && typeof b === 'object');
+let orders = readStore('teaseyou_orders', []).filter(o => o && typeof o === 'object');
 
 /* ─── PRICING & CURRENCY (CZK) ───────────────── */
 const PRICES = { 50: 49, 100: 89, 250: 199 };  // weight(g) → price (Kč)
 
-/* ─── PAYMENT GATEWAY (replace with real credentials) ─────────────── */
+/* ─── NAPOJENÍ NA SLUŽBY (doplň, než se začne prodávat) ───────────── */
+// Bez vyplněného FORMSPREE_ID objednávka nikam nedojde — web běží
+// v testovacím režimu a jen to napíše do konzole.
+const FORMSPREE_ID = 'YOUR_FORM_ID';
+
 const PAYMENT_GATEWAY = 'none'; // 'gopay' | 'comgate' | 'none' (test mode)
 const GOPAY_GOID = 'YOUR_GOPAY_GOID';
 const COMGATE_MERCHANT = 'YOUR_COMGATE_MERCHANT';
 const FREE_SHIP_THRESHOLD = 500;                // Kč
 const PROMOS = { FIRSTBLEND: { rate: 0.10, label: '-10%' } };
 
-let appliedPromo = JSON.parse(localStorage.getItem('teaseyou_promo') || 'null');
+/* Sleva se NIKDY nebere z localStorage tak, jak tam leží — jen se podle ní
+ * dohledá kód v PROMOS a sazba se vezme odtud. Bez toho si kdokoliv otevře
+ * konzoli, přepíše si `rate` na 0.99 a objedná zboží za 597 Kč za šest korun.
+ * Ceník je jediný zdroj pravdy. */
+function normalizePromo(stored) {
+    if (!stored || typeof stored !== 'object') return null;
+    const code = String(stored.code || '').trim().toUpperCase();
+    const known = Object.prototype.hasOwnProperty.call(PROMOS, code) ? PROMOS[code] : null;
+    if (!known) return null;
+    return { code, rate: known.rate, label: known.label };
+}
+
+let appliedPromo = normalizePromo(readStore('teaseyou_promo', null));
 
 function fmt(n) { return Math.round(n) + ' Kč'; }
 function saveCart()  { localStorage.setItem('teaseyou_cart', JSON.stringify(cart)); }
 function savePromo() { localStorage.setItem('teaseyou_promo', JSON.stringify(appliedPromo)); }
 
-function cartGoods() { return cart.reduce((s, i) => s + i.priceBase * i.qty, 0); }
+function cartGoods() {
+    return cart.reduce((s, i) => {
+        const line = Number(i.priceBase) * Number(i.qty);
+        return s + (isFinite(line) ? line : 0);
+    }, 0);
+}
 function computeTotals(shipping = 0) {
     const goods    = cartGoods();
-    const discount = appliedPromo ? goods * appliedPromo.rate : 0;
+    // Sazba se drží v rozumných mezích, ať se do součtu nikdy nedostane
+    // NaN ani záporná sleva (ta by cenu naopak zvyšovala).
+    const rate     = appliedPromo && isFinite(appliedPromo.rate)
+        ? Math.min(Math.max(appliedPromo.rate, 0), 1) : 0;
+    const discount = goods * rate;
     const afterDiscount = goods - discount;
     const freeShip = goods >= FREE_SHIP_THRESHOLD;
     const ship     = freeShip ? 0 : shipping;
@@ -1039,7 +1109,7 @@ function updateShippingCost(radio) {
     const costEl = document.getElementById('checkout-shipping-cost');
     const totalEl = document.getElementById('checkout-total-display');
     if (row) row.style.display = 'flex';
-    if (costEl) costEl.textContent = totals.freeShip ? 'FREE' : fmt(totals.ship);
+    if (costEl) costEl.textContent = totals.freeShip ? t('ship_free_short') : fmt(totals.ship);
     if (totalEl) totalEl.textContent = fmt(totals.total);
 }
 
@@ -1098,9 +1168,10 @@ function applyPromo() {
     const code  = (input?.value || '').trim().toUpperCase();
     if (!code) { setPromoFeedback('', false); return; }
     if (cart.length === 0) { setPromoFeedback(t('promo_cart_first'), false); return; }
-    const promo = PROMOS[code];
+    const promo = Object.prototype.hasOwnProperty.call(PROMOS, code) ? PROMOS[code] : null;
     if (!promo) {
-        appliedPromo = null;
+        // Překlep nesmí sebrat slevu, kterou už zákazník má uplatněnou.
+        // Dřív se tady appliedPromo nulovalo a stačilo se jednou upsat.
         setPromoFeedback(t('promo_invalid'), false);
     } else {
         appliedPromo = { code, rate: promo.rate, label: promo.label };
@@ -1504,6 +1575,13 @@ document.getElementById('order-modal').addEventListener('click', function(e) {
 
 /* ─── CONFIRM ORDER → CART ───────────────────── */
 function confirmOrder() {
+    // Do košíku se nesmí dostat položka bez gramáže a ceny. Dosud to hlídalo
+    // jenom `disabled` na tlačítku, což je obrana jen do chvíle, než se na
+    // funkci sáhne odjinud (sdílený odkaz, kvíz, budoucí refaktor).
+    if (!currentProduct.weight || !(currentProduct.priceBase > 0)) {
+        showToast(t('err_no_weight'), '⚖️');
+        return;
+    }
     closeOrderModal();
     // Merge with an identical line if one already exists
     const sig = JSON.stringify([currentProduct.name, currentProduct.ingredients, currentProduct.weight, currentProduct.priceBase]);
@@ -1736,7 +1814,6 @@ function validateCheckout(form) {
 /* ─── SUBMIT ORDER ───────────────────────────── */
 function submitOrder(e) {
     e.preventDefault();
-    const FORMSPREE_ID = 'YOUR_FORM_ID';
     const form = e.target;
     if (cart.length === 0) { showToast(t('toast_cart_empty'), '🛒'); return; }
     if (!validateCheckout(form)) { showToast(t('toast_check_fields'), '⚠️'); return; }
@@ -1758,41 +1835,81 @@ function submitOrder(e) {
         packetaPoint: packetaPoint ? `${packetaPoint.name}, ${packetaPoint.city}` : null
     };
 
-    if (FORMSPREE_ID !== 'YOUR_FORM_ID') {
-        const fd = new FormData(form);
-        fd.append('_subject', `Nová objednávka ${orderNum} — Tease you`);
-        fd.append('order_json', JSON.stringify(order, null, 2));
-        fetch(`https://formspree.io/f/${FORMSPREE_ID}`, { method: 'POST', body: fd, headers: { Accept: 'application/json' } })
-            .catch(() => {}); // fire-and-forget, don't block UX
-    }
-
-    orders.unshift(order);
-    if (orders.length > 50) orders.pop();
-    localStorage.setItem('teaseyou_orders', JSON.stringify(orders));
-
-    const el = document.getElementById('success-order-num');
-    if (el) el.textContent = t('order_num_prefix') + orderNum;
-
-    cart = [];
-    appliedPromo = null;
-    packetaPoint  = null;
-    saveCart();
-    savePromo();
-    updateCartBadge();
-    if (PAYMENT_GATEWAY === 'gopay') {
-        showToast('Přesměrování na GoPay platební bránu...', '💳');
-        // TODO: call your backend /api/gopay/create-payment with orderPayload
-        // backend returns { gw_url } → window.location.href = gw_url;
+    // Platební brána není dodělaná. Kdyby se přepnula, zákazníkovi by se
+    // vyprázdnil košík, ukázala se hláška o přesměrování a pak nic — žádná
+    // platba, žádné potvrzení. Radši to zastavíme rovnou a nahlas.
+    if (PAYMENT_GATEWAY !== 'none') {
+        console.error(`[teaseyou] PAYMENT_GATEWAY="${PAYMENT_GATEWAY}", ale napojení na backend není hotové.`);
+        showToast(t('toast_order_failed'), '⚠️');
         return;
     }
-    if (PAYMENT_GATEWAY === 'comgate') {
-        showToast('Přesměrování na Comgate platební bránu...', '💳');
-        // TODO: call your backend /api/comgate/create-payment with orderPayload
-        // backend returns { redirect } → window.location.href = redirect;
+
+    // Od téhle chvíle je formulář zamčený, ať dvojklik nepošle objednávku dvakrát.
+    const submitBtn = form.querySelector('button[type="submit"], #final-order-btn');
+    if (submitBtn && submitBtn.dataset.sending === '1') return;
+    const unlock = () => {
+        if (!submitBtn) return;
+        delete submitBtn.dataset.sending;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('disabled');
+        if (submitBtn.dataset.label) submitBtn.textContent = submitBtn.dataset.label;
+    };
+    if (submitBtn) {
+        submitBtn.dataset.sending = '1';
+        submitBtn.dataset.label = submitBtn.dataset.label || submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('disabled');
+        submitBtn.textContent = t('btn_sending');
+    }
+
+    // Dokončení objednávky: uložit do historie, vyčistit košík, poděkovat.
+    // Volá se AŽ když víme, že objednávka opravdu odešla.
+    const finish = () => {
+        orders.unshift(order);
+        if (orders.length > 50) orders.pop();
+        try { localStorage.setItem('teaseyou_orders', JSON.stringify(orders)); } catch (_) {}
+
+        const el = document.getElementById('success-order-num');
+        if (el) el.textContent = t('order_num_prefix') + orderNum;
+
+        cart = [];
+        appliedPromo = null;
+        packetaPoint = null;
+        saveCart();
+        savePromo();
+        updateCartBadge();
+        unlock();
+        showPage('success-page');
+        launchConfetti();
+    };
+
+    // Objednávka bez nastaveného Formspree nikam nedojde. Dřív se i tak
+    // ukázaly konfety — zákazník si myslel, že nakoupil, a majitel o objednávce
+    // nevěděl. Teď je to vidět aspoň v konzoli a v testovacím režimu.
+    if (FORMSPREE_ID === 'YOUR_FORM_ID') {
+        console.warn('[teaseyou] FORMSPREE_ID není vyplněný — objednávka se nikam neodesílá (testovací režim).');
+        finish();
         return;
     }
-    showPage('success-page');
-    launchConfetti();
+
+    const fd = new FormData(form);
+    fd.append('_subject', `Nová objednávka ${orderNum} — Tease you`);
+    fd.append('order_json', JSON.stringify(order, null, 2));
+
+    fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        method: 'POST', body: fd, headers: { Accept: 'application/json' }
+    })
+        .then(res => {
+            if (!res.ok) throw new Error('Formspree odpověděl ' + res.status);
+            finish();
+        })
+        .catch(err => {
+            // Košík zůstává, ať to jde zkusit znovu. Poděkování se neukáže —
+            // dřív se ukázalo vždycky, i když objednávka nikam nedošla.
+            console.error('[teaseyou] Objednávku se nepodařilo odeslat:', err);
+            unlock();
+            showToast(t('toast_order_failed'), '⚠️');
+        });
 }
 
 function launchConfetti() {

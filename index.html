@@ -194,37 +194,37 @@
                 <div class="ready-glass-mini"><div style="background:#ffe066"></div><div style="background:#4caf50"></div><div style="background:#8da676"></div></div>
                 <h3 class="font-cosmico">Morning Window</h3>
                 <p class="font-chaos" data-i18n="blend_sub_1">Green tea, Mint &amp; Lemon</p>
-                <span class="ready-price">od 49 Kč</span>
+                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
             </div>
             <div class="ready-card" onclick="openDetail('Still Evening','White tea with strawberry and honey. Gently sweet and unhurried — a soft end to the day.',89,['White Tea','Strawberry','Honey'],['#f5e6d3','#cc4747','#ffc107'])">
                 <div class="ready-glass-mini"><div style="background:#ffc107"></div><div style="background:#cc4747"></div><div style="background:#f5e6d3"></div></div>
                 <h3 class="font-cosmico">Still Evening</h3>
                 <p class="font-chaos" data-i18n="blend_sub_2">White tea, Strawberry &amp; Honey</p>
-                <span class="ready-price">od 49 Kč</span>
+                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
             </div>
             <div class="ready-card" onclick="openDetail('Deep Winter','Black tea with ginger and vanilla. Full and warming — best with both hands around the mug.',89,['Black Tea','Ginger','Vanilla'],['#4a3b32','#ff9800','#f3e5ab'])">
                 <div class="ready-glass-mini"><div style="background:#f3e5ab"></div><div style="background:#ff9800"></div><div style="background:#4a3b32"></div></div>
                 <h3 class="font-cosmico">Deep Winter</h3>
                 <p class="font-chaos" data-i18n="blend_sub_3">Black tea, Ginger &amp; Vanilla</p>
-                <span class="ready-price">od 49 Kč</span>
+                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
             </div>
             <div class="ready-card" onclick="openDetail('Late Light','Oolong with rose and lavender. Soft and a little floral — for the quiet part of the afternoon.',89,['Oolong Tea','Rose','Lavender'],['#c8a0b4','#e8607a','#b8a0cc'])">
                 <div class="ready-glass-mini"><div style="background:#b8a0cc"></div><div style="background:#e8607a"></div><div style="background:#c8a0b4"></div></div>
                 <h3 class="font-cosmico">Late Light</h3>
                 <p class="font-chaos" data-i18n="blend_sub_4">Oolong, Rose &amp; Lavender</p>
-                <span class="ready-price">od 49 Kč</span>
+                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
             </div>
             <div class="ready-card" onclick="openDetail('Open Air','Rooibos with orange and spearmint. Naturally sweet and caffeine-free — good any time.',89,['Rooibos','Orange','Spearmint'],['#e8720c','#ffb347','#a8d8a8'])">
                 <div class="ready-glass-mini"><div style="background:#a8d8a8"></div><div style="background:#ffb347"></div><div style="background:#e8720c"></div></div>
                 <h3 class="font-cosmico">Open Air</h3>
                 <p class="font-chaos" data-i18n="blend_sub_5">Rooibos, Orange &amp; Spearmint</p>
-                <span class="ready-price">od 49 Kč</span>
+                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
             </div>
             <div class="ready-card" onclick="openDetail('Slow Tuesday','Chamomile with turmeric and cinnamon. Earthy and warm — the tea equivalent of doing nothing.',89,['Chamomile','Turmeric','Cinnamon'],['#f5d78e','#d4a017','#c8824a'])">
                 <div class="ready-glass-mini"><div style="background:#c8824a"></div><div style="background:#d4a017"></div><div style="background:#f5d78e"></div></div>
                 <h3 class="font-cosmico">Slow Tuesday</h3>
                 <p class="font-chaos" data-i18n="blend_sub_6">Chamomile, Turmeric &amp; Cinnamon</p>
-                <span class="ready-price">od 49 Kč</span>
+                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
             </div>
         </div>
     </div>
@@ -617,23 +617,22 @@
                     <div class="form-section-label" data-i18n="checkout_contact">Contact</div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label class="form-label" data-i18n="lbl_firstname">First name *</label><input type="text" name="firstName" class="name-input" required placeholder="Jan"></div>
-                    <div class="form-group"><label class="form-label" data-i18n="lbl_lastname">Last name *</label><input type="text" name="lastName" class="name-input" required placeholder="Nov&aacute;k"></div>
+                    <div class="form-group"><label class="form-label" for="f-firstName" data-i18n="lbl_firstname">First name *</label><input type="text" id="f-firstName" name="firstName" class="name-input" required placeholder="Jan"></div>
+                    <div class="form-group"><label class="form-label" data-i18n="lbl_lastname" for="f-lastName">Last name *</label><input type="text" name="lastName" class="name-input" required placeholder="Nov&aacute;k" id="f-lastName"></div>
                 </div>
-                <div class="form-group"><label class="form-label" data-i18n="lbl_email">Email *</label><input type="email" name="email" class="name-input" required placeholder="jan@email.cz"></div>
-                <div class="form-group"><label class="form-label" data-i18n="lbl_phone">Phone *</label><input type="tel" name="phone" class="name-input" required placeholder="+420 123 456 789"></div>
+                <div class="form-group"><label class="form-label" data-i18n="lbl_email" for="f-email">Email *</label><input type="email" name="email" class="name-input" required placeholder="jan@email.cz" id="f-email"></div>
+                <div class="form-group"><label class="form-label" data-i18n="lbl_phone" for="f-phone">Phone *</label><input type="tel" name="phone" class="name-input" required placeholder="+420 123 456 789" id="f-phone"></div>
                 <div class="checkout-step-header" style="margin-top:32px;">
                     <span class="checkout-step-num">2</span>
                     <div class="form-section-label" data-i18n="checkout_address">Delivery address</div>
                 </div>
-                <div class="form-group"><label class="form-label" data-i18n="lbl_street">Street and number *</label><input type="text" name="street" class="name-input" required placeholder="N&aacute;m&#283;st&iacute; M&iacute;ru 12"></div>
+                <div class="form-group"><label class="form-label" data-i18n="lbl_street" for="f-street">Street and number *</label><input type="text" name="street" class="name-input" required placeholder="N&aacute;m&#283;st&iacute; M&iacute;ru 12" id="f-street"></div>
                 <div class="form-row">
-                    <div class="form-group"><label class="form-label" data-i18n="lbl_city">City *</label><input type="text" name="city" class="name-input" required placeholder="Praha"></div>
-                    <div class="form-group"><label class="form-label" data-i18n="lbl_zip">ZIP *</label><input type="text" name="zip" class="name-input" required placeholder="110 00" maxlength="6"></div>
+                    <div class="form-group"><label class="form-label" data-i18n="lbl_city" for="f-city">City *</label><input type="text" name="city" class="name-input" required placeholder="Praha" id="f-city"></div>
+                    <div class="form-group"><label class="form-label" data-i18n="lbl_zip" for="f-zip">ZIP *</label><input type="text" name="zip" class="name-input" required placeholder="110 00" maxlength="6" id="f-zip"></div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" data-i18n="lbl_country">Country *</label>
-                    <select name="country" class="name-input select-input" required>
+                    <label class="form-label" data-i18n="lbl_country" for="f-country">Country *</label><select name="country" class="name-input select-input" required id="f-country">
                         <option value="" data-i18n="country_select">&mdash; Select &mdash;</option>
                         <option value="CZ">Czech Republic &#x1F1E8;&#x1F1FF;</option>
                         <option value="SK">Slovakia &#x1F1F8;&#x1F1F0;</option>

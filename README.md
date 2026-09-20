@@ -28,29 +28,31 @@ Service Workers → *Update on reload*, nebo dej hard reload
 
 ## Co je potřeba vyplnit, než se dá prodávat
 
-V repozitáři jsou zatím zástupné hodnoty. **Dokud se nevyplní, objednávka
-nikam nedojde** — formulář se jen tváří, že odesílá.
+V repozitáři jsou zatím zástupné hodnoty. **Dokud se `FORMSPREE_ID`
+nevyplní, objednávka nikam nedojde** — web běží v testovacím režimu:
+objednávku uloží do historie v prohlížeči, ukáže poděkování a napíše
+varování do konzole. Nikomu se nic neodešle.
 
 | Kde | Konstanta | Co to je |
 |---|---|---|
-| `script.js:1739` | `FORMSPREE_ID` | ID formuláře na Formspree, kam chodí objednávky |
-| `script.js:802` | `PACKETA_API_KEY` | Klíč pro widget výdejních míst Zásilkovny |
-| `script.js:823` | `GOPAY_GOID` | ID obchodníka GoPay |
-| `script.js:824` | `COMGATE_MERCHANT` | ID obchodníka Comgate |
-| `script.js:822` | `PAYMENT_GATEWAY` | Přepnout z `'none'` na `'gopay'` nebo `'comgate'` |
+| `script.js:869` | `FORMSPREE_ID` | ID formuláře na Formspree, kam chodí objednávky |
+| `script.js:812` | `PACKETA_API_KEY` | Klíč pro widget výdejních míst Zásilkovny |
+| `script.js:872` | `GOPAY_GOID` | ID obchodníka GoPay |
+| `script.js:873` | `COMGATE_MERCHANT` | ID obchodníka Comgate |
+| `script.js:871` | `PAYMENT_GATEWAY` | Přepnout z `'none'` na `'gopay'` nebo `'comgate'` |
 | `index.html` | `telephone` v JSON-LD | Je tam `+420123456789`, což je zjevně placeholder |
 
 ## Kde se co mění
 
 | Chci změnit | Kouknu do |
 |---|---|
-| Ceny podle gramáže | `script.js:819` — `PRICES` |
-| Limit pro dopravu zdarma | `script.js:825` — `FREE_SHIP_THRESHOLD` |
-| Slevové kódy | `script.js:826` — `PROMOS` |
-| Ingredience a jejich popisy | `script.js:1886` — `ING_DATA` |
-| Otázky a vyhodnocení kvízu | `script.js:1995` — `QUIZ_QUESTIONS`, `QUIZ_BLENDS` |
-| Přednastavené mixy | `script.js:2308` — `MIX_PRESETS` |
-| Návody na louhování | `script.js:845` — `BREW` |
+| Ceny podle gramáže | `script.js:864` — `PRICES` |
+| Limit pro dopravu zdarma | `script.js:874` — `FREE_SHIP_THRESHOLD` |
+| Slevové kódy | `script.js:875` — `PROMOS` |
+| Ingredience a jejich popisy | `script.js:2003` — `ING_DATA` |
+| Otázky a vyhodnocení kvízu | `script.js:2112` — `QUIZ_QUESTIONS`, `QUIZ_BLENDS` |
+| Přednastavené mixy | `script.js:2425` — `MIX_PRESETS` |
+| Návody na louhování | `script.js:915` — `BREW` |
 | Překlady (CS/EN) | `script.js:9` — `TRANSLATIONS` |
 
 Jazyk se volí podle prohlížeče (`script.js:6`). Čeština je výchozí,
@@ -98,8 +100,9 @@ Ať se to nemusí objevovat znovu při každé revizi:
 - **Žádné bezpečnostní hlavičky.** GitHub Pages neumí nastavit vlastní
   HTTP hlavičky. Kdyby to jednou bylo potřeba, znamená to přesun na
   Cloudflare Pages nebo Netlify (pak přibude `_headers`).
-- **Žádné automatické testy.** Testuje se ručně v prohlížeči. Při většině
-  změn se to nevyplatí, u checkoutu ano — tam kontroluj obzvlášť pečlivě.
+- **Žádné automatické testy v repozitáři.** Testuje se ručně v prohlížeči.
+  U checkoutu kontroluj obzvlášť pečlivě — tam se chyba projeví až tím, že
+  nedorazí objednávka.
 - **Žádná analytika.** Záměrně. Proto taky nejsou cookies třetích stran.
 - **`404.html` se po 3 sekundách sám přesměruje** na homepage. Pro čtečky
   obrazovky a pomalejší čtenáře to není ideální (WCAG 2.2.1); zatím ponecháno.

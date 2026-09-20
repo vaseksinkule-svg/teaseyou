@@ -12,7 +12,34 @@ takže se řadí podle data.
   `humans.txt`, `.well-known/security.txt`, `CNAME`, `.nojekyll`.
 - `offline.html` — pořádná stránka pro stav bez připojení.
 
+### Opraveno
+- **Objednávka se už nepotvrdí, když neodešla.** Odesílalo se stylem
+  „vystřel a zapomeň": košík se vyprázdnil a konfety spustily bez ohledu na
+  to, jestli Formspree objednávku přijal. Při výpadku sítě nebo vyčerpané
+  kvótě zákazník viděl poděkování a majitel se o objednávce nedozvěděl.
+  Nově se čeká na odpověď; při chybě zůstane košík plný a zobrazí se hláška.
+- **Poškozený localStorage přestal zabíjet obchod.** Stačil jeden nevalidní
+  zápis a web sice vykreslil stránku, ale košík i checkout tiše padaly na
+  „Cannot access 'cart' before initialization". Zákazník nic nepoznal, jen
+  mu nešlo nakoupit. Stav se teď načítá obranně a poškozená data se zahodí.
+- **Sleva se ověřuje proti ceníku.** Sazba se brala z localStorage tak, jak
+  tam ležela — kdokoliv si mohl v konzoli přepsat `rate` na 0.99 a objednat
+  zboží za 597 Kč za necelých šest korun. Teď se z uloženého záznamu bere
+  jen kód a sazba se dohledá v `PROMOS`.
+- Překlep v promo kódu smazal už uplatněnou platnou slevu.
+- Dvojklik na „Dokončit objednávku" mohl objednávku odeslat vícekrát.
+- Nedodělaná platební brána vyprázdnila košík a skončila bez potvrzení
+  i bez přesměrování. Dokud není napojená, objednávku zastaví nahlas.
+- Do košíku se nedala vložit položka bez gramáže za 0 Kč (hlídalo to jen
+  `disabled` na tlačítku).
+- Cena dopravy zdarma se v české verzi zobrazovala jako „FREE".
+- Ceny hotových směsí zůstávaly v anglické verzi česky („od 49 Kč").
+- Popisky v checkoutu nebyly propojené s poli (`for`/`id`) — klik na popisek
+  nezaostřil pole a čtečky obrazovky je nespárovaly.
+
 ### Změněno
+- `FORMSPREE_ID` přesunut ke zbytku konfigurace na začátek souboru. Dřív byl
+  zahrabaný uvnitř `submitOrder()`.
 - Service worker přepsán. HTML se nově tahá vždycky ze sítě, takže po
   nasazení nikdo nezůstane viset na starém `script.js`. Statika jede
   stale-while-revalidate. Do POST requestů na Formspree ani do widgetu
