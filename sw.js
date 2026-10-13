@@ -8,20 +8,20 @@
  * Když měníš seznam PRECACHE, zvyš VERSION — jinak se stará cache nezahodí.
  */
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = `teaseyou-${VERSION}`;
 
 // Minimum, aby se web offline vůbec vykreslil.
 const PRECACHE = [
-    '/',
-    '/index.html',
-    '/offline.html',
-    '/style.css',
-    '/script.js',
-    '/manifest.json',
-    '/ClimateCrisis-1979.woff2',
-    '/icon-192.svg',
-    '/icon-512.svg'
+    './',
+    './index.html',
+    './offline.html',
+    './style.css',
+    './script.js',
+    './manifest.json',
+    './ClimateCrisis-1979.woff2',
+    './icon-192.svg',
+    './icon-512.svg'
 ];
 
 self.addEventListener('install', event => {
@@ -60,11 +60,11 @@ self.addEventListener('fetch', event => {
             fetch(req)
                 .then(res => {
                     const copy = res.clone();
-                    caches.open(CACHE).then(cache => cache.put('/index.html', copy));
+                    caches.open(CACHE).then(cache => cache.put('./index.html', copy));
                     return res;
                 })
-                .catch(() => caches.match('/index.html')
-                    .then(cached => cached || caches.match('/offline.html')))
+                .catch(() => caches.match('./index.html')
+                    .then(cached => cached || caches.match('./offline.html')))
         );
         return;
     }

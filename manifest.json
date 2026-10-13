@@ -2,7 +2,7 @@
   "name": "Tease you",
   "short_name": "Tease you",
   "description": "Namíchej si vlastní čajový blend",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#f5f1e9",
   "theme_color": "#3d5a3e",
