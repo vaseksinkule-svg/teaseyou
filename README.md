@@ -8,6 +8,11 @@ Statický web. Žádný framework, žádný build, žádný `npm install`. Tři 
 dělají všechnu práci: `index.html`, `style.css`, `script.js`. Bylo to
 rozhodnutí, ne lenost — web musí jet roky bez údržby závislostí.
 
+Nabídku a objednávky drží [Supabase](https://supabase.com). Ceny, ingredience,
+fotky, směsi, dopravu a slevy měníš v administraci na `/admin/`, ne v kódu.
+Spojení obstarává `db.js` — malý klient bez knihovny, ve stejném duchu jako
+zbytek webu. Jak databázi založit: [`supabase/README.md`](supabase/README.md).
+
 ## Spuštění lokálně
 
 Service worker a `fetch()` nefungují přes `file://`, takže je potřeba
@@ -28,13 +33,17 @@ Service Workers → *Update on reload*, nebo dej hard reload
 
 ## Co je potřeba vyplnit, než se dá prodávat
 
-V repozitáři jsou zatím zástupné hodnoty. **Dokud se `FORMSPREE_ID`
-nevyplní, objednávka nikam nedojde** — web běží v testovacím režimu:
-objednávku uloží do historie v prohlížeči, ukáže poděkování a napíše
+V repozitáři jsou zatím zástupné hodnoty. **Dokud není vyplněný `config.js`
+ani `FORMSPREE_ID`, objednávka nikam nedojde** — web běží v testovacím
+režimu: objednávku uloží do historie v prohlížeči, ukáže poděkování a napíše
 varování do konzole. Nikomu se nic neodešle.
+
+S vyplněným `config.js` se objednávky ukládají do databáze a vidíš je
+v administraci. Formspree je pak už jen e-mail navíc.
 
 | Kde | Konstanta | Co to je |
 |---|---|---|
+| `config.js` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Napojení na databázi — viz [`supabase/README.md`](supabase/README.md) |
 | `script.js:869` | `FORMSPREE_ID` | ID formuláře na Formspree, kam chodí objednávky |
 | `script.js:812` | `PACKETA_API_KEY` | Klíč pro widget výdejních míst Zásilkovny |
 | `script.js:872` | `GOPAY_GOID` | ID obchodníka GoPay |
@@ -44,15 +53,22 @@ varování do konzole. Nikomu se nic neodešle.
 
 ## Kde se co mění
 
+S napojenou databází se běžné věci mění v **administraci (`/admin/`)**:
+ceny podle gramáže, ingredience (názvy, popisy, barvy, fotky, skladem),
+hotové směsi a rychlé volby v mixéru, ceny a zapnutí dopravy, doprava
+zdarma od, text lišty nahoře a slevové kódy. Hodnoty ve `script.js` jsou
+pak jen záloha pro případ, že databáze neodpoví.
+
 | Chci změnit | Kouknu do |
 |---|---|
-| Ceny podle gramáže | `script.js:864` — `PRICES` |
-| Limit pro dopravu zdarma | `script.js:874` — `FREE_SHIP_THRESHOLD` |
-| Slevové kódy | `script.js:875` — `PROMOS` |
-| Ingredience a jejich popisy | `script.js:2003` — `ING_DATA` |
-| Otázky a vyhodnocení kvízu | `script.js:2112` — `QUIZ_QUESTIONS`, `QUIZ_BLENDS` |
-| Přednastavené mixy | `script.js:2425` — `MIX_PRESETS` |
-| Návody na louhování | `script.js:915` — `BREW` |
+| Ceny podle gramáže (záloha) | `script.js` — `PRICES` |
+| Limit pro dopravu zdarma (záloha) | `script.js` — `FREE_SHIP_THRESHOLD` |
+| Slevové kódy bez databáze | `script.js` — `PROMOS` |
+| Ingredience a jejich popisy (záloha) | `script.js` — `ING_DATA` |
+| Jak web převezme data z databáze | `script.js` — sekce `KATALOG ZE SUPABASE` na konci |
+| Otázky a vyhodnocení kvízu | `script.js:2193` — `QUIZ_QUESTIONS`, `QUIZ_BLENDS` |
+| Přednastavené mixy (záloha, jinak směsi s rychlou volbou v administraci) | `script.js:2510` — `MIX_PRESETS` |
+| Návody na louhování (záloha, jinak u základů v administraci) | `script.js:921` — `BREW` |
 | Překlady (CS/EN) | `script.js:9` — `TRANSLATIONS` |
 
 Jazyk se volí podle prohlížeče (`script.js:6`). Čeština je výchozí,
@@ -64,6 +80,11 @@ angličtina je fallback.
 index.html                 Celý web. Všechny "stránky" jsou sekce, přepíná JS.
 style.css                  Styly včetně tmavého režimu.
 script.js                  Mixér, košík, checkout, kvíz, i18n, data ingrediencí.
+config.js                  Adresa a veřejný klíč Supabase.
+db.js                      Malý klient pro Supabase (tabulky, přihlášení, fotky).
+admin/                     Administrace: objednávky, nabídka, ceny, slevy.
+supabase/setup.sql         Celá databáze — tabulky, pravidla přístupu, výchozí data.
+supabase/README.md         Jak databázi založit a co v ní je.
 sw.js                      Service worker — offline režim a cache.
 offline.html               Co se ukáže bez připojení.
 404.html                   Nenalezeno.
