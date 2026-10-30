@@ -13,6 +13,6 @@
  * a administrace ukáže, co je potřeba doplnit.
  */
 window.TEASEYOU_CONFIG = {
-    SUPABASE_URL:      'https://YOUR_PROJECT.supabase.co',
-    SUPABASE_ANON_KEY: 'YOUR_PUBLISHABLE_KEY',
+    SUPABASE_URL:      'https://afyrschnjxgtlzjkmfjb.supabase.co',
+    SUPABASE_ANON_KEY: 'sb_publishable_T3VtG-oG0IkWMRVYkownrA_fzdVm-eP',
 };
