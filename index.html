@@ -44,6 +44,27 @@
     </script>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <linearGradient id="kraft-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#d3b484"/><stop offset="1" stop-color="#c4a06c"/>
+        </linearGradient>
+        <linearGradient id="kraft-edge" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset=".13" stop-color="#000" stop-opacity="0"/>
+            <stop offset=".87" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/>
+        </linearGradient>
+        <pattern id="kraft-crimp" width="4" height="10" patternUnits="userSpaceOnUse">
+            <rect width="2" height="10" fill="#000" fill-opacity=".09"/>
+        </pattern>
+        <filter id="kraft-grain" x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4" result="n"/>
+            <feColorMatrix in="n" type="matrix" values="0 0 0 0 .2  0 0 0 0 .14  0 0 0 0 .06  0 0 0 .55 0"/>
+        </filter>
+        <clipPath id="pouch-clip">
+            <path d="M14 6H186Q192 6 192 12V20L186 26L192 32Q196 140 196 238Q196 262 172 264Q100 270 28 264Q4 262 4 238Q4 140 8 32L14 26L8 20V12Q8 6 14 6Z"/>
+        </clipPath>
+    </defs>
+</svg>
 
 <!-- PROMO BAR -->
 <div id="promo-bar" class="promo-bar">
@@ -134,17 +155,7 @@
         </div>
 
         <div class="hero-stage">
-            <div class="jar jar--hero" aria-hidden="true">
-                <div class="jar-lid"></div>
-                <div class="jar-body">
-                    <div class="glass-frame" id="hero-glass">
-                        <div class="glass-part is-empty"></div>
-                        <div class="glass-part is-empty"></div>
-                        <div class="glass-part is-empty"></div>
-                    </div>
-                    <div class="jar-label"><span class="jar-label-name" id="hero-label"></span><span class="jar-label-brand">Tease you</span></div>
-                </div>
-            </div>
+            <div class="hero-pouch" id="hero-pouch" aria-hidden="true"></div>
             <div class="hero-blend">
                 <p class="hero-blend-mix" id="hero-mix" aria-live="polite"></p>
                 <div class="hero-blend-actions">
@@ -162,36 +173,28 @@
         <h2 class="section-title" id="how-title" data-i18n="how_title">Jak to funguje</h2>
         <ol class="how-steps">
             <li class="how-step">
-                <div class="jar jar--xs" aria-hidden="true"><div class="jar-lid"></div><div class="jar-body"><div class="glass-frame">
-                    <div class="glass-part" style="background-color:#8da676"></div><div class="glass-part is-empty"></div><div class="glass-part is-empty"></div>
-                </div></div></div>
+                <div class="how-visual" aria-hidden="true"><span class="how-dots"><i style="--c:#8da676"></i></span></div>
                 <div class="how-text">
                     <h3><span class="how-num">1</span> <span data-i18n="how_1_title">Vyber základ</span></h3>
                     <p data-i18n="howx_1">Šest čajů od výrazného černého po heřmánek bez kofeinu. Základ určuje charakter směsi.</p>
                 </div>
             </li>
             <li class="how-step">
-                <div class="jar jar--xs" aria-hidden="true"><div class="jar-lid"></div><div class="jar-body"><div class="glass-frame">
-                    <div class="glass-part" style="background-color:#8da676"></div><div class="glass-part" style="background-color:#4caf50"></div><div class="glass-part is-empty"></div>
-                </div></div></div>
+                <div class="how-visual" aria-hidden="true"><span class="how-dots"><i style="--c:#8da676"></i><i style="--c:#4caf50"></i></span></div>
                 <div class="how-text">
                     <h3><span class="how-num">2</span> <span data-i18n="howx_2_title">Přidej příchuť</span></h3>
                     <p data-i18n="howx_2">Ovoce, květy, kakao nebo kokos. Tady začne být směs tvoje.</p>
                 </div>
             </li>
             <li class="how-step">
-                <div class="jar jar--xs" aria-hidden="true"><div class="jar-lid"></div><div class="jar-body"><div class="glass-frame">
-                    <div class="glass-part" style="background-color:#8da676"></div><div class="glass-part" style="background-color:#4caf50"></div><div class="glass-part" style="background-color:#ffe066"></div>
-                </div></div></div>
+                <div class="how-visual" aria-hidden="true"><span class="how-dots"><i style="--c:#8da676"></i><i style="--c:#4caf50"></i><i style="--c:#ffe066"></i></span></div>
                 <div class="how-text">
                     <h3><span class="how-num">3</span> <span data-i18n="howx_3_title">Dolaď doplňkem</span></h3>
                     <p data-i18n="howx_3">Med, citron, zázvor nebo koření. Malá věc, která chuť dotáhne.</p>
                 </div>
             </li>
             <li class="how-step">
-                <div class="jar jar--xs" aria-hidden="true"><div class="jar-lid"></div><div class="jar-body"><div class="glass-frame">
-                    <div class="glass-part" style="background-color:#8da676"></div><div class="glass-part" style="background-color:#4caf50"></div><div class="glass-part" style="background-color:#ffe066"></div>
-                </div><div class="jar-label"></div></div></div>
+                <div class="how-visual how-visual--pouch" id="how-pouch" aria-hidden="true"></div>
                 <div class="how-text">
                     <h3><span class="how-num">4</span> <span data-i18n="howx_4_title">Pojmenuj ji</span></h3>
                     <p data-i18n="howx_4">Směs zabalíme pod tvým jménem a do 24 hodin odešleme.</p>
@@ -217,15 +220,6 @@
             <p data-i18n="quizband_text">Odpověz na pět krátkých otázek a doporučíme ti směs, která sedí tvé náladě i denní době.</p>
         </div>
         <button class="btn btn-cream btn-lg" onclick="showPage('quiz-page')" data-i18n="quizband_btn">Spustit kvíz</button>
-    </section>
-
-    <section class="pantry" aria-labelledby="pantry-title">
-        <div class="section-head">
-            <h2 class="section-title" id="pantry-title" data-i18n="pantry_title">Z čeho mícháme</h2>
-            <p class="section-lede" id="pantry-lede"></p>
-        </div>
-        <div class="pantry-groups" id="pantry-groups"></div>
-        <button class="btn btn-outline" onclick="showPage('ingredients-page')" data-i18n="pantry_link">Prohlédnout všechny ingredience</button>
     </section>
 
     <section class="faq-section" aria-labelledby="faq-title">
@@ -354,113 +348,74 @@
 
 <!-- ═══ CONFIGURATOR ═══ -->
 <section id="product-page" class="page mixer" data-step="1">
-    <div class="mixer-head">
-        <button onclick="showPage('home-page')" class="back-link" data-i18n="back_btn">← Zpět</button>
-        <h1 class="mixer-title" data-i18n="config_title">Namíchej svůj blend</h1>
-        <p class="mixer-sub" data-i18n="mixer_sub">Jeden základ, jedna příchuť, jeden doplněk. Jméno je na tobě.</p>
+    <div class="mixer-top">
+        <button type="button" class="icon-btn mixer-back" id="mixer-back" aria-label="Zpět" data-i18n-aria="mixer_prev">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <div class="mixer-progress">
+            <span class="mixer-progress-text" id="mixer-progress-text">Krok 1 ze 4</span>
+            <span class="mixer-progress-bar" aria-hidden="true"><span id="mixer-progress-fill"></span></span>
+        </div>
+        <button type="button" class="btn btn-text btn-small mixer-random" onclick="randomBlend()" data-i18n="btn_surprise">Překvap mě</button>
     </div>
 
     <div class="mixer-layout">
-        <aside class="visualizer-column" aria-label="Tvoje směs" data-i18n-aria="glass_title">
-            <div class="mixer-panel">
-                <div class="jar jar--mixer" aria-hidden="true">
-                    <div class="jar-lid"></div>
-                    <div class="jar-body">
-                        <div class="glass-frame" id="main-glass-frame">
-                            <div id="part1" class="glass-part is-empty"></div>
-                            <div id="part2" class="glass-part is-empty"></div>
-                            <div id="part3" class="glass-part is-empty"></div>
-                        </div>
-                        <div class="jar-label"><span class="jar-label-name" id="glass-mix-name-display">Pojmenuj svůj mix</span><span class="jar-label-brand">Tease you</span></div>
-                    </div>
-                </div>
-
-                <div class="mixer-status">
-                    <p class="mixer-status-name" id="mixer-name-mobile"></p>
-                    <ul class="glass-labels">
-                        <li class="glass-label"><span class="glass-label-dot" id="label-dot-1"></span><span class="glass-label-text" id="label-text-1">Základ</span></li>
-                        <li class="glass-label"><span class="glass-label-dot" id="label-dot-2"></span><span class="glass-label-text" id="label-text-2">Příchuť</span></li>
-                        <li class="glass-label"><span class="glass-label-dot" id="label-dot-3"></span><span class="glass-label-text" id="label-text-3">Doplněk</span></li>
-                    </ul>
-                    <p class="mixer-price" id="mixer-price"></p>
-                    <span class="completion-label" id="completion-label">0 / 3</span>
-                    <div class="completion-bar" hidden><div class="completion-fill" id="completion-fill"></div></div>
-                    <button id="save-mix-btn" class="btn btn-primary btn-lg btn-block disabled" onclick="showSummary()" disabled data-i18n="btn_preview">Ukázat směs a cenu</button>
-                </div>
-            </div>
-
-            <ol class="mixer-steps" aria-label="Kroky">
-                <li><button type="button" class="progress-step" id="prog-1" data-goto="1"><span class="progress-dot">1</span><span data-i18n="prog_base">Základ</span></button></li>
-                <li><button type="button" class="progress-step" id="prog-2" data-goto="2"><span class="progress-dot">2</span><span data-i18n="prog_flavor">Příchuť</span></button></li>
-                <li><button type="button" class="progress-step" id="prog-3" data-goto="3"><span class="progress-dot">3</span><span data-i18n="prog_extra">Doplněk</span></button></li>
-                <li><button type="button" class="progress-step" id="prog-4" data-goto="4"><span class="progress-dot">4</span><span data-i18n="prog_name">Jméno</span></button></li>
-            </ol>
-        </aside>
-
         <div class="options-column">
-            <div class="preset-row">
-                <span class="preset-row-label" data-i18n="preset_label2">Nechceš začínat od nuly?</span>
-                <div class="preset-chips" id="preset-chips"></div>
-            </div>
-
-            <!-- Starý panel s detailem ingredience: JS do něj pořád píše, v novém vzhledu je skrytý -->
-            <div id="base-info" class="info-box" hidden>
-                <div id="info-default-state"><h4 id="info-title"></h4><p id="info-text"></p></div>
-                <div id="info-rich" class="info-rich" style="display:none">
-                    <span id="info-rich-emoji"></span><h4 id="info-rich-name"></h4><p id="info-rich-desc"></p>
-                    <div id="info-rich-caffeine"></div><div id="info-rich-tags"></div>
-                    <div id="info-rich-health"></div><div id="info-rich-pairs"></div>
-                </div>
-            </div>
-
             <div class="selection-group" data-step="1">
-                <div class="step-head">
-                    <h2 class="step-title"><span class="step-num">1</span> <span data-i18n="step_1_title">Vyber základ</span></h2>
-                    <button class="clear-btn" data-target="part1" data-i18n="btn_clear2">Vymazat</button>
-                </div>
-                <p class="step-hint" data-i18n="step_1_hint">Určuje charakter směsi a kolik bude mít kofeinu.</p>
-                <div class="btn-grid" data-group="bases"></div>
+                <h1 class="step-question" data-i18n="q_1">Jaký čaj bude základ?</h1>
+                <p class="step-hint" data-i18n="q_1_hint">Určuje chuť i to, kolik bude mít kofeinu.</p>
+                <div class="btn-grid" data-group="bases" role="radiogroup"></div>
             </div>
 
             <div class="selection-group" data-step="2">
-                <div class="step-head">
-                    <h2 class="step-title"><span class="step-num">2</span> <span data-i18n="step_2_title">Přidej příchuť</span></h2>
-                    <button class="clear-btn" data-target="part2" data-i18n="btn_clear2">Vymazat</button>
-                </div>
-                <p class="step-hint" data-i18n="step_2_hint">Ovoce, květy nebo něco sladšího.</p>
-                <div class="btn-grid" data-group="flavors"></div>
+                <h2 class="step-question" data-i18n="q_2">Jakou chceš příchuť?</h2>
+                <p class="step-hint" data-i18n="q_2_hint">Ovoce, květy nebo něco sladšího.</p>
+                <div class="btn-grid" data-group="flavors" role="radiogroup"></div>
             </div>
 
             <div class="selection-group" data-step="3">
-                <div class="step-head">
-                    <h2 class="step-title"><span class="step-num">3</span> <span data-i18n="step_3_title">Dolaď doplňkem</span></h2>
-                    <button class="clear-btn" data-target="part3" data-i18n="btn_clear2">Vymazat</button>
-                </div>
-                <p class="step-hint" data-i18n="step_3_hint">Med, citrus nebo koření na dotažení chuti.</p>
-                <div class="btn-grid" data-group="extras"></div>
+                <h2 class="step-question" data-i18n="q_3">Čím ji dolaďíme?</h2>
+                <p class="step-hint" data-i18n="q_3_hint">Med, citrus nebo koření.</p>
+                <div class="btn-grid" data-group="extras" role="radiogroup"></div>
             </div>
 
-            <div class="selection-group" data-step="4">
-                <div class="step-head">
-                    <h2 class="step-title"><span class="step-num">4</span> <span data-i18n="step_4_title">Pojmenuj ji</span></h2>
+            <div class="selection-group step-final" data-step="4">
+                <h2 class="step-question" data-i18n="q_4">Hotovo. Pojmenuj ji.</h2>
+                <div class="final-pouch" id="mixer-pouch-final" aria-hidden="true"></div>
+                <label class="field-label" for="mix-name" data-i18n="name_label">Jméno na sáček</label>
+                <div class="name-row">
+                    <input type="text" id="mix-name" placeholder="Např. Tichý večer" class="mix-name-input" maxlength="32" autocomplete="off" data-i18n-placeholder="name_placeholder2">
+                    <button type="button" class="btn btn-quiet btn-small" id="name-suggest" data-i18n="name_suggest">Vymyslet</button>
                 </div>
-                <label class="step-hint" for="mix-name" data-i18n="step_4_hint">Pod tímhle jménem ji zabalíme. Nech prázdné a bude to Moje směs.</label>
-                <input type="text" id="mix-name" placeholder="Např. Pomalé úterý" class="name-input mix-name-input" maxlength="32" autocomplete="off" data-i18n-placeholder="name_placeholder">
-                <div class="name-ideas" id="name-ideas"></div>
+                <p class="field-label" data-i18n="size_label">Velikost</p>
+                <div class="qty-options" id="mixer-sizes"></div>
+                <div class="final-links">
+                    <button type="button" class="btn btn-text btn-small" id="mixer-save" data-i18n="btn_save_blend">Uložit na později</button>
+                    <button type="button" class="btn btn-text btn-small" id="mixer-share" data-i18n="btn_share_blend">Poslat odkaz</button>
+                </div>
             </div>
 
-            <div class="action-area">
-                <button class="btn btn-text random-blend-btn" onclick="randomBlend()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0115.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 01-15.5 6.2L3 16M3 21v-5h5"/></svg>
-                    <span data-i18n="btn_surprise">Překvap mě</span>
-                </button>
+            <div class="mixer-bar" id="mixer-bar">
+                <div class="mixer-bar-summary" id="mixer-bar-summary"></div>
+                <button type="button" class="btn btn-primary" id="mixer-next"></button>
             </div>
         </div>
+
+        <aside class="visualizer-column" aria-hidden="true">
+            <div class="mixer-pouch" id="mixer-pouch"></div>
+            <p class="mixer-pouch-note" id="mixer-price"></p>
+        </aside>
     </div>
 
-    <div class="mixer-bar" id="mixer-bar">
-        <button type="button" class="btn btn-quiet" id="mixer-prev"></button>
-        <button type="button" class="btn btn-primary" id="mixer-next"></button>
+    <!-- Zbytky starého mixéru, do kterých script.js ještě píše; nejsou vidět -->
+    <div hidden>
+        <div id="preset-chips"></div>
+        <div id="base-info"><div id="info-default-state"><h4 id="info-title"></h4><p id="info-text"></p></div>
+            <div id="info-rich" style="display:none"><span id="info-rich-emoji"></span><h4 id="info-rich-name"></h4><p id="info-rich-desc"></p>
+            <div id="info-rich-caffeine"></div><div id="info-rich-tags"></div><div id="info-rich-health"></div><div id="info-rich-pairs"></div></div></div>
+        <button id="save-mix-btn" disabled></button>
+        <span id="completion-label"></span><span id="completion-fill"></span>
+        <span id="glass-mix-name-display"></span>
     </div>
 </section>
 

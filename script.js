@@ -2882,7 +2882,7 @@ function showDetailPhotoAndStock(name, ingredients) {
 function renderPriceOptions() {
     const weights = Object.keys(PRICES).map(Number).sort((a, b) => a - b);
     const current = parseInt(currentProduct.weight, 10) || 0;
-    document.querySelectorAll('.qty-options').forEach(box => {
+    document.querySelectorAll('.qty-options:not(#mixer-sizes)').forEach(box => {
         const selectedHere = box.querySelector('.qty-btn.selected');
         box.innerHTML = weights.map(w =>
             `<button type="button" class="qty-btn${selectedHere && w === current ? ' selected' : ''}" onclick="selectQty(${w}, event)">`
@@ -3248,27 +3248,102 @@ Object.assign(TRANSLATIONS.en, {
     aria_mobile_nav:   'Mobile navigation',
 });
 
-/* ─── Sklenice ──────────────────────────────── */
-/* Vrstva se vykreslí, jen když má barvu. Prázdná má výšku 0 (CSS .is-empty),
-   takže sklenice se plní odspodu, jak zákazník vybírá. */
+Object.assign(TRANSLATIONS.cs, {
+    q_1:               'Jaký čaj bude základ?',
+    q_1_hint:          'Určuje chuť i to, kolik bude mít kofeinu.',
+    q_2:               'Jakou chceš příchuť?',
+    q_2_hint:          'Ovoce, květy nebo něco sladšího.',
+    q_3:               'Čím ji dolaďíme?',
+    q_3_hint:          'Med, citrus nebo koření.',
+    q_4:               'Hotovo. Pojmenuj ji.',
+    name_label:        'Jméno na sáček',
+    name_placeholder2: 'Např. Tichý večer',
+    name_suggest:      'Vymyslet',
+    size_label:        'Velikost',
+    btn_save_blend:    'Uložit na později',
+    btn_share_blend:   'Poslat odkaz',
+    mixer_step_of:     'Krok {n} ze 4',
+    mixer_next:        'Dál',
+    mixer_add:         'Do košíku',
+    mixer_pick_first:  'Vyber jednu možnost',
+    bar_empty:         'Zatím nic nevybráno',
+    pairs_tag:         'Hodí se',
+    how_pouch_name:    'Tvoje jméno',
+    glass_label_base:  'Základ',
+    glass_label_flavor:'Příchuť',
+});
+Object.assign(TRANSLATIONS.en, {
+    q_1:               'Which tea for the base?',
+    q_1_hint:          'It sets the taste and how much caffeine it has.',
+    q_2:               'Which flavour?',
+    q_2_hint:          'Fruit, flowers or something sweeter.',
+    q_3:               'How do we finish it?',
+    q_3_hint:          'Honey, citrus or spice.',
+    q_4:               'Done. Give it a name.',
+    name_label:        'Name on the pouch',
+    name_placeholder2: 'e.g. Still Evening',
+    name_suggest:      'Suggest',
+    size_label:        'Size',
+    btn_save_blend:    'Save for later',
+    btn_share_blend:   'Share a link',
+    mixer_step_of:     'Step {n} of 4',
+    mixer_next:        'Next',
+    mixer_add:         'Add to cart',
+    mixer_pick_first:  'Pick one option',
+    bar_empty:         'Nothing picked yet',
+    pairs_tag:         'Goes well',
+    how_pouch_name:    'Your name',
+    glass_label_base:  'Base',
+    glass_label_flavor:'Flavour',
+});
+
+/* ─── Sáček ─────────────────────────────────── */
+/* Kraftový sáček se zipem — tak, jak se čaj opravdu posílá. Na etiketě je
+   jméno směsi a její tři ingredience. Obrys a textura jsou v <svg><defs>
+   na začátku index.html, tady se na ně jen odkazuje. */
+const POUCH_PATH = 'M14 6H186Q192 6 192 12V20L186 26L192 32Q196 140 196 238Q196 262 172 264Q100 270 28 264Q4 262 4 238Q4 140 8 32L14 26L8 20V12Q8 6 14 6Z';
+const POUCH_SVG = `<svg class="pouch-bag" viewBox="0 0 200 270" preserveAspectRatio="none" focusable="false" aria-hidden="true">
+    <path d="${POUCH_PATH}" fill="url(#kraft-fill)"/>
+    <g clip-path="url(#pouch-clip)">
+        <rect width="200" height="270" filter="url(#kraft-grain)" opacity=".35"/>
+        <rect y="6" width="200" height="29" fill="url(#kraft-crimp)"/>
+        <rect y="34" width="200" height="1.5" fill="#000" fill-opacity=".12"/>
+        <rect y="44" width="200" height="3" fill="#000" fill-opacity=".2"/>
+        <rect y="47" width="200" height="1.5" fill="#fff" fill-opacity=".3"/>
+        <path d="M44 62C40 120 42 180 38 236" stroke="#fff" stroke-opacity=".18" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M160 70C164 130 160 190 163 232" stroke="#000" stroke-opacity=".06" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <path d="M4 240Q100 254 196 240" stroke="#000" stroke-opacity=".14" stroke-width="2" fill="none"/>
+        <rect width="200" height="270" fill="url(#kraft-edge)"/>
+    </g>
+</svg>`;
+const LAYER_LABELS = ['glass_label_base', 'glass_label_flavor', 'glass_label_extras'];
+
+function pouchHtml({ name = '', codes = [], size = '', placeholders = false, weight = '' } = {}) {
+    const real = [0, 1, 2].map(i => (codes[i] && codes[i] !== 'Empty' ? codes[i] : null));
+    const rows = real.map((code, i) => {
+        if (code) return `<li><i style="--c:${escHtml(ingColor(code) || '#cccccc')}"></i>${escHtml(tIng(code))}</li>`;
+        return placeholders ? `<li class="is-empty"><i></i>${escHtml(t(LAYER_LABELS[i]))}</li>` : '';
+    }).join('');
+    const dots = real.filter(Boolean).map(c => `<i style="--c:${escHtml(ingColor(c) || '#cccccc')}"></i>`).join('');
+    return `<div class="pouch ${size}">${POUCH_SVG}<div class="pouch-label">`
+        + `<span class="pouch-brand">Tease you</span>`
+        + `<span class="pouch-name${name ? '' : ' is-empty'}">${escHtml(name || t('glass_name_default'))}</span>`
+        + `<ul class="pouch-ings">${rows}</ul>`
+        + `<span class="pouch-dots">${dots}</span>`
+        + (weight ? `<span class="pouch-weight">${escHtml(weight)}</span>` : '')
+        + `</div></div>`;
+}
+
+/* Starý kód (detail, souhrn) pořád barví vrstvy sklenice. */
 function paintLayer(el, color) {
     if (!el) return;
     const empty = !color || color === 'transparent';
     el.style.backgroundColor = empty ? 'transparent' : color;
     el.classList.toggle('is-empty', empty);
 }
-
+/* Police s hotovými směsmi ukazuje malé sáčky. */
 function jarHtml(codes, cls, label) {
-    const layers = [0, 1, 2].map(i => {
-        const color = codes && codes[i] ? ingColor(codes[i]) : null;
-        return color
-            ? `<div class="glass-part" style="background-color:${escHtml(color)}"></div>`
-            : '<div class="glass-part is-empty"></div>';
-    }).join('');
-    const lab = label != null
-        ? `<div class="jar-label"><span class="jar-label-name">${escHtml(label)}</span></div>` : '';
-    return `<div class="jar ${cls}" aria-hidden="true"><div class="jar-lid"></div>`
-        + `<div class="jar-body"><div class="glass-frame">${layers}</div>${lab}</div></div>`;
+    return pouchHtml({ name: label || '', codes, size: 'pouch--sm' });
 }
 
 function mixNameIdeas() {
@@ -3278,43 +3353,38 @@ function mixNameIdeas() {
         : ['Morning Window', 'Slow Tuesday', 'Still Evening', 'Deep Winter', 'Late Light', 'Open Air',
            'Sunday in Bed', 'Second Wind', 'Warm Corner', 'Short Break', 'Long Night', 'Light Head'];
 }
-
-function minPriceTier() {
-    const weights = Object.keys(PRICES).map(Number).filter(w => PRICES[w] > 0).sort((a, b) => a - b);
-    return weights.length ? { weight: weights[0], price: PRICES[weights[0]] } : null;
+function sortedWeights() {
+    return Object.keys(PRICES).map(Number).filter(w => PRICES[w] > 0).sort((a, b) => a - b);
 }
+function minPriceTier() {
+    const w = sortedWeights();
+    return w.length ? { weight: w[0], price: PRICES[w[0]] } : null;
+}
+const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ─── Úvodní stránka ────────────────────────── */
 let heroBlendId = null;
-let heroTimers = [];
-const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function renderHero(id, animate) {
-    if (!catalogBlends.length) return;
+    const box = document.getElementById('hero-pouch');
+    if (!box || !catalogBlends.length) return;
     const b = catalogBlends.find(x => x.id === id) || catalogBlends[0];
     heroBlendId = b.id;
-    const parts = document.querySelectorAll('#hero-glass .glass-part');
-    const colors = [0, 1, 2].map(i => (b.ingredients[i] ? ingColor(b.ingredients[i]) || '#dddddd' : null));
-    heroTimers.forEach(clearTimeout);
-    heroTimers = [];
+    const weights = sortedWeights();
+    const weight = weights.includes(100) ? '100 g' : (weights[0] ? weights[0] + ' g' : '');
+    box.innerHTML = pouchHtml({ name: b.name, codes: b.ingredients, size: 'pouch--hero', weight });
     if (animate && !reduceMotion()) {
-        parts.forEach(p => paintLayer(p, 'transparent'));
-        colors.forEach((c, i) => heroTimers.push(setTimeout(() => paintLayer(parts[i], c), 200 + i * 380)));
-    } else {
-        parts.forEach((p, i) => paintLayer(p, colors[i]));
+        box.classList.remove('is-swapping');
+        void box.offsetWidth;
+        box.classList.add('is-swapping');
     }
-    const label = document.getElementById('hero-label');
     const mix = document.getElementById('hero-mix');
-    if (label) label.textContent = b.name;
     if (mix) mix.textContent = blendSubtitle(b.ingredients);
 }
-
 function shuffleHero() {
     const others = catalogBlends.filter(b => b.id !== heroBlendId);
-    if (!others.length) return;
-    renderHero(others[Math.floor(Math.random() * others.length)].id, true);
+    if (others.length) renderHero(others[Math.floor(Math.random() * others.length)].id, true);
 }
-
 function renderHeroNote() {
     const el = document.getElementById('hero-note');
     if (!el) return;
@@ -3324,45 +3394,23 @@ function renderHeroNote() {
     if (FREE_SHIP_THRESHOLD > 0) parts.push(t('hero_note_ship').replace('{limit}', fmt(FREE_SHIP_THRESHOLD)));
     el.textContent = parts.join(' ');
 }
-
-function renderPantry() {
-    const wrap = document.getElementById('pantry-groups');
-    if (!wrap) return;
-    const groups = [['bases', 'pantry_bases'], ['flavors', 'pantry_flavors'], ['extras', 'pantry_extras']];
-    wrap.innerHTML = groups.map(([g, title]) => `
-        <div class="pantry-group">
-            <h3 class="pantry-title">${escHtml(t(title))} <span class="pantry-count">${ING_DATA[g].length}</span></h3>
-            <ul class="pantry-list">${ING_DATA[g].map(ing => {
-                const photo = safePhoto(ing.photo);
-                const style = `--dot-color:${ing.color};` + (photo ? `--dot-photo:url("${photo}");` : '');
-                return `<li class="pantry-item${photo ? ' has-photo' : ''}${ing.inStock === false ? ' is-out' : ''}">`
-                    + `<span class="ing-dot" style="${escHtml(style)}" aria-hidden="true"></span>${escHtml(t(ing.key))}</li>`;
-            }).join('')}</ul>
-        </div>`).join('');
-    const lede = document.getElementById('pantry-lede');
-    if (lede) {
-        const n = g => ING_DATA[g].length;
-        lede.textContent = t('pantry_lede')
-            .replace('{bases}', n('bases')).replace('{flavors}', n('flavors')).replace('{extras}', n('extras'))
-            .replace('{combos}', (n('bases') * n('flavors') * n('extras')).toLocaleString(LANG === 'cs' ? 'cs-CZ' : 'en-US'));
-    }
+function renderHowPouch() {
+    const el = document.getElementById('how-pouch');
+    if (el) el.innerHTML = pouchHtml({ name: t('how_pouch_name'), codes: ['Green Tea', 'Mint', 'Lemon'], size: 'pouch--xs' });
 }
-
 function goToShelf() {
     const onHome = document.getElementById('home-page')?.classList.contains('active');
     if (!onHome) showPage('home-page');
     setTimeout(() => document.getElementById('shelf')?.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' }), onHome ? 0 : 60);
 }
 
-/* ─── Mixér po krocích ──────────────────────── */
-/* Na mobilu je vidět vždy jen jeden krok a dole lišta Zpět / Dál. Na počítači
-   jsou kroky pod sebou a čipy nahoře k nim jen posunou stránku. */
-const mixerMQ = window.matchMedia('(max-width: 899px)');
+/* ─── Mixér: jedna otázka na obrazovku ──────── */
 let mixerStep = 1;
+let mixerWeight = 0;
 
 function mixerStepDone(n) {
     if (n <= 3) return !!document.querySelector(`.ingredient-btn[data-target="part${n}"].selected`);
-    return !!document.getElementById('mix-name')?.value.trim();
+    return true;
 }
 function firstOpenMixerStep() {
     for (let n = 1; n <= 3; n++) if (!mixerStepDone(n)) return n;
@@ -3370,32 +3418,42 @@ function firstOpenMixerStep() {
 }
 function mixerComplete() { return [1, 2, 3].every(mixerStepDone); }
 
+/* currentProduct sdílí mixér i detail hotové směsi, takže se ze stavu
+   tlačítek pokaždé znovu sestaví — jinak by do košíku šla jiná směs. */
+function mixerSyncProduct() {
+    const codes = [1, 2, 3].map(n => document.querySelector(`.ingredient-btn[data-target="part${n}"].selected`)?.dataset.name || 'Empty');
+    currentProduct.ingredients = codes;
+    currentProduct.colors = codes.map(c => (c === 'Empty' ? 'transparent' : ingColor(c) || 'transparent'));
+    currentProduct.name = document.getElementById('mix-name')?.value.trim() || t('default_mix_name');
+    if (mixerWeight && PRICES[mixerWeight]) {
+        currentProduct.weight = mixerWeight + 'g';
+        currentProduct.priceBase = PRICES[mixerWeight];
+    }
+}
+
 function setMixerStep(n, opts = {}) {
     const page = document.getElementById('product-page');
     if (!page) return;
     mixerStep = Math.min(4, Math.max(1, n));
     page.dataset.step = String(mixerStep);
+    if (mixerStep === 4 && !PRICES[mixerWeight]) {
+        const w = sortedWeights();
+        mixerWeight = w.includes(100) ? 100 : (w[Math.floor(w.length / 2)] || 0);
+    }
     if (opts.scroll !== false && page.classList.contains('active')) {
-        const behavior = reduceMotion() ? 'auto' : 'smooth';
-        if (mixerMQ.matches) {
-            const panel = page.querySelector('.visualizer-column');
-            const options = page.querySelector('.options-column');
-            const target = options.getBoundingClientRect().top + window.scrollY - (panel ? panel.offsetHeight : 0) - 8;
-            if (window.scrollY > target) window.scrollTo({ top: Math.max(0, target), behavior });
-        } else {
-            page.querySelector(`.selection-group[data-step="${mixerStep}"]`)?.scrollIntoView({ behavior, block: 'start' });
-        }
+        const top = page.getBoundingClientRect().top + window.scrollY;
+        if (window.scrollY > top) window.scrollTo({ top, behavior: reduceMotion() ? 'auto' : 'smooth' });
     }
     updateMixerUI();
-    if (mixerStep === 4 && opts.focus) document.getElementById('mix-name')?.focus({ preventScroll: true });
+    if (opts.focus) page.querySelector(`.selection-group[data-step="${mixerStep}"] .step-question`)?.focus?.();
 }
 
 function mixerAutoAdvance(fromStep) {
-    if (!mixerMQ.matches || fromStep !== mixerStep || fromStep > 3) return;
+    if (fromStep !== mixerStep || fromStep > 3) return;
     clearTimeout(mixerAutoAdvance.timer);
     mixerAutoAdvance.timer = setTimeout(() => {
         if (mixerStep === fromStep) setMixerStep(fromStep + 1);
-    }, 420);
+    }, 380);
 }
 
 function mixerNext() {
@@ -3404,93 +3462,129 @@ function mixerNext() {
         setMixerStep(mixerStep + 1);
         return;
     }
-    if (!mixerComplete()) {
-        const missing = [1, 2, 3].filter(n => !mixerStepDone(n));
-        const names = { 1: t('prog_base'), 2: t('prog_flavor'), 3: t('prog_extra') };
-        showToast(`${t('mixer_missing')}: ${escHtml(missing.map(n => names[n].toLocaleLowerCase()).join(', '))}`, '👆');
-        setMixerStep(missing[0]);
-        return;
-    }
-    showSummary();
+    if (!mixerComplete()) { setMixerStep(firstOpenMixerStep()); return; }
+    mixerSyncProduct();
+    confirmOrder();
 }
-function mixerPrev() {
-    if (mixerStep === 1) { randomBlend(); return; }
+function mixerBack() {
+    if (mixerStep === 1) { showPage('home-page'); return; }
     setMixerStep(mixerStep - 1);
+}
+
+function renderMixerSizes() {
+    const box = document.getElementById('mixer-sizes');
+    if (!box) return;
+    box.innerHTML = sortedWeights().map(w =>
+        `<button type="button" class="qty-btn${w === mixerWeight ? ' selected' : ''}" data-weight="${w}" aria-pressed="${w === mixerWeight}">`
+        + `${w} g<span class="qty-price">${fmt(PRICES[w])}</span></button>`
+    ).join('');
 }
 
 function updateMixerUI() {
     const page = document.getElementById('product-page');
     if (!page) return;
-    const current = mixerMQ.matches ? mixerStep : firstOpenMixerStep();
-    page.querySelectorAll('.progress-step[data-goto]').forEach(btn => {
-        const n = Number(btn.dataset.goto);
-        btn.classList.toggle('is-current', n === current);
-        if (n === current) btn.setAttribute('aria-current', 'step'); else btn.removeAttribute('aria-current');
-    });
-    page.querySelectorAll('.ingredient-btn').forEach(btn => btn.setAttribute('aria-pressed', String(btn.classList.contains('selected'))));
+    mixerSyncProduct();
+    const codes = currentProduct.ingredients;
+    const name = document.getElementById('mix-name')?.value.trim() || '';
 
-    const name = document.getElementById('mix-name')?.value.trim();
-    const nameEl = document.getElementById('mixer-name-mobile');
-    if (nameEl) { nameEl.textContent = name || t('glass_name_default'); nameEl.classList.toggle('has-name', !!name); }
+    const progressText = document.getElementById('mixer-progress-text');
+    if (progressText) progressText.textContent = t('mixer_step_of').replace('{n}', mixerStep);
+    const fill = document.getElementById('mixer-progress-fill');
+    if (fill) fill.style.width = (mixerStep / 4 * 100) + '%';
 
-    const prev = document.getElementById('mixer-prev');
+    page.querySelectorAll('.ingredient-btn').forEach(btn => btn.setAttribute('aria-checked', String(btn.classList.contains('selected'))));
+
+    // doporučení podle základu
+    const base = ingByCode(codes[0]);
+    const pairs = new Set(base ? base.pairs : []);
+    page.querySelectorAll('.btn-grid[data-group="flavors"] .ingredient-btn, .btn-grid[data-group="extras"] .ingredient-btn')
+        .forEach(btn => {
+            const paired = pairs.has(btn.dataset.name) && !btn.classList.contains('is-out');
+            btn.classList.toggle('is-paired', paired);
+            let tag = btn.querySelector('.ing-tag');
+            if (paired && !tag) {
+                tag = document.createElement('span');
+                tag.className = 'ing-tag';
+                tag.textContent = t('pairs_tag');
+                btn.querySelector('.ing-text')?.appendChild(tag);
+            } else if (!paired && tag) {
+                tag.remove();
+            }
+        });
+
+    const pouch = pouchHtml({ name, codes, size: 'pouch--mixer', placeholders: true, weight: mixerStep === 4 && mixerWeight ? mixerWeight + ' g' : '' });
+    const aside = document.getElementById('mixer-pouch');
+    if (aside) aside.innerHTML = pouch;
+    const final = document.getElementById('mixer-pouch-final');
+    if (final && mixerStep === 4) final.innerHTML = pouch.replace('pouch--mixer', 'pouch--final');
+
+    renderMixerSizes();
+
+    const summary = document.getElementById('mixer-bar-summary');
     const next = document.getElementById('mixer-next');
-    if (prev) prev.textContent = mixerStep === 1 ? t('btn_surprise') : t('mixer_prev');
-    if (next) {
-        next.textContent = mixerStep < 4 ? t('mixer_next_' + (mixerStep + 1)) : t('btn_preview');
-        const ready = mixerStep < 4 ? mixerStepDone(mixerStep) : mixerComplete();
-        next.classList.toggle('is-waiting', !ready);
-        next.setAttribute('aria-disabled', String(!ready));
+    if (mixerStep < 4) {
+        const picked = codes.filter(c => c !== 'Empty');
+        if (summary) summary.innerHTML = picked.length
+            ? `<span class="bar-dots">${picked.map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('')}</span>`
+              + `<span class="bar-text">${escHtml(picked.map(tIng).join(' + '))}</span>`
+            : `<span class="bar-text is-muted">${escHtml(t('bar_empty'))}</span>`;
+        if (next) {
+            next.textContent = t('mixer_next');
+            const ready = mixerStepDone(mixerStep);
+            next.classList.toggle('is-waiting', !ready);
+            next.setAttribute('aria-disabled', String(!ready));
+        }
+    } else {
+        if (summary) summary.innerHTML = mixerWeight
+            ? `<span class="bar-price">${fmt(PRICES[mixerWeight] || 0)}</span><span class="bar-text">${mixerWeight} g</span>` : '';
+        if (next) {
+            next.textContent = t('mixer_add');
+            const ready = mixerComplete() && !!PRICES[mixerWeight];
+            next.classList.toggle('is-waiting', !ready);
+            next.setAttribute('aria-disabled', String(!ready));
+        }
     }
-}
 
-function renderMixerPrice() {
-    const el = document.getElementById('mixer-price');
+    const note = document.getElementById('mixer-price');
     const tier = minPriceTier();
-    if (el) el.textContent = tier ? t('mixer_price').replace('{price}', fmt(tier.price)).replace('{weight}', tier.weight) : '';
-}
-
-function renderNameIdeas() {
-    const el = document.getElementById('name-ideas');
-    if (!el) return;
-    const pool = mixNameIdeas().slice().sort(() => Math.random() - 0.5).slice(0, 4);
-    el.innerHTML = `<span class="name-ideas-label">${escHtml(t('name_ideas_label'))}</span>`
-        + pool.map(n => `<button type="button" class="chip" data-name-idea="${escHtml(n)}">${escHtml(n)}</button>`).join('');
+    if (note) note.textContent = mixerStep < 4 && tier
+        ? t('mixer_price').replace('{price}', fmt(tier.price)).replace('{weight}', tier.weight) : '';
 }
 
 /* ─── Start ─────────────────────────────────── */
 function refreshRedesign() {
     renderHero(heroBlendId, false);
     renderHeroNote();
-    renderPantry();
-    renderMixerPrice();
+    renderHowPouch();
     updateMixerUI();
 }
 
 function initRedesign() {
-    renderHero(null, true);
+    renderHero(null, false);
     renderHeroNote();
-    renderPantry();
-    renderMixerPrice();
-    renderNameIdeas();
+    renderHowPouch();
+    renderPriceOptions();
     document.getElementById('hero-shuffle')?.addEventListener('click', shuffleHero);
     document.getElementById('hero-open')?.addEventListener('click', () => openBlend(heroBlendId));
-    document.querySelectorAll('.progress-step[data-goto]').forEach(btn => {
-        btn.addEventListener('click', () => setMixerStep(Number(btn.dataset.goto), { focus: true }));
-    });
     document.getElementById('mixer-next')?.addEventListener('click', mixerNext);
-    document.getElementById('mixer-prev')?.addEventListener('click', mixerPrev);
-    document.getElementById('name-ideas')?.addEventListener('click', e => {
-        const chip = e.target.closest('[data-name-idea]');
-        if (!chip) return;
+    document.getElementById('mixer-back')?.addEventListener('click', mixerBack);
+    document.getElementById('mixer-sizes')?.addEventListener('click', e => {
+        const btn = e.target.closest('[data-weight]');
+        if (!btn) return;
+        mixerWeight = Number(btn.dataset.weight);
+        updateMixerUI();
+    });
+    document.getElementById('name-suggest')?.addEventListener('click', () => {
         const input = document.getElementById('mix-name');
-        input.value = chip.dataset.nameIdea;
+        const ideas = mixNameIdeas().filter(n => n !== input.value);
+        input.value = ideas[Math.floor(Math.random() * ideas.length)];
         input.dispatchEvent(new Event('input', { bubbles: true }));
     });
     document.getElementById('mix-name')?.addEventListener('keydown', e => {
-        if (e.key === 'Enter') { e.preventDefault(); mixerNext(); }
+        if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
     });
-    if (mixerMQ.addEventListener) mixerMQ.addEventListener('change', () => updateMixerUI());
+    document.getElementById('mixer-save')?.addEventListener('click', () => { mixerSyncProduct(); saveBlend(); });
+    document.getElementById('mixer-share')?.addEventListener('click', () => { mixerSyncProduct(); shareBlend(); });
     const copy = document.getElementById('footer-copy');
     if (copy) copy.textContent = `© ${new Date().getFullYear()} Tease you`;
     document.body.dataset.page = document.querySelector('.page.active')?.id || 'home-page';
