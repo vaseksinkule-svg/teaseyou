@@ -861,7 +861,7 @@ let savedBlends = readStore('teaseyou_saved', []).filter(b => b && typeof b === 
 let orders = readStore('teaseyou_orders', []).filter(o => o && typeof o === 'object');
 
 /* ─── PRICING & CURRENCY (CZK) ───────────────── */
-const PRICES = { 50: 49, 100: 89, 250: 199 };  // weight(g) → price (Kč)
+const PRICES = { 50: 49, 100: 89, 250: 199 };  // weight(g) → price (Kč); přepíše katalog z databáze
 
 /* ─── NAPOJENÍ NA SLUŽBY (doplň, než se začne prodávat) ───────────── */
 // Bez vyplněného FORMSPREE_ID objednávka nikam nedojde — web běží
@@ -871,7 +871,7 @@ const FORMSPREE_ID = 'YOUR_FORM_ID';
 const PAYMENT_GATEWAY = 'none'; // 'gopay' | 'comgate' | 'none' (test mode)
 const GOPAY_GOID = 'YOUR_GOPAY_GOID';
 const COMGATE_MERCHANT = 'YOUR_COMGATE_MERCHANT';
-const FREE_SHIP_THRESHOLD = 500;                // Kč
+let FREE_SHIP_THRESHOLD = 500;                  // Kč — přepíše katalog z databáze
 const PROMOS = { FIRSTBLEND: { rate: 0.10, label: '-10%' } };
 
 /* Sleva se NIKDY nebere z localStorage tak, jak tam leží — jen se podle ní
@@ -887,6 +887,12 @@ function normalizePromo(stored) {
 }
 
 let appliedPromo = normalizePromo(readStore('teaseyou_promo', null));
+// Kód z minulé návštěvy. Když web jede s databází, ověří se tam (sleva
+// mohla mezitím skončit nebo změnit výši) — viz revalidateStoredPromo().
+const storedPromoCode = (() => {
+    const p = readStore('teaseyou_promo', null);
+    return p && typeof p === 'object' ? String(p.code || '').trim().toUpperCase() : '';
+})();
 
 function fmt(n) { return Math.round(n) + ' Kč'; }
 function saveCart()  { localStorage.setItem('teaseyou_cart', JSON.stringify(cart)); }
@@ -904,7 +910,7 @@ function computeTotals(shipping = 0) {
     // NaN ani záporná sleva (ta by cenu naopak zvyšovala).
     const rate     = appliedPromo && isFinite(appliedPromo.rate)
         ? Math.min(Math.max(appliedPromo.rate, 0), 1) : 0;
-    const discount = goods * rate;
+    const discount = Math.round(goods * rate);
     const afterDiscount = goods - discount;
     const freeShip = goods >= FREE_SHIP_THRESHOLD;
     const ship     = freeShip ? 0 : shipping;
@@ -1061,7 +1067,11 @@ function toggleBrewGuide(btn) {
 
 /* ─── PRODUCT DETAIL ─────────────────────────── */
 function openDetail(name, desc, price, ingredients, colors) {
+    // Barvy se berou z katalogu — admin je mohl změnit od doby, kdy vznikl
+    // kvíz nebo uložený mix.
+    colors = (ingredients || []).map((c, i) => ingColor(c) || (colors && colors[i]) || 'transparent');
     currentProduct = { name, desc, priceBase: price, ingredients, colors, weight: '' };
+    showDetailPhotoAndStock(name, ingredients);
     document.getElementById('detail-title').innerText = name;
     const localDesc = LANG === 'cs' && BLEND_DESCS_CS[name] ? BLEND_DESCS_CS[name] : desc;
     document.getElementById('detail-desc').innerText = localDesc;
@@ -1163,12 +1173,27 @@ function setPromoFeedback(msg, ok) {
     fb.classList.toggle('ok', !!ok);
     fb.classList.toggle('err', !ok && !!msg);
 }
-function applyPromo() {
+async function applyPromo() {
     const input = document.getElementById('promo-input');
     const code  = (input?.value || '').trim().toUpperCase();
     if (!code) { setPromoFeedback('', false); return; }
     if (cart.length === 0) { setPromoFeedback(t('promo_cart_first'), false); return; }
-    const promo = Object.prototype.hasOwnProperty.call(PROMOS, code) ? PROMOS[code] : null;
+    let promo;
+    if (window.TeaDB && TeaDB.configured) {
+        // Kódy žijí v databázi a veřejně se vypsat nedají — jen se zeptáme,
+        // jestli tenhle konkrétní platí.
+        setPromoFeedback(t('promo_checking'), false);
+        try {
+            const res = await TeaDB.rpc('check_promo', { p_code: code });
+            promo = res ? { rate: Number(res.rate), label: res.label } : null;
+        } catch (err) {
+            console.warn('[teaseyou] Ověření slevového kódu selhalo:', err);
+            setPromoFeedback(t('promo_check_failed'), false);
+            return;
+        }
+    } else {
+        promo = Object.prototype.hasOwnProperty.call(PROMOS, code) ? PROMOS[code] : null;
+    }
     if (!promo) {
         // Překlep nesmí sebrat slevu, kterou už zákazník má uplatněnou.
         // Dřív se tady appliedPromo nulovalo a stačilo se jednou upsat.
@@ -1252,7 +1277,7 @@ function updateGlassLabels() {
         if (!dot || !text) return;
         if (sel) {
             dot.style.background = sel.getAttribute('data-color');
-            text.textContent = t(sel.getAttribute('data-i18n') || '') || sel.getAttribute('data-name');
+            text.textContent = tIng(sel.getAttribute('data-name'));
         } else {
             dot.style.background = 'var(--color-border)';
             text.textContent = defaults[idx];
@@ -1277,7 +1302,7 @@ function showIngInfo(name) {
     if (!data || !rich) return;
     const caffeineLabelsCs = ['Bez kofeinu','Velmi nízký','Nízký','Střední','Vysoký','Velmi vysoký'];
     const caffeineLabelsEn = ['Caffeine-free','Very low','Low','Medium','High','Very high'];
-    document.getElementById('info-rich-emoji').textContent = data.emoji;
+    document.getElementById('info-rich-emoji').innerHTML = ingVisual(data, 'info-rich');
     document.getElementById('info-rich-name').textContent = t(data.key);
     document.getElementById('info-rich-desc').textContent = t(data.key + '_desc') || '';
     if (data.caffeine !== undefined) {
@@ -1289,11 +1314,11 @@ function showIngInfo(name) {
     } else {
         document.getElementById('info-rich-caffeine').style.display = 'none';
     }
-    document.getElementById('info-rich-tags').innerHTML = data.flavor.map(f => `<span class="ing-tag">${f}</span>`).join('');
+    document.getElementById('info-rich-tags').innerHTML = data.flavor.map(f => `<span class="ing-tag">${escHtml(tTag(f))}</span>`).join('');
     const healthLabel = LANG === 'cs' ? 'Přínosy' : 'Benefits';
     const pairsLabel  = LANG === 'cs' ? 'Hodí se s' : 'Pairs well with';
-    document.getElementById('info-rich-health').innerHTML = `<strong>${healthLabel}:</strong> ${data.health.join(' · ')}`;
-    document.getElementById('info-rich-pairs').innerHTML  = `<strong>${pairsLabel}:</strong> ${data.pairs.join(', ')}`;
+    document.getElementById('info-rich-health').innerHTML = `<strong>${healthLabel}:</strong> ${escHtml(data.health.map(tHealth).join(' · '))}`;
+    document.getElementById('info-rich-pairs').innerHTML  = `<strong>${pairsLabel}:</strong> ${escHtml(data.pairs.map(tIng).join(', '))}`;
     if (def) def.style.display = 'none';
     rich.style.display = '';
 }
@@ -1307,6 +1332,10 @@ function resetIngInfo() {
 /* ─── INGREDIENT SELECTION ───────────────────── */
 document.addEventListener('click', function(e) {
     const ingBtn = e.target.closest('.ingredient-btn');
+    if (ingBtn && ingBtn.classList.contains('is-out')) {
+        showToast(t('toast_sold_out'), '🫙');
+        return;
+    }
     if (ingBtn) {
         const targetId = ingBtn.getAttribute('data-target');
         const color    = ingBtn.getAttribute('data-color');
@@ -1383,20 +1412,20 @@ function renderSelectedIngPanel() {
         const caffeine = data.caffeine !== undefined
             ? `<div class="sip-caffeine"><span class="sip-dots">${'●'.repeat(Math.min(data.caffeine,4))}${'○'.repeat(4-Math.min(data.caffeine,4))}</span> ${caffeineLabels[data.caffeine]}</div>`
             : '';
-        const tags = data.flavor.slice(0,3).map(f => `<span class="ing-tag">${tTag(f)}</span>`).join('');
+        const tags = data.flavor.slice(0,3).map(f => `<span class="ing-tag">${escHtml(tTag(f))}</span>`).join('');
         const pairsLabel = LANG === 'cs' ? 'Hodí se s' : 'Pairs well with';
         return `<div class="sip-card">
             <div class="sip-card-header">
-                <span class="sip-emoji">${data.emoji}</span>
+                <span class="sip-emoji">${ingVisual(data, 'sip')}</span>
                 <div>
                     <div class="sip-slot-label">${label}</div>
-                    <div class="sip-name">${t(data.key)}</div>
+                    <div class="sip-name">${escHtml(t(data.key))}</div>
                 </div>
             </div>
-            <p class="sip-desc">${t(data.key + '_desc') || ''}</p>
+            <p class="sip-desc">${escHtml(t(data.key + '_desc') || '')}</p>
             ${caffeine}
             <div class="ing-card-tags">${tags}</div>
-            <div class="sip-pairs">${pairsLabel}: ${data.pairs.slice(0,3).map(tIng).join(', ')}</div>
+            <div class="sip-pairs">${pairsLabel}: ${escHtml(data.pairs.slice(0,3).map(tIng).join(', '))}</div>
         </div>`;
     }).filter(Boolean);
     const cardsHtml = cards.join('');
@@ -1580,6 +1609,11 @@ function confirmOrder() {
     // funkci sáhne odjinud (sdílený odkaz, kvíz, budoucí refaktor).
     if (!currentProduct.weight || !(currentProduct.priceBase > 0)) {
         showToast(t('err_no_weight'), '⚖️');
+        return;
+    }
+    const soldOut = outOfStockIn(currentProduct.ingredients);
+    if (soldOut.length) {
+        showToast(`${t('err_sold_out_named')} ${escHtml(soldOut.map(tIng).join(', '))}`, '🫙');
         return;
     }
     closeOrderModal();
@@ -1818,6 +1852,18 @@ function submitOrder(e) {
     if (cart.length === 0) { showToast(t('toast_cart_empty'), '🛒'); return; }
     if (!validateCheckout(form)) { showToast(t('toast_check_fields'), '⚠️'); return; }
 
+    // Košík mohl vzniknout před změnou v nabídce. Vyprodanou ingredienci nebo
+    // zrušenou gramáž radši zachytíme tady než až odmítnutím z databáze.
+    const soldOut = [...new Set(cart.flatMap(i => outOfStockIn(i.ingredients)))];
+    if (soldOut.length) {
+        showToast(`${t('err_sold_out_named')} ${escHtml(soldOut.map(tIng).join(', '))}`, '🫙');
+        return;
+    }
+    if (cart.some(i => !PRICES[parseInt(i.weight, 10)])) {
+        showToast(t('err_weight_unavailable'), '⚖️');
+        return;
+    }
+
     const shipRadio = form.querySelector('input[name="shipping"]:checked');
     const shipPrice = shipRadio ? parseFloat(shipRadio.getAttribute('data-price')) || 0 : 0;
     const totals = computeTotals(shipPrice);
@@ -1864,13 +1910,21 @@ function submitOrder(e) {
 
     // Dokončení objednávky: uložit do historie, vyčistit košík, poděkovat.
     // Volá se AŽ když víme, že objednávka opravdu odešla.
-    const finish = () => {
+    const finish = (serverResult) => {
+        // Z databáze přijde finální číslo objednávky a ceny spočítané serverem.
+        if (serverResult) {
+            order.num      = serverResult.num;
+            order.goods    = serverResult.goods;
+            order.discount = serverResult.discount;
+            order.shipping = serverResult.shipping;
+            order.total    = serverResult.total;
+        }
         orders.unshift(order);
         if (orders.length > 50) orders.pop();
         try { localStorage.setItem('teaseyou_orders', JSON.stringify(orders)); } catch (_) {}
 
         const el = document.getElementById('success-order-num');
-        if (el) el.textContent = t('order_num_prefix') + orderNum;
+        if (el) el.textContent = t('order_num_prefix') + order.num;
 
         cart = [];
         appliedPromo = null;
@@ -1882,6 +1936,27 @@ function submitOrder(e) {
         showPage('success-page');
         launchConfetti();
     };
+
+    // S databází: objednávku založí funkce place_order(), která si cenu
+    // spočítá sama z ceníku. Formspree (když je nastavený) pak jen pošle
+    // e-mail navíc, na výsledku objednávky nezávisí.
+    if (window.TeaDB && TeaDB.configured) {
+        TeaDB.rpc('place_order', { p_order: buildOrderPayload(form) })
+            .then(res => {
+                if (!res || !res.num) throw new Error('place_order nevrátil číslo objednávky');
+                finish(res);
+                notifyFormspree(form, order);
+            })
+            .catch(err => {
+                // Odmítnutí z databáze (vyprodáno, neplatná sleva…) je běžná
+                // situace, zákazník dostane hlášku. Chyba je jen to ostatní.
+                const expected = ORDER_ERROR_CODES.has(err && err.message);
+                (expected ? console.warn : console.error)('[teaseyou] Objednávku se nepodařilo založit:', err);
+                unlock();
+                handleOrderError(err);
+            });
+        return;
+    }
 
     // Objednávka bez nastaveného Formspree nikam nedojde. Dřív se i tak
     // ukázaly konfety — zákazník si myslel, že nakoupil, a majitel o objednávce
@@ -2045,14 +2120,16 @@ function renderIngredientEncyclopedia() {
             const name = t(ing.key);
             const desc = t(ing.key + '_desc') || '';
             const caffeine = ing.caffeine !== undefined ? `<div class="ing-caffeine"><span class="ing-caffeine-dots">${'●'.repeat(ing.caffeine)}${'○'.repeat(4 - Math.min(ing.caffeine,4))}</span> ${LANG === 'cs' ? caffeineLabel[ing.caffeine] : caffeineEn[ing.caffeine]}</div>` : '';
-            return `<div class="ing-card">
-                <div class="ing-card-emoji">${ing.emoji}</div>
-                <h3 class="ing-card-name">${name}</h3>
-                <p class="ing-card-desc">${desc}</p>
+            const soldOut = ing.inStock === false
+                ? `<span class="ing-out-badge ing-out-badge--card">${escHtml(t('ing_sold_out'))}</span>` : '';
+            return `<div class="ing-card${ing.inStock === false ? ' is-out' : ''}">
+                <div class="ing-card-emoji">${ingVisual(ing, 'ing-card')}</div>
+                <h3 class="ing-card-name">${escHtml(name)}${soldOut}</h3>
+                <p class="ing-card-desc">${escHtml(desc)}</p>
                 ${caffeine}
-                <div class="ing-card-tags">${ing.flavor.map(f => `<span class="ing-tag">${tTag(f)}</span>`).join('')}</div>
-                <div class="ing-card-section"><strong>${healthLabel}:</strong> ${ing.health.map(tHealth).join(' · ')}</div>
-                <div class="ing-card-section"><strong>${pairsLabel}:</strong> ${ing.pairs.map(tIng).join(', ')}</div>
+                <div class="ing-card-tags">${ing.flavor.map(f => `<span class="ing-tag">${escHtml(tTag(f))}</span>`).join('')}</div>
+                <div class="ing-card-section"><strong>${healthLabel}:</strong> ${escHtml(ing.health.map(tHealth).join(' · '))}</div>
+                <div class="ing-card-section"><strong>${pairsLabel}:</strong> ${escHtml(ing.pairs.map(tIng).join(', '))}</div>
                 <button class="btn btn-small" onclick="closeSidebar(); showPage('product-page');" style="margin-top:auto">${LANG === 'cs' ? 'Použít →' : 'Use →'}</button>
             </div>`;
         }).join('');
@@ -2061,6 +2138,9 @@ function renderIngredientEncyclopedia() {
 
 /* ─── INIT ───────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
+    // Katalog z minulé návštěvy hned, ať se nové ceny a nabídka ukážou bez
+    // probliknutí. Čerstvý se dotáhne na konci (refreshCatalog).
+    applyCachedCatalog();
     applyTranslations();
     if (localStorage.getItem('teaseyou_promo_dismissed')) {
         const bar = document.getElementById('promo-bar');
@@ -2083,6 +2163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSavedBlends();
     renderCart();
     loadBlendFromUrl();  // open a shared blend if ?b= is present
+    refreshCatalog();    // čerstvá data ze Supabase (když je nastavený)
 
     // Hero parallax on scroll
     (function() {
@@ -2367,6 +2448,10 @@ const RANDOM_EXTRAS   = [['part3','Honey','#ffc107'],['part3','Lemon','#ffe066']
 
 function randomBlend() {
     const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    if (!RANDOM_BASES.length || !RANDOM_FLAVORS.length || !RANDOM_EXTRAS.length) {
+        showToast(t('toast_sold_out'), '🫙');
+        return;
+    }
     const [,baseName,baseColor]     = pick(RANDOM_BASES);
     const [,flavorName,flavorColor] = pick(RANDOM_FLAVORS);
     const [,extraName,extraColor]   = pick(RANDOM_EXTRAS);
@@ -2468,4 +2553,525 @@ function loadBlendFromUrl() {
     setTimeout(() => showToast(LANG === 'cs' ? 'Načetli jsme sdílený blend ✨' : 'Loaded a shared blend ✨', '🔗'), 700);
     // Clean the URL so a refresh doesn't re-trigger
     history.replaceState(null, '', location.origin + location.pathname);
+}
+
+/* =============================================
+   KATALOG ZE SUPABASE
+   =============================================
+   Ceny, ingredience, směsi, fotky, doprava a dostupnost se mění
+   v administraci (admin/). Tady se načtou a překreslí, co je potřeba.
+
+   Odkud se data berou, v tomhle pořadí:
+   1. vestavěná data výš v tomhle souboru — web funguje i bez databáze,
+   2. poslední katalog uložený v prohlížeči — nové ceny se ukážou hned
+      při načtení, ne až po odpovědi serveru,
+   3. čerstvý katalog ze Supabase.
+   Když databáze neodpoví, zůstane to, co bylo. Obchod kvůli tomu nespadne.
+*/
+
+const CATALOG_CACHE_KEY  = 'teaseyou_catalog_v1';
+const CATALOG_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;   // starší cache už nebereme
+const ING_GROUPS = { bases: 'part1', flavors: 'part2', extras: 'part3' };
+const ING_CATEGORY_GROUP = { base: 'bases', flavor: 'flavors', extra: 'extras' };
+
+let catalogLoaded   = false;   // true = nabídka pochází z databáze (živě nebo z cache)
+let catalogBlends   = [];      // řádky tabulky blends
+let catalogShipping = null;    // { post: { price, active }, … }
+let promoBarEnabled = true;
+
+Object.assign(TRANSLATIONS.cs, {
+    ing_sold_out:             'Vyprodáno',
+    toast_sold_out:           'Tahle ingredience je teď vyprodaná',
+    err_sold_out_named:       'Teď je vyprodané:',
+    stock_note_blend:         'Některá ingredience téhle směsi je teď vyprodaná.',
+    err_weight_unavailable:   'Tuhle gramáž už neprodáváme. Odeber prosím položku z košíku a vyber jinou.',
+    err_invalid_customer:     'Zkontroluj prosím kontaktní údaje a adresu.',
+    err_too_many_orders:      'Z tohohle e-mailu přišlo moc objednávek najednou. Zkus to prosím za hodinu.',
+    err_pickup_point:         'Vyber prosím výdejní místo Zásilkovny.',
+    err_shipping_unavailable: 'Tenhle způsob dopravy teď nenabízíme. Vyber prosím jiný.',
+    err_unknown_ingredient:   'Některá ingredience v košíku už není v nabídce. Odeber prosím tu položku.',
+    promo_checking:           'Ověřuji kód…',
+    promo_check_failed:       'Kód se teď nepodařilo ověřit. Zkus to prosím za chvíli.',
+    promo_expired:            'Slevový kód z minula už neplatí, odebrali jsme ho.',
+});
+Object.assign(TRANSLATIONS.en, {
+    ing_sold_out:             'Sold out',
+    toast_sold_out:           'This ingredient is sold out right now',
+    err_sold_out_named:       'Sold out right now:',
+    stock_note_blend:         'One of the ingredients in this blend is sold out right now.',
+    err_weight_unavailable:   'We no longer sell this size. Please remove the item and pick another one.',
+    err_invalid_customer:     'Please check your contact details and address.',
+    err_too_many_orders:      'Too many orders from this e-mail at once. Please try again in an hour.',
+    err_pickup_point:         'Please choose a Zásilkovna pickup point.',
+    err_shipping_unavailable: 'This shipping method is not available right now. Please choose another one.',
+    err_unknown_ingredient:   'An ingredient in your cart is no longer available. Please remove that item.',
+    promo_checking:           'Checking the code…',
+    promo_check_failed:       'We could not verify the code right now. Please try again shortly.',
+    promo_expired:            'Your discount code from last time is no longer valid, so we removed it.',
+});
+
+/* ─── Pomocníci ────────────────────────────── */
+function safePhoto(url) {
+    // Do HTML a CSS pustíme jen obyčejnou https adresu bez uvozovek a závorek.
+    return typeof url === 'string' && /^https:\/\/[^\s"'()<>\\]+$/.test(url) ? url : '';
+}
+function allIngredients() { return [...ING_DATA.bases, ...ING_DATA.flavors, ...ING_DATA.extras]; }
+function ingByCode(code) {
+    const key = ING_KEYS[code];
+    return key ? allIngredients().find(i => i.key === key) || null : null;
+}
+function ingColor(code) { const i = ingByCode(code); return i && i.color ? i.color : null; }
+function isOutOfStock(code) { const i = ingByCode(code); return !!i && i.inStock === false; }
+function outOfStockIn(codes) { return (codes || []).filter(c => c && c !== 'Empty' && isOutOfStock(c)); }
+function ingVisual(ing, cls) {
+    const photo = safePhoto(ing && ing.photo);
+    if (photo) return `<img class="${cls}-photo" src="${escHtml(photo)}" alt="" loading="lazy" decoding="async">`;
+    return escHtml(ing ? ing.emoji : '');
+}
+function bySort(a, b) { return (a.sort || 0) - (b.sort || 0); }
+function blendSubtitle(codes) {
+    const names = (codes || []).map(tIng);
+    if (names.length < 2) return names[0] || '';
+    const rest = LANG === 'cs' ? names.slice(1).map(n => n.toLocaleLowerCase('cs')) : names.slice(1);
+    const last = rest.pop();
+    return [names[0], ...rest].join(', ') + (LANG === 'cs' ? ' a ' : ' & ') + last;
+}
+
+/* Vestavěná data doplníme o to, co bylo dřív jen v HTML (barva, skupina,
+   vnitřní název), ať se s nimi pracuje stejně jako s daty z databáze. */
+(function enrichBuiltinIngredients() {
+    const colorByCode = {};
+    [...RANDOM_BASES, ...RANDOM_FLAVORS, ...RANDOM_EXTRAS].forEach(([, code, color]) => { colorByCode[code] = color; });
+    const codeByKey = Object.fromEntries(Object.entries(ING_KEYS).map(([code, key]) => [key, code]));
+    [['bases', 'base'], ['flavors', 'flavor'], ['extras', 'extra']].forEach(([group, category]) => {
+        ING_DATA[group].forEach(ing => {
+            ing.code = codeByKey[ing.key];
+            ing.category = category;
+            ing.color = colorByCode[ing.code] || '#cccccc';
+            ing.inStock = true;
+            ing.photo = '';
+        });
+    });
+})();
+
+/* ─── Převzetí dat z databáze ──────────────── */
+function validCatalog(c) {
+    return !!c && typeof c === 'object'
+        && Array.isArray(c.ingredients) && Array.isArray(c.blends)
+        && Array.isArray(c.prices) && Array.isArray(c.shipping);
+}
+
+/* Přepíše data webu podle katalogu. Nic nevykresluje (to dělá
+   renderCatalogDom). Vrací false, když katalog nedává smysl — třeba když
+   v databázi zrovna chybí ceník — a pak web jede dál s tím, co měl. */
+function applyCatalog(c) {
+    if (!validCatalog(c)) return false;
+    const rows = c.ingredients
+        .filter(r => r && r.active !== false && ING_CATEGORY_GROUP[r.category]
+            && typeof r.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9 ]{0,39}$/.test(r.code || ''))
+        .sort(bySort);
+    const prices = c.prices
+        .filter(p => p && p.active !== false && Number.isInteger(p.weight_g) && p.weight_g > 0
+            && Number.isFinite(p.price_czk) && p.price_czk > 0)
+        .sort((a, b) => a.weight_g - b.weight_g);
+    const hasEachGroup = ['base', 'flavor', 'extra'].every(cat => rows.some(r => r.category === cat));
+    if (!hasEachGroup || !prices.length) return false;
+
+    const groups = { bases: [], flavors: [], extras: [] };
+    rows.forEach(r => {
+        const key = 'ing_' + r.id;
+        TRANSLATIONS.cs[key] = r.name_cs || r.name_en || r.code;
+        TRANSLATIONS.en[key] = r.name_en || r.name_cs || r.code;
+        TRANSLATIONS.cs[key + '_desc'] = r.desc_cs || '';
+        TRANSLATIONS.en[key + '_desc'] = r.desc_en || r.desc_cs || '';
+        ING_KEYS[r.code] = key;
+        const ing = {
+            key,
+            code:     r.code,
+            category: r.category,
+            emoji:    r.emoji || '🍵',
+            color:    /^#[0-9a-f]{6}$/i.test(r.color || '') ? r.color : '#cccccc',
+            flavor:   (LANG === 'cs' ? r.flavor_cs : r.flavor_en) || [],
+            health:   (LANG === 'cs' ? r.health_cs : r.health_en) || [],
+            pairs:    (r.pairs || []).filter(p => typeof p === 'string'),
+            photo:    safePhoto(r.photo_url),
+            inStock:  r.in_stock !== false,
+        };
+        if (r.category === 'base') {
+            if (Number.isInteger(r.caffeine)) ing.caffeine = Math.max(0, Math.min(5, r.caffeine));
+            if (r.brew_temp || r.brew_time) {
+                BREW[r.code] = { temp: r.brew_temp || '90–95°C', time: r.brew_time || '3–4 min' };
+            }
+        }
+        groups[ING_CATEGORY_GROUP[r.category]].push(ing);
+    });
+    ING_DATA.bases   = groups.bases;
+    ING_DATA.flavors = groups.flavors;
+    ING_DATA.extras  = groups.extras;
+
+    // Náhodný mix vybírá jen z toho, co je skladem.
+    const refill = (arr, list, part) => {
+        arr.length = 0;
+        list.filter(i => i.inStock).forEach(i => arr.push([part, i.code, i.color]));
+    };
+    refill(RANDOM_BASES,   groups.bases,   'part1');
+    refill(RANDOM_FLAVORS, groups.flavors, 'part2');
+    refill(RANDOM_EXTRAS,  groups.extras,  'part3');
+
+    Object.keys(PRICES).forEach(k => delete PRICES[k]);
+    prices.forEach(p => { PRICES[p.weight_g] = p.price_czk; });
+    const minPrice = prices[0].price_czk;
+    TRANSLATIONS.cs.price_from = 'od ' + fmt(minPrice);
+    TRANSLATIONS.en.price_from = 'from ' + fmt(minPrice);
+
+    catalogShipping = {};
+    c.shipping.forEach(s => {
+        if (s && typeof s.id === 'string' && Number.isFinite(s.price_czk)) {
+            catalogShipping[s.id] = { price: s.price_czk, active: s.active !== false };
+        }
+    });
+
+    const st = c.settings || {};
+    if (Number.isFinite(st.free_ship_threshold) && st.free_ship_threshold >= 0) {
+        FREE_SHIP_THRESHOLD = st.free_ship_threshold;
+    }
+    promoBarEnabled = st.promo_bar_enabled !== false;
+    if (st.promo_bar_cs) TRANSLATIONS.cs.promo_text = st.promo_bar_cs;
+    if (st.promo_bar_en) TRANSLATIONS.en.promo_text = st.promo_bar_en;
+    else if (st.promo_bar_cs) TRANSLATIONS.en.promo_text = st.promo_bar_cs;
+
+    catalogBlends = c.blends
+        .filter(b => b && b.active !== false && typeof b.id === 'string' && typeof b.name === 'string'
+            && Array.isArray(b.ingredients) && b.ingredients.length && b.ingredients.every(code => ING_KEYS[code]))
+        .sort(bySort);
+    catalogBlends.forEach(b => { if (b.desc_cs) BLEND_DESCS_CS[b.name] = b.desc_cs; });
+    MIX_PRESETS.length = 0;
+    catalogBlends.filter(b => b.is_preset).forEach(b => {
+        MIX_PRESETS.push({ emoji: b.emoji || '🍵', name: b.name, ingredients: b.ingredients.slice() });
+    });
+
+    catalogLoaded = true;
+    return true;
+}
+
+/* ─── Vykreslení ───────────────────────────── */
+function renderCatalogDom() {
+    if (!catalogLoaded) return;
+    renderIngredientButtons();
+    renderBlendCards();
+    renderPriceOptions();
+    renderShippingOptions();
+    const bar = document.getElementById('promo-bar');
+    if (bar && !promoBarEnabled) bar.style.display = 'none';
+}
+
+function renderIngredientButtons() {
+    let selectionChanged = false;
+    Object.entries(ING_GROUPS).forEach(([group, part]) => {
+        const grid = document.querySelector(`.btn-grid[data-group="${group}"]`);
+        if (!grid) return;
+        const idx = Number(part.slice(4)) - 1;
+        const chosen = currentProduct.ingredients[idx];
+        grid.innerHTML = ING_DATA[group].map(ing => {
+            const photo = safePhoto(ing.photo);
+            const out = ing.inStock === false;
+            const style = `--dot-color:${ing.color};` + (photo ? `--dot-photo:url("${photo}");` : '');
+            const cls = ['ingredient-btn', photo && 'has-photo', out && 'is-out',
+                         chosen === ing.code && !out && 'selected'].filter(Boolean).join(' ');
+            return `<button type="button" class="${cls}" data-target="${part}" data-color="${ing.color}"`
+                + ` data-name="${escHtml(ing.code)}" data-desc="${escHtml(t(ing.key + '_desc'))}"`
+                + ` data-i18n-desc="${ing.key}_desc" style="${escHtml(style)}"${out ? ' aria-disabled="true"' : ''}>`
+                + `${escHtml(t(ing.key))}${out ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : ''}</button>`;
+        }).join('');
+
+        // Vybraná ingredience mohla zmizet z nabídky nebo se vyprodat.
+        if (chosen && chosen !== 'Empty') {
+            const ing = ING_DATA[group].find(i => i.code === chosen);
+            const glassPart = document.getElementById(part);
+            if (!ing || ing.inStock === false) {
+                currentProduct.ingredients[idx] = 'Empty';
+                currentProduct.colors[idx] = 'transparent';
+                if (glassPart) glassPart.style.backgroundColor = 'transparent';
+                selectionChanged = true;
+            } else if (currentProduct.colors[idx] !== ing.color) {
+                currentProduct.colors[idx] = ing.color;
+                if (glassPart) glassPart.style.backgroundColor = ing.color;
+            }
+        }
+    });
+    if (selectionChanged && document.getElementById('save-mix-btn')) {
+        validateSelection();
+        updateGlassLabels();
+    }
+}
+
+function renderBlendCards() {
+    const grid = document.querySelector('.ready-grid');
+    if (!grid) return;
+    const section = grid.closest('.ready-made-section');
+    if (section) section.style.display = catalogBlends.length ? '' : 'none';
+    grid.innerHTML = catalogBlends.map(b => {
+        const colors = b.ingredients.map(c => ingColor(c) || '#dddddd');
+        const photo = safePhoto(b.photo_url);
+        const visual = photo
+            ? `<div class="ready-photo"><img src="${escHtml(photo)}" alt="${escHtml(b.name)}" loading="lazy" decoding="async"></div>`
+            : `<div class="ready-glass-mini">${colors.slice().reverse().map(c => `<div style="background:${escHtml(c)}"></div>`).join('')}</div>`;
+        const soldOut = outOfStockIn(b.ingredients).length
+            ? `<span class="ing-out-badge ing-out-badge--card">${escHtml(t('ing_sold_out'))}</span>` : '';
+        return `<div class="ready-card" role="button" tabindex="0" data-blend="${escHtml(b.id)}">
+                ${visual}
+                <h3 class="font-cosmico">${escHtml(b.name)}</h3>
+                <p class="font-chaos">${escHtml(blendSubtitle(b.ingredients))}</p>
+                <span class="ready-price" data-i18n="price_from">${escHtml(t('price_from'))}</span>
+                ${soldOut}
+            </div>`;
+    }).join('');
+    grid.querySelectorAll('.ready-card[data-blend]').forEach(card => {
+        const open = () => openBlend(card.getAttribute('data-blend'));
+        card.addEventListener('click', open);
+        card.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+        });
+    });
+}
+
+function openBlend(id) {
+    const b = catalogBlends.find(x => x.id === id);
+    if (!b) return;
+    const desc = LANG === 'cs' ? (b.desc_cs || b.desc_en) : (b.desc_en || b.desc_cs);
+    const colors = b.ingredients.map(c => ingColor(c) || '#dddddd');
+    openDetail(b.name, desc || '', PRICES[100] || Object.values(PRICES)[0] || 0, b.ingredients.slice(), colors);
+}
+
+/* Volá openDetail: fotka směsi místo skleničky (když ji admin nahrál)
+   a upozornění, když je některá ingredience vyprodaná. */
+function showDetailPhotoAndStock(name, ingredients) {
+    const blend = catalogBlends.find(b => b.name === name);
+    const photo = blend ? safePhoto(blend.photo_url) : '';
+    const img = document.getElementById('detail-photo');
+    const glass = document.querySelector('#product-detail-page .detail-visual .glass-container');
+    if (img) {
+        if (photo) { img.src = photo; img.alt = name; img.hidden = false; }
+        else { img.hidden = true; img.removeAttribute('src'); }
+    }
+    if (glass) glass.style.display = photo ? 'none' : '';
+    const note = document.getElementById('detail-stock-note');
+    if (note) {
+        const out = outOfStockIn(ingredients);
+        note.hidden = !out.length;
+        note.textContent = out.length ? `${t('stock_note_blend')} (${out.map(tIng).join(', ')})` : '';
+    }
+}
+
+function renderPriceOptions() {
+    const weights = Object.keys(PRICES).map(Number).sort((a, b) => a - b);
+    const current = parseInt(currentProduct.weight, 10) || 0;
+    document.querySelectorAll('.qty-options').forEach(box => {
+        const selectedHere = box.querySelector('.qty-btn.selected');
+        box.innerHTML = weights.map(w =>
+            `<button type="button" class="qty-btn${selectedHere && w === current ? ' selected' : ''}" onclick="selectQty(${w}, event)">`
+            + `${w}g<span class="qty-price">${fmt(PRICES[w])}</span></button>`
+        ).join('');
+    });
+    if (current && PRICES[current]) {
+        currentProduct.priceBase = PRICES[current];
+    } else if (current) {
+        // Vybraná gramáž zmizela z ceníku — výběr zrušit.
+        currentProduct.weight = '';
+        currentProduct.priceBase = 0;
+        ['detail-add-btn', 'final-order-btn', 'summary-order-btn'].forEach(id => {
+            const b = document.getElementById(id);
+            if (b) { b.disabled = true; b.classList.add('disabled'); }
+        });
+    }
+}
+
+function renderShippingOptions() {
+    if (!catalogShipping) return;
+    document.querySelectorAll('input[name="shipping"]').forEach(radio => {
+        const s = catalogShipping[radio.value];
+        const label = radio.closest('.shipping-option');
+        if (!label) return;
+        if (!s || !s.active) {
+            if (radio.checked) radio.checked = false;
+            radio.disabled = true;
+            label.style.display = 'none';
+            if (radio.value === 'zasilkovna') {
+                const picker = document.getElementById('packeta-picker');
+                if (picker) picker.style.display = 'none';
+            }
+            return;
+        }
+        radio.disabled = false;
+        label.style.display = '';
+        radio.setAttribute('data-price', String(s.price));
+        const priceEl = label.querySelector('.shipping-price');
+        if (priceEl) priceEl.textContent = fmt(s.price);
+    });
+}
+
+/* Košík z minulé návštěvy: ceny a barvy podle aktuálního katalogu.
+   Rozhoduje stejně cena z databáze — tohle je jen ať souhlasí, co zákazník vidí. */
+function repriceCart() {
+    let changed = false;
+    cart.forEach(item => {
+        const price = PRICES[parseInt(item.weight, 10)];
+        if (price && price !== item.priceBase) { item.priceBase = price; changed = true; }
+        item.colors = item.ingredients.map((c, i) => ingColor(c) || item.colors[i] || 'transparent');
+    });
+    if (changed) saveCart();
+}
+
+function rerenderAfterCatalog() {
+    renderCatalogDom();
+    applyTranslations();
+    renderIngredientEncyclopedia();
+    renderPresets();
+    repriceCart();
+    renderCart();
+    updateCartBadge();
+    if (document.getElementById('checkout-page')?.classList.contains('active')) renderCheckoutSummary();
+    const checkedShip = document.querySelector('input[name="shipping"]:checked');
+    if (checkedShip) updateShippingCost(checkedShip);
+    if (document.getElementById('save-mix-btn')) { updateGlassLabels(); renderSelectedIngPanel(); }
+}
+
+/* ─── Načítání ─────────────────────────────── */
+function readCatalogCache() {
+    const cached = readStore(CATALOG_CACHE_KEY, null);
+    if (!cached || typeof cached !== 'object' || !validCatalog(cached.data)) return null;
+    if (!(Date.now() - Number(cached.at) < CATALOG_MAX_AGE_MS)) return null;
+    return cached.data;
+}
+
+function applyCachedCatalog() {
+    if (!window.TeaDB || !TeaDB.configured) return;
+    const data = readCatalogCache();
+    if (data && applyCatalog(data)) {
+        renderCatalogDom();
+        repriceCart();
+    }
+}
+
+let catalogRefreshing = null;
+function refreshCatalog() {
+    if (!window.TeaDB || !TeaDB.configured) return Promise.resolve(false);
+    if (catalogRefreshing) return catalogRefreshing;
+    catalogRefreshing = (async () => {
+        try {
+            const [ingredients, blends, prices, shipping, settingsRows] = await Promise.all([
+                TeaDB.select('ingredients',      { order: 'sort.asc,name_cs.asc' }),
+                TeaDB.select('blends',           { order: 'sort.asc,name.asc' }),
+                TeaDB.select('price_tiers',      { order: 'weight_g.asc' }),
+                TeaDB.select('shipping_methods', { order: 'sort.asc' }),
+                TeaDB.select('settings',         { id: 'eq.1' }),
+            ]);
+            const fresh = { ingredients, blends, prices, shipping, settings: (settingsRows || [])[0] || null };
+            const previous = readCatalogCache();
+            if (!applyCatalog(fresh)) {
+                console.warn('[teaseyou] Katalog z databáze je neúplný (chybí ceník nebo ingredience), nechávám původní.');
+                return false;
+            }
+            try { localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({ at: Date.now(), data: fresh })); } catch (_) {}
+            if (!previous || JSON.stringify(previous) !== JSON.stringify(fresh)) rerenderAfterCatalog();
+            return true;
+        } catch (err) {
+            console.warn('[teaseyou] Katalog se nepodařilo načíst, jedu z uložených dat.', err);
+            return false;
+        } finally {
+            catalogRefreshing = null;
+            revalidateStoredPromo();
+        }
+    })();
+    return catalogRefreshing;
+}
+
+/* Sleva z minulé návštěvy: ověřit v databázi, jestli pořád platí a kolik. */
+let promoRevalidated = false;
+async function revalidateStoredPromo() {
+    if (promoRevalidated || !storedPromoCode || !window.TeaDB || !TeaDB.configured) return;
+    promoRevalidated = true;
+    try {
+        const res = await TeaDB.rpc('check_promo', { p_code: storedPromoCode });
+        if (res) {
+            appliedPromo = { code: res.code, rate: Number(res.rate), label: res.label };
+        } else {
+            const hadOne = !!appliedPromo;
+            appliedPromo = null;
+            if (hadOne && cart.length) showToast(t('promo_expired'), '🏷️');
+        }
+        savePromo();
+        renderCart();
+    } catch (_) { /* bez sítě necháme, co bylo; databáze stejně ověří při objednávce */ }
+}
+
+/* ─── Objednávka do databáze ───────────────── */
+function buildOrderPayload(form) {
+    const val = name => (form.elements[name] ? String(form.elements[name].value || '').trim() : '');
+    const ship = form.querySelector('input[name="shipping"]:checked');
+    const pay  = form.querySelector('input[name="payment"]:checked');
+    return {
+        customer: {
+            firstName: val('firstName'), lastName: val('lastName'),
+            email: val('email'), phone: val('phone'),
+            street: val('street'), city: val('city'), zip: val('zip'), country: val('country'),
+        },
+        items: cart.map(i => ({
+            name:        i.name,
+            ingredients: i.ingredients.filter(x => x && x !== 'Empty'),
+            weight_g:    parseInt(i.weight, 10),
+            qty:         i.qty,
+        })),
+        shipping: ship ? ship.value : '',
+        payment:  pay ? pay.value : '',
+        note:     val('note'),
+        promo:    appliedPromo ? appliedPromo.code : '',
+        packetaPoint: packetaPoint
+            ? { id: String(packetaPoint.id || ''), name: `${packetaPoint.name}, ${packetaPoint.city}` }
+            : null,
+        lang: LANG,
+    };
+}
+
+const ORDER_ERROR_CODES = new Set(['out_of_stock', 'promo_invalid', 'invalid_customer', 'too_many_orders',
+    'pickup_point_required', 'invalid_shipping', 'invalid_weight', 'unknown_ingredient']);
+
+function handleOrderError(err) {
+    const code = err && err.message;
+    const refresh = () => refreshCatalog();
+    switch (code) {
+        case 'out_of_stock': {
+            const names = String(err.details || '').split(',').map(s => s.trim()).filter(Boolean).map(tIng);
+            showToast(`${t('err_sold_out_named')} ${escHtml(names.join(', '))}`, '🫙');
+            refresh();
+            break;
+        }
+        case 'promo_invalid':
+            removePromo();
+            showToast(t('promo_invalid'), '🏷️');
+            break;
+        case 'invalid_customer':      showToast(t('err_invalid_customer'), '⚠️'); break;
+        case 'too_many_orders':       showToast(t('err_too_many_orders'), '⏳'); break;
+        case 'pickup_point_required': showToast(t('err_pickup_point'), '📦'); break;
+        case 'invalid_shipping':      showToast(t('err_shipping_unavailable'), '🚚'); refresh(); break;
+        case 'invalid_weight':        showToast(t('err_weight_unavailable'), '⚖️'); refresh(); break;
+        case 'unknown_ingredient':    showToast(t('err_unknown_ingredient'), '⚠️'); refresh(); break;
+        default:                      showToast(t('toast_order_failed'), '⚠️');
+    }
+}
+
+/* E-mail s objednávkou přes Formspree, když je nastavený. Jen navíc —
+   objednávka už je v databázi a v administraci, i kdyby tohle selhalo. */
+function notifyFormspree(form, order) {
+    if (FORMSPREE_ID === 'YOUR_FORM_ID') return;
+    try {
+        const fd = new FormData(form);
+        fd.append('_subject', `Nová objednávka ${order.num} — Tease you`);
+        fd.append('order_json', JSON.stringify(order, null, 2));
+        fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+            method: 'POST', body: fd, headers: { Accept: 'application/json' }
+        }).catch(err => console.warn('[teaseyou] E-mail o objednávce se neodeslal (objednávka je uložená):', err));
+    } catch (err) {
+        console.warn('[teaseyou] E-mail o objednávce se neodeslal (objednávka je uložená):', err);
+    }
 }

@@ -8,7 +8,7 @@
  * Když měníš seznam PRECACHE, zvyš VERSION — jinak se stará cache nezahodí.
  */
 
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = `teaseyou-${VERSION}`;
 
 // Minimum, aby se web offline vůbec vykreslil.
@@ -17,6 +17,8 @@ const PRECACHE = [
     './index.html',
     './offline.html',
     './style.css',
+    './config.js',
+    './db.js',
     './script.js',
     './manifest.json',
     './ClimateCrisis-1979.woff2',
@@ -49,9 +51,15 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     const req = event.request;
 
-    // POST na Formspree, widget Packety, Google Fonts — do toho nesaháme.
+    // POST na Formspree, widget Packety, Google Fonts, Supabase — do toho
+    // nesaháme. Data z databáze si web cachuje sám a čerstvá chce vždycky.
     if (req.method !== 'GET') return;
-    if (new URL(req.url).origin !== self.location.origin) return;
+    const url = new URL(req.url);
+    if (url.origin !== self.location.origin) return;
+
+    // Administrace jede vždycky čistě ze sítě. Zastaralý admin.js by mohl
+    // zapisovat do databáze podle starých pravidel.
+    if (url.pathname.includes('/admin/')) return;
 
     // Navigace: vždy síť. Bez připojení padáme na uloženou homepage,
     // a když ani ta není, na offline stránku.
@@ -59,12 +67,33 @@ self.addEventListener('fetch', event => {
         event.respondWith(
             fetch(req)
                 .then(res => {
-                    const copy = res.clone();
-                    caches.open(CACHE).then(cache => cache.put('./index.html', copy));
+                    // Jako offline zálohu ukládáme jen hlavní stránku — ne
+                    // 404 nebo cokoliv jiného, co by ji v cache přepsalo.
+                    if (res.ok && /\/(index\.html)?$/.test(url.pathname)) {
+                        const copy = res.clone();
+                        caches.open(CACHE).then(cache => cache.put('./index.html', copy));
+                    }
                     return res;
                 })
                 .catch(() => caches.match('./index.html')
                     .then(cached => cached || caches.match('./offline.html')))
+        );
+        return;
+    }
+
+    // config.js: nejdřív síť. Po vyplnění klíčů k Supabase se musí
+    // projevit hned, ne až při další návštěvě.
+    if (url.pathname.endsWith('/config.js')) {
+        event.respondWith(
+            fetch(req)
+                .then(res => {
+                    if (res && res.ok) {
+                        const copy = res.clone();
+                        caches.open(CACHE).then(cache => cache.put(req, copy));
+                    }
+                    return res;
+                })
+                .catch(() => caches.match(req))
         );
         return;
     }

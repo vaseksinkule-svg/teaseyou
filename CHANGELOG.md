@@ -7,6 +7,16 @@ takže se řadí podle data.
 ## Nezveřejněno
 
 ### Přidáno
+- **Databáze a administrace.** Ceny, ingredience, hotové směsi, fotky,
+  doprava, slevové kódy a objednávky jsou v Supabase a mění se na `/admin/`
+  — bez sahání do kódu. Návod v `supabase/README.md`.
+- Objednávky se ukládají do databáze. Cenu počítá databáze z ceníku, takže
+  podvržená cena z prohlížeče nic nezmění.
+- Ingredience jde jedním přepínačem vyprodat. Na webu zůstane vidět, ale
+  vybrat ani objednat nejde, a hotové směsi s ní dostanou upozornění.
+- Fotky ingrediencí a hotových směsí.
+- Web si pamatuje poslední nabídku z databáze. Když databáze neodpoví,
+  jede z ní (nebo z vestavěných dat) dál.
 - Soubory, které web potřebuje, i když je návštěvník nikdy neuvidí:
   `README.md`, `LICENSE`, `CHANGELOG.md`, `.gitignore`, `.editorconfig`,
   `humans.txt`, `.well-known/security.txt`, `CNAME`, `.nojekyll`.

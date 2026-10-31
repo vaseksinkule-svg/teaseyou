@@ -295,6 +295,7 @@
     </div>
     <div class="detail-container">
         <div class="detail-visual">
+            <img id="detail-photo" class="detail-photo" alt="" hidden>
             <div class="glass-container">
                 <div class="glass-frame" id="detail-glass-frame">
                     <div id="detail-part1" class="glass-part"></div>
@@ -309,6 +310,7 @@
             <h1 id="detail-title" class="logo detail-title">Tea Name</h1>
             <p id="detail-desc" class="detail-desc font-chaos">Description...</p>
             <p id="detail-ingredients-list" class="detail-ingredients"></p>
+            <p id="detail-stock-note" class="stock-note" hidden></p>
             <div class="detail-divider"></div>
             <p class="form-section-label" data-i18n="lbl_select_weight">Select weight</p>
             <div class="qty-options">
@@ -402,7 +404,7 @@
         </div>
         <div class="selection-group">
             <h3 class="font-cosmico" data-i18n="section_base">1. Base</h3>
-            <div class="btn-grid">
+            <div class="btn-grid" data-group="bases">
                 <button class="ingredient-btn" data-target="part1" data-color="#8da676" data-name="Green Tea" data-desc="Fresh and earthy, light caffeine." data-i18n="ing_green_tea" data-i18n-desc="ing_green_tea_desc">Green Tea</button>
                 <button class="ingredient-btn" data-target="part1" data-color="#4a3b32" data-name="Black Tea" data-desc="Strong and bold, high caffeine." data-i18n="ing_black_tea" data-i18n-desc="ing_black_tea_desc">Black Tea</button>
                 <button class="ingredient-btn" data-target="part1" data-color="#f5e6d3" data-name="White Tea" data-desc="Delicate and sweet, low caffeine." data-i18n="ing_white_tea" data-i18n-desc="ing_white_tea_desc">White Tea</button>
@@ -414,7 +416,7 @@
         </div>
         <div class="selection-group">
             <h3 class="font-cosmico" data-i18n="section_flavor">2. Flavor</h3>
-            <div class="btn-grid">
+            <div class="btn-grid" data-group="flavors">
                 <button class="ingredient-btn" data-target="part2" data-color="#cc4747" data-name="Strawberry" data-desc="Sweet and fruity, summery." data-i18n="ing_strawberry" data-i18n-desc="ing_strawberry_desc">Strawberry</button>
                 <button class="ingredient-btn" data-target="part2" data-color="#4caf50" data-name="Mint" data-desc="Cooling and fresh, bright." data-i18n="ing_mint" data-i18n-desc="ing_mint_desc">Mint</button>
                 <button class="ingredient-btn" data-target="part2" data-color="#f3e5ab" data-name="Vanilla" data-desc="Sweet, creamy and warm." data-i18n="ing_vanilla" data-i18n-desc="ing_vanilla_desc">Vanilla</button>
@@ -429,7 +431,7 @@
         </div>
         <div class="selection-group">
             <h3 class="font-cosmico" data-i18n="section_extras">3. Extras</h3>
-            <div class="btn-grid">
+            <div class="btn-grid" data-group="extras">
                 <button class="ingredient-btn" data-target="part3" data-color="#ffc107" data-name="Honey" data-desc="Naturally sweet and soothing." data-i18n="ing_honey" data-i18n-desc="ing_honey_desc">Honey</button>
                 <button class="ingredient-btn" data-target="part3" data-color="#ffe066" data-name="Lemon" data-desc="Bright, citrusy and tart." data-i18n="ing_lemon" data-i18n-desc="ing_lemon_desc">Lemon</button>
                 <button class="ingredient-btn" data-target="part3" data-color="#ff9800" data-name="Ginger" data-desc="Spicy, warm and zesty." data-i18n="ing_ginger" data-i18n-desc="ing_ginger_desc">Ginger</button>
@@ -1033,6 +1035,8 @@
     </button>
 </nav>
 <script src="https://widget.packeta.com/v6/www/js/library.js" defer></script>
+<script src="config.js"></script>
+<script src="db.js"></script>
 <script src="script.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
