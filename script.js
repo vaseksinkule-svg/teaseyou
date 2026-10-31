@@ -983,6 +983,7 @@ function initCookieBanner() {
 /* ─── BACK TO TOP ────────────────────────────── */
 function initBackToTop() {
     const btn = document.getElementById('back-to-top');
+    if (!btn) return;
     window.addEventListener('scroll', () => {
         btn.classList.toggle('visible', window.scrollY > 400);
     }, { passive: true });
@@ -1044,9 +1045,11 @@ function showPage(pageId) {
     if (pageId === 'quiz-page')         setTimeout(startQuiz, 0);
     if (pageId === 'ingredients-page')  renderIngredientEncyclopedia();
     // Update bottom nav active state
-    document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+    document.querySelectorAll('.bottom-nav-item, .nav-links [data-page]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.page === pageId);
     });
+    document.body.dataset.page = pageId;
+    if (pageId === 'product-page' && typeof updateMixerUI === 'function') updateMixerUI();
     // Show/hide the mobile mix-summary drawer (mixer page only)
     if (typeof updateMixDrawer === 'function') updateMixDrawer();
 }
@@ -1076,9 +1079,7 @@ function openDetail(name, desc, price, ingredients, colors) {
     const localDesc = LANG === 'cs' && BLEND_DESCS_CS[name] ? BLEND_DESCS_CS[name] : desc;
     document.getElementById('detail-desc').innerText = localDesc;
     document.getElementById('detail-ingredients-list').innerText = ingredients.map(tIng).join(' • ');
-    document.getElementById('detail-part1').style.backgroundColor = colors[0];
-    document.getElementById('detail-part2').style.backgroundColor = colors[1];
-    document.getElementById('detail-part3').style.backgroundColor = colors[2];
+    ['detail-part1', 'detail-part2', 'detail-part3'].forEach((id, i) => paintLayer(document.getElementById(id), colors[i]));
 
     // Set brew params based on base
     const base = ingredients[0];
@@ -1239,15 +1240,15 @@ function renderFreeShip() {
 function modifyReadyMade() {
     showPage('product-page');
     document.getElementById('mix-name').value = currentProduct.name;
-    document.getElementById('part1').style.backgroundColor = currentProduct.colors[0];
-    document.getElementById('part2').style.backgroundColor = currentProduct.colors[1];
-    document.getElementById('part3').style.backgroundColor = currentProduct.colors[2];
+    ['part1', 'part2', 'part3'].forEach((id, i) => paintLayer(document.getElementById(id), currentProduct.colors[i]));
     document.querySelectorAll('.ingredient-btn').forEach(btn => {
         btn.classList.remove('selected');
         if (currentProduct.ingredients.includes(btn.getAttribute('data-name')))
             btn.classList.add('selected');
     });
     validateSelection();
+    updateGlassLabels();
+    if (typeof setMixerStep === 'function') setMixerStep(1, { scroll: false });
 }
 
 /* ─── GLASS ANIMATIONS ───────────────────────── */
@@ -1340,10 +1341,10 @@ document.addEventListener('click', function(e) {
         const targetId = ingBtn.getAttribute('data-target');
         const color    = ingBtn.getAttribute('data-color');
         const name     = ingBtn.getAttribute('data-name');
+        const wasEmpty = !ingBtn.parentElement.querySelector('.ingredient-btn.selected');
         ingBtn.parentElement.querySelectorAll('.ingredient-btn').forEach(b => b.classList.remove('selected'));
         ingBtn.classList.add('selected');
-        document.getElementById(targetId).style.backgroundColor = color;
-        fillGlassPart(targetId);
+        paintLayer(document.getElementById(targetId), color);
         fillGlassPart(targetId);
         animateGlass('main-glass-frame');
         const idx = parseInt(targetId.replace('part','')) - 1;
@@ -1352,12 +1353,15 @@ document.addEventListener('click', function(e) {
         showIngInfo(name);
         validateSelection();
         updateGlassLabels();
+        // Na mobilu po prvním výběru v kroku rovnou na další krok. Jen při
+        // skutečném kliknutí — presety a sdílené odkazy klikají programově.
+        if (e.isTrusted && wasEmpty && typeof mixerAutoAdvance === 'function') mixerAutoAdvance(idx + 1);
     }
 
     const clearBtn = e.target.closest('.clear-btn[data-target]');
     if (clearBtn) {
         const tid = clearBtn.getAttribute('data-target');
-        document.getElementById(tid).style.backgroundColor = 'transparent';
+        paintLayer(document.getElementById(tid), 'transparent');
         fillGlassPart(tid);
         animateGlass('main-glass-frame');
         clearBtn.closest('.selection-group').querySelectorAll('.ingredient-btn').forEach(b => b.classList.remove('selected'));
@@ -1471,19 +1475,20 @@ function validateSelection() {
     updateProgress();
     updateCompletion();
     renderSelectedIngPanel();
+    if (typeof updateMixerUI === 'function') updateMixerUI();
 }
 
 /* ─── LIVE NAME UPDATE ───────────────────────── */
 document.addEventListener('input', function(e) {
-    if (e.target.id === 'mix-name') { updateGlassLabels(); updateProgress(); }
+    if (e.target.id === 'mix-name') { updateGlassLabels(); updateProgress(); if (typeof updateMixerUI === 'function') updateMixerUI(); }
 });
 
 /* ─── SUMMARY ────────────────────────────────── */
 function showSummary() {
-    currentProduct.name = document.getElementById('mix-name').value || 'Custom Mix';
+    currentProduct.name = document.getElementById('mix-name').value.trim() || t('default_mix_name');
     document.getElementById('display-mix-name').innerText = currentProduct.name;
     ['part1','part2','part3'].forEach((p, i) => {
-        document.getElementById(`summary-${p}`).style.backgroundColor = currentProduct.colors[i];
+        paintLayer(document.getElementById(`summary-${p}`), currentProduct.colors[i]);
     });
     const chipsEl = document.getElementById('summary-chips');
     chipsEl.innerHTML = '';
@@ -1660,6 +1665,8 @@ function updateCartBadge() {
     }
     badge.textContent = total;
     badge.style.display = total > 0 ? 'flex' : 'none';
+    const bottom = document.getElementById('bottom-cart-badge');
+    if (bottom) { bottom.textContent = total; bottom.style.display = total > 0 ? 'flex' : 'none'; }
 }
 
 /* ─── RENDER CART ────────────────────────────── */
@@ -2141,7 +2148,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Katalog z minulé návštěvy hned, ať se nové ceny a nabídka ukážou bez
     // probliknutí. Čerstvý se dotáhne na konci (refreshCatalog).
     applyCachedCatalog();
+    renderIngredientButtons();
+    renderBlendCards();
     applyTranslations();
+    initRedesign();
     if (localStorage.getItem('teaseyou_promo_dismissed')) {
         const bar = document.getElementById('promo-bar');
         if (bar) bar.style.display = 'none';
@@ -2165,24 +2175,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBlendFromUrl();  // open a shared blend if ?b= is present
     refreshCatalog();    // čerstvá data ze Supabase (když je nastavený)
 
-    // Hero parallax on scroll
-    (function() {
-        const glasses = document.querySelectorAll('.hero-glass');
-        if (!glasses.length) return;
-        const speeds = [0.12, 0.20, 0.08];
-        let ticking = false;
-        window.addEventListener('scroll', () => {
-            if (ticking) return;
-            requestAnimationFrame(() => {
-                const y = window.scrollY;
-                glasses.forEach((g, i) => {
-                    g.style.transform = `translateY(${-y * speeds[i]}px)`;
-                });
-                ticking = false;
-            });
-            ticking = true;
-        }, { passive: true });
-    })();
 });
 
 
@@ -2464,16 +2456,14 @@ function randomBlend() {
         const btn = document.querySelector(`.ingredient-btn[data-name="${name}"]`);
         if (btn) btn.classList.add('selected');
         const part = document.getElementById(partId);
-        if (part) { part.style.backgroundColor = color; fillGlassPart(partId); }
+        if (part) { paintLayer(part, color); fillGlassPart(partId); }
         const idx = parseInt(partId.replace('part','')) - 1;
         currentProduct.colors[idx]      = color;
         currentProduct.ingredients[idx] = name;
     });
 
     // Random name
-    const adjectives = ['Morning','Early','Late','Slow','Dark','Quiet','Warm','Still','Deep','Open'];
-    const nouns      = ['Window','Tuesday','Winter','Light','Air','Evening','Hour','Field','Corner','Shelf'];
-    const randomName = pick(adjectives) + ' ' + pick(nouns);
+    const randomName = pick(mixNameIdeas());
     const nameInput  = document.getElementById('mix-name');
     if (nameInput) nameInput.value = randomName;
 
@@ -2487,7 +2477,8 @@ function randomBlend() {
     animateGlass('main-glass-frame');
     validateSelection();
     updateGlassLabels();
-    showToast(`${t('toast_random')} ${randomName} 🎲`, '🎲');
+    if (typeof setMixerStep === 'function') setMixerStep(4, { scroll: false });
+    showToast(`${t('toast_random')} ${escHtml(randomName)}`, '🎲');
 }
 
 /* ─── APPLY A BLEND TO THE CONFIGURATOR ──────── */
@@ -2504,6 +2495,7 @@ function applyBlendToConfigurator(ingredients, name) {
         const inp = document.getElementById('mix-name');
         if (inp) { inp.value = name; inp.dispatchEvent(new Event('input', { bubbles: true })); }
     }
+    if (typeof setMixerStep === 'function') setMixerStep(firstOpenMixerStep(), { scroll: false });
 }
 
 /* ─── QUICK-START PRESETS (mixer) ────────────── */
@@ -2569,13 +2561,36 @@ function loadBlendFromUrl() {
    Když databáze neodpoví, zůstane to, co bylo. Obchod kvůli tomu nespadne.
 */
 
+/* Hotové směsi, když databáze není napojená nebo neodpoví. Stejné jako
+   výchozí data v supabase/setup.sql. */
+const BUILTIN_BLENDS = [
+    { id: 'morning_window', name: 'Morning Window', emoji: '☀️', is_preset: true,  ingredients: ['Green Tea', 'Mint', 'Lemon'],
+      desc_cs: 'Zelený čaj s mátou a citronem. Čistý a svěží — pohár, který rozjede den správným způsobem.',
+      desc_en: 'Green tea with mint and lemon. Clean and bright — the kind of cup that gets the day started right.' },
+    { id: 'still_evening',  name: 'Still Evening',  emoji: '🍓', is_preset: true,  ingredients: ['White Tea', 'Strawberry', 'Honey'],
+      desc_cs: 'Bílý čaj s jahodou a medem. Jemně sladký a klidný — měkký závěr dne.',
+      desc_en: 'White tea with strawberry and honey. Gently sweet and unhurried — a soft end to the day.' },
+    { id: 'deep_winter',    name: 'Deep Winter',    emoji: '❄️', is_preset: true,  ingredients: ['Black Tea', 'Ginger', 'Vanilla'],
+      desc_cs: 'Černý čaj se zázvorem a vanilkou. Plný a hřejivý — nejlepší s oběma rukama kolem hrnku.',
+      desc_en: 'Black tea with ginger and vanilla. Full and warming — best with both hands around the mug.' },
+    { id: 'late_light',     name: 'Late Light',     emoji: '🌅', is_preset: false, ingredients: ['Oolong Tea', 'Rose', 'Lavender'],
+      desc_cs: 'Oolong s růží a levandulí. Měkký a trochu květinový — na ten tichý kus odpoledne.',
+      desc_en: 'Oolong with rose and lavender. Soft and a little floral — for the quiet part of the afternoon.' },
+    { id: 'open_air',       name: 'Open Air',       emoji: '🌿', is_preset: false, ingredients: ['Rooibos', 'Orange', 'Spearmint'],
+      desc_cs: 'Rooibos s pomerančem a mátou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.',
+      desc_en: 'Rooibos with orange and spearmint. Naturally sweet and caffeine-free — good any time.' },
+    { id: 'slow_tuesday',   name: 'Slow Tuesday',   emoji: '🌙', is_preset: true,  ingredients: ['Chamomile', 'Turmeric', 'Cinnamon'],
+      desc_cs: 'Heřmánek s kurkumou a skořicí. Zemitý a teplý — čajový ekvivalent nicnedělání.',
+      desc_en: 'Chamomile with turmeric and cinnamon. Earthy and warm — the tea equivalent of doing nothing.' },
+];
+
 const CATALOG_CACHE_KEY  = 'teaseyou_catalog_v1';
 const CATALOG_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;   // starší cache už nebereme
 const ING_GROUPS = { bases: 'part1', flavors: 'part2', extras: 'part3' };
 const ING_CATEGORY_GROUP = { base: 'bases', flavor: 'flavors', extra: 'extras' };
 
 let catalogLoaded   = false;   // true = nabídka pochází z databáze (živě nebo z cache)
-let catalogBlends   = [];      // řádky tabulky blends
+let catalogBlends   = BUILTIN_BLENDS.slice();  // řádky tabulky blends (bez databáze vestavěné)
 let catalogShipping = null;    // { post: { price, active }, … }
 let promoBarEnabled = true;
 
@@ -2775,13 +2790,16 @@ function renderIngredientButtons() {
         grid.innerHTML = ING_DATA[group].map(ing => {
             const photo = safePhoto(ing.photo);
             const out = ing.inStock === false;
+            const selected = chosen === ing.code && !out;
             const style = `--dot-color:${ing.color};` + (photo ? `--dot-photo:url("${photo}");` : '');
-            const cls = ['ingredient-btn', photo && 'has-photo', out && 'is-out',
-                         chosen === ing.code && !out && 'selected'].filter(Boolean).join(' ');
+            const cls = ['ingredient-btn', photo && 'has-photo', out && 'is-out', selected && 'selected'].filter(Boolean).join(' ');
             return `<button type="button" class="${cls}" data-target="${part}" data-color="${ing.color}"`
-                + ` data-name="${escHtml(ing.code)}" data-desc="${escHtml(t(ing.key + '_desc'))}"`
-                + ` data-i18n-desc="${ing.key}_desc" style="${escHtml(style)}"${out ? ' aria-disabled="true"' : ''}>`
-                + `${escHtml(t(ing.key))}${out ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : ''}</button>`;
+                + ` data-name="${escHtml(ing.code)}" style="${escHtml(style)}" aria-pressed="${selected}"${out ? ' aria-disabled="true"' : ''}>`
+                + `<span class="ing-dot" aria-hidden="true"></span>`
+                + `<span class="ing-text"><span class="ing-name">${escHtml(t(ing.key))}</span>`
+                + `<span class="ing-note">${escHtml(t(ing.key + '_desc') || '')}</span></span>`
+                + (out ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : '')
+                + `</button>`;
         }).join('');
 
         // Vybraná ingredience mohla zmizet z nabídky nebo se vyprodat.
@@ -2791,11 +2809,11 @@ function renderIngredientButtons() {
             if (!ing || ing.inStock === false) {
                 currentProduct.ingredients[idx] = 'Empty';
                 currentProduct.colors[idx] = 'transparent';
-                if (glassPart) glassPart.style.backgroundColor = 'transparent';
+                paintLayer(glassPart, 'transparent');
                 selectionChanged = true;
             } else if (currentProduct.colors[idx] !== ing.color) {
                 currentProduct.colors[idx] = ing.color;
-                if (glassPart) glassPart.style.backgroundColor = ing.color;
+                paintLayer(glassPart, ing.color);
             }
         }
     });
@@ -2811,20 +2829,18 @@ function renderBlendCards() {
     const section = grid.closest('.ready-made-section');
     if (section) section.style.display = catalogBlends.length ? '' : 'none';
     grid.innerHTML = catalogBlends.map(b => {
-        const colors = b.ingredients.map(c => ingColor(c) || '#dddddd');
         const photo = safePhoto(b.photo_url);
         const visual = photo
-            ? `<div class="ready-photo"><img src="${escHtml(photo)}" alt="${escHtml(b.name)}" loading="lazy" decoding="async"></div>`
-            : `<div class="ready-glass-mini">${colors.slice().reverse().map(c => `<div style="background:${escHtml(c)}"></div>`).join('')}</div>`;
+            ? `<div class="ready-photo"><img src="${escHtml(photo)}" alt="" loading="lazy" decoding="async"></div>`
+            : jarHtml(b.ingredients, 'jar--sm', b.name);
         const soldOut = outOfStockIn(b.ingredients).length
-            ? `<span class="ing-out-badge ing-out-badge--card">${escHtml(t('ing_sold_out'))}</span>` : '';
-        return `<div class="ready-card" role="button" tabindex="0" data-blend="${escHtml(b.id)}">
-                ${visual}
-                <h3 class="font-cosmico">${escHtml(b.name)}</h3>
-                <p class="font-chaos">${escHtml(blendSubtitle(b.ingredients))}</p>
-                <span class="ready-price" data-i18n="price_from">${escHtml(t('price_from'))}</span>
-                ${soldOut}
-            </div>`;
+            ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : '';
+        return `<article class="ready-card" role="button" tabindex="0" data-blend="${escHtml(b.id)}" aria-label="${escHtml(b.name)}">
+                <div class="ready-visual">${visual}</div>
+                <h3 class="ready-name">${escHtml(b.name)}</h3>
+                <p class="ready-mix">${escHtml(blendSubtitle(b.ingredients))}</p>
+                <p class="ready-foot"><span class="ready-price" data-i18n="price_from">${escHtml(t('price_from'))}</span>${soldOut}</p>
+            </article>`;
     }).join('');
     grid.querySelectorAll('.ready-card[data-blend]').forEach(card => {
         const open = () => openBlend(card.getAttribute('data-blend'));
@@ -2924,6 +2940,7 @@ function repriceCart() {
 
 function rerenderAfterCatalog() {
     renderCatalogDom();
+    if (typeof refreshRedesign === 'function') refreshRedesign();
     applyTranslations();
     renderIngredientEncyclopedia();
     renderPresets();
@@ -2951,6 +2968,7 @@ function applyCachedCatalog() {
         renderCatalogDom();
         repriceCart();
     }
+    // (hero, spíž a ceny se vykreslí v initRedesign hned potom)
 }
 
 let catalogRefreshing = null;
@@ -3074,4 +3092,407 @@ function notifyFormspree(form, order) {
     } catch (err) {
         console.warn('[teaseyou] E-mail o objednávce se neodeslal (objednávka je uložená):', err);
     }
+}
+
+
+/* =============================================
+   NOVÝ VZHLED — sklenice, úvodní stránka, mixér po krocích
+   ============================================= */
+
+Object.assign(TRANSLATIONS.cs, {
+    hero_title:        'Namíchej si čaj. Pojmenuj ho.',
+    hero_lede:         'Vybereš základ, příchuť a doplněk. My směs čerstvě namícháme, zabalíme pod jménem, které jí dáš, a pošleme ti ji domů.',
+    hero_quiz_btn:     'Poradit kvízem',
+    hero_pick:         'Chci tuhle',
+    hero_shuffle:      'Zamíchat jinak',
+    hero_note_price:   'Balení od {price}.',
+    hero_note_ship:    'Nad {limit} doprava zdarma.',
+    how_1_title:       'Vyber základ',
+    howx_1:            'Šest čajů od výrazného černého po heřmánek bez kofeinu. Základ určuje charakter směsi.',
+    howx_2_title:      'Přidej příchuť',
+    howx_2:            'Ovoce, květy, kakao nebo kokos. Tady začne být směs tvoje.',
+    howx_3_title:      'Dolaď doplňkem',
+    howx_3:            'Med, citron, zázvor nebo koření. Malá věc, která chuť dotáhne.',
+    howx_4_title:      'Pojmenuj ji',
+    howx_4:            'Směs zabalíme pod tvým jménem a do 24 hodin odešleme.',
+    how_cta:           'Začít míchat',
+    shelf_title:       'Naše směsi',
+    shelf_lede:        'Hotové kombinace. Objednej je rovnou, nebo si je v mixéru uprav podle sebe.',
+    quizband_title:    'Nevíš, co by ti chutnalo?',
+    quizband_text:     'Odpověz na pět krátkých otázek a doporučíme ti směs, která sedí tvé náladě i denní době.',
+    quizband_btn:      'Spustit kvíz',
+    pantry_title:      'Z čeho mícháme',
+    pantry_lede:       'Z {bases} základů, {flavors} příchutí a {extras} doplňků poskládáš {combos} různých směsí.',
+    pantry_bases:      'Základy',
+    pantry_flavors:    'Příchutě',
+    pantry_extras:     'Doplňky',
+    pantry_link:       'Prohlédnout všechny ingredience',
+    faq_lede:          'Něco tu chybí? Napiš na <a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a>.',
+    mixer_sub:         'Jeden základ, jedna příchuť, jeden doplněk. Jméno je na tobě.',
+    preset_label2:     'Nechceš začínat od nuly?',
+    step_1_title:      'Vyber základ',
+    step_1_hint:       'Určuje charakter směsi a kolik bude mít kofeinu.',
+    step_2_title:      'Přidej příchuť',
+    step_2_hint:       'Ovoce, květy nebo něco sladšího.',
+    step_3_title:      'Dolaď doplňkem',
+    step_3_hint:       'Med, citrus nebo koření na dotažení chuti.',
+    step_4_title:      'Pojmenuj ji',
+    step_4_hint:       'Pod tímhle jménem ji zabalíme. Nech prázdné a bude to Moje směs.',
+    prog_extra:        'Doplněk',
+    prog_name:         'Jméno',
+    btn_clear2:        'Vymazat',
+    btn_preview:       'Ukázat směs a cenu',
+    mixer_next_2:      'Dál: příchuť',
+    mixer_next_3:      'Dál: doplněk',
+    mixer_next_4:      'Dál: jméno',
+    mixer_prev:        'Zpět',
+    mixer_pick_first:  'Nejdřív něco vyber',
+    mixer_missing:     'Ještě chybí',
+    mixer_price:       'Od {price} za {weight} g',
+    glass_label_extras:'Doplněk',
+    glass_name_default:'Tvoje směs',
+    default_mix_name:  'Moje směs',
+    name_ideas_label:  'Napadá nás:',
+    nav_mix:           'Namíchat',
+    nav_shelf:         'Naše směsi',
+    nav_quiz:          'Najdi svůj blend',
+    nav_quiz_short:    'Kvíz',
+    nav_saved_short:   'Uložené',
+    footer_shop:       'Obchod',
+    footer_info:       'Informace',
+    footer_tagline2:   'Čajové směsi na míru, míchané až po objednání.',
+    footer_newsletter_desc: 'Nové směsi a nabídky přímo do schránky.',
+    footer_cookies:    'Cookies',
+    footer_made_in:    'Mícháme v Česku',
+    lbl_email_short:   'E-mail',
+    newsletter_ok:     'Hotovo, jsi přihlášený.',
+    theme_dark:        'Tmavý režim',
+    theme_light:       'Světlý režim',
+    aria_menu:         'Menu',
+    aria_close:        'Zavřít',
+    aria_theme:        'Přepnout tmavý režim',
+    aria_mobile_nav:   'Mobilní navigace',
+});
+Object.assign(TRANSLATIONS.en, {
+    hero_title:        'Mix your tea. Name it.',
+    hero_lede:         'Pick a base, a flavour and an extra. We blend it fresh, pack it under the name you give it and send it to your door.',
+    hero_quiz_btn:     'Help me choose',
+    hero_pick:         'I want this one',
+    hero_shuffle:      'Shuffle',
+    hero_note_price:   'Packs from {price}.',
+    hero_note_ship:    'Free shipping over {limit}.',
+    how_1_title:       'Pick a base',
+    howx_1:            'Six teas, from bold black to caffeine-free chamomile. The base sets the character.',
+    howx_2_title:      'Add a flavour',
+    howx_2:            'Fruit, flowers, cocoa or coconut. This is where it becomes yours.',
+    howx_3_title:      'Finish with an extra',
+    howx_3:            'Honey, lemon, ginger or spice. A small thing that rounds it off.',
+    howx_4_title:      'Name it',
+    howx_4:            'We pack it under your name and ship within 24 hours.',
+    how_cta:           'Start mixing',
+    shelf_title:       'Our blends',
+    shelf_lede:        'Ready-made combinations. Order one as it is, or tweak it in the mixer.',
+    quizband_title:    'Not sure what you would like?',
+    quizband_text:     'Answer five quick questions and we will suggest a blend for your mood and time of day.',
+    quizband_btn:      'Take the quiz',
+    pantry_title:      'What we blend with',
+    pantry_lede:       '{bases} bases, {flavors} flavours and {extras} extras make {combos} different blends.',
+    pantry_bases:      'Bases',
+    pantry_flavors:    'Flavours',
+    pantry_extras:     'Extras',
+    pantry_link:       'See all ingredients',
+    faq_lede:          'Missing something? Write to <a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a>.',
+    mixer_sub:         'One base, one flavour, one extra. The name is up to you.',
+    preset_label2:     'Rather not start from scratch?',
+    step_1_title:      'Pick a base',
+    step_1_hint:       'It sets the character of the blend and how much caffeine it has.',
+    step_2_title:      'Add a flavour',
+    step_2_hint:       'Fruit, flowers or something sweeter.',
+    step_3_title:      'Finish with an extra',
+    step_3_hint:       'Honey, citrus or spice to round it off.',
+    step_4_title:      'Name it',
+    step_4_hint:       'We pack it under this name. Leave it empty and it will be My blend.',
+    prog_extra:        'Extra',
+    prog_name:         'Name',
+    btn_clear2:        'Clear',
+    btn_preview:       'See blend and price',
+    mixer_next_2:      'Next: flavour',
+    mixer_next_3:      'Next: extra',
+    mixer_next_4:      'Next: name',
+    mixer_prev:        'Back',
+    mixer_pick_first:  'Pick something first',
+    mixer_missing:     'Still missing',
+    mixer_price:       'From {price} for {weight} g',
+    glass_label_extras:'Extra',
+    glass_name_default:'Your blend',
+    default_mix_name:  'My blend',
+    name_ideas_label:  'Ideas:',
+    nav_mix:           'Mix',
+    nav_shelf:         'Our blends',
+    nav_quiz:          'Find my blend',
+    nav_quiz_short:    'Quiz',
+    nav_saved_short:   'Saved',
+    footer_shop:       'Shop',
+    footer_info:       'Information',
+    footer_tagline2:   'Custom tea blends, mixed only after you order.',
+    footer_newsletter_desc: 'New blends and offers straight to your inbox.',
+    footer_cookies:    'Cookies',
+    footer_made_in:    'Blended in Czechia',
+    lbl_email_short:   'E-mail',
+    newsletter_ok:     'Done, you are subscribed.',
+    theme_dark:        'Dark mode',
+    theme_light:       'Light mode',
+    aria_menu:         'Menu',
+    aria_close:        'Close',
+    aria_theme:        'Toggle dark mode',
+    aria_mobile_nav:   'Mobile navigation',
+});
+
+/* ─── Sklenice ──────────────────────────────── */
+/* Vrstva se vykreslí, jen když má barvu. Prázdná má výšku 0 (CSS .is-empty),
+   takže sklenice se plní odspodu, jak zákazník vybírá. */
+function paintLayer(el, color) {
+    if (!el) return;
+    const empty = !color || color === 'transparent';
+    el.style.backgroundColor = empty ? 'transparent' : color;
+    el.classList.toggle('is-empty', empty);
+}
+
+function jarHtml(codes, cls, label) {
+    const layers = [0, 1, 2].map(i => {
+        const color = codes && codes[i] ? ingColor(codes[i]) : null;
+        return color
+            ? `<div class="glass-part" style="background-color:${escHtml(color)}"></div>`
+            : '<div class="glass-part is-empty"></div>';
+    }).join('');
+    const lab = label != null
+        ? `<div class="jar-label"><span class="jar-label-name">${escHtml(label)}</span></div>` : '';
+    return `<div class="jar ${cls}" aria-hidden="true"><div class="jar-lid"></div>`
+        + `<div class="jar-body"><div class="glass-frame">${layers}</div>${lab}</div></div>`;
+}
+
+function mixNameIdeas() {
+    return LANG === 'cs'
+        ? ['Ranní okno', 'Pomalé úterý', 'Tichý večer', 'Hluboká zima', 'Pozdní světlo', 'Volný vzduch',
+           'Neděle v posteli', 'Druhý dech', 'Teplý kout', 'Krátká pauza', 'Dlouhá noc', 'Lehká hlava']
+        : ['Morning Window', 'Slow Tuesday', 'Still Evening', 'Deep Winter', 'Late Light', 'Open Air',
+           'Sunday in Bed', 'Second Wind', 'Warm Corner', 'Short Break', 'Long Night', 'Light Head'];
+}
+
+function minPriceTier() {
+    const weights = Object.keys(PRICES).map(Number).filter(w => PRICES[w] > 0).sort((a, b) => a - b);
+    return weights.length ? { weight: weights[0], price: PRICES[weights[0]] } : null;
+}
+
+/* ─── Úvodní stránka ────────────────────────── */
+let heroBlendId = null;
+let heroTimers = [];
+const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function renderHero(id, animate) {
+    if (!catalogBlends.length) return;
+    const b = catalogBlends.find(x => x.id === id) || catalogBlends[0];
+    heroBlendId = b.id;
+    const parts = document.querySelectorAll('#hero-glass .glass-part');
+    const colors = [0, 1, 2].map(i => (b.ingredients[i] ? ingColor(b.ingredients[i]) || '#dddddd' : null));
+    heroTimers.forEach(clearTimeout);
+    heroTimers = [];
+    if (animate && !reduceMotion()) {
+        parts.forEach(p => paintLayer(p, 'transparent'));
+        colors.forEach((c, i) => heroTimers.push(setTimeout(() => paintLayer(parts[i], c), 200 + i * 380)));
+    } else {
+        parts.forEach((p, i) => paintLayer(p, colors[i]));
+    }
+    const label = document.getElementById('hero-label');
+    const mix = document.getElementById('hero-mix');
+    if (label) label.textContent = b.name;
+    if (mix) mix.textContent = blendSubtitle(b.ingredients);
+}
+
+function shuffleHero() {
+    const others = catalogBlends.filter(b => b.id !== heroBlendId);
+    if (!others.length) return;
+    renderHero(others[Math.floor(Math.random() * others.length)].id, true);
+}
+
+function renderHeroNote() {
+    const el = document.getElementById('hero-note');
+    if (!el) return;
+    const tier = minPriceTier();
+    const parts = [];
+    if (tier) parts.push(t('hero_note_price').replace('{price}', fmt(tier.price)));
+    if (FREE_SHIP_THRESHOLD > 0) parts.push(t('hero_note_ship').replace('{limit}', fmt(FREE_SHIP_THRESHOLD)));
+    el.textContent = parts.join(' ');
+}
+
+function renderPantry() {
+    const wrap = document.getElementById('pantry-groups');
+    if (!wrap) return;
+    const groups = [['bases', 'pantry_bases'], ['flavors', 'pantry_flavors'], ['extras', 'pantry_extras']];
+    wrap.innerHTML = groups.map(([g, title]) => `
+        <div class="pantry-group">
+            <h3 class="pantry-title">${escHtml(t(title))} <span class="pantry-count">${ING_DATA[g].length}</span></h3>
+            <ul class="pantry-list">${ING_DATA[g].map(ing => {
+                const photo = safePhoto(ing.photo);
+                const style = `--dot-color:${ing.color};` + (photo ? `--dot-photo:url("${photo}");` : '');
+                return `<li class="pantry-item${photo ? ' has-photo' : ''}${ing.inStock === false ? ' is-out' : ''}">`
+                    + `<span class="ing-dot" style="${escHtml(style)}" aria-hidden="true"></span>${escHtml(t(ing.key))}</li>`;
+            }).join('')}</ul>
+        </div>`).join('');
+    const lede = document.getElementById('pantry-lede');
+    if (lede) {
+        const n = g => ING_DATA[g].length;
+        lede.textContent = t('pantry_lede')
+            .replace('{bases}', n('bases')).replace('{flavors}', n('flavors')).replace('{extras}', n('extras'))
+            .replace('{combos}', (n('bases') * n('flavors') * n('extras')).toLocaleString(LANG === 'cs' ? 'cs-CZ' : 'en-US'));
+    }
+}
+
+function goToShelf() {
+    const onHome = document.getElementById('home-page')?.classList.contains('active');
+    if (!onHome) showPage('home-page');
+    setTimeout(() => document.getElementById('shelf')?.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' }), onHome ? 0 : 60);
+}
+
+/* ─── Mixér po krocích ──────────────────────── */
+/* Na mobilu je vidět vždy jen jeden krok a dole lišta Zpět / Dál. Na počítači
+   jsou kroky pod sebou a čipy nahoře k nim jen posunou stránku. */
+const mixerMQ = window.matchMedia('(max-width: 899px)');
+let mixerStep = 1;
+
+function mixerStepDone(n) {
+    if (n <= 3) return !!document.querySelector(`.ingredient-btn[data-target="part${n}"].selected`);
+    return !!document.getElementById('mix-name')?.value.trim();
+}
+function firstOpenMixerStep() {
+    for (let n = 1; n <= 3; n++) if (!mixerStepDone(n)) return n;
+    return 4;
+}
+function mixerComplete() { return [1, 2, 3].every(mixerStepDone); }
+
+function setMixerStep(n, opts = {}) {
+    const page = document.getElementById('product-page');
+    if (!page) return;
+    mixerStep = Math.min(4, Math.max(1, n));
+    page.dataset.step = String(mixerStep);
+    if (opts.scroll !== false && page.classList.contains('active')) {
+        const behavior = reduceMotion() ? 'auto' : 'smooth';
+        if (mixerMQ.matches) {
+            const panel = page.querySelector('.visualizer-column');
+            const options = page.querySelector('.options-column');
+            const target = options.getBoundingClientRect().top + window.scrollY - (panel ? panel.offsetHeight : 0) - 8;
+            if (window.scrollY > target) window.scrollTo({ top: Math.max(0, target), behavior });
+        } else {
+            page.querySelector(`.selection-group[data-step="${mixerStep}"]`)?.scrollIntoView({ behavior, block: 'start' });
+        }
+    }
+    updateMixerUI();
+    if (mixerStep === 4 && opts.focus) document.getElementById('mix-name')?.focus({ preventScroll: true });
+}
+
+function mixerAutoAdvance(fromStep) {
+    if (!mixerMQ.matches || fromStep !== mixerStep || fromStep > 3) return;
+    clearTimeout(mixerAutoAdvance.timer);
+    mixerAutoAdvance.timer = setTimeout(() => {
+        if (mixerStep === fromStep) setMixerStep(fromStep + 1);
+    }, 420);
+}
+
+function mixerNext() {
+    if (mixerStep < 4) {
+        if (!mixerStepDone(mixerStep)) { showToast(t('mixer_pick_first'), '👆'); return; }
+        setMixerStep(mixerStep + 1);
+        return;
+    }
+    if (!mixerComplete()) {
+        const missing = [1, 2, 3].filter(n => !mixerStepDone(n));
+        const names = { 1: t('prog_base'), 2: t('prog_flavor'), 3: t('prog_extra') };
+        showToast(`${t('mixer_missing')}: ${escHtml(missing.map(n => names[n].toLocaleLowerCase()).join(', '))}`, '👆');
+        setMixerStep(missing[0]);
+        return;
+    }
+    showSummary();
+}
+function mixerPrev() {
+    if (mixerStep === 1) { randomBlend(); return; }
+    setMixerStep(mixerStep - 1);
+}
+
+function updateMixerUI() {
+    const page = document.getElementById('product-page');
+    if (!page) return;
+    const current = mixerMQ.matches ? mixerStep : firstOpenMixerStep();
+    page.querySelectorAll('.progress-step[data-goto]').forEach(btn => {
+        const n = Number(btn.dataset.goto);
+        btn.classList.toggle('is-current', n === current);
+        if (n === current) btn.setAttribute('aria-current', 'step'); else btn.removeAttribute('aria-current');
+    });
+    page.querySelectorAll('.ingredient-btn').forEach(btn => btn.setAttribute('aria-pressed', String(btn.classList.contains('selected'))));
+
+    const name = document.getElementById('mix-name')?.value.trim();
+    const nameEl = document.getElementById('mixer-name-mobile');
+    if (nameEl) { nameEl.textContent = name || t('glass_name_default'); nameEl.classList.toggle('has-name', !!name); }
+
+    const prev = document.getElementById('mixer-prev');
+    const next = document.getElementById('mixer-next');
+    if (prev) prev.textContent = mixerStep === 1 ? t('btn_surprise') : t('mixer_prev');
+    if (next) {
+        next.textContent = mixerStep < 4 ? t('mixer_next_' + (mixerStep + 1)) : t('btn_preview');
+        const ready = mixerStep < 4 ? mixerStepDone(mixerStep) : mixerComplete();
+        next.classList.toggle('is-waiting', !ready);
+        next.setAttribute('aria-disabled', String(!ready));
+    }
+}
+
+function renderMixerPrice() {
+    const el = document.getElementById('mixer-price');
+    const tier = minPriceTier();
+    if (el) el.textContent = tier ? t('mixer_price').replace('{price}', fmt(tier.price)).replace('{weight}', tier.weight) : '';
+}
+
+function renderNameIdeas() {
+    const el = document.getElementById('name-ideas');
+    if (!el) return;
+    const pool = mixNameIdeas().slice().sort(() => Math.random() - 0.5).slice(0, 4);
+    el.innerHTML = `<span class="name-ideas-label">${escHtml(t('name_ideas_label'))}</span>`
+        + pool.map(n => `<button type="button" class="chip" data-name-idea="${escHtml(n)}">${escHtml(n)}</button>`).join('');
+}
+
+/* ─── Start ─────────────────────────────────── */
+function refreshRedesign() {
+    renderHero(heroBlendId, false);
+    renderHeroNote();
+    renderPantry();
+    renderMixerPrice();
+    updateMixerUI();
+}
+
+function initRedesign() {
+    renderHero(null, true);
+    renderHeroNote();
+    renderPantry();
+    renderMixerPrice();
+    renderNameIdeas();
+    document.getElementById('hero-shuffle')?.addEventListener('click', shuffleHero);
+    document.getElementById('hero-open')?.addEventListener('click', () => openBlend(heroBlendId));
+    document.querySelectorAll('.progress-step[data-goto]').forEach(btn => {
+        btn.addEventListener('click', () => setMixerStep(Number(btn.dataset.goto), { focus: true }));
+    });
+    document.getElementById('mixer-next')?.addEventListener('click', mixerNext);
+    document.getElementById('mixer-prev')?.addEventListener('click', mixerPrev);
+    document.getElementById('name-ideas')?.addEventListener('click', e => {
+        const chip = e.target.closest('[data-name-idea]');
+        if (!chip) return;
+        const input = document.getElementById('mix-name');
+        input.value = chip.dataset.nameIdea;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    document.getElementById('mix-name')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); mixerNext(); }
+    });
+    if (mixerMQ.addEventListener) mixerMQ.addEventListener('change', () => updateMixerUI());
+    const copy = document.getElementById('footer-copy');
+    if (copy) copy.textContent = `© ${new Date().getFullYear()} Tease you`;
+    document.body.dataset.page = document.querySelector('.page.active')?.id || 'home-page';
+    setMixerStep(firstOpenMixerStep(), { scroll: false });
 }

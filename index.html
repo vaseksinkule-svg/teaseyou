@@ -48,7 +48,7 @@
 <!-- PROMO BAR -->
 <div id="promo-bar" class="promo-bar">
     <span data-i18n="promo_text">🍵 Free shipping on orders over 500 Kč · Use code FIRSTBLEND for 10% off your first order</span>
-    <button class="promo-close" onclick="dismissPromoBar()" aria-label="Close">×</button>
+    <button class="promo-close" onclick="dismissPromoBar()" aria-label="Zavřít" data-i18n-aria="aria_close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 </div>
 
 <!-- COOKIE CONSENT -->
@@ -65,173 +65,174 @@
     </div>
 </div>
 
-<!-- BACK TO TOP -->
-<button id="back-to-top" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-</button>
-
 <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
-<nav id="sidebar" class="sidebar">
-    <button class="sidebar-close" onclick="closeSidebar()">&#x2715;</button>
-    <div class="sidebar-logo">Tease you</div>
+<nav id="sidebar" class="sidebar" aria-label="Menu">
+    <div class="sidebar-head">
+        <span class="sidebar-logo">Tease you</span>
+        <button class="icon-btn sidebar-close" onclick="closeSidebar()" aria-label="Zavřít" data-i18n-aria="aria_close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+    </div>
     <ul class="sidebar-nav">
-        <li onclick="closeSidebar(); showPage('quiz-page')" data-i18n="nav_quiz">Find my blend ✨</li>
-        <li onclick="closeSidebar(); showPage('home-page')" data-i18n="nav_home">Home</li>
-        <li onclick="closeSidebar(); showPage('product-page')" data-i18n="nav_create">Create your own</li>
-        <li onclick="closeSidebar(); showPage('saved-page')" data-i18n="nav_blends">My Blends</li>
-        <li onclick="closeSidebar(); showPage('orders-page')" data-i18n="nav_orders">My Orders</li>
-        <li onclick="closeSidebar(); showPage('about-page')" data-i18n="nav_about">About</li>
+        <li onclick="closeSidebar(); showPage('product-page')" data-i18n="nav_create">Namíchej si vlastní</li>
+        <li onclick="closeSidebar(); goToShelf()" data-i18n="nav_shelf">Naše směsi</li>
+        <li onclick="closeSidebar(); showPage('quiz-page')" data-i18n="nav_quiz">Najdi svůj blend</li>
         <li onclick="closeSidebar(); showPage('ingredients-page')" data-i18n="nav_ingredients">Ingredience</li>
+        <li onclick="closeSidebar(); showPage('saved-page')" data-i18n="nav_blends">Moje blendy</li>
+        <li onclick="closeSidebar(); showPage('orders-page')" data-i18n="nav_orders">Moje objednávky</li>
         <li onclick="closeSidebar(); showPage('process-page')" data-i18n="nav_process">Jak to děláme</li>
-        <li onclick="closeSidebar(); showPage('cart-page')" data-i18n="nav_cart">Cart</li>
+        <li onclick="closeSidebar(); showPage('about-page')" data-i18n="nav_about">O nás</li>
     </ul>
-    <div class="sidebar-footer"><p>Handcrafted blends,<br>made just for you.</p></div>
-</nav>
-
-<nav class="main-nav">
-    <div class="nav-container">
-        <div class="nav-menu-icon" onclick="openSidebar()"><span></span><span></span><span></span></div>
-        <div class="nav-logo" onclick="showPage('home-page')">Tease you</div>
-        <div class="nav-right">
-            <button class="dark-mode-btn" onclick="toggleDarkMode()" aria-label="Toggle dark mode">
-                <span class="dm-icon dm-light">&#x2600;&#xFE0F;</span>
-                <span class="dm-icon dm-dark">&#x1F319;</span>
-            </button>
-            <div class="nav-cart-icon" onclick="showPage('cart-page')">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-            </div>
-        </div>
+    <div class="sidebar-foot">
+        <button class="theme-switch" onclick="toggleDarkMode()">
+            <svg class="dm-light" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+            <svg class="dm-dark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            <span class="dm-light" data-i18n="theme_dark">Tmavý režim</span>
+            <span class="dm-dark" data-i18n="theme_light">Světlý režim</span>
+        </button>
     </div>
 </nav>
+
+<header class="main-nav">
+    <div class="nav-container">
+        <button class="icon-btn nav-menu-icon" onclick="openSidebar()" aria-label="Menu" data-i18n-aria="aria_menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+        </button>
+        <a class="nav-logo" href="./" onclick="event.preventDefault(); showPage('home-page')">Tease you</a>
+        <nav class="nav-links" aria-label="Hlavní navigace">
+            <button onclick="showPage('product-page')" data-page="product-page" data-i18n="nav_mix">Namíchat</button>
+            <button onclick="goToShelf()" data-i18n="nav_shelf">Naše směsi</button>
+            <button onclick="showPage('quiz-page')" data-page="quiz-page" data-i18n="nav_quiz_short">Kvíz</button>
+            <button onclick="showPage('ingredients-page')" data-page="ingredients-page" data-i18n="nav_ingredients">Ingredience</button>
+        </nav>
+        <div class="nav-right">
+            <button class="icon-btn dark-mode-btn" onclick="toggleDarkMode()" aria-label="Přepnout tmavý režim" data-i18n-aria="aria_theme">
+                <svg class="dm-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+                <svg class="dm-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            </button>
+            <button class="icon-btn nav-cart-icon" onclick="showPage('cart-page')" aria-label="Košík" data-i18n-aria="nav_cart">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.1a2 2 0 01-2 1.9H8.2a2 2 0 01-2-1.9L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>
+            </button>
+        </div>
+    </div>
+</header>
 
 <main class="content-wrapper">
 
 <!-- ═══ HOME ═══ -->
 <section id="home-page" class="page active">
 
-    <div class="hero-section">
-        <div class="hero-text">
-            <span class="hero-tag font-chaos">Handcrafted &middot; Personal &middot; Fresh</span>
-            <h1 class="logo big-logo">Tease<br>you</h1>
-            <p class="subtitle">Your taste, your tea.<br>Mix it, name it, love it.</p>
+    <div class="hero">
+        <div class="hero-copy">
+            <h1 class="hero-title" data-i18n="hero_title">Namíchej si čaj. Pojmenuj ho.</h1>
+            <p class="hero-lede" data-i18n="hero_lede">Vybereš základ, příchuť a doplněk. My směs čerstvě namícháme, zabalíme pod jménem, které jí dáš, a pošleme ti ji domů.</p>
             <div class="hero-actions">
-                <button class="btn btn-large" onclick="showPage('product-page')" data-i18n="btn_create_own">Create your own</button>
-                <button class="btn btn-ghost btn-large" onclick="document.querySelector('.how-section').scrollIntoView({behavior:'smooth'})" data-i18n="btn_how_works">How it works &darr;</button>
+                <button class="btn btn-primary btn-lg" onclick="showPage('product-page')" data-i18n="btn_create_own">Namíchej si vlastní</button>
+                <button class="btn btn-quiet btn-lg" onclick="showPage('quiz-page')" data-i18n="hero_quiz_btn">Poradit kvízem</button>
             </div>
+            <p class="hero-note" id="hero-note"></p>
         </div>
-        <div class="hero-visual">
-            <div class="hero-glasses">
-                <div class="hero-glass hero-glass--a">
-                    <div style="background:#ffe066"></div><div style="background:#4caf50"></div><div style="background:#8da676"></div>
-                </div>
-                <div class="hero-glass hero-glass--b">
-                    <div style="background:#ffc107"></div><div style="background:#cc4747"></div><div style="background:#f5e6d3"></div>
-                </div>
-                <div class="hero-glass hero-glass--c">
-                    <div style="background:#f3e5ab"></div><div style="background:#ff9800"></div><div style="background:#4a3b32"></div>
+
+        <div class="hero-stage">
+            <div class="jar jar--hero" aria-hidden="true">
+                <div class="jar-lid"></div>
+                <div class="jar-body">
+                    <div class="glass-frame" id="hero-glass">
+                        <div class="glass-part is-empty"></div>
+                        <div class="glass-part is-empty"></div>
+                        <div class="glass-part is-empty"></div>
+                    </div>
+                    <div class="jar-label"><span class="jar-label-name" id="hero-label"></span><span class="jar-label-brand">Tease you</span></div>
                 </div>
             </div>
-            <div class="hero-visual-label font-chaos">500+ combinations</div>
-        </div>
-    </div>
-
-    <!-- QUIZ CTA STRIP -->
-    <div class="quiz-strip reveal-section">
-        <span class="font-chaos quiz-strip-text" data-i18n="quiz_strip_text">Not sure where to start?</span>
-        <button class="btn btn-secondary" onclick="showPage('quiz-page'); startQuiz()" data-i18n="btn_quiz">Take the Tea Finder Quiz →</button>
-    </div>
-
-    <div class="stats-bar reveal-section">
-        <div class="stats-bar-inner">
-            <div class="stat-item"><span class="stat-num">6</span><span class="stat-label" data-i18n="stat_bases">Tea bases</span></div>
-            <div class="stat-sep"></div>
-            <div class="stat-item"><span class="stat-num">9</span><span class="stat-label" data-i18n="stat_flavors">Flavors</span></div>
-            <div class="stat-sep"></div>
-            <div class="stat-item"><span class="stat-num">9</span><span class="stat-label" data-i18n="stat_extras">Extras</span></div>
-            <div class="stat-sep"></div>
-            <div class="stat-item"><span class="stat-num">500+</span><span class="stat-label" data-i18n="stat_blends">Unique blends</span></div>
-            <div class="stat-sep"></div>
-            <div class="stat-item"><span class="stat-num">24h</span><span class="stat-label" data-i18n="stat_recipe">Dispatch</span></div>
-        </div>
-    </div>
-
-    <div class="how-section reveal-section">
-        <h2 class="font-cosmico section-subtitle" data-i18n="how_title">How it works</h2>
-        <div class="how-grid">
-            <div class="how-step">
-                <div class="how-num font-cosmico">01</div>
-                <div class="how-icon-wrap">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 010 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+            <div class="hero-blend">
+                <p class="hero-blend-mix" id="hero-mix" aria-live="polite"></p>
+                <div class="hero-blend-actions">
+                    <button class="btn btn-small btn-outline" id="hero-open" data-i18n="hero_pick">Chci tuhle</button>
+                    <button class="btn btn-small btn-text" id="hero-shuffle">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0115.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 01-15.5 6.2L3 16M3 21v-5h5"/></svg>
+                        <span data-i18n="hero_shuffle">Zamíchat jinak</span>
+                    </button>
                 </div>
-                <h3 class="font-cosmico" data-i18n="how_1_title">Pick your base</h3>
-                <p data-i18n="how_1_desc">Start with one of six premium tea bases &mdash; from bold black to soothing chamomile.</p>
-            </div>
-            <div class="how-connector"></div>
-            <div class="how-step">
-                <div class="how-num font-cosmico">02</div>
-                <div class="how-icon-wrap">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-                </div>
-                <h3 class="font-cosmico" data-i18n="how_2_title">Add flavors</h3>
-                <p data-i18n="how_2_desc">Layer in your favourite fruits, flowers or spices and watch your blend come alive.</p>
-            </div>
-            <div class="how-connector"></div>
-            <div class="how-step">
-                <div class="how-num font-cosmico">03</div>
-                <div class="how-icon-wrap">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10V4a2 2 0 00-2-2H5a2 2 0 00-2 2v6"/><path d="M3 10h18v10a2 2 0 01-2 2H5a2 2 0 01-2-2V10z"/><path d="M8 10V6m8 4V6"/></svg>
-                </div>
-                <h3 class="font-cosmico" data-i18n="how_3_title">We ship it fresh</h3>
-                <p data-i18n="how_3_desc">Your unique blend is packed to order and delivered straight to your door.</p>
             </div>
         </div>
     </div>
 
-    <div class="ready-made-section reveal-section">
-        <h2 class="font-cosmico section-subtitle" data-i18n="lbl_signature_blends">Signature Blends</h2>
-        <div class="ready-grid">
-            <div class="ready-card" onclick="openDetail('Morning Window','Green tea with mint and lemon. Clean and bright — the kind of cup that gets the day started right.',89,['Green Tea','Mint','Lemon'],['#8da676','#4caf50','#ffe066'])">
-                <div class="ready-glass-mini"><div style="background:#ffe066"></div><div style="background:#4caf50"></div><div style="background:#8da676"></div></div>
-                <h3 class="font-cosmico">Morning Window</h3>
-                <p class="font-chaos" data-i18n="blend_sub_1">Green tea, Mint &amp; Lemon</p>
-                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
-            </div>
-            <div class="ready-card" onclick="openDetail('Still Evening','White tea with strawberry and honey. Gently sweet and unhurried — a soft end to the day.',89,['White Tea','Strawberry','Honey'],['#f5e6d3','#cc4747','#ffc107'])">
-                <div class="ready-glass-mini"><div style="background:#ffc107"></div><div style="background:#cc4747"></div><div style="background:#f5e6d3"></div></div>
-                <h3 class="font-cosmico">Still Evening</h3>
-                <p class="font-chaos" data-i18n="blend_sub_2">White tea, Strawberry &amp; Honey</p>
-                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
-            </div>
-            <div class="ready-card" onclick="openDetail('Deep Winter','Black tea with ginger and vanilla. Full and warming — best with both hands around the mug.',89,['Black Tea','Ginger','Vanilla'],['#4a3b32','#ff9800','#f3e5ab'])">
-                <div class="ready-glass-mini"><div style="background:#f3e5ab"></div><div style="background:#ff9800"></div><div style="background:#4a3b32"></div></div>
-                <h3 class="font-cosmico">Deep Winter</h3>
-                <p class="font-chaos" data-i18n="blend_sub_3">Black tea, Ginger &amp; Vanilla</p>
-                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
-            </div>
-            <div class="ready-card" onclick="openDetail('Late Light','Oolong with rose and lavender. Soft and a little floral — for the quiet part of the afternoon.',89,['Oolong Tea','Rose','Lavender'],['#c8a0b4','#e8607a','#b8a0cc'])">
-                <div class="ready-glass-mini"><div style="background:#b8a0cc"></div><div style="background:#e8607a"></div><div style="background:#c8a0b4"></div></div>
-                <h3 class="font-cosmico">Late Light</h3>
-                <p class="font-chaos" data-i18n="blend_sub_4">Oolong, Rose &amp; Lavender</p>
-                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
-            </div>
-            <div class="ready-card" onclick="openDetail('Open Air','Rooibos with orange and spearmint. Naturally sweet and caffeine-free — good any time.',89,['Rooibos','Orange','Spearmint'],['#e8720c','#ffb347','#a8d8a8'])">
-                <div class="ready-glass-mini"><div style="background:#a8d8a8"></div><div style="background:#ffb347"></div><div style="background:#e8720c"></div></div>
-                <h3 class="font-cosmico">Open Air</h3>
-                <p class="font-chaos" data-i18n="blend_sub_5">Rooibos, Orange &amp; Spearmint</p>
-                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
-            </div>
-            <div class="ready-card" onclick="openDetail('Slow Tuesday','Chamomile with turmeric and cinnamon. Earthy and warm — the tea equivalent of doing nothing.',89,['Chamomile','Turmeric','Cinnamon'],['#f5d78e','#d4a017','#c8824a'])">
-                <div class="ready-glass-mini"><div style="background:#c8824a"></div><div style="background:#d4a017"></div><div style="background:#f5d78e"></div></div>
-                <h3 class="font-cosmico">Slow Tuesday</h3>
-                <p class="font-chaos" data-i18n="blend_sub_6">Chamomile, Turmeric &amp; Cinnamon</p>
-                <span class="ready-price" data-i18n="price_from">od 49 Kč</span>
-            </div>
-        </div>
-    </div>
+    <section class="how" aria-labelledby="how-title">
+        <h2 class="section-title" id="how-title" data-i18n="how_title">Jak to funguje</h2>
+        <ol class="how-steps">
+            <li class="how-step">
+                <div class="jar jar--xs" aria-hidden="true"><div class="jar-lid"></div><div class="jar-body"><div class="glass-frame">
+                    <div class="glass-part" style="background-color:#8da676"></div><div class="glass-part is-empty"></div><div class="glass-part is-empty"></div>
+                </div></div></div>
+                <div class="how-text">
+                    <h3><span class="how-num">1</span> <span data-i18n="how_1_title">Vyber základ</span></h3>
+                    <p data-i18n="howx_1">Šest čajů od výrazného černého po heřmánek bez kofeinu. Základ určuje charakter směsi.</p>
+                </div>
+            </li>
+            <li class="how-step">
+                <div class="jar jar--xs" aria-hidden="true"><div class="jar-lid"></div><div class="jar-body"><div class="glass-frame">
+                    <div class="glass-part" style="background-color:#8da676"></div><div class="glass-part" style="background-color:#4caf50"></div><div class="glass-part is-empty"></div>
+                </div></div></div>
+                <div class="how-text">
+                    <h3><span class="how-num">2</span> <span data-i18n="howx_2_title">Přidej příchuť</span></h3>
+                    <p data-i18n="howx_2">Ovoce, květy, kakao nebo kokos. Tady začne být směs tvoje.</p>
+                </div>
+            </li>
+            <li class="how-step">
+                <div class="jar jar--xs" aria-hidden="true"><div class="jar-lid"></div><div class="jar-body"><div class="glass-frame">
+                    <div class="glass-part" style="background-color:#8da676"></div><div class="glass-part" style="background-color:#4caf50"></div><div class="glass-part" style="background-color:#ffe066"></div>
+                </div></div></div>
+                <div class="how-text">
+                    <h3><span class="how-num">3</span> <span data-i18n="howx_3_title">Dolaď doplňkem</span></h3>
+                    <p data-i18n="howx_3">Med, citron, zázvor nebo koření. Malá věc, která chuť dotáhne.</p>
+                </div>
+            </li>
+            <li class="how-step">
+                <div class="jar jar--xs" aria-hidden="true"><div class="jar-lid"></div><div class="jar-body"><div class="glass-frame">
+                    <div class="glass-part" style="background-color:#8da676"></div><div class="glass-part" style="background-color:#4caf50"></div><div class="glass-part" style="background-color:#ffe066"></div>
+                </div><div class="jar-label"></div></div></div>
+                <div class="how-text">
+                    <h3><span class="how-num">4</span> <span data-i18n="howx_4_title">Pojmenuj ji</span></h3>
+                    <p data-i18n="howx_4">Směs zabalíme pod tvým jménem a do 24 hodin odešleme.</p>
+                </div>
+            </li>
+        </ol>
+        <button class="btn btn-primary how-cta" onclick="showPage('product-page')" data-i18n="how_cta">Začít míchat</button>
+    </section>
 
-    <!-- FAQ -->
-    <div class="faq-section reveal-section">
-        <h2 class="font-cosmico section-subtitle" data-i18n="faq_title">Frequently asked</h2>
+    <section class="ready-made-section shelf-section" id="shelf" aria-labelledby="shelf-title">
+        <div class="section-head">
+            <h2 class="section-title" id="shelf-title" data-i18n="shelf_title">Naše směsi</h2>
+            <p class="section-lede" data-i18n="shelf_lede">Hotové kombinace. Objednej je rovnou, nebo si je v mixéru uprav podle sebe.</p>
+        </div>
+        <div class="shelf">
+            <div class="ready-grid"></div>
+        </div>
+    </section>
+
+    <section class="quiz-band" aria-labelledby="quizband-title">
+        <div class="quiz-band-copy">
+            <h2 id="quizband-title" data-i18n="quizband_title">Nevíš, co by ti chutnalo?</h2>
+            <p data-i18n="quizband_text">Odpověz na pět krátkých otázek a doporučíme ti směs, která sedí tvé náladě i denní době.</p>
+        </div>
+        <button class="btn btn-cream btn-lg" onclick="showPage('quiz-page')" data-i18n="quizband_btn">Spustit kvíz</button>
+    </section>
+
+    <section class="pantry" aria-labelledby="pantry-title">
+        <div class="section-head">
+            <h2 class="section-title" id="pantry-title" data-i18n="pantry_title">Z čeho mícháme</h2>
+            <p class="section-lede" id="pantry-lede"></p>
+        </div>
+        <div class="pantry-groups" id="pantry-groups"></div>
+        <button class="btn btn-outline" onclick="showPage('ingredients-page')" data-i18n="pantry_link">Prohlédnout všechny ingredience</button>
+    </section>
+
+    <section class="faq-section" aria-labelledby="faq-title">
+        <div class="faq-head">
+            <h2 class="section-title" id="faq-title" data-i18n="faq_title">Časté otázky</h2>
+            <p class="section-lede" data-i18n-html="faq_lede">Něco tu chybí? Napiš na <a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a>.</p>
+        </div>
         <div class="faq-list">
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">
@@ -276,17 +277,10 @@
                 <div class="faq-a" data-i18n="faq_a6">All our blends are packed in resealable, food-grade kraft pouches with an airtight seal. Stored in a cool, dry place away from direct light, your blend will stay fresh for 12&ndash;18 months.</div>
             </div>
         </div>
-    </div>
-
-    <div class="cta-banner reveal-section">
-        <div class="cta-banner-text">
-            <h2 class="font-cosmico" data-i18n="cta_title">Start with what sounds good.</h2>
-            <p data-i18n="cta_desc">Pick a base, add what you like, name it.</p>
-        </div>
-        <button class="btn btn-large cta-btn" onclick="showPage('product-page')" data-i18n="btn_start_creating">Start creating &rarr;</button>
-    </div>
+    </section>
 
 </section>
+
 
 <!-- ═══ PRODUCT DETAIL ═══ -->
 <section id="product-detail-page" class="page">
@@ -359,131 +353,117 @@
 </section>
 
 <!-- ═══ CONFIGURATOR ═══ -->
-<section id="product-page" class="page product-grid">
-    <div class="options-column">
-        <div class="config-header">
-            <button onclick="showPage('home-page')" class="back-link" data-i18n="back_btn">&#8592; Back</button>
-            <div>
-                <h2 class="font-cosmico config-title" data-i18n="config_title">Build your blend</h2>
-                <p class="config-subtitle" data-i18n="config_subtitle">Pick one from each category</p>
-            </div>
-        </div>
-        <div class="progress-bar-wrap">
-            <div class="progress-step" id="prog-1"><div class="progress-dot"></div><span data-i18n="prog_base">Base</span></div>
-            <div class="progress-line" id="prog-line-1"></div>
-            <div class="progress-step" id="prog-2"><div class="progress-dot"></div><span data-i18n="prog_flavor">Flavor</span></div>
-            <div class="progress-line" id="prog-line-2"></div>
-            <div class="progress-step" id="prog-3"><div class="progress-dot"></div><span data-i18n="prog_extras">Extras</span></div>
-            <div class="progress-line" id="prog-line-3"></div>
-            <div class="progress-step" id="prog-4"><div class="progress-dot"></div><span data-i18n="prog_name">Name</span></div>
-        </div>
-        <div class="preset-row">
-            <span class="preset-row-label" data-i18n="preset_label">Quick start:</span>
-            <div class="preset-chips" id="preset-chips"></div>
-        </div>
-        <div class="info-wrapper">
-            <div id="base-info" class="info-box">
-                <div id="info-default-state">
-                    <h4 id="info-title" class="font-chaos" data-i18n="info_default_title">Select a base</h4>
-                    <p id="info-text" data-i18n="info_default_text">Choose your preferred tea base to start.</p>
-                </div>
-                <div id="info-rich" class="info-rich" style="display:none">
-                    <div class="info-rich-header">
-                        <span id="info-rich-emoji" class="info-rich-emoji"></span>
-                        <div>
-                            <h4 id="info-rich-name" class="font-chaos"></h4>
-                            <p id="info-rich-desc"></p>
+<section id="product-page" class="page mixer" data-step="1">
+    <div class="mixer-head">
+        <button onclick="showPage('home-page')" class="back-link" data-i18n="back_btn">← Zpět</button>
+        <h1 class="mixer-title" data-i18n="config_title">Namíchej svůj blend</h1>
+        <p class="mixer-sub" data-i18n="mixer_sub">Jeden základ, jedna příchuť, jeden doplněk. Jméno je na tobě.</p>
+    </div>
+
+    <div class="mixer-layout">
+        <aside class="visualizer-column" aria-label="Tvoje směs" data-i18n-aria="glass_title">
+            <div class="mixer-panel">
+                <div class="jar jar--mixer" aria-hidden="true">
+                    <div class="jar-lid"></div>
+                    <div class="jar-body">
+                        <div class="glass-frame" id="main-glass-frame">
+                            <div id="part1" class="glass-part is-empty"></div>
+                            <div id="part2" class="glass-part is-empty"></div>
+                            <div id="part3" class="glass-part is-empty"></div>
                         </div>
+                        <div class="jar-label"><span class="jar-label-name" id="glass-mix-name-display">Pojmenuj svůj mix</span><span class="jar-label-brand">Tease you</span></div>
                     </div>
-                    <div id="info-rich-caffeine" class="info-rich-caffeine"></div>
-                    <div id="info-rich-tags" class="ing-card-tags"></div>
-                    <div id="info-rich-health" class="info-rich-section"></div>
-                    <div id="info-rich-pairs" class="info-rich-section"></div>
+                </div>
+
+                <div class="mixer-status">
+                    <p class="mixer-status-name" id="mixer-name-mobile"></p>
+                    <ul class="glass-labels">
+                        <li class="glass-label"><span class="glass-label-dot" id="label-dot-1"></span><span class="glass-label-text" id="label-text-1">Základ</span></li>
+                        <li class="glass-label"><span class="glass-label-dot" id="label-dot-2"></span><span class="glass-label-text" id="label-text-2">Příchuť</span></li>
+                        <li class="glass-label"><span class="glass-label-dot" id="label-dot-3"></span><span class="glass-label-text" id="label-text-3">Doplněk</span></li>
+                    </ul>
+                    <p class="mixer-price" id="mixer-price"></p>
+                    <span class="completion-label" id="completion-label">0 / 3</span>
+                    <div class="completion-bar" hidden><div class="completion-fill" id="completion-fill"></div></div>
+                    <button id="save-mix-btn" class="btn btn-primary btn-lg btn-block disabled" onclick="showSummary()" disabled data-i18n="btn_preview">Ukázat směs a cenu</button>
                 </div>
             </div>
-        </div>
-        <div class="selection-group">
-            <h3 class="font-cosmico" data-i18n="section_base">1. Base</h3>
-            <div class="btn-grid" data-group="bases">
-                <button class="ingredient-btn" data-target="part1" data-color="#8da676" data-name="Green Tea" data-desc="Fresh and earthy, light caffeine." data-i18n="ing_green_tea" data-i18n-desc="ing_green_tea_desc">Green Tea</button>
-                <button class="ingredient-btn" data-target="part1" data-color="#4a3b32" data-name="Black Tea" data-desc="Strong and bold, high caffeine." data-i18n="ing_black_tea" data-i18n-desc="ing_black_tea_desc">Black Tea</button>
-                <button class="ingredient-btn" data-target="part1" data-color="#f5e6d3" data-name="White Tea" data-desc="Delicate and sweet, low caffeine." data-i18n="ing_white_tea" data-i18n-desc="ing_white_tea_desc">White Tea</button>
-                <button class="ingredient-btn" data-target="part1" data-color="#c8a0b4" data-name="Oolong Tea" data-desc="Complex and floral, medium caffeine." data-i18n="ing_oolong" data-i18n-desc="ing_oolong_desc">Oolong Tea</button>
-                <button class="ingredient-btn" data-target="part1" data-color="#e8720c" data-name="Rooibos" data-desc="Earthy and sweet, caffeine-free." data-i18n="ing_rooibos" data-i18n-desc="ing_rooibos_desc">Rooibos</button>
-                <button class="ingredient-btn" data-target="part1" data-color="#f5d78e" data-name="Chamomile" data-desc="Calm and soothing, caffeine-free." data-i18n="ing_chamomile" data-i18n-desc="ing_chamomile_desc">Chamomile</button>
+
+            <ol class="mixer-steps" aria-label="Kroky">
+                <li><button type="button" class="progress-step" id="prog-1" data-goto="1"><span class="progress-dot">1</span><span data-i18n="prog_base">Základ</span></button></li>
+                <li><button type="button" class="progress-step" id="prog-2" data-goto="2"><span class="progress-dot">2</span><span data-i18n="prog_flavor">Příchuť</span></button></li>
+                <li><button type="button" class="progress-step" id="prog-3" data-goto="3"><span class="progress-dot">3</span><span data-i18n="prog_extra">Doplněk</span></button></li>
+                <li><button type="button" class="progress-step" id="prog-4" data-goto="4"><span class="progress-dot">4</span><span data-i18n="prog_name">Jméno</span></button></li>
+            </ol>
+        </aside>
+
+        <div class="options-column">
+            <div class="preset-row">
+                <span class="preset-row-label" data-i18n="preset_label2">Nechceš začínat od nuly?</span>
+                <div class="preset-chips" id="preset-chips"></div>
             </div>
-            <button class="clear-btn" data-target="part1" data-i18n="btn_clear">&#x2715; Clear</button>
-        </div>
-        <div class="selection-group">
-            <h3 class="font-cosmico" data-i18n="section_flavor">2. Flavor</h3>
-            <div class="btn-grid" data-group="flavors">
-                <button class="ingredient-btn" data-target="part2" data-color="#cc4747" data-name="Strawberry" data-desc="Sweet and fruity, summery." data-i18n="ing_strawberry" data-i18n-desc="ing_strawberry_desc">Strawberry</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#4caf50" data-name="Mint" data-desc="Cooling and fresh, bright." data-i18n="ing_mint" data-i18n-desc="ing_mint_desc">Mint</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#f3e5ab" data-name="Vanilla" data-desc="Sweet, creamy and warm." data-i18n="ing_vanilla" data-i18n-desc="ing_vanilla_desc">Vanilla</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#e8607a" data-name="Rose" data-desc="Floral and delicate." data-i18n="ing_rose" data-i18n-desc="ing_rose_desc">Rose</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#ffb347" data-name="Orange" data-desc="Citrusy, bright and zesty." data-i18n="ing_orange" data-i18n-desc="ing_orange_desc">Orange</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#9b59b6" data-name="Blueberry" data-desc="Sweet and tart, antioxidant-rich." data-i18n="ing_blueberry" data-i18n-desc="ing_blueberry_desc">Blueberry</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#e91e8c" data-name="Raspberry" data-desc="Tart, fruity and vibrant." data-i18n="ing_raspberry" data-i18n-desc="ing_raspberry_desc">Raspberry</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#795548" data-name="Cocoa" data-desc="Rich, chocolatey and earthy." data-i18n="ing_cocoa" data-i18n-desc="ing_cocoa_desc">Cocoa</button>
-                <button class="ingredient-btn" data-target="part2" data-color="#4fc3f7" data-name="Coconut" data-desc="Tropical, sweet and creamy." data-i18n="ing_coconut" data-i18n-desc="ing_coconut_desc">Coconut</button>
+
+            <!-- Starý panel s detailem ingredience: JS do něj pořád píše, v novém vzhledu je skrytý -->
+            <div id="base-info" class="info-box" hidden>
+                <div id="info-default-state"><h4 id="info-title"></h4><p id="info-text"></p></div>
+                <div id="info-rich" class="info-rich" style="display:none">
+                    <span id="info-rich-emoji"></span><h4 id="info-rich-name"></h4><p id="info-rich-desc"></p>
+                    <div id="info-rich-caffeine"></div><div id="info-rich-tags"></div>
+                    <div id="info-rich-health"></div><div id="info-rich-pairs"></div>
+                </div>
             </div>
-            <button class="clear-btn" data-target="part2" data-i18n="btn_clear">&#x2715; Clear</button>
-        </div>
-        <div class="selection-group">
-            <h3 class="font-cosmico" data-i18n="section_extras">3. Extras</h3>
-            <div class="btn-grid" data-group="extras">
-                <button class="ingredient-btn" data-target="part3" data-color="#ffc107" data-name="Honey" data-desc="Naturally sweet and soothing." data-i18n="ing_honey" data-i18n-desc="ing_honey_desc">Honey</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#ffe066" data-name="Lemon" data-desc="Bright, citrusy and tart." data-i18n="ing_lemon" data-i18n-desc="ing_lemon_desc">Lemon</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#ff9800" data-name="Ginger" data-desc="Spicy, warm and zesty." data-i18n="ing_ginger" data-i18n-desc="ing_ginger_desc">Ginger</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#b8a0cc" data-name="Lavender" data-desc="Floral and calming." data-i18n="ing_lavender" data-i18n-desc="ing_lavender_desc">Lavender</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#d4a017" data-name="Turmeric" data-desc="Earthy, peppery and warm." data-i18n="ing_turmeric" data-i18n-desc="ing_turmeric_desc">Turmeric</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#c8824a" data-name="Cinnamon" data-desc="Warm, spicy and sweet." data-i18n="ing_cinnamon" data-i18n-desc="ing_cinnamon_desc">Cinnamon</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#a8d8a8" data-name="Spearmint" data-desc="Cool, sweet and mild." data-i18n="ing_spearmint" data-i18n-desc="ing_spearmint_desc">Spearmint</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#f8bbd0" data-name="Rose Hip" data-desc="Tart, fruity and tangy." data-i18n="ing_rose_hip" data-i18n-desc="ing_rose_hip_desc">Rose Hip</button>
-                <button class="ingredient-btn" data-target="part3" data-color="#80cbc4" data-name="Cardamom" data-desc="Exotic, spicy and floral." data-i18n="ing_cardamom" data-i18n-desc="ing_cardamom_desc">Cardamom</button>
+
+            <div class="selection-group" data-step="1">
+                <div class="step-head">
+                    <h2 class="step-title"><span class="step-num">1</span> <span data-i18n="step_1_title">Vyber základ</span></h2>
+                    <button class="clear-btn" data-target="part1" data-i18n="btn_clear2">Vymazat</button>
+                </div>
+                <p class="step-hint" data-i18n="step_1_hint">Určuje charakter směsi a kolik bude mít kofeinu.</p>
+                <div class="btn-grid" data-group="bases"></div>
             </div>
-            <button class="clear-btn" data-target="part3" data-i18n="btn_clear">&#x2715; Clear</button>
-        </div>
-        <div class="selection-group">
-            <h3 class="font-cosmico" data-i18n="section_name">4. Name your mix</h3>
-            <input type="text" id="mix-name" placeholder="e.g. Slow Tuesday" class="name-input" maxlength="32" data-i18n-placeholder="name_placeholder">
-            <p class="name-hint font-chaos" data-i18n="name_hint">Give it a name you'll remember &#x2728;</p>
-        </div>
-        <div class="action-area">
-            <button id="save-mix-btn" class="btn btn-large disabled" onclick="showSummary()" disabled data-i18n="btn_preview">Preview my blend &rarr;</button>
-            <button class="random-blend-btn" onclick="randomBlend()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
-                <span data-i18n="btn_surprise">Surprise me</span>
-            </button>
+
+            <div class="selection-group" data-step="2">
+                <div class="step-head">
+                    <h2 class="step-title"><span class="step-num">2</span> <span data-i18n="step_2_title">Přidej příchuť</span></h2>
+                    <button class="clear-btn" data-target="part2" data-i18n="btn_clear2">Vymazat</button>
+                </div>
+                <p class="step-hint" data-i18n="step_2_hint">Ovoce, květy nebo něco sladšího.</p>
+                <div class="btn-grid" data-group="flavors"></div>
+            </div>
+
+            <div class="selection-group" data-step="3">
+                <div class="step-head">
+                    <h2 class="step-title"><span class="step-num">3</span> <span data-i18n="step_3_title">Dolaď doplňkem</span></h2>
+                    <button class="clear-btn" data-target="part3" data-i18n="btn_clear2">Vymazat</button>
+                </div>
+                <p class="step-hint" data-i18n="step_3_hint">Med, citrus nebo koření na dotažení chuti.</p>
+                <div class="btn-grid" data-group="extras"></div>
+            </div>
+
+            <div class="selection-group" data-step="4">
+                <div class="step-head">
+                    <h2 class="step-title"><span class="step-num">4</span> <span data-i18n="step_4_title">Pojmenuj ji</span></h2>
+                </div>
+                <label class="step-hint" for="mix-name" data-i18n="step_4_hint">Pod tímhle jménem ji zabalíme. Nech prázdné a bude to Moje směs.</label>
+                <input type="text" id="mix-name" placeholder="Např. Pomalé úterý" class="name-input mix-name-input" maxlength="32" autocomplete="off" data-i18n-placeholder="name_placeholder">
+                <div class="name-ideas" id="name-ideas"></div>
+            </div>
+
+            <div class="action-area">
+                <button class="btn btn-text random-blend-btn" onclick="randomBlend()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0115.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 01-15.5 6.2L3 16M3 21v-5h5"/></svg>
+                    <span data-i18n="btn_surprise">Překvap mě</span>
+                </button>
+            </div>
         </div>
     </div>
-    <div class="visualizer-column">
-        <div class="visualizer-inner">
-            <div class="glass-panel">
-                <p class="glass-panel-title" data-i18n="glass_title">Your blend</p>
-                <div class="glass-container">
-                    <div class="glass-frame" id="main-glass-frame">
-                        <div id="part1" class="glass-part"></div>
-                        <div id="part2" class="glass-part"></div>
-                        <div id="part3" class="glass-part"></div>
-                    </div>
-                    <div class="glass-labels">
-                        <div class="glass-label"><div class="glass-label-dot" id="label-dot-1"></div><span id="label-text-1" data-i18n="glass_label_base">Base</span></div>
-                        <div class="glass-label"><div class="glass-label-dot" id="label-dot-2"></div><span id="label-text-2" data-i18n="glass_label_flavor">Flavor</span></div>
-                        <div class="glass-label"><div class="glass-label-dot" id="label-dot-3"></div><span id="label-text-3" data-i18n="glass_label_extras">Extras</span></div>
-                    </div>
-                    <div class="glass-platform"></div>
-                </div>
-                <div class="glass-mix-name" id="glass-mix-name-display" data-i18n="glass_name_default">Name your mix</div>
-                <div class="glass-completion">
-                    <div class="completion-bar"><div class="completion-fill" id="completion-fill"></div></div>
-                    <span class="completion-label" id="completion-label">0 / 3 selected</span>
-                </div>
-            </div>
-            <div id="selected-ing-panel" class="selected-ing-panel"></div>
-        </div>
+
+    <div class="mixer-bar" id="mixer-bar">
+        <button type="button" class="btn btn-quiet" id="mixer-prev"></button>
+        <button type="button" class="btn btn-primary" id="mixer-next"></button>
     </div>
 </section>
+
 
 <!-- ═══ SUMMARY ═══ -->
 <section id="summary-page" class="page">
@@ -952,7 +932,7 @@
     <div class="footer-inner">
         <div class="footer-brand">
             <div class="footer-logo">Tease you</div>
-            <p class="footer-tagline" data-i18n-html="footer_tagline">Handcrafted blends,<br>made just for you.</p>
+            <p class="footer-tagline" data-i18n="footer_tagline2">Čajové směsi na míru, míchané až po objednání.</p>
             <div class="footer-socials">
                 <a href="#" class="social-icon" aria-label="Instagram" onclick="showSocialComingSoon(event)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
                 <a href="#" class="social-icon" aria-label="TikTok" onclick="showSocialComingSoon(event)"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.53V6.75a4.85 4.85 0 01-1.02-.06z"/></svg></a>
@@ -960,77 +940,66 @@
             </div>
         </div>
         <div class="footer-col">
-            <h4 class="footer-col-title" data-i18n="footer_nav">Navigation</h4>
+            <h2 class="footer-col-title" data-i18n="footer_shop">Obchod</h2>
             <ul class="footer-links">
-                <li><a onclick="showPage('home-page')" data-i18n="nav_home">Home</a></li>
-                <li><a onclick="showPage('product-page')" data-i18n="nav_create">Create your own</a></li>
-                <li><a onclick="showPage('saved-page')" data-i18n="nav_blends">My Blends</a></li>
-                <li><a onclick="showPage('orders-page')" data-i18n="nav_orders">My Orders</a></li>
-                <li><a onclick="showPage('about-page')" data-i18n="nav_about">About</a></li>
-                <li><a onclick="showPage('cart-page')" data-i18n="nav_cart">Cart</a></li>
+                <li><a href="#" onclick="event.preventDefault(); showPage('product-page')" data-i18n="nav_create">Namíchej si vlastní</a></li>
+                <li><a href="#" onclick="event.preventDefault(); goToShelf()" data-i18n="nav_shelf">Naše směsi</a></li>
+                <li><a href="#" onclick="event.preventDefault(); showPage('quiz-page')" data-i18n="nav_quiz">Najdi svůj blend</a></li>
+                <li><a href="#" onclick="event.preventDefault(); showPage('ingredients-page')" data-i18n="nav_ingredients">Ingredience</a></li>
+                <li><a href="#" onclick="event.preventDefault(); showPage('saved-page')" data-i18n="nav_blends">Moje blendy</a></li>
+                <li><a href="#" onclick="event.preventDefault(); showPage('orders-page')" data-i18n="nav_orders">Moje objednávky</a></li>
             </ul>
         </div>
         <div class="footer-col">
-            <h4 class="footer-col-title" data-i18n="footer_legal">Legal</h4>
+            <h2 class="footer-col-title" data-i18n="footer_info">Informace</h2>
             <ul class="footer-links">
-                <li><a href="#" onclick="showPage('terms-page')" data-i18n="footer_terms">Terms &amp; Conditions</a></li>
-                <li><a href="#" onclick="showPage('privacy-page')" data-i18n="footer_privacy">Privacy Policy</a></li>
-                <li><a href="#" onclick="showPage('privacy-page')" data-i18n="footer_gdpr">GDPR</a></li>
-                <li><a href="#" onclick="showPage('cookies-page')" data-i18n="footer_cookies">Cookie Policy</a></li>
+                <li><a href="#" onclick="event.preventDefault(); showPage('about-page')" data-i18n="nav_about">O nás</a></li>
+                <li><a href="#" onclick="event.preventDefault(); showPage('process-page')" data-i18n="nav_process">Jak to děláme</a></li>
+                <li><a href="#" onclick="event.preventDefault(); showPage('terms-page')" data-i18n="footer_terms">Obchodní podmínky</a></li>
+                <li><a href="#" onclick="event.preventDefault(); showPage('privacy-page')" data-i18n="footer_privacy">Ochrana osobních údajů</a></li>
+                <li><a href="#" onclick="event.preventDefault(); showPage('cookies-page')" data-i18n="footer_cookies">Cookies</a></li>
             </ul>
         </div>
         <div class="footer-col footer-col-wide">
-            <h4 class="footer-col-title" data-i18n="footer_contact">Contact</h4>
-            <ul class="footer-links footer-contact">
-                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a></li>
-                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 12 19.79 19.79 0 011.61 3.4 2 2 0 013.6 1.22h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.91 8.8a16 16 0 006.29 6.29l.96-.96a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg><a href="tel:+420123456789">+420 123 456 789</a></li>
-            </ul>
-            <h4 class="footer-col-title" style="margin-top:28px;" data-i18n="footer_newsletter">Newsletter</h4>
-            <p class="footer-newsletter-desc" data-i18n="footer_newsletter_desc">New blends, offers and tea stories &mdash; straight to your inbox.</p>
+            <h2 class="footer-col-title" data-i18n="footer_newsletter">Newsletter</h2>
+            <p class="footer-newsletter-desc" data-i18n="footer_newsletter_desc">Nové směsi a nabídky přímo do schránky.</p>
             <form class="footer-newsletter" onsubmit="subscribeNewsletter(event)">
-                <input type="email" placeholder="your@email.cz" class="footer-email-input" required>
-                <button type="submit" class="footer-subscribe-btn" data-i18n="footer_subscribe">Subscribe</button>
+                <label class="visually-hidden" for="footer-email" data-i18n="lbl_email_short">E-mail</label>
+                <input type="email" id="footer-email" placeholder="tvuj@email.cz" class="footer-email-input" required>
+                <button type="submit" class="footer-subscribe-btn" data-i18n="footer_subscribe">Odebírat</button>
             </form>
-            <p id="newsletter-success" class="newsletter-success" style="display:none;">&#x1F375; You're in! Welcome to the club.</p>
+            <p id="newsletter-success" class="newsletter-success" style="display:none;" data-i18n="newsletter_ok">Hotovo, jsi přihlášený.</p>
+            <p class="footer-contact"><a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a></p>
         </div>
     </div>
     <div class="footer-bottom">
-        <span data-i18n="footer_copyright">&copy; 2025 Tease you. All rights reserved.</span>
-        <span data-i18n="footer_made_with">Made with &#x1F375; in Czech Republic</span>
+        <span id="footer-copy"></span>
+        <span data-i18n="footer_made_in">Mícháme v Česku</span>
     </div>
 </footer>
 
 <div id="toast" class="toast" aria-live="polite"></div>
 
-<!-- MOBILE MIX SUMMARY DRAWER (mixer page, mobile only) -->
-<div id="mix-summary-drawer" class="mix-summary-drawer">
-    <button class="mix-summary-toggle" onclick="toggleMixSummary()" aria-expanded="false" aria-controls="mix-summary-cards">
-        <span class="mix-summary-label"><span class="mix-summary-emoji">🍵</span><span data-i18n="mix_summary_title">Your selection</span> · <span id="mix-summary-count">0/3</span></span>
-        <svg class="mix-summary-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-    </button>
-    <div class="mix-summary-body" id="mix-summary-cards"></div>
-</div>
-
 <!-- MOBILE BOTTOM NAV -->
-<nav class="bottom-nav" id="bottom-nav" aria-label="Mobile navigation">
+<nav class="bottom-nav" id="bottom-nav" aria-label="Mobilní navigace" data-i18n-aria="aria_mobile_nav">
     <button class="bottom-nav-item" onclick="showPage('home-page')" data-page="home-page">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span data-i18n="nav_home">Home</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l8-6 8 6v9a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z"/></svg>
+        <span data-i18n="nav_home">Domů</span>
     </button>
     <button class="bottom-nav-item" onclick="showPage('product-page')" data-page="product-page">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span data-i18n="nav_create">Vytvořit</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="3" rx="1"/><path d="M7.5 5.5h9V19a2.5 2.5 0 01-2.5 2.5h-4A2.5 2.5 0 017.5 19z"/><path d="M7.5 13h9M7.5 17h9"/></svg>
+        <span data-i18n="nav_mix">Namíchat</span>
     </button>
-    <button class="bottom-nav-item" onclick="showPage('quiz-page'); startQuiz()" data-page="quiz-page">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span data-i18n="nav_quiz_short">Quiz</span>
+    <button class="bottom-nav-item" onclick="showPage('quiz-page')" data-page="quiz-page">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.3a2.8 2.8 0 015.4 1c0 1.9-2.7 2.4-2.7 3.9"/><path d="M12 17.5h.01"/></svg>
+        <span data-i18n="nav_quiz_short">Kvíz</span>
     </button>
     <button class="bottom-nav-item" onclick="showPage('saved-page')" data-page="saved-page">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-        <span data-i18n="nav_blends">Blendy</span>
+        <span data-i18n="nav_saved_short">Uložené</span>
     </button>
     <button class="bottom-nav-item" onclick="showPage('cart-page')" data-page="cart-page" id="bottom-nav-cart">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span class="bottom-nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.1a2 2 0 01-2 1.9H8.2a2 2 0 01-2-1.9L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg><span class="cart-badge" id="bottom-cart-badge" style="display:none"></span></span>
         <span data-i18n="nav_cart">Košík</span>
     </button>
 </nav>
