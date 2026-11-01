@@ -2835,8 +2835,9 @@ function renderBlendCards() {
             : jarHtml(b.ingredients, 'jar--sm', b.name);
         const soldOut = outOfStockIn(b.ingredients).length
             ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : '';
+        const tint = ingColor(b.ingredients[1]) || ingColor(b.ingredients[0]) || '';
         return `<article class="ready-card" role="button" tabindex="0" data-blend="${escHtml(b.id)}" aria-label="${escHtml(b.name)}">
-                <div class="ready-visual">${visual}</div>
+                <div class="ready-visual"${tint ? ` style="--tint:${escHtml(tint)}"` : ''}>${visual}</div>
                 <h3 class="ready-name">${escHtml(b.name)}</h3>
                 <p class="ready-mix">${escHtml(blendSubtitle(b.ingredients))}</p>
                 <p class="ready-foot"><span class="ready-price" data-i18n="price_from">${escHtml(t('price_from'))}</span>${soldOut}</p>
@@ -3101,8 +3102,10 @@ function notifyFormspree(form, order) {
 
 Object.assign(TRANSLATIONS.cs, {
     hero_title:        'Namíchej si čaj. Pojmenuj ho.',
-    hero_lede:         'Vybereš základ, příchuť a doplněk. My směs čerstvě namícháme, zabalíme pod jménem, které jí dáš, a pošleme ti ji domů.',
+    hero_lede:         'Vybereš základ, příchuť a doplněk. Směs čerstvě namícháme a pošleme ti ji v sáčku s tvým jménem.',
     hero_quiz_btn:     'Poradit kvízem',
+    hero_quiz_link:    'Nevíš, co vybrat? Poradí ti kvíz',
+    how_result_note:   'Namícháme po objednání, odešleme do 24 hodin.',
     hero_pick:         'Chci tuhle',
     hero_shuffle:      'Zamíchat jinak',
     hero_note_price:   'Balení od {price}.',
@@ -3175,8 +3178,10 @@ Object.assign(TRANSLATIONS.cs, {
 });
 Object.assign(TRANSLATIONS.en, {
     hero_title:        'Mix your tea. Name it.',
-    hero_lede:         'Pick a base, a flavour and an extra. We blend it fresh, pack it under the name you give it and send it to your door.',
+    hero_lede:         'Pick a base, a flavour and an extra. We blend it fresh and send it in a pouch with your name on it.',
     hero_quiz_btn:     'Help me choose',
+    hero_quiz_link:    'Not sure what to pick? Take the quiz',
+    how_result_note:   'Blended after you order, shipped within 24 hours.',
     hero_pick:         'I want this one',
     hero_shuffle:      'Shuffle',
     hero_note_price:   'Packs from {price}.',
@@ -3394,9 +3399,26 @@ function renderHeroNote() {
     if (FREE_SHIP_THRESHOLD > 0) parts.push(t('hero_note_ship').replace('{limit}', fmt(FREE_SHIP_THRESHOLD)));
     el.textContent = parts.join(' ');
 }
-function renderHowPouch() {
-    const el = document.getElementById('how-pouch');
-    if (el) el.innerHTML = pouchHtml({ name: t('how_pouch_name'), codes: ['Green Tea', 'Mint', 'Lemon'], size: 'pouch--xs' });
+/* Jak to funguje: základ + příchuť + doplněk = sáček s tvým jménem */
+function renderHow() {
+    const lede = document.getElementById('how-lede');
+    if (lede) {
+        const n = { bases: ING_DATA.bases.length, flavors: ING_DATA.flavors.length, extras: ING_DATA.extras.length };
+        lede.textContent = t('pantry_lede').replace('{bases}', n.bases).replace('{flavors}', n.flavors)
+            .replace('{extras}', n.extras).replace('{combos}', (n.bases * n.flavors * n.extras).toLocaleString(LANG === 'cs' ? 'cs-CZ' : 'en'));
+    }
+    const list = document.getElementById('how-formula');
+    if (!list) return;
+    const codes = ['Green Tea', 'Mint', 'Lemon'];
+    const roles = LAYER_LABELS.map(k => t(k).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en'));
+    list.innerHTML = codes.map((c, i) =>
+        `<li class="formula-item">${i ? '<span class="formula-op" aria-hidden="true">+</span>' : ''}`
+        + `<span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>`
+        + `<span class="formula-text"><strong>${escHtml(tIng(c))}</strong><span>${escHtml(roles[i])}</span></span></li>`
+    ).join('')
+        + `<li class="formula-item formula-result"><span class="formula-op" aria-hidden="true">=</span>`
+        + `<span class="formula-pouch">${pouchHtml({ name: t('how_pouch_name'), codes, size: 'pouch--xs' })}</span>`
+        + `<span class="formula-text"><strong>${escHtml(t('how_pouch_name'))}</strong><span>${escHtml(t('how_result_note'))}</span></span></li>`;
 }
 function goToShelf() {
     const onHome = document.getElementById('home-page')?.classList.contains('active');
@@ -3506,7 +3528,7 @@ function updateMixerUI() {
                 tag = document.createElement('span');
                 tag.className = 'ing-tag';
                 tag.textContent = t('pairs_tag');
-                btn.querySelector('.ing-text')?.appendChild(tag);
+                btn.querySelector('.ing-name')?.appendChild(tag);
             } else if (!paired && tag) {
                 tag.remove();
             }
@@ -3555,14 +3577,14 @@ function updateMixerUI() {
 function refreshRedesign() {
     renderHero(heroBlendId, false);
     renderHeroNote();
-    renderHowPouch();
+    renderHow();
     updateMixerUI();
 }
 
 function initRedesign() {
     renderHero(null, false);
     renderHeroNote();
-    renderHowPouch();
+    renderHow();
     renderPriceOptions();
     document.getElementById('hero-shuffle')?.addEventListener('click', shuffleHero);
     document.getElementById('hero-open')?.addEventListener('click', () => openBlend(heroBlendId));
