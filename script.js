@@ -1078,8 +1078,7 @@ function openDetail(name, desc, price, ingredients, colors) {
     document.getElementById('detail-title').innerText = name;
     const localDesc = LANG === 'cs' && BLEND_DESCS_CS[name] ? BLEND_DESCS_CS[name] : desc;
     document.getElementById('detail-desc').innerText = localDesc;
-    document.getElementById('detail-ingredients-list').innerText = ingredients.map(tIng).join(' • ');
-    ['detail-part1', 'detail-part2', 'detail-part3'].forEach((id, i) => paintLayer(document.getElementById(id), colors[i]));
+    renderDetailVisual(name, ingredients);
 
     // Set brew params based on base
     const base = ingredients[0];
@@ -1089,12 +1088,31 @@ function openDetail(name, desc, price, ingredients, colors) {
     if (tempEl) tempEl.innerHTML = brew.temp;
     if (timeEl) timeEl.innerHTML = brew.time;
 
-    document.querySelectorAll('#product-detail-page .qty-btn').forEach(b => b.classList.remove('selected'));
-    const addBtn = document.getElementById('detail-add-btn');
-    addBtn.disabled = true;
-    addBtn.classList.add('disabled');
-    animateGlass('detail-glass-frame');
+    renderPriceOptions();
+    preselectQty(document.querySelector('#product-detail-page .qty-options'));
     showPage('product-detail-page');
+}
+
+/* Sáček a seznam ingrediencí na detailu hotové směsi */
+function renderDetailVisual(name, ingredients) {
+    const weight = parseInt(currentProduct.weight, 10);
+    const box = document.getElementById('detail-pouch');
+    if (box) box.innerHTML = pouchHtml({ name, codes: ingredients, size: 'pouch--hero', weight: weight ? weight + ' g' : '' });
+    const list = document.getElementById('detail-ingredients-list');
+    if (list) list.innerHTML = (ingredients || []).map((c, i) => c && c !== 'Empty'
+        ? `<li><span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>`
+          + `<span><strong>${escHtml(tIng(c))}</strong><span>${escHtml(t(LAYER_LABELS[i]).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en'))}</span></span></li>`
+        : '').join('');
+}
+
+/* Na detailu je rovnou vybraná prostřední velikost (100 g), ať jde
+   tlačítko Do košíku zmáčknout hned. */
+function preselectQty(box) {
+    if (!box) return;
+    const w = sortedWeights();
+    const pick = w.includes(100) ? 100 : w[Math.floor(w.length / 2)];
+    const btn = [...box.querySelectorAll('.qty-btn')].find(b => parseInt(b.textContent, 10) === pick);
+    if (btn) selectQty(pick, { target: btn });
 }
 
 /* ─── QUANTITY SELECTION ─────────────────────── */
@@ -1110,6 +1128,9 @@ function selectQty(amount, e) {
         const b = document.getElementById(id);
         if (b) { b.disabled = false; b.classList.remove('disabled'); }
     });
+    const add = document.getElementById('detail-add-btn');
+    if (add) add.textContent = t('add_for').replace('{price}', fmt(currentProduct.priceBase));
+    if (btn.closest('#product-detail-page')) renderDetailVisual(currentProduct.name, currentProduct.ingredients);
 }
 
 /* ─── SHIPPING COST ──────────────────────────── */
@@ -1228,10 +1249,10 @@ function renderFreeShip() {
     const pct   = Math.min(100, Math.round(goods / FREE_SHIP_THRESHOLD * 100));
     if (fill) fill.style.width = pct + '%';
     if (goods >= FREE_SHIP_THRESHOLD) {
-        if (text) text.innerHTML = '🎉 ' + t('freeship_unlocked');
+        if (text) text.textContent = t('freeship_done');
         wrap.classList.add('unlocked');
     } else {
-        if (text) text.innerHTML = `${t('freeship_add')} <strong>${fmt(FREE_SHIP_THRESHOLD - goods)}</strong> ${t('freeship_more')}`;
+        if (text) text.innerHTML = escHtml(t('freeship_left')).replace('{amount}', `<strong>${fmt(FREE_SHIP_THRESHOLD - goods)}</strong>`);
         wrap.classList.remove('unlocked');
     }
 }
@@ -1485,27 +1506,31 @@ document.addEventListener('input', function(e) {
 
 /* ─── SUMMARY ────────────────────────────────── */
 function showSummary() {
-    currentProduct.name = document.getElementById('mix-name').value.trim() || t('default_mix_name');
-    document.getElementById('display-mix-name').innerText = currentProduct.name;
-    ['part1','part2','part3'].forEach((p, i) => {
-        paintLayer(document.getElementById(`summary-${p}`), currentProduct.colors[i]);
+    openInMixer(currentProduct.ingredients, document.getElementById('mix-name')?.value.trim() || currentProduct.name, 4);
+}
+
+/* Otevře mixér s danými ingrediencemi a jménem. */
+function openInMixer(ingredients, name, step) {
+    showPage('product-page');
+    const codes = [0, 1, 2].map(i => (ingredients && ingredients[i]) || 'Empty');
+    document.querySelectorAll('.ingredient-btn').forEach(btn => {
+        const on = codes[Number(btn.dataset.target?.replace('part', '')) - 1] === btn.dataset.name;
+        btn.classList.toggle('selected', on && !btn.classList.contains('is-out'));
     });
-    const chipsEl = document.getElementById('summary-chips');
-    chipsEl.innerHTML = '';
-    currentProduct.ingredients.forEach((name, i) => {
-        if (name === 'Empty') return;
-        const chip = document.createElement('div');
-        chip.className = 'summary-chip';
-        chip.innerHTML = `<div class="summary-chip-dot" style="background:${currentProduct.colors[i]}"></div><span>${tIng(name)}</span>`;
-        chipsEl.appendChild(chip);
-    });
-    const btn = document.getElementById('summary-order-btn');
-    btn.disabled = true;
-    btn.classList.add('disabled');
-    document.querySelectorAll('#summary-page .qty-btn').forEach(b => b.classList.remove('selected'));
-    currentProduct.weight = '';
-    currentProduct.priceBase = 0;
-    showPage('summary-page');
+    const input = document.getElementById('mix-name');
+    if (input && name !== undefined) input.value = name || '';
+    validateSelection();
+    setMixerStep(step || firstOpenMixerStep(), { scroll: false });
+}
+
+/* Z encyklopedie: vybere jednu ingredienci a pustí tě na první krok, který chybí. */
+function mixWith(code) {
+    const btn = document.querySelector(`.ingredient-btn[data-name="${String(code).replace(/["\\]/g, '')}"]`);
+    if (!btn) { showPage('product-page'); return; }
+    const idx = Number(btn.dataset.target.replace('part', '')) - 1;
+    const current = [1, 2, 3].map(n => document.querySelector(`.ingredient-btn[data-target="part${n}"].selected`)?.dataset.name || 'Empty');
+    current[idx] = code;
+    openInMixer(current, undefined);
 }
 
 /* ─── SAVE BLEND ─────────────────────────────── */
@@ -1554,26 +1579,20 @@ function renderSavedBlends() {
     empty.style.display = 'none';
 
     savedBlends.forEach(blend => {
-        const card = document.createElement('div');
-        card.className = 'saved-card';
+        const card = document.createElement('article');
+        card.className = 'saved-item';
+        const codes = blend.ingredients.filter(i => i !== 'Empty');
         card.innerHTML = `
-            <div class="saved-card-glass">
-                <div class="cart-mini-glass">
-                    <div style="background:${escHtml(blend.colors[2])}"></div>
-                    <div style="background:${escHtml(blend.colors[1])}"></div>
-                    <div style="background:${escHtml(blend.colors[0])}"></div>
-                </div>
+            <div class="saved-pouch" aria-hidden="true">${pouchHtml({ name: blend.name, codes: blend.ingredients, size: 'pouch--xs' })}</div>
+            <div class="saved-text">
+                <h2 class="saved-name">${escHtml(blend.name)}</h2>
+                <p class="saved-mix">${escHtml(blendSubtitle(codes))}</p>
+                <p class="saved-date">${escHtml(t('saved_date_prefix'))} ${escHtml(blend.savedAt)}</p>
             </div>
-            <div class="saved-card-info">
-                <h3 class="font-cosmico saved-card-name">${escHtml(blend.name)}</h3>
-                <p class="saved-card-ingredients font-chaos">${escHtml(blend.ingredients.filter(i=>i!=='Empty').map(tIng).join(' · '))}</p>
-                <span class="saved-card-date">${t('saved_date_prefix')} ${escHtml(blend.savedAt)}</span>
-            </div>
-            <div class="saved-card-actions">
-                <button class="btn btn-secondary" onclick="loadSavedBlend(${blend.id})">${t('btn_load_order')}</button>
-                <button class="clear-btn" onclick="deleteSavedBlend(${blend.id})" style="color:var(--color-ink-faint)">${t('btn_remove')}</button>
-            </div>
-        `;
+            <div class="saved-actions">
+                <button class="btn btn-primary btn-small" onclick="loadSavedBlend(${Number(blend.id)})">${escHtml(t('btn_load_order'))}</button>
+                <button class="btn btn-link btn-small" onclick="deleteSavedBlend(${Number(blend.id)})">${escHtml(t('btn_remove'))}</button>
+            </div>`;
         list.appendChild(card);
     });
 }
@@ -1582,7 +1601,7 @@ function loadSavedBlend(id) {
     const blend = savedBlends.find(b => b.id === id);
     if (!blend) return;
     currentProduct = { name: blend.name, ingredients: [...blend.ingredients], colors: [...blend.colors], priceBase: 0, weight: '' };
-    showSummary();
+    openInMixer(blend.ingredients, blend.name, 4);
 }
 
 function deleteSavedBlend(id) {
@@ -1674,11 +1693,12 @@ function renderCart() {
     const list  = document.getElementById('cart-items-list');
     const empty = document.getElementById('cart-empty');
     list.innerHTML = '';
+    document.getElementById('cart-page')?.classList.toggle('is-empty', cart.length === 0);
     if (cart.length === 0) {
         empty.style.display = 'flex';
-        document.getElementById('cart-final-total').innerText = t('order_total') + ': 0 Kč';
+        document.getElementById('cart-final-total').textContent = fmt(0);
         const sub = document.getElementById('cart-subtotal');
-        if (sub) sub.textContent = '0 Kč';
+        if (sub) sub.textContent = fmt(0);
         const dl = document.getElementById('cart-discount-line');
         if (dl) dl.style.display = 'none';
         const fs = document.getElementById('cart-freeship');
@@ -1687,31 +1707,26 @@ function renderCart() {
     }
     empty.style.display = 'none';
     cart.forEach(item => {
-        const row = document.createElement('div');
+        const row = document.createElement('li');
         row.className = 'cart-item';
+        const id = Number(item.id);
+        const codes = item.ingredients.filter(c => c !== 'Empty');
         row.innerHTML = `
-            <div class="cart-product-info">
-                <div class="cart-mini-glass">
-                    <div style="background:${escHtml(item.colors[2])}"></div>
-                    <div style="background:${escHtml(item.colors[1])}"></div>
-                    <div style="background:${escHtml(item.colors[0])}"></div>
-                </div>
-                <div class="cart-text">
-                    <h4 class="font-cosmico cart-item-name">${escHtml(item.name)}</h4>
-                    <p class="font-chaos cart-item-ingredients">${escHtml(item.ingredients.map(tIng).join(' \u2022 '))}</p>
-                    <span class="cart-item-weight">${escHtml(item.weight)}</span>
-                </div>
+            <div class="cart-pouch" aria-hidden="true">${pouchHtml({ name: item.name, codes: item.ingredients, size: 'pouch--xs' })}</div>
+            <div class="cart-text">
+                <h2 class="cart-name">${escHtml(item.name)}</h2>
+                <p class="cart-mix">${escHtml(blendSubtitle(codes))}</p>
+                <p class="cart-meta">${escHtml(parseInt(item.weight, 10) + ' g')}, ${escHtml(fmt(item.priceBase))} ${escHtml(t('per_piece'))}</p>
             </div>
-            <div class="cart-price">${fmt(item.priceBase)}</div>
-            <div class="cart-qty">
-                <input type="number" value="${item.qty}" min="1" class="name-input cart-qty-input"
-                    onchange="updateItemQty(${item.id}, this.value)">
+            <div class="cart-qty" role="group" aria-label="${escHtml(t('cart_col_qty'))}">
+                <button type="button" class="qty-step" onclick="updateItemQty(${id}, ${item.qty - 1})" aria-label="${escHtml(t('qty_less'))}"${item.qty <= 1 ? ' disabled' : ''}>−</button>
+                <span class="qty-num" aria-live="polite">${item.qty}</span>
+                <button type="button" class="qty-step" onclick="updateItemQty(${id}, ${item.qty + 1})" aria-label="${escHtml(t('qty_more'))}">+</button>
             </div>
-            <div class="cart-subtotal">
-                <b>${fmt(item.priceBase * item.qty)}</b>
-                <button onclick="removeCartItem(${item.id})" class="cart-remove-btn" title="Remove">\u2715</button>
-            </div>
-        `;
+            <p class="cart-line-price">${fmt(item.priceBase * item.qty)}</p>
+            <button type="button" class="cart-remove" onclick="removeCartItem(${id})" aria-label="${escHtml(t('btn_remove'))} ${escHtml(item.name)}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>`;
         list.appendChild(row);
     });
     updateCartTotal();
@@ -1742,7 +1757,7 @@ function updateCartTotal() {
     if (dl) {
         if (appliedPromo && totals.discount > 0) {
             dl.style.display = 'flex';
-            document.getElementById('cart-discount-code').textContent = '(' + appliedPromo.code + ')';
+            document.getElementById('cart-discount-code').textContent = appliedPromo.code;
             document.getElementById('cart-discount-amount').textContent = '-' + fmt(totals.discount);
         } else {
             dl.style.display = 'none';
@@ -1756,7 +1771,7 @@ function updateCartTotal() {
     const shipLine = document.getElementById('cart-shipping-line');
     if (shipLine) shipLine.textContent = totals.freeShip ? t('ship_free') : t('ship_calculated');
 
-    document.getElementById('cart-final-total').innerText = `${t('order_total')}: ${fmt(totals.total)}`;
+    document.getElementById('cart-final-total').textContent = fmt(totals.total);
     renderFreeShip();
 }
 
@@ -1765,22 +1780,12 @@ function renderCheckoutSummary() {
     const el = document.getElementById('checkout-items-summary');
     el.innerHTML = '';
     cart.forEach(item => {
-        const row = document.createElement('div');
-        row.className = 'checkout-summary-item';
+        const row = document.createElement('li');
+        row.className = 'checkout-item';
         row.innerHTML = `
-            <div class="checkout-item-left">
-                <div class="cart-mini-glass" style="width:28px;height:46px;border-width:2px;">
-                    <div style="flex:1;background:${escHtml(item.colors[0])}"></div>
-                    <div style="flex:1;background:${escHtml(item.colors[1])}"></div>
-                    <div style="flex:1;background:${escHtml(item.colors[2])}"></div>
-                </div>
-                <div>
-                    <p class="font-cosmico checkout-item-name">${escHtml(item.name)}</p>
-                    <p class="checkout-item-meta">${escHtml(item.weight)} · ${LANG === 'cs' ? item.qty + ' ks' : 'qty ' + item.qty}</p>
-                </div>
-            </div>
-            <span class="checkout-item-price">${fmt(item.priceBase * item.qty)}</span>
-        `;
+            <span class="checkout-dots" aria-hidden="true">${item.ingredients.filter(c => c !== 'Empty').map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('')}</span>
+            <span class="checkout-item-text"><strong>${escHtml(item.name)}</strong><span>${escHtml(parseInt(item.weight, 10) + ' g')}, ${item.qty} ${escHtml(t('pieces'))}</span></span>
+            <span class="checkout-item-price">${fmt(item.priceBase * item.qty)}</span>`;
         el.appendChild(row);
     });
 
@@ -1792,7 +1797,7 @@ function renderCheckoutSummary() {
         if (!discRow) {
             discRow = document.createElement('div');
             discRow.id = 'checkout-discount-row';
-            discRow.className = 'checkout-shipping-row checkout-discount-row';
+            discRow.className = 'sum-line sum-line-discount';
             el.parentElement.insertBefore(discRow, document.getElementById('checkout-shipping-row'));
         }
         discRow.innerHTML = `<span>${t('order_discount')} (${escHtml(appliedPromo.code)})</span><span>-${fmt(totals.discount)}</span>`;
@@ -1932,6 +1937,9 @@ function submitOrder(e) {
 
         const el = document.getElementById('success-order-num');
         if (el) el.textContent = t('order_num_prefix') + order.num;
+        const pouch = document.getElementById('success-pouch');
+        const first = order.items[0];
+        if (pouch && first) pouch.innerHTML = pouchHtml({ name: first.name, codes: first.ingredients, size: 'pouch--sm' });
 
         cart = [];
         appliedPromo = null;
@@ -2026,27 +2034,22 @@ function renderOrders() {
     empty.style.display = 'none';
 
     orders.forEach(o => {
-        const itemsHtml = o.items.map(it => `
-            <div class="order-item-row">
-                <span>${escHtml(it.name)} <span class="order-item-meta">${escHtml(it.weight)} × ${it.qty}</span></span>
-                <span>${fmt(it.priceBase * it.qty)}</span>
-            </div>`).join('');
-        const card = document.createElement('div');
+        const itemsHtml = (o.items || []).map(it => `
+            <li><span>${escHtml(it.name)} <span class="order-meta">${escHtml(parseInt(it.weight, 10) + ' g')}, ${Number(it.qty)} ${escHtml(t('pieces'))}</span></span>
+            <span>${fmt(it.priceBase * it.qty)}</span></li>`).join('');
+        const card = document.createElement('article');
         card.className = 'order-card';
         card.innerHTML = `
-            <div class="order-card-head">
-                <div>
-                    <span class="order-num font-cosmico">${t('order_num_prefix')}${escHtml(o.num)}</span>
-                    <span class="order-date">${escHtml(o.date)}</span>
-                </div>
-                <span class="order-status">${t('order_status')}</span>
-            </div>
-            <div class="order-items">${itemsHtml}</div>
-            <div class="order-card-foot">
-                ${o.discount ? `<span class="order-discount">${t('order_discount')}${o.promo ? ' (' + escHtml(o.promo) + ')' : ''}: -${fmt(o.discount)}</span>` : ''}
-                <span class="order-ship">${t('order_shipping')}: ${o.shipping ? fmt(o.shipping) : 'FREE'}</span>
-                <span class="order-total">${t('order_total')}: ${fmt(o.total)}</span>
-            </div>`;
+            <header class="order-head">
+                <h2 class="order-num">${escHtml(t('order_num_prefix'))}${escHtml(o.num)}</h2>
+                <p class="order-date">${escHtml(o.date)}</p>
+            </header>
+            <ul class="order-items">${itemsHtml}</ul>
+            <dl class="order-sums">
+                ${o.discount ? `<div><dt>${escHtml(t('order_discount'))}${o.promo ? ' ' + escHtml(o.promo) : ''}</dt><dd>-${fmt(o.discount)}</dd></div>` : ''}
+                <div><dt>${escHtml(t('order_shipping'))}</dt><dd>${o.shipping ? fmt(o.shipping) : escHtml(t('ship_free_short'))}</dd></div>
+                <div class="order-total"><dt>${escHtml(t('order_total'))}</dt><dd>${fmt(o.total)}</dd></div>
+            </dl>`;
         list.appendChild(card);
     });
 }
@@ -2116,29 +2119,30 @@ const ING_DATA = {
 };
 
 function renderIngredientEncyclopedia() {
-    const caffeineLabel = ['Bez kofeinu','Velmi nízký','Nízký','Střední','Vysoký','Velmi vysoký'];
-    const caffeineEn = ['Caffeine-free','Very low','Low','Medium','High','Very high'];
-    const pairsLabel = LANG === 'cs' ? 'Hodí se s' : 'Pairs well with';
-    const healthLabel = LANG === 'cs' ? 'Přínosy' : 'Benefits';
+    const caffeineCs = ['Bez kofeinu', 'Velmi málo kofeinu', 'Málo kofeinu', 'Středně kofeinu', 'Hodně kofeinu'];
+    const caffeineEn = ['Caffeine-free', 'Very little caffeine', 'Little caffeine', 'Medium caffeine', 'Lots of caffeine'];
     ['bases','flavors','extras'].forEach(cat => {
         const el = document.getElementById('ing-grid-' + cat);
         if (!el) return;
         el.innerHTML = ING_DATA[cat].map(ing => {
             const name = t(ing.key);
             const desc = t(ing.key + '_desc') || '';
-            const caffeine = ing.caffeine !== undefined ? `<div class="ing-caffeine"><span class="ing-caffeine-dots">${'●'.repeat(ing.caffeine)}${'○'.repeat(4 - Math.min(ing.caffeine,4))}</span> ${LANG === 'cs' ? caffeineLabel[ing.caffeine] : caffeineEn[ing.caffeine]}</div>` : '';
-            const soldOut = ing.inStock === false
-                ? `<span class="ing-out-badge ing-out-badge--card">${escHtml(t('ing_sold_out'))}</span>` : '';
-            return `<div class="ing-card${ing.inStock === false ? ' is-out' : ''}">
-                <div class="ing-card-emoji">${ingVisual(ing, 'ing-card')}</div>
-                <h3 class="ing-card-name">${escHtml(name)}${soldOut}</h3>
+            const out = ing.inStock === false;
+            const photo = safePhoto(ing.photo);
+            const dot = photo
+                ? `<span class="ing-dot" style="--dot-photo:url('${escHtml(photo)}')"></span>`
+                : `<span class="ing-dot" style="--dot-color:${escHtml(ing.color || '#ccc')}"></span>`;
+            const lvl = Math.max(0, Math.min(4, ing.caffeine || 0));
+            const caffeine = ing.caffeine !== undefined
+                ? `<p class="ing-caffeine"><span class="ing-meter" aria-hidden="true">${[1,2,3,4].map(n => `<i${n <= lvl ? ' class="on"' : ''}></i>`).join('')}</span>${escHtml((LANG === 'cs' ? caffeineCs : caffeineEn)[lvl])}</p>` : '';
+            return `<article class="ing-card${out ? ' is-out' : ''}">
+                <div class="ing-card-head">${dot}<h3 class="ing-card-name">${escHtml(name)}</h3>${out ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : ''}</div>
                 <p class="ing-card-desc">${escHtml(desc)}</p>
                 ${caffeine}
-                <div class="ing-card-tags">${ing.flavor.map(f => `<span class="ing-tag">${escHtml(tTag(f))}</span>`).join('')}</div>
-                <div class="ing-card-section"><strong>${healthLabel}:</strong> ${escHtml(ing.health.map(tHealth).join(' · '))}</div>
-                <div class="ing-card-section"><strong>${pairsLabel}:</strong> ${escHtml(ing.pairs.map(tIng).join(', '))}</div>
-                <button class="btn btn-small" onclick="closeSidebar(); showPage('product-page');" style="margin-top:auto">${LANG === 'cs' ? 'Použít →' : 'Use →'}</button>
-            </div>`;
+                <p class="ing-card-taste">${escHtml(ing.flavor.map(tTag).join(', '))}</p>
+                <p class="ing-card-pairs">${escHtml(t('ing_pairs'))} ${escHtml(ing.pairs.map(tIng).join(', '))}</p>
+                ${out || !ing.code ? '' : `<button type="button" class="btn btn-quiet btn-small ing-use" data-mix="${escHtml(ing.code)}">${escHtml(t('ing_use'))}</button>`}
+            </article>`;
         }).join('');
     });
 }
@@ -2314,123 +2318,89 @@ let quizStep = 0;
 
 function startQuiz() {
     quizAnswerTags = [];
+    quizAnswerLog = [];
     quizStep = 0;
     renderQuizStep();
 }
 
 function renderQuizStep() {
-    const progressBar = document.getElementById('quiz-progress-bar');
+    const top = document.getElementById('quiz-progress-bar');
     const body = document.getElementById('quiz-body');
-    if (!progressBar || !body) return;
+    if (!top || !body) return;
+    const total = QUIZ_QUESTIONS.length;
 
-    // Progress dots
-    progressBar.innerHTML = QUIZ_QUESTIONS.map((_, i) =>
-        `<div class="quiz-progress-dot${i < quizStep ? ' done' : ''}"></div>`
-    ).join('');
-
-    if (quizStep >= QUIZ_QUESTIONS.length) {
+    if (quizStep >= total) {
+        top.innerHTML = '';
         renderQuizResult();
         return;
     }
+    top.innerHTML = `
+        <span class="mixer-progress-text">${escHtml(t('quiz_step_of').replace('{n}', quizStep + 1).replace('{total}', total))}</span>
+        <span class="mixer-progress-bar" aria-hidden="true"><span style="width:${(quizStep + 1) / total * 100}%"></span></span>`;
 
     const q = QUIZ_QUESTIONS[quizStep];
     body.innerHTML = `
-        <div class="quiz-card">
-            <p class="font-chaos" style="font-size:12px;color:var(--color-ink-faint);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;">${t('quiz_question_of')} ${quizStep+1} ${t('quiz_of')} ${QUIZ_QUESTIONS.length}</p>
-            <h2 class="quiz-question font-cosmico">${t(q.q)}</h2>
-            <div class="quiz-options">
-                ${q.options.map(opt => `
-                    <button class="quiz-option" data-tags="${opt.tags.join(',')}">
-                        <span class="quiz-option-icon">${opt.icon}</span>
-                        <span>${t(opt.text)}</span>
-                    </button>
-                `).join('')}
-            </div>
+        <h1 class="step-question quiz-question" tabindex="-1">${escHtml(t(q.q))}</h1>
+        <div class="quiz-options" role="list">
+            ${q.options.map(opt => `<button type="button" class="quiz-option" role="listitem" data-tags="${escHtml(opt.tags.join(','))}">${escHtml(t(opt.text))}</button>`).join('')}
         </div>
-    `;
-    // Attach listeners after DOM is updated
+        ${quizStep > 0 ? `<button type="button" class="btn btn-link quiz-back" id="quiz-back">${escHtml(t('mixer_prev'))}</button>` : ''}`;
     body.querySelectorAll('.quiz-option').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tags = btn.getAttribute('data-tags').split(',');
-            quizAnswer(tags);
-        });
+        btn.addEventListener('click', () => quizAnswer(btn.getAttribute('data-tags').split(',')));
     });
+    document.getElementById('quiz-back')?.addEventListener('click', quizBack);
+    if (quizStep > 0) body.querySelector('.quiz-question')?.focus({ preventScroll: true });
 }
 
+let quizAnswerLog = [];
 function quizAnswer(tags) {
-    quizAnswerTags.push(...tags);
+    quizAnswerLog[quizStep] = tags;
+    quizAnswerTags = quizAnswerLog.slice(0, quizStep + 1).flat();
     quizStep++;
+    renderQuizStep();
+}
+function quizBack() {
+    if (quizStep === 0) return;
+    quizStep--;
+    quizAnswerTags = quizAnswerLog.slice(0, quizStep).flat();
     renderQuizStep();
 }
 
 function renderQuizResult() {
     const body = document.getElementById('quiz-body');
-
-    // Score each blend
-    const scored = QUIZ_BLENDS.map(blend => {
-        const score = blend.tags.filter(t => quizAnswerTags.includes(t)).length;
-        return { ...blend, score };
-    }).sort((a, b) => b.score - a.score);
-
+    const scored = QUIZ_BLENDS.map(blend => ({ ...blend, score: blend.tags.filter(tg => quizAnswerTags.includes(tg)).length }))
+        .sort((a, b) => b.score - a.score);
     const best = scored[0];
     const runnerUp = scored.find(b => b.name !== best.name && b.score > 0);
-
-    // Friendly match score: 50% baseline + up to 50% from matched traits
-    const maxTags = best.tags.length || 1;
-    const matchPct = Math.round(50 + (best.score / maxTags) * 50);
-
-    // Which of the blend's traits the answers matched (fallback to its own traits)
     let matched = best.tags.filter(tg => quizAnswerTags.includes(tg));
     if (!matched.length) matched = best.tags.slice();
-    const whyChips = matched.map(tg => `<span class="quiz-why-chip">${escHtml(tQuizTag(tg))}</span>`).join('');
-
-    const desc = LANG === 'cs' && best.desc_cs ? best.desc_cs : best.desc;
-    const runnerUpHtml = runnerUp ? `
-        <div class="quiz-runnerup">
-            <span class="quiz-runnerup-label">${t('quiz_also')}</span>
-            <button class="quiz-runnerup-card" id="quiz-runnerup-btn">
-                <span class="quiz-runnerup-glass">
-                    <span style="background:${escHtml(runnerUp.colors[0])}"></span>
-                    <span style="background:${escHtml(runnerUp.colors[1])}"></span>
-                    <span style="background:${escHtml(runnerUp.colors[2])}"></span>
-                </span>
-                <span class="quiz-runnerup-name">${escHtml(runnerUp.name)}</span>
-                <span class="quiz-runnerup-arrow">→</span>
-            </button>
-        </div>` : '';
+    const descOf = b => (LANG === 'cs' && b.desc_cs ? b.desc_cs : b.desc);
 
     body.innerHTML = `
         <div class="quiz-result">
-            <p class="quiz-result-label font-chaos">${t('quiz_result_label')}</p>
-            <h1 class="logo quiz-result-name">${escHtml(best.name)}</h1>
-            <div class="quiz-match-badge"><span class="quiz-match-pct">${matchPct}%</span> ${t('quiz_match')}</div>
-            <div class="quiz-result-glass">
-                <div class="glass-frame" style="width:100%;height:100%;border-color:rgba(0,0,0,0.15)">
-                    <div class="glass-part" style="background:${escHtml(best.colors[0])}"></div>
-                    <div class="glass-part" style="background:${escHtml(best.colors[1])}"></div>
-                    <div class="glass-part" style="background:${escHtml(best.colors[2])}"></div>
+            <div class="quiz-result-copy">
+                <p class="quiz-result-intro">${escHtml(t('quiz_result_intro'))}</p>
+                <h1 class="page-title">${escHtml(best.name)}</h1>
+                <p class="quiz-result-desc">${escHtml(descOf(best))}</p>
+                <p class="quiz-result-why">${escHtml(t('quiz_why'))}: ${escHtml(matched.map(tQuizTag).join(', '))}.</p>
+                <div class="quiz-actions">
+                    <button type="button" class="btn btn-primary btn-lg" id="quiz-order-btn">${escHtml(t('btn_order_blend'))}</button>
+                    <button type="button" class="btn btn-link" onclick="startQuiz()">${escHtml(t('btn_try_again'))}</button>
                 </div>
             </div>
-            <p class="quiz-result-desc font-chaos">${escHtml(desc)}</p>
-            <div class="quiz-why">
-                <span class="quiz-why-label">${t('quiz_why')}:</span>
-                <div class="quiz-why-chips">${whyChips}</div>
-            </div>
-            <div class="quiz-actions">
-                <button class="btn btn-large" id="quiz-order-btn">${t('btn_order_blend')}</button>
-                <button class="btn btn-secondary" onclick="startQuiz()">${t('btn_try_again')}</button>
-                <button class="btn btn-ghost" onclick="showPage('home-page')">${t('btn_back_home')}</button>
-            </div>
-            ${runnerUpHtml}
-        </div>
-    `;
-    document.getElementById('quiz-order-btn').addEventListener('click', () => {
-        openDetail(best.name, desc, 89, best.ingredients, best.colors);
-    });
-    const ruBtn = document.getElementById('quiz-runnerup-btn');
-    if (ruBtn) ruBtn.addEventListener('click', () => {
-        openDetail(runnerUp.name, LANG === 'cs' && runnerUp.desc_cs ? runnerUp.desc_cs : runnerUp.desc, 89, runnerUp.ingredients, runnerUp.colors);
-    });
+            <figure class="quiz-stage" aria-hidden="true">${pouchHtml({ name: best.name, codes: best.ingredients, size: 'pouch--hero', weight: '100 g' })}</figure>
+            ${runnerUp ? `
+            <div class="quiz-runnerup">
+                <p>${escHtml(t('quiz_also'))}</p>
+                <button type="button" class="quiz-runnerup-card" id="quiz-runnerup-btn">
+                    <span class="quiz-runnerup-dots" aria-hidden="true">${runnerUp.ingredients.map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('')}</span>
+                    <span class="quiz-runnerup-text"><strong>${escHtml(runnerUp.name)}</strong><span>${escHtml(blendSubtitle(runnerUp.ingredients))}</span></span>
+                </button>
+            </div>` : ''}
+        </div>`;
+    const price = PRICES[100] || Object.values(PRICES)[0] || 0;
+    document.getElementById('quiz-order-btn').addEventListener('click', () => openDetail(best.name, descOf(best), price, best.ingredients, best.colors));
+    document.getElementById('quiz-runnerup-btn')?.addEventListener('click', () => openDetail(runnerUp.name, descOf(runnerUp), price, runnerUp.ingredients, runnerUp.colors));
 }
 
 /* ─── RANDOM BLEND ───────────────────────────── */
@@ -2866,7 +2836,7 @@ function showDetailPhotoAndStock(name, ingredients) {
     const blend = catalogBlends.find(b => b.name === name);
     const photo = blend ? safePhoto(blend.photo_url) : '';
     const img = document.getElementById('detail-photo');
-    const glass = document.querySelector('#product-detail-page .detail-visual .glass-container');
+    const glass = document.getElementById('detail-pouch');
     if (img) {
         if (photo) { img.src = photo; img.alt = name; img.hidden = false; }
         else { img.hidden = true; img.removeAttribute('src'); }
@@ -2887,7 +2857,7 @@ function renderPriceOptions() {
         const selectedHere = box.querySelector('.qty-btn.selected');
         box.innerHTML = weights.map(w =>
             `<button type="button" class="qty-btn${selectedHere && w === current ? ' selected' : ''}" onclick="selectQty(${w}, event)">`
-            + `${w}g<span class="qty-price">${fmt(PRICES[w])}</span></button>`
+            + `${w} g<span class="qty-price">${fmt(PRICES[w])}</span></button>`
         ).join('');
     });
     if (current && PRICES[current]) {
@@ -3276,6 +3246,82 @@ Object.assign(TRANSLATIONS.cs, {
     how_pouch_name:    'Tvoje jméno',
     glass_label_base:  'Základ',
     glass_label_flavor:'Příchuť',
+    back_to_shelf:     'Naše směsi',
+    back_home:         'Zpět na úvod',
+    btn_edit_in_mixer: 'Upravit v mixéru',
+    add_for:           'Do košíku za {price}',
+    brew_title:        'Jak ji připravit',
+    brew_dose:         'Dávka',
+    brew_dose_val:     '2–3 g na 200 ml vody',
+    brew_water:        'Teplota vody',
+    brew_time:         'Louhování',
+    saved_title:       'Uložené směsi',
+    saved_lede:        'Směsi uložené z mixéru. Objednáš je jedním klepnutím.',
+    saved_empty:       'Zatím tu nic není. V mixéru můžeš každou směs uložit na později.',
+    btn_create_first:  'Namíchat směs',
+    btn_load_order:    'Objednat',
+    orders_lede:       'Objednávky odeslané z tohohle prohlížeče.',
+    orders_empty:      'Zatím tu nejsou žádné objednávky.',
+    cart_title:        'Košík',
+    cart_empty:        'Vyber si některou z našich směsí, nebo si namíchej vlastní.',
+    btn_browse_blends: 'Naše směsi',
+    btn_continue:      'Pokračovat v nákupu',
+    ship_calculated:   'Doprava se připočítá v pokladně.',
+    ship_free:         'Doprava je zdarma.',
+    freeship_left:     'Do dopravy zdarma ti chybí {amount}.',
+    freeship_done:     'Máš dopravu zdarma.',
+    per_piece:         'za kus',
+    pieces:            'ks',
+    qty_less:          'Ubrat kus',
+    qty_more:          'Přidat kus',
+    promo_remove:      'Odebrat kód',
+    checkout_title:    'Pokladna',
+    checkout_summary:  'Tvoje objednávka',
+    checkout_shipping: 'Doprava',
+    country_select:    'Vyber zemi',
+    country_cz:        'Česko',
+    country_sk:        'Slovensko',
+    ship_dpd_name:     'Kurýr DPD',
+    ship_zasilkovna_desc: 'Vyzvedneš na výdejním místě, 2–3 pracovní dny',
+    ship_post_desc:    'Až domů, 3–5 pracovních dní',
+    ship_dpd_desc:     'Až domů, další pracovní den',
+    packeta_choose:    'Vybrat výdejní místo',
+    packeta_change:    'Změnit',
+    pay_title:         'Platba',
+    pay_cod:           'Dobírka',
+    pay_cod_desc:      'Platíš při převzetí (+39 Kč)',
+    pay_card:          'Platební karta online',
+    pay_card_desc:     'Visa, Mastercard přes GoPay / Comgate',
+    pay_transfer:      'Bankovní převod',
+    pay_transfer_desc: 'Údaje k platbě pošleme e-mailem',
+    note_placeholder2: 'Třeba vzkaz na přání, když je to dárek',
+    checkout_legal:    'Odesláním objednávky souhlasíš s <a href="#" onclick="event.preventDefault(); showPage(\'terms-page\')">obchodními podmínkami</a>.',
+    btn_complete_order:'Odeslat objednávku',
+    success_title:     'Díky, objednávka je u nás',
+    success_desc:      'Směs namícháme a do 24 hodin odešleme. Potvrzení ti přijde e-mailem.',
+    success_step1:     'Objednávka přijatá',
+    success_step2:     'Namícháme',
+    success_step3:     'Odešleme do 24 hodin',
+    btn_create_another:'Namíchat další směs',
+    about_cta:         'Chceš si jednu namíchat?',
+    btn_start_creating2:'Namíchat směs',
+    ing_page_title:    'Ingredience',
+    ing_page_sub:      'Ze všeho tady se dá míchat. U každé ingredience je, jak chutná a s čím se hodí.',
+    ing_pairs:         'Hodí se k:',
+    ing_use:           'Namíchat s tímhle',
+    process_cta_title: 'Chceš si jednu namíchat?',
+    btn_start_creating:'Namíchat směs',
+    quiz_step_of:      'Otázka {n} z {total}',
+    quiz_result_intro: 'Podle tvých odpovědí ti nejvíc sedne',
+    quiz_why:          'Vybrali jsme ji, protože hledáš',
+    quiz_also:         'Mohla by ti chutnat i',
+    btn_order_blend:   'Chci tuhle směs',
+    btn_try_again:     'Projít kvíz znovu',
+    modal_qty_title:   'Vyber velikost',
+    btn_confirm:       'Do košíku',
+    toast_saved:       'najdeš v Uložených směsích',
+    nav_blends:        'Uložené směsi',
+    nav_quiz:          'Kvíz',
 });
 Object.assign(TRANSLATIONS.en, {
     q_1:               'Which tea for the base?',
@@ -3300,6 +3346,82 @@ Object.assign(TRANSLATIONS.en, {
     how_pouch_name:    'Your name',
     glass_label_base:  'Base',
     glass_label_flavor:'Flavour',
+    back_to_shelf:     'Our blends',
+    back_home:         'Back to home',
+    btn_edit_in_mixer: 'Edit in the mixer',
+    add_for:           'Add to cart for {price}',
+    brew_title:        'How to brew it',
+    brew_dose:         'Dose',
+    brew_dose_val:     '2–3 g per 200 ml of water',
+    brew_water:        'Water',
+    brew_time:         'Steep',
+    saved_title:       'Saved blends',
+    saved_lede:        'Blends you saved in the mixer. Order them in one tap.',
+    saved_empty:       'Nothing here yet. You can save any blend in the mixer for later.',
+    btn_create_first:  'Mix a blend',
+    btn_load_order:    'Order',
+    orders_lede:       'Orders placed from this browser.',
+    orders_empty:      'No orders yet.',
+    cart_title:        'Cart',
+    cart_empty:        'Pick one of our blends or mix your own.',
+    btn_browse_blends: 'Our blends',
+    btn_continue:      'Continue shopping',
+    ship_calculated:   'Shipping is added at checkout.',
+    ship_free:         'Shipping is free.',
+    freeship_left:     'Add {amount} more for free shipping.',
+    freeship_done:     'You have free shipping.',
+    per_piece:         'each',
+    pieces:            'pcs',
+    qty_less:          'One less',
+    qty_more:          'One more',
+    promo_remove:      'Remove code',
+    checkout_title:    'Checkout',
+    checkout_summary:  'Your order',
+    checkout_shipping: 'Shipping',
+    country_select:    'Choose a country',
+    country_cz:        'Czechia',
+    country_sk:        'Slovakia',
+    ship_dpd_name:     'DPD courier',
+    ship_zasilkovna_desc: 'Pick up at a Zásilkovna point, 2–3 working days',
+    ship_post_desc:    'To your door, 3–5 working days',
+    ship_dpd_desc:     'To your door, next working day',
+    packeta_choose:    'Choose a pickup point',
+    packeta_change:    'Change',
+    pay_title:         'Payment',
+    pay_cod:           'Cash on delivery',
+    pay_cod_desc:      'Pay when you collect it (+39 Kč)',
+    pay_card:          'Card online',
+    pay_card_desc:     'Visa, Mastercard via GoPay / Comgate',
+    pay_transfer:      'Bank transfer',
+    pay_transfer_desc: 'We will e-mail you the payment details',
+    note_placeholder2: 'A message for the card, if it is a gift',
+    checkout_legal:    'By placing the order you agree to our <a href="#" onclick="event.preventDefault(); showPage(\'terms-page\')">terms</a>.',
+    btn_complete_order:'Place order',
+    success_title:     'Thanks, we have your order',
+    success_desc:      'We will blend it and ship within 24 hours. A confirmation is on its way to your inbox.',
+    success_step1:     'Order received',
+    success_step2:     'We blend it',
+    success_step3:     'Shipped within 24 hours',
+    btn_create_another:'Mix another blend',
+    about_cta:         'Want to mix one?',
+    btn_start_creating2:'Mix a blend',
+    ing_page_title:    'Ingredients',
+    ing_page_sub:      'Everything here goes into the mixer, with how it tastes and what it pairs with.',
+    ing_pairs:         'Pairs with:',
+    ing_use:           'Mix with this',
+    process_cta_title: 'Want to mix one?',
+    btn_start_creating:'Mix a blend',
+    quiz_step_of:      'Question {n} of {total}',
+    quiz_result_intro: 'Based on your answers, you will like',
+    quiz_why:          'We picked it because you are after',
+    quiz_also:         'You might also like',
+    btn_order_blend:   'I want this one',
+    btn_try_again:     'Take the quiz again',
+    modal_qty_title:   'Choose a size',
+    btn_confirm:       'Add to cart',
+    toast_saved:       'is in your saved blends',
+    nav_blends:        'Saved blends',
+    nav_quiz:          'Quiz',
 });
 
 /* ─── Sáček ─────────────────────────────────── */
@@ -3606,6 +3728,10 @@ function initRedesign() {
         if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
     });
     document.getElementById('mixer-save')?.addEventListener('click', () => { mixerSyncProduct(); saveBlend(); });
+    document.getElementById('ingredients-page')?.addEventListener('click', e => {
+        const btn = e.target.closest('[data-mix]');
+        if (btn) mixWith(btn.dataset.mix);
+    });
     document.getElementById('mixer-share')?.addEventListener('click', () => { mixerSyncProduct(); shareBlend(); });
     const copy = document.getElementById('footer-copy');
     if (copy) copy.textContent = `© ${new Date().getFullYear()} Tease you`;

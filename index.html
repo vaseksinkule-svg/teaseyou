@@ -82,7 +82,7 @@
             <p><span data-i18n="cookie_text">We use cookies to improve your experience and remember your preferences. By continuing you agree to our</span> <a href="#" class="cookie-link" onclick="showPage('cookies-page')" data-i18n="cookie_policy_link">Cookie Policy</a>.</p>
         </div>
         <div class="cookie-actions">
-            <button class="btn btn-secondary cookie-decline" onclick="handleCookies(false)" data-i18n="btn_decline">Decline</button>
+            <button class="btn cookie-decline" onclick="handleCookies(false)" data-i18n="btn_decline">Decline</button>
             <button class="btn cookie-accept" onclick="handleCookies(true)" data-i18n="btn_accept">Accept all</button>
         </div>
     </div>
@@ -251,71 +251,34 @@
 </section>
 
 
-<!-- ═══ PRODUCT DETAIL ═══ -->
-<section id="product-detail-page" class="page">
-    <div class="detail-page-nav">
-        <button onclick="showPage('home-page')" class="back-link detail-back-btn" data-i18n="back_to_blends">&#8592; Back to blends</button>
-    </div>
-    <div class="detail-container">
-        <div class="detail-visual">
-            <img id="detail-photo" class="detail-photo" alt="" hidden>
-            <div class="glass-container">
-                <div class="glass-frame" id="detail-glass-frame">
-                    <div id="detail-part1" class="glass-part"></div>
-                    <div id="detail-part2" class="glass-part"></div>
-                    <div id="detail-part3" class="glass-part"></div>
+<!-- ═══ DETAIL HOTOVÉ SMĚSI ═══ -->
+<section id="product-detail-page" class="page detail">
+    <div class="page-wrap">
+        <button type="button" class="back-btn" onclick="goToShelf()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span data-i18n="back_to_shelf">Naše směsi</span></button>
+        <div class="detail-layout">
+            <figure class="detail-stage">
+                <img id="detail-photo" class="detail-photo" alt="" hidden>
+                <div class="detail-pouch" id="detail-pouch" aria-hidden="true"></div>
+            </figure>
+            <div class="detail-info">
+                <h1 id="detail-title" class="page-title detail-title">Směs</h1>
+                <p id="detail-desc" class="detail-desc"></p>
+                <ul id="detail-ingredients-list" class="detail-ings"></ul>
+                <p id="detail-stock-note" class="stock-note" hidden></p>
+                <p class="field-label" data-i18n="size_label">Velikost</p>
+                <div class="qty-options"></div>
+                <div class="detail-actions">
+                    <button id="detail-add-btn" class="btn btn-primary btn-lg disabled" onclick="confirmOrder()" disabled data-i18n="mixer_add">Do košíku</button>
+                    <button class="btn btn-quiet btn-lg" onclick="modifyReadyMade()" data-i18n="btn_edit_in_mixer">Upravit v mixéru</button>
                 </div>
-                <div class="glass-platform"></div>
-            </div>
-        </div>
-        <div class="detail-info">
-            <span class="detail-tag font-chaos" data-i18n="lbl_signature_blend">Signature Blend</span>
-            <h1 id="detail-title" class="logo detail-title">Tea Name</h1>
-            <p id="detail-desc" class="detail-desc font-chaos">Description...</p>
-            <p id="detail-ingredients-list" class="detail-ingredients"></p>
-            <p id="detail-stock-note" class="stock-note" hidden></p>
-            <div class="detail-divider"></div>
-            <p class="form-section-label" data-i18n="lbl_select_weight">Select weight</p>
-            <div class="qty-options">
-                <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">49 Kč</span></button>
-                <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">89 Kč</span></button>
-                <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">199 Kč</span></button>
-            </div>
-            <div class="detail-actions">
-                <button id="detail-add-btn" class="btn disabled" onclick="confirmOrder()" disabled data-i18n="btn_add_cart">Add to Cart</button>
-                <button class="btn btn-secondary" onclick="modifyReadyMade()" data-i18n="btn_customize">Customize Recipe</button>
-            </div>
-        </div>
-    </div>
-    <!-- Brew guide block — sits below the product card, extensible area for future info blocks -->
-    <div class="detail-extras">
-        <div class="brew-guide">
-            <button class="brew-guide-toggle" onclick="toggleBrewGuide(this)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 010 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/></svg>
-                <span data-i18n="lbl_brewing_guide">Brewing guide</span>
-                <svg class="brew-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="brew-guide-body">
-                <div class="brew-steps">
-                    <div class="brew-step">
-                        <div class="brew-step-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 0c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6z"/></svg>
-                        </div>
-                        <div><strong>2&ndash;3g</strong><span data-i18n="lbl_per_200ml">per 200ml</span></div>
-                    </div>
-                    <div class="brew-step">
-                        <div class="brew-step-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
-                        </div>
-                        <div><strong id="detail-temp">90&ndash;95&deg;C</strong><span data-i18n="lbl_water_temp">water temp</span></div>
-                    </div>
-                    <div class="brew-step">
-                        <div class="brew-step-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        </div>
-                        <div><strong id="detail-time">3&ndash;4 min</strong><span data-i18n="lbl_steep_time">steep time</span></div>
-                    </div>
-                </div>
+                <section class="brew" aria-labelledby="brew-title">
+                    <h2 class="brew-title" id="brew-title" data-i18n="brew_title">Jak ji připravit</h2>
+                    <dl class="brew-facts">
+                        <div><dt data-i18n="brew_dose">Dávka</dt><dd data-i18n="brew_dose_val">2–3 g na 200 ml vody</dd></div>
+                        <div><dt data-i18n="brew_water">Teplota vody</dt><dd id="detail-temp">90–95 °C</dd></div>
+                        <div><dt data-i18n="brew_time">Louhování</dt><dd id="detail-time">3–4 min</dd></div>
+                    </dl>
+                </section>
             </div>
         </div>
     </div>
@@ -395,291 +358,216 @@
 </section>
 
 
-<!-- ═══ SUMMARY ═══ -->
-<section id="summary-page" class="page">
-    <div class="summary-reveal">
-        <div class="summary-visual">
-            <span class="summary-badge font-chaos" data-i18n="summary_badge">Your blend</span>
-            <h1 id="display-mix-name" class="logo summary-logo">Name</h1>
-            <div class="summary-glass-wrap">
-                <div class="glass-frame summary-glass-frame">
-                    <div id="summary-part1" class="glass-part"></div>
-                    <div id="summary-part2" class="glass-part"></div>
-                    <div id="summary-part3" class="glass-part"></div>
-                </div>
-                <div class="summary-glass-shadow"></div>
-            </div>
-        </div>
-        <div class="summary-info">
-            <p class="summary-label" data-i18n="summary_inside">What's inside</p>
-            <div id="summary-chips" class="summary-chips"></div>
-            <div class="summary-divider-line"></div>
-            <p class="summary-label" data-i18n="summary_weight">Choose weight to order</p>
-            <div class="qty-options">
-                <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">49 Kč</span></button>
-                <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">89 Kč</span></button>
-                <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">199 Kč</span></button>
-            </div>
-            <div class="summary-actions">
-                <button id="summary-order-btn" class="btn disabled" onclick="confirmOrder()" disabled data-i18n="btn_add_cart">Add to Cart</button>
-                <button class="btn btn-secondary" onclick="showPage('product-page')" data-i18n="btn_edit_recipe">Edit Recipe</button>
-                <button class="btn btn-ghost" onclick="saveBlend()" title="Save blend">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                    <span data-i18n="btn_save">Save</span>
-                </button>
-                <button class="btn btn-ghost" onclick="shareBlend()" title="Share blend">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                    <span data-i18n="btn_share">Share</span>
-                </button>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ═══ SAVED BLENDS ═══ -->
+<!-- ═══ ULOŽENÉ SMĚSI ═══ -->
 <section id="saved-page" class="page">
-    <h2 class="logo section-title cart-title" data-i18n="saved_title">My Blends</h2>
-    <div class="saved-container">
-        <div id="saved-list"></div>
-        <div id="saved-empty" class="cart-empty">
-            <p class="font-chaos" data-i18n="saved_empty">No saved blends yet.</p>
-            <button class="btn btn-secondary" style="margin-top:20px" onclick="showPage('product-page')" data-i18n="btn_create_first">Create your first blend</button>
+    <div class="page-wrap page-narrow">
+        <header class="page-head">
+            <h1 class="page-title" data-i18n="saved_title">Uložené směsi</h1>
+            <p class="page-lede" data-i18n="saved_lede">Směsi, které sis uložil v mixéru.</p>
+        </header>
+        <div id="saved-list" class="saved-list"></div>
+        <div id="saved-empty" class="empty-state">
+            <p data-i18n="saved_empty">Zatím tu nic není.</p>
+            <button class="btn btn-primary" onclick="showPage('product-page')" data-i18n="btn_create_first">Namíchat směs</button>
         </div>
     </div>
 </section>
 
-<!-- ═══ ORDER HISTORY ═══ -->
+<!-- ═══ OBJEDNÁVKY ═══ -->
 <section id="orders-page" class="page">
-    <h2 class="logo section-title cart-title" data-i18n="orders_title">My Orders</h2>
-    <div class="saved-container">
-        <div id="orders-list"></div>
-        <div id="orders-empty" class="cart-empty">
-            <p class="font-chaos" data-i18n="orders_empty">No orders yet.</p>
-            <button class="btn btn-secondary" style="margin-top:20px" onclick="showPage('product-page')" data-i18n="btn_create_first">Create your first blend</button>
+    <div class="page-wrap page-narrow">
+        <header class="page-head">
+            <h1 class="page-title" data-i18n="orders_title">Moje objednávky</h1>
+            <p class="page-lede" data-i18n="orders_lede">Objednávky z tohohle prohlížeče.</p>
+        </header>
+        <div id="orders-list" class="orders-list"></div>
+        <div id="orders-empty" class="empty-state">
+            <p data-i18n="orders_empty">Zatím tu nejsou žádné objednávky.</p>
+            <button class="btn btn-primary" onclick="showPage('product-page')" data-i18n="btn_create_first">Namíchat směs</button>
         </div>
     </div>
 </section>
 
-<!-- ═══ CART ═══ -->
+<!-- ═══ KOŠÍK ═══ -->
 <section id="cart-page" class="page">
-    <h2 class="logo section-title cart-title" data-i18n="cart_title">Your Cart</h2>
-    <div class="cart-container">
-        <div class="cart-header"><span data-i18n="cart_col_product">Product</span><span data-i18n="cart_col_price">Price</span><span data-i18n="cart_col_qty">Quantity</span><span data-i18n="cart_col_subtotal">Subtotal</span></div>
-        <div id="cart-items-list"></div>
-        <div id="cart-empty" class="cart-empty" style="display:none;">
-            <div class="cart-empty-icon">🍵</div>
-            <p class="font-cosmico cart-empty-title" data-i18n="cart_empty_title">Your cart is empty</p>
-            <p class="font-chaos cart-empty-sub" data-i18n="cart_empty">Start by picking a blend or creating your own.</p>
-            <div class="cart-empty-actions">
-                <button class="btn" onclick="showPage('home-page')" data-i18n="btn_browse_blends">Browse blends</button>
-                <button class="btn btn-secondary" onclick="showPage('product-page')" data-i18n="btn_create_own">Create your own</button>
+    <div class="page-wrap">
+        <h1 class="page-title" data-i18n="cart_title">Košík</h1>
+        <div class="cart-layout">
+            <div class="cart-main">
+                <div id="cart-freeship" class="freeship" style="display:none;">
+                    <p id="cart-freeship-text" class="freeship-text"></p>
+                    <div class="freeship-track"><div id="cart-freeship-fill" class="freeship-fill"></div></div>
+                </div>
+                <ul id="cart-items-list" class="cart-list"></ul>
+                <div id="cart-empty" class="empty-state" style="display:none;">
+                    <p class="empty-title" data-i18n="cart_empty_title">Košík je prázdný</p>
+                    <p data-i18n="cart_empty">Vyber si hotovou směs, nebo si namíchej vlastní.</p>
+                    <div class="empty-actions">
+                        <button class="btn btn-primary" onclick="showPage('product-page')" data-i18n="btn_create_own">Namíchej si vlastní</button>
+                        <button class="btn btn-quiet" onclick="goToShelf()" data-i18n="btn_browse_blends">Naše směsi</button>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div id="cart-freeship" class="cart-freeship" style="display:none;">
-            <p id="cart-freeship-text" class="cart-freeship-text"></p>
-            <div class="cart-freeship-track"><div id="cart-freeship-fill" class="cart-freeship-fill"></div></div>
-        </div>
-        <div class="cart-footer">
-            <button class="clear-btn" onclick="showPage('home-page')" style="text-decoration:none;" data-i18n="btn_continue">&#8592; Continue shopping</button>
-            <div class="cart-total-box">
+            <aside class="cart-summary">
                 <div class="promo-box">
-                    <label class="form-label" for="promo-input" data-i18n="lbl_promo">Discount code</label>
+                    <label class="field-label" for="promo-input" data-i18n="lbl_promo">Slevový kód</label>
                     <div class="promo-row">
-                        <input type="text" id="promo-input" class="name-input" placeholder="FIRSTBLEND" autocomplete="off"
+                        <input type="text" id="promo-input" class="field" autocomplete="off" autocapitalize="characters"
                             onkeydown="if(event.key==='Enter'){event.preventDefault();applyPromo();}">
-                        <button class="btn btn-secondary promo-apply" type="button" onclick="applyPromo()" data-i18n="btn_apply">Apply</button>
+                        <button class="btn btn-quiet promo-apply" type="button" onclick="applyPromo()" data-i18n="btn_apply">Použít</button>
                     </div>
                     <p id="promo-feedback" class="promo-feedback"></p>
                 </div>
-                <div class="cart-totals-lines">
-                    <div class="cart-line"><span data-i18n="lbl_subtotal">Subtotal</span><span id="cart-subtotal">0 Kč</span></div>
-                    <div class="cart-line cart-line-discount" id="cart-discount-line" style="display:none;">
-                        <span>Discount <span id="cart-discount-code"></span> <button class="promo-remove" type="button" onclick="removePromo()" aria-label="Remove code">&#x2715;</button></span>
-                        <span id="cart-discount-amount">0 Kč</span>
+                <dl class="sum-lines">
+                    <div class="sum-line"><dt data-i18n="lbl_subtotal">Mezisoučet</dt><dd id="cart-subtotal">0 Kč</dd></div>
+                    <div class="sum-line sum-line-discount" id="cart-discount-line" style="display:none;">
+                        <dt><span data-i18n="order_discount">Sleva</span> <span id="cart-discount-code"></span> <button class="promo-remove" type="button" onclick="removePromo()" aria-label="Odebrat kód" data-i18n-aria="promo_remove">&#x2715;</button></dt>
+                        <dd id="cart-discount-amount">0 Kč</dd>
                     </div>
-                </div>
-                <p id="cart-shipping-line" class="cart-shipping-line">+ Shipping: calculated at checkout</p>
-                <h3 id="cart-final-total" class="font-cosmico cart-total-text">Total: 0 Kč</h3>
-                <button class="btn" onclick="showPage('checkout-page')" data-i18n="btn_checkout">Proceed to Checkout</button>
-            </div>
+                    <div class="sum-line sum-line-total"><dt data-i18n="order_total">Celkem</dt><dd id="cart-final-total">0 Kč</dd></div>
+                </dl>
+                <p id="cart-shipping-line" class="sum-note"></p>
+                <button class="btn btn-primary btn-lg btn-block" onclick="showPage('checkout-page')" data-i18n="btn_checkout">Přejít k pokladně</button>
+                <button class="btn btn-link cart-continue" onclick="goToShelf()" data-i18n="btn_continue">Pokračovat v nákupu</button>
+            </aside>
         </div>
     </div>
 </section>
 
-<!-- ═══ CHECKOUT ═══ -->
+<!-- ═══ POKLADNA ═══ -->
 <section id="checkout-page" class="page">
-    <h2 class="logo section-title cart-title" data-i18n="checkout_title">Shipping</h2>
-    <div class="checkout-wrapper">
-        <div class="checkout-summary">
-            <h3 class="checkout-summary-title" data-i18n="checkout_summary">Order Summary</h3>
-            <div id="checkout-items-summary"></div>
-            <div class="checkout-shipping-row" id="checkout-shipping-row" style="display:none;">
-                <span data-i18n="order_shipping">Shipping</span>
-                <span id="checkout-shipping-cost">0 Kč</span>
-            </div>
-            <div class="checkout-summary-total">
-                <span class="font-cosmico" data-i18n="order_total">Total</span>
-                <span id="checkout-total-display" class="font-cosmico checkout-total-num">0 Kč</span>
-            </div>
-        </div>
-        <div class="checkout-form-col">
-            <form id="checkout-form" onsubmit="submitOrder(event)">
-                <div class="checkout-step-header">
-                    <span class="checkout-step-num">1</span>
-                    <div class="form-section-label" data-i18n="checkout_contact">Contact</div>
+    <div class="page-wrap">
+        <button type="button" class="back-btn" onclick="showPage('cart-page')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span data-i18n="cart_title">Košík</span></button>
+        <h1 class="page-title" data-i18n="checkout_title">Pokladna</h1>
+        <div class="checkout-layout">
+            <aside class="checkout-summary">
+                <h2 class="box-title" data-i18n="checkout_summary">Tvoje objednávka</h2>
+                <ul id="checkout-items-summary" class="checkout-items"></ul>
+                <div class="sum-line" id="checkout-shipping-row" style="display:none;">
+                    <span data-i18n="order_shipping">Doprava</span>
+                    <span id="checkout-shipping-cost">0 Kč</span>
                 </div>
-                <div class="form-row">
-                    <div class="form-group"><label class="form-label" for="f-firstName" data-i18n="lbl_firstname">First name *</label><input type="text" id="f-firstName" name="firstName" class="name-input" required placeholder="Jan"></div>
-                    <div class="form-group"><label class="form-label" data-i18n="lbl_lastname" for="f-lastName">Last name *</label><input type="text" name="lastName" class="name-input" required placeholder="Nov&aacute;k" id="f-lastName"></div>
+                <div class="sum-line sum-line-total">
+                    <span data-i18n="order_total">Celkem</span>
+                    <span id="checkout-total-display">0 Kč</span>
                 </div>
-                <div class="form-group"><label class="form-label" data-i18n="lbl_email" for="f-email">Email *</label><input type="email" name="email" class="name-input" required placeholder="jan@email.cz" id="f-email"></div>
-                <div class="form-group"><label class="form-label" data-i18n="lbl_phone" for="f-phone">Phone *</label><input type="tel" name="phone" class="name-input" required placeholder="+420 123 456 789" id="f-phone"></div>
-                <div class="checkout-step-header" style="margin-top:32px;">
-                    <span class="checkout-step-num">2</span>
-                    <div class="form-section-label" data-i18n="checkout_address">Delivery address</div>
-                </div>
-                <div class="form-group"><label class="form-label" data-i18n="lbl_street" for="f-street">Street and number *</label><input type="text" name="street" class="name-input" required placeholder="N&aacute;m&#283;st&iacute; M&iacute;ru 12" id="f-street"></div>
-                <div class="form-row">
-                    <div class="form-group"><label class="form-label" data-i18n="lbl_city" for="f-city">City *</label><input type="text" name="city" class="name-input" required placeholder="Praha" id="f-city"></div>
-                    <div class="form-group"><label class="form-label" data-i18n="lbl_zip" for="f-zip">ZIP *</label><input type="text" name="zip" class="name-input" required placeholder="110 00" maxlength="6" id="f-zip"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" data-i18n="lbl_country" for="f-country">Country *</label><select name="country" class="name-input select-input" required id="f-country">
-                        <option value="" data-i18n="country_select">&mdash; Select &mdash;</option>
-                        <option value="CZ">Czech Republic &#x1F1E8;&#x1F1FF;</option>
-                        <option value="SK">Slovakia &#x1F1F8;&#x1F1F0;</option>
-                    </select>
-                </div>
-                <div class="checkout-step-header" style="margin-top:32px;">
-                    <span class="checkout-step-num">3</span>
-                    <div class="form-section-label" data-i18n="checkout_shipping">Shipping method</div>
-                </div>
-                <div class="shipping-options">
-                    <label class="shipping-option"><input type="radio" name="shipping" value="post" data-price="89" required onchange="handleShippingChange(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4EE; &Ccaron;esk&aacute; po&scaron;ta</span><span class="shipping-price">89 Kč</span></div><span class="shipping-desc" data-i18n="ship_post_desc">Delivery in 3&ndash;5 business days</span></label>
-                    <label class="shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="69" onchange="handleShippingChange(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F4E6; Z&aacute;silkovna</span><span class="shipping-price">69 Kč</span></div><span class="shipping-desc" data-i18n="ship_zasilkovna_desc">Pick up at your nearest location</span></label>
-                    <div id="packeta-picker" class="packeta-picker" style="display:none;" aria-live="polite">
-                        <button type="button" id="packeta-choose-btn" class="btn btn-secondary packeta-choose-btn" onclick="openPacketaWidget()" data-i18n="packeta_choose">Choose pickup point</button>
-                        <div id="packeta-selected" class="packeta-selected" style="display:none;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            <span id="packeta-branch-name" class="packeta-branch-name">—</span>
-                            <button type="button" onclick="openPacketaWidget()" class="packeta-change-btn" data-i18n="packeta_change">Change branch</button>
+            </aside>
+            <form id="checkout-form" class="checkout-form" onsubmit="submitOrder(event)" novalidate>
+                <fieldset class="form-step">
+                    <legend class="form-step-title"><span class="form-step-num">1</span><span data-i18n="checkout_contact">Kontakt</span></legend>
+                    <div class="form-row">
+                        <div class="form-group"><label class="field-label" for="f-firstName" data-i18n="lbl_firstname">Jméno *</label><input type="text" id="f-firstName" name="firstName" class="field" required autocomplete="given-name"></div>
+                        <div class="form-group"><label class="field-label" for="f-lastName" data-i18n="lbl_lastname">Příjmení *</label><input type="text" id="f-lastName" name="lastName" class="field" required autocomplete="family-name"></div>
+                    </div>
+                    <div class="form-group"><label class="field-label" for="f-email" data-i18n="lbl_email">E-mail *</label><input type="email" id="f-email" name="email" class="field" required autocomplete="email" inputmode="email"></div>
+                    <div class="form-group"><label class="field-label" for="f-phone" data-i18n="lbl_phone">Telefon *</label><input type="tel" id="f-phone" name="phone" class="field" required autocomplete="tel" placeholder="+420 123 456 789"></div>
+                </fieldset>
+                <fieldset class="form-step">
+                    <legend class="form-step-title"><span class="form-step-num">2</span><span data-i18n="checkout_address">Doručovací adresa</span></legend>
+                    <div class="form-group"><label class="field-label" for="f-street" data-i18n="lbl_street">Ulice a číslo *</label><input type="text" id="f-street" name="street" class="field" required autocomplete="street-address"></div>
+                    <div class="form-row form-row--zip">
+                        <div class="form-group"><label class="field-label" for="f-city" data-i18n="lbl_city">Město *</label><input type="text" id="f-city" name="city" class="field" required autocomplete="address-level2"></div>
+                        <div class="form-group"><label class="field-label" for="f-zip" data-i18n="lbl_zip">PSČ *</label><input type="text" id="f-zip" name="zip" class="field" required maxlength="6" autocomplete="postal-code" inputmode="numeric"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="f-country" data-i18n="lbl_country">Země *</label>
+                        <select id="f-country" name="country" class="field field-select" required autocomplete="country">
+                            <option value="" data-i18n="country_select">Vyber</option>
+                            <option value="CZ" data-i18n="country_cz">Česko</option>
+                            <option value="SK" data-i18n="country_sk">Slovensko</option>
+                        </select>
+                    </div>
+                </fieldset>
+                <fieldset class="form-step">
+                    <legend class="form-step-title"><span class="form-step-num">3</span><span data-i18n="checkout_shipping">Doprava</span></legend>
+                    <div class="choice-list">
+                        <label class="choice shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="69" required onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name">Zásilkovna</span><span class="choice-desc shipping-desc" data-i18n="ship_zasilkovna_desc">Vyzvedneš na výdejním místě</span></span><span class="choice-price shipping-price">69 Kč</span></label>
+                        <div id="packeta-picker" class="packeta-picker" style="display:none;" aria-live="polite">
+                            <button type="button" id="packeta-choose-btn" class="btn btn-quiet packeta-choose-btn" onclick="openPacketaWidget()" data-i18n="packeta_choose">Vybrat výdejní místo</button>
+                            <div id="packeta-selected" class="packeta-selected" style="display:none;">
+                                <span id="packeta-branch-name" class="packeta-branch-name">—</span>
+                                <button type="button" onclick="openPacketaWidget()" class="btn btn-link packeta-change-btn" data-i18n="packeta_change">Změnit</button>
+                            </div>
+                            <span id="packeta-error" class="field-error" style="display:none;" data-i18n="packeta_required">Vyber výdejní místo</span>
                         </div>
-                        <span id="packeta-error" class="field-error" style="display:none;" data-i18n="packeta_required">Please choose a pickup point</span>
+                        <label class="choice shipping-option"><input type="radio" name="shipping" value="post" data-price="89" onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name">Česká pošta</span><span class="choice-desc shipping-desc" data-i18n="ship_post_desc">Doručení za 3–5 pracovních dní</span></span><span class="choice-price shipping-price">89 Kč</span></label>
+                        <label class="choice shipping-option"><input type="radio" name="shipping" value="dpd" data-price="119" onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name" data-i18n="ship_dpd_name">Kurýr DPD</span><span class="choice-desc shipping-desc" data-i18n="ship_dpd_desc">Doručení další pracovní den</span></span><span class="choice-price shipping-price">119 Kč</span></label>
                     </div>
-                    <label class="shipping-option"><input type="radio" name="shipping" value="dpd" data-price="119" onchange="handleShippingChange(this)"><div class="shipping-option-body"><span class="shipping-name">&#x1F69A; DPD Courier</span><span class="shipping-price">119 Kč</span></div><span class="shipping-desc" data-i18n="ship_dpd_desc">Next business day delivery</span></label>
+                </fieldset>
+                <fieldset class="form-step">
+                    <legend class="form-step-title"><span class="form-step-num">4</span><span data-i18n="pay_title">Platba</span></legend>
+                    <div class="choice-list">
+                        <label class="choice payment-option"><input type="radio" name="payment" value="cod" checked><span class="choice-body"><span class="choice-name" data-i18n="pay_cod">Dobírka</span><span class="choice-desc" data-i18n="pay_cod_desc">Platba při převzetí (+39 Kč)</span></span></label>
+                        <label class="choice payment-option"><input type="radio" name="payment" value="card"><span class="choice-body"><span class="choice-name" data-i18n="pay_card">Platební karta online</span><span class="choice-desc" data-i18n="pay_card_desc">Visa, Mastercard přes GoPay / Comgate</span></span></label>
+                        <label class="choice payment-option"><input type="radio" name="payment" value="transfer"><span class="choice-body"><span class="choice-name" data-i18n="pay_transfer">Bankovní převod</span><span class="choice-desc" data-i18n="pay_transfer_desc">Instrukce pošleme e-mailem</span></span></label>
+                    </div>
+                </fieldset>
+                <div class="form-group">
+                    <label class="field-label" for="f-note"><span data-i18n="checkout_note">Poznámka</span> <span class="field-opt" data-i18n="checkout_note_opt">(nepovinné)</span></label>
+                    <textarea id="f-note" name="note" class="field" rows="3" placeholder="Třeba vzkaz na přání, když je to dárek" data-i18n-placeholder="note_placeholder2"></textarea>
                 </div>
-                <div class="form-section-label" style="margin-top:32px;"><span data-i18n="checkout_note">Note</span> <span style="color:var(--color-ink-faint);font-weight:400;" data-i18n="checkout_note_opt">(optional)</span></div>
-                <div class="form-group"><textarea name="note" class="name-input" rows="3" placeholder="Any special requests or gift messages..." data-i18n-placeholder="note_placeholder"></textarea></div>
-                <!-- PAYMENT METHOD -->
-                <div class="checkout-step">
-                    <div class="checkout-step-header" style="margin-top:32px;">
-                        <span class="checkout-step-num">4</span>
-                        <h3>Platba</h3>
-                    </div>
-                    <div class="payment-methods">
-                        <label class="payment-option">
-                            <input type="radio" name="payment" value="cod" checked>
-                            <span class="payment-label">
-                                <span class="payment-icon">💵</span>
-                                <span>
-                                    <strong>Dobírka</strong>
-                                    <small>Platba při převzetí (+39 Kč)</small>
-                                </span>
-                            </span>
-                        </label>
-                        <label class="payment-option">
-                            <input type="radio" name="payment" value="card">
-                            <span class="payment-label">
-                                <span class="payment-icon">💳</span>
-                                <span>
-                                    <strong>Platební karta online</strong>
-                                    <small>Visa, Mastercard — přes GoPay / Comgate</small>
-                                </span>
-                            </span>
-                        </label>
-                        <label class="payment-option">
-                            <input type="radio" name="payment" value="transfer">
-                            <span class="payment-label">
-                                <span class="payment-icon">🏦</span>
-                                <span>
-                                    <strong>Bankovní převod</strong>
-                                    <small>Instrukce pošleme emailem</small>
-                                </span>
-                            </span>
-                        </label>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-large checkout-submit" data-i18n="btn_complete_order">Complete Order</button>
+                <button type="submit" class="btn btn-primary btn-lg btn-block checkout-submit" data-i18n="btn_complete_order">Dokončit objednávku</button>
+                <p class="checkout-legal" data-i18n-html="checkout_legal">Odesláním souhlasíš s <a href="#" onclick="event.preventDefault(); showPage('terms-page')">obchodními podmínkami</a>.</p>
             </form>
         </div>
     </div>
 </section>
 
-<!-- ═══ SUCCESS ═══ -->
-<section id="success-page" class="page success-page">
-    <div class="success-inner">
-        <div class="success-icon">&#x1F375;</div>
-        <h1 class="logo big-logo" data-i18n="success_title">Order placed!</h1>
-        <p class="subtitle" data-i18n="success_desc">Your blend is on its way. We'll brew it fresh and send a confirmation to your email.</p>
-        <div class="success-order-num font-chaos" id="success-order-num"></div>
-        <div class="success-steps">
-            <div class="success-step"><span class="step-num">1</span><span data-i18n="success_step1">Order received</span></div>
-            <div class="success-step-line"></div>
-            <div class="success-step"><span class="step-num">2</span><span data-i18n="success_step2">Freshly blended</span></div>
-            <div class="success-step-line"></div>
-            <div class="success-step"><span class="step-num">3</span><span data-i18n="success_step3">Shipped to you</span></div>
+<!-- ═══ HOTOVO ═══ -->
+<section id="success-page" class="page">
+    <div class="page-wrap success">
+        <div class="success-pouch" id="success-pouch" aria-hidden="true"></div>
+        <h1 class="page-title" data-i18n="success_title">Díky, objednávka je u nás</h1>
+        <p class="page-lede" data-i18n="success_desc">Směs namícháme a do 24 hodin odešleme.</p>
+        <p class="success-num" id="success-order-num"></p>
+        <ol class="success-steps">
+            <li class="is-done" data-i18n="success_step1">Objednávka přijatá</li>
+            <li data-i18n="success_step2">Namícháme</li>
+            <li data-i18n="success_step3">Odešleme</li>
+        </ol>
+        <div class="success-actions">
+            <button class="btn btn-primary btn-lg" onclick="showPage('product-page')" data-i18n="btn_create_another">Namíchat další směs</button>
+            <button class="btn btn-link" onclick="showPage('orders-page')" data-i18n="nav_orders">Moje objednávky</button>
         </div>
-        <button class="btn btn-large" onclick="location.reload()" data-i18n="btn_create_another">Create another blend</button>
     </div>
 </section>
 
-<!-- ═══ ABOUT ═══ -->
+<!-- ═══ O NÁS ═══ -->
 <section id="about-page" class="page">
-    <div class="about-hero">
-        <span class="about-tag font-chaos" data-i18n="about_tag">Our Story</span>
-        <h1 class="logo about-title" data-i18n="about_hero_title">Tea is personal.</h1>
-        <p class="subtitle" data-i18n="about_hero_subtitle">Not some brand's version. Yours.</p>
-    </div>
-    <div class="about-story">
-        <p data-i18n="about_story_p1">Tease you started with a school thesis. The founder spent months studying tea house culture, going from one tea house to the next, and thinking about what makes a good cup worth going back to.</p>
-        <p data-i18n="about_story_p2">That turned into this — a place where you choose every part of your blend yourself. No brand deciding for you. Just your base, your flavour, your name.</p>
-        <p class="about-callout" data-i18n="about_callout_text">Every order is mixed on the day it's placed. Not before.</p>
-    </div>
-    <div class="about-grid">
-        <div class="about-card">
-            <div class="about-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 010 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg></div>
-            <h3 class="font-cosmico" data-i18n="about_card1_title">Fresh every time</h3>
-            <p data-i18n="about_card1_desc">We blend when you order. Not pre-packed, not sitting on a shelf — made the day it ships.</p>
+    <div class="page-wrap page-narrow">
+        <header class="page-head">
+            <h1 class="page-title" data-i18n="about_hero_title">Čaj je osobní.</h1>
+            <p class="page-lede" data-i18n="about_hero_subtitle">Ne verze nějaké značky. Tvoje.</p>
+        </header>
+        <div class="prose">
+            <p data-i18n="about_story_p1"></p>
+            <p data-i18n="about_story_p2"></p>
+            <p class="prose-callout" data-i18n="about_callout_text"></p>
         </div>
-        <div class="about-card">
-            <div class="about-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
-            <h3 class="font-cosmico" data-i18n="about_card2_title">Your recipe</h3>
-            <p data-i18n="about_card2_desc">The configurator is the whole point. Pick your base, your flavour, your extra. Name it. That's your tea.</p>
+        <div class="facts">
+            <div class="fact"><h2 data-i18n="about_card1_title">Pokaždé čerstvé</h2><p data-i18n="about_card1_desc"></p></div>
+            <div class="fact"><h2 data-i18n="about_card2_title">Tvůj recept</h2><p data-i18n="about_card2_desc"></p></div>
+            <div class="fact"><h2 data-i18n="about_card3_title">Skutečné suroviny</h2><p data-i18n="about_card3_desc"></p></div>
         </div>
-        <div class="about-card">
-            <div class="about-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-            <h3 class="font-cosmico" data-i18n="about_card3_title">Real ingredients</h3>
-            <p data-i18n="about_card3_desc">No artificial flavours, no fillers. Six bases, nine flavours, nine extras — all real, all listed.</p>
+        <div class="page-cta">
+            <p data-i18n="about_cta">Chceš si jednu namíchat?</p>
+            <button class="btn btn-primary btn-lg" onclick="showPage('product-page')" data-i18n="btn_start_creating2">Namíchat směs</button>
         </div>
-    </div>
-    <div class="about-cta">
-        <p class="font-chaos about-cta-text" data-i18n="about_cta">Ready to find your blend?</p>
-        <button class="btn btn-large" onclick="showPage('product-page')" data-i18n="btn_start_creating2">Start creating</button>
     </div>
 </section>
 
-<!-- ═══ TEA FINDER QUIZ ═══ -->
+<!-- ═══ KVÍZ ═══ -->
 <section id="quiz-page" class="page">
-    <div class="quiz-page">
-        <div id="quiz-progress-bar" class="quiz-progress"></div>
+    <div class="page-wrap quiz">
+        <div id="quiz-progress-bar" class="quiz-top"></div>
         <div id="quiz-body"></div>
     </div>
 </section>
 
 <!-- ═══ TERMS ═══ -->
 <section id="terms-page" class="page">
-    <div class="legal-page">
-        <h1 class="logo legal-title">Obchodní podmínky</h1>
+    <div class="page-wrap page-narrow legal">
+        <h1 class="page-title">Obchodní podmínky</h1>
         <div class="legal-body">
             <h2>1. Provozovatel</h2>
             <p><strong>[DOPLNIT: Jméno / název firmy]</strong>, IČO: [DOPLNIT], se sídlem [DOPLNIT adresa], email: hello@teaseyou.cz, tel.: [DOPLNIT]</p>
@@ -703,14 +591,14 @@
             <p>Tyto podmínky se řídí právem České republiky. Spotřebitelské spory lze řešit mimosoudně přes Českou obchodní inspekci (coi.cz).</p>
             <p class="legal-updated">Platné od [DOPLNIT datum]</p>
         </div>
-        <button class="btn btn-secondary" onclick="showPage('home-page')">← Zpět</button>
+        <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
     </div>
 </section>
 
 <!-- ═══ PRIVACY ═══ -->
 <section id="privacy-page" class="page">
-    <div class="legal-page">
-        <h1 class="logo legal-title">Ochrana osobních údajů</h1>
+    <div class="page-wrap page-narrow legal">
+        <h1 class="page-title">Ochrana osobních údajů</h1>
         <div class="legal-body">
             <h2>1. Správce osobních údajů</h2>
             <p><strong>[DOPLNIT: Jméno / název firmy]</strong>, IČO: [DOPLNIT], email: hello@teaseyou.cz</p>
@@ -734,14 +622,14 @@
             <p>Web používá pouze technické cookies (localStorage) pro uložení košíku a preferencí. Nepoužíváme reklamní ani analytické cookies třetích stran.</p>
             <p class="legal-updated">Platné od [DOPLNIT datum]</p>
         </div>
-        <button class="btn btn-secondary" onclick="showPage('home-page')">← Zpět</button>
+        <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
     </div>
 </section>
 
 <!-- ═══ COOKIES ═══ -->
 <section id="cookies-page" class="page">
-    <div class="legal-page">
-        <h1 class="logo legal-title">Cookie Policy</h1>
+    <div class="page-wrap page-narrow legal">
+        <h1 class="page-title">Cookies</h1>
         <div class="legal-body">
             <h2>Co jsou cookies</h2>
             <p>Cookies jsou malé datové soubory ukládané ve vašem prohlížeči. Slouží k zapamatování preferencí a obsahu košíku.</p>
@@ -763,82 +651,49 @@
             <p>Cookies můžete smazat nebo zablokovat v nastavení prohlížeče. Upozorňujeme, že smazání nezbytných cookies může narušit funkčnost webu (košík, uložené blendy).</p>
             <p class="legal-updated">Platné od [DOPLNIT datum]</p>
         </div>
-        <button class="btn btn-secondary" onclick="showPage('home-page')">← Zpět</button>
+        <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
     </div>
 </section>
 
-<!-- ═══ INGREDIENTS ENCYCLOPEDIA ═══ -->
+<!-- ═══ INGREDIENCE ═══ -->
 <section id="ingredients-page" class="page">
-    <div class="page-container">
-        <button class="back-link" onclick="showPage('home-page')">← <span data-i18n="back_btn_text">Zpět</span></button>
-        <h1 class="section-title" style="margin-top:16px" data-i18n="ing_page_title">Průvodce ingrediencemi</h1>
-        <p class="section-sub" data-i18n="ing_page_sub">Vše co jsme přidali do naší palety — a proč.</p>
-
-        <h2 class="ing-cat-title" data-i18n="ing_cat_bases">Čajové základy</h2>
-        <div class="ing-grid" id="ing-grid-bases"></div>
-
-        <h2 class="ing-cat-title" data-i18n="ing_cat_flavors">Příchutě</h2>
-        <div class="ing-grid" id="ing-grid-flavors"></div>
-
-        <h2 class="ing-cat-title" data-i18n="ing_cat_extras">Doplňky</h2>
-        <div class="ing-grid" id="ing-grid-extras"></div>
+    <div class="page-wrap">
+        <header class="page-head">
+            <h1 class="page-title" data-i18n="ing_page_title">Ingredience</h1>
+            <p class="page-lede" data-i18n="ing_page_sub">Ze všeho tady se dá míchat.</p>
+        </header>
+        <section class="ing-section" aria-labelledby="ing-h-bases">
+            <h2 class="section-title ing-cat-title" id="ing-h-bases" data-i18n="ing_cat_bases">Čajové základy</h2>
+            <div class="ing-grid" id="ing-grid-bases"></div>
+        </section>
+        <section class="ing-section" aria-labelledby="ing-h-flavors">
+            <h2 class="section-title ing-cat-title" id="ing-h-flavors" data-i18n="ing_cat_flavors">Příchutě</h2>
+            <div class="ing-grid" id="ing-grid-flavors"></div>
+        </section>
+        <section class="ing-section" aria-labelledby="ing-h-extras">
+            <h2 class="section-title ing-cat-title" id="ing-h-extras" data-i18n="ing_cat_extras">Doplňky</h2>
+            <div class="ing-grid" id="ing-grid-extras"></div>
+        </section>
     </div>
 </section>
 
-<!-- ═══ HOW IT'S MADE ═══ -->
+<!-- ═══ JAK TO DĚLÁME ═══ -->
 <section id="process-page" class="page">
-    <div class="page-container">
-        <button class="back-link" onclick="showPage('home-page')">← <span data-i18n="back_btn_text">Zpět</span></button>
-        <div class="process-hero">
-            <span class="hero-tag font-chaos" data-i18n="process_tag">Od políčka do šálku</span>
-            <h1 data-i18n="process_title">Jak to děláme</h1>
-            <p data-i18n="process_sub">Každá objednávka je unikátní. Žádné sklady, žádné šarže. Jen čerstvě namíchaný čaj, připravený přesně pro tebe.</p>
-        </div>
-        <div class="process-timeline">
-            <div class="process-step reveal-section">
-                <div class="process-step-num">01</div>
-                <div class="process-step-content">
-                    <div class="process-step-icon">🌿</div>
-                    <h3 data-i18n="proc_1_title">Výběr surovin</h3>
-                    <p data-i18n="proc_1_desc">Pracujeme výhradně s certifikovanými dodavateli čajových listů a bylinek. Každá šarže surovin prochází smyslovou kontrolou — barva, vůně, chuť.</p>
-                </div>
-            </div>
-            <div class="process-step reveal-section">
-                <div class="process-step-num">02</div>
-                <div class="process-step-content">
-                    <div class="process-step-icon">⚖️</div>
-                    <h3 data-i18n="proc_2_title">Přesné vážení</h3>
-                    <p data-i18n="proc_2_desc">Každou složku tvého blendu vážíme na přesné digitální váze. Poměry jsou navrženy tak, aby žádná příchuť nedominovala — pokud si to výslovně nepřeješ.</p>
-                </div>
-            </div>
-            <div class="process-step reveal-section">
-                <div class="process-step-num">03</div>
-                <div class="process-step-content">
-                    <div class="process-step-icon">🫙</div>
-                    <h3 data-i18n="proc_3_title">Namíchání</h3>
-                    <p data-i18n="proc_3_desc">Složky šetrně ručně mícháme, aby se rovnoměrně prolnuly bez poškození listů. Pak necháme blend chvíli odpočinout, aby vůně splynuly.</p>
-                </div>
-            </div>
-            <div class="process-step reveal-section">
-                <div class="process-step-num">04</div>
-                <div class="process-step-content">
-                    <div class="process-step-icon">📦</div>
-                    <h3 data-i18n="proc_4_title">Balení</h3>
-                    <p data-i18n="proc_4_desc">Balíme do hermeticky uzavíratelných kraft sáčků, které zachovávají čerstvost 12–18 měsíců. Na každém sáčku je tvoje jméno blendu a složení.</p>
-                </div>
-            </div>
-            <div class="process-step reveal-section">
-                <div class="process-step-num">05</div>
-                <div class="process-step-content">
-                    <div class="process-step-icon">🚚</div>
-                    <h3 data-i18n="proc_5_title">Odeslání</h3>
-                    <p data-i18n="proc_5_desc">Balíky odesíláme přes Zásilkovnu nebo Českou poštu zpravidla do 24 hodin. Dostaneš sledovací číslo emailem.</p>
-                </div>
-            </div>
-        </div>
-        <div class="process-cta reveal-section">
-            <h2 data-i18n="process_cta_title">Připraven/a namíchat svůj blend?</h2>
-            <button class="btn btn-large" onclick="showPage('product-page')" data-i18n="btn_start_creating">Start creating →</button>
+    <div class="page-wrap page-narrow">
+        <header class="page-head">
+            <h1 class="page-title" data-i18n="process_title">Jak to děláme</h1>
+            <p class="page-lede" data-i18n="process_sub"></p>
+        </header>
+        <ol class="process-list">
+            <li><h2 data-i18n="proc_1_title">Výběr surovin</h2><p data-i18n="proc_1_desc"></p></li>
+            <li><h2 data-i18n="proc_2_title">Přesné vážení</h2><p data-i18n="proc_2_desc"></p></li>
+            <li><h2 data-i18n="proc_3_title">Namíchání</h2><p data-i18n="proc_3_desc"></p></li>
+            <li><h2 data-i18n="proc_4_title">Balení</h2><p data-i18n="proc_4_desc"></p></li>
+            <li><h2 data-i18n="proc_5_title">Odeslání</h2><p data-i18n="proc_5_desc"></p></li>
+        </ol>
+        <div class="page-cta">
+            <p data-i18n="process_cta_title">Chceš si jednu namíchat?</p>
+            <button class="btn btn-primary btn-lg" onclick="showPage('product-page')" data-i18n="btn_start_creating">Namíchat směs</button>
         </div>
     </div>
 </section>
@@ -847,14 +702,14 @@
 
 <div id="order-modal" class="modal">
     <div class="modal-content">
-        <h2 class="font-cosmico modal-title" data-i18n="modal_qty_title">Select Quantity</h2>
+        <h2 class="modal-title" data-i18n="modal_qty_title">Select Quantity</h2>
         <div class="qty-options qty-options--center">
             <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">49 Kč</span></button>
             <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">89 Kč</span></button>
             <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">199 Kč</span></button>
         </div>
-        <button id="final-order-btn" class="btn disabled" onclick="confirmOrder()" disabled data-i18n="btn_confirm">Confirm</button>
-        <button onclick="closeOrderModal()" class="clear-btn modal-cancel" data-i18n="btn_cancel">Cancel</button>
+        <button id="final-order-btn" class="btn btn-primary btn-lg disabled" onclick="confirmOrder()" disabled data-i18n="btn_confirm">Confirm</button>
+        <button onclick="closeOrderModal()" class="btn btn-link modal-cancel" data-i18n="btn_cancel">Cancel</button>
     </div>
 </div>
 

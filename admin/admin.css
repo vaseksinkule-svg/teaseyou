@@ -21,8 +21,8 @@
     --r-md: 16px;
     --r-lg: 24px;
     --shadow: 0 18px 50px rgba(26, 26, 24, .16);
-    --font: 'Lato', system-ui, -apple-system, sans-serif;
-    --serif: 'Playfair Display', Georgia, serif;
+    --font: 'Archivo', system-ui, -apple-system, sans-serif;
+    --serif: 'Archivo', system-ui, sans-serif;
     color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
