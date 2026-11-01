@@ -6,6 +6,16 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (mýdla a balzámy)
+- **Mýdla a balzámy na rty** ze stejných surovin jako čaj: sekce na úvodní
+  stránce, vlastní stránka a odkazy z ingrediencí („Najdeš i v“) i z detailu
+  čaje („Ze stejných surovin“). Zatím se neprodávají, u každého jde nechat
+  e-mail a dostat zprávu, až bude k mání.
+- V administraci nová záložka Mýdla a balzámy: produkty s fotkou, barvou
+  a surovinami z čajů, seznam zájemců s exportem do CSV.
+- Databáze: tabulky `craft_products` a `craft_waitlist` a funkce
+  `join_craft_waitlist()`. Je potřeba znovu spustit `supabase/setup.sql`.
+
 ### Změněno
 - **Nový vzhled celého webu, hlavně na telefonu.** Značka zůstává (logo,
   barvy), písmo je nově jen Archivo: nadpisy široké a tučné jako potisk

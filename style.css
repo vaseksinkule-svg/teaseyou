@@ -1237,6 +1237,142 @@ textarea.field { min-height: 96px; resize: vertical; line-height: 1.45; }
     .quiz-runnerup { grid-area: ru; max-width: 440px; }
 }
 
+/* ─── MÝDLA A BALZÁMY ────────────────────────── */
+/* Stejný jazyk jako sáček: kraftový papír a bílá etiketa se jménem.
+   Mýdlo je kostka v barvě hlavní suroviny s páskou, balzám plechovka shora. */
+.craft-soap, .craft-tin {
+    --w: 180px;
+    position: relative; isolation: isolate; flex-shrink: 0;
+    width: var(--w);
+}
+.craft-soap { aspect-ratio: 200 / 150; --soap: color-mix(in srgb, var(--c, #d9c4a0) 42%, #f7f0e3); }
+.craft-tin { --w: 128px; aspect-ratio: 1; }
+.craft-soap svg, .craft-tin svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.soap-body { fill: var(--soap); }
+.craft-soap::after, .craft-tin::after {
+    content: ''; position: absolute; z-index: -1;
+    left: 2%; right: 2%; bottom: calc(var(--w) * -.05); height: calc(var(--w) * .12);
+    background: radial-gradient(closest-side, rgba(25, 18, 8, .3), rgba(25, 18, 8, 0));
+}
+.craft-label {
+    position: absolute;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: calc(var(--w) * .012);
+    text-align: center; color: #1a1a18; overflow: hidden;
+}
+.craft-soap .craft-label {
+    left: 19%; right: 19%; top: 33.5%; bottom: 33.5%;
+    padding: 0 calc(var(--w) * .025);
+    background: #fbf8f1; border-radius: calc(var(--w) * .012);
+    box-shadow: 0 1px 0 rgba(0,0,0,.12);
+}
+.craft-tin .craft-label { left: 22%; right: 22%; top: 24%; bottom: 24%; }
+.craft-brand { font-family: var(--display); font-size: calc(var(--w) * .042); line-height: 1; letter-spacing: -.02em; }
+.craft-label-name {
+    font: 800 calc(var(--w) * .056)/1.02 var(--sans); font-stretch: var(--wide); letter-spacing: -.02em;
+    overflow-wrap: anywhere;
+}
+.craft-tin .craft-brand { font-size: calc(var(--w) * .07); }
+.craft-tin .craft-label-name { font-size: calc(var(--w) * .095); }
+.craft-dots { display: none; gap: calc(var(--w) * .025); margin-top: calc(var(--w) * .01); }
+.craft-tin .craft-dots { display: flex; }
+.craft-dots i { display: block; width: calc(var(--w) * .06); height: calc(var(--w) * .06); border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+.craft--xs.craft-soap { --w: 64px; }
+.craft--xs.craft-tin { --w: 52px; }
+.craft--xs .craft-label-name, .craft--xs .craft-brand, .craft--xs .craft-dots { display: none; }
+
+/* úvodní stránka: dvě mýdla a balzám jako na fotce shora */
+.craft-band {
+    max-width: var(--wrap); margin: 0 auto;
+    padding: 16px var(--gutter) 72px;
+    display: grid; gap: 24px;
+}
+.craft-band-copy { display: grid; gap: 10px; max-width: 52ch; }
+.craft-flatlay {
+    position: relative; overflow: hidden;
+    height: 300px; margin-inline: calc(var(--gutter) * -1);
+    background: #e7e1ec;
+}
+body.dark .craft-flatlay { background: #2a2630; }
+.flatlay-item { position: absolute; }
+.flatlay-1 { left: 5%; top: 13%; transform: rotate(-9deg); }
+.flatlay-1 .craft-soap { --w: min(48vw, 190px); }
+.flatlay-2 { right: 5%; bottom: 11%; transform: rotate(7deg); }
+.flatlay-2 .craft-soap { --w: min(42vw, 170px); }
+.flatlay-3 { right: 9%; top: 7%; transform: rotate(-4deg); }
+.flatlay-3 .craft-tin { --w: min(28vw, 116px); }
+.flatlay-item .craft-photo { width: min(40vw, 170px); aspect-ratio: 1; object-fit: cover; border-radius: var(--r-md); }
+@media (min-width: 900px) {
+    .craft-band {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 560px);
+        grid-template-areas: "copy lay" "cta lay";
+        column-gap: 64px; align-items: start;
+        padding-top: 32px; padding-bottom: 104px;
+    }
+    .craft-band-copy { grid-area: copy; align-self: end; }
+    .craft-band-cta { grid-area: cta; }
+    .craft-flatlay { grid-area: lay; height: 400px; margin: 0; border-radius: var(--r-lg); }
+    .flatlay-1 .craft-soap { --w: 230px; }
+    .flatlay-2 .craft-soap { --w: 200px; }
+    .flatlay-3 .craft-tin { --w: 140px; }
+}
+
+/* stránka Mýdla a balzámy */
+.craft-soon-note { padding: 12px 14px; border-radius: var(--r-md); background: var(--leaf-pale); color: var(--ink); font-size: 15px; }
+.craft-section { margin-top: 36px; }
+.craft-grid { display: grid; gap: 28px 20px; }
+@media (min-width: 640px) { .craft-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1000px) { .craft-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.craft-card { display: flex; flex-direction: column; gap: 8px; scroll-margin-top: calc(var(--nav-h) + 16px); border-radius: var(--r-md); transition: box-shadow .4s; }
+.craft-card.is-flash { box-shadow: 0 0 0 3px var(--forest); }
+.craft-visual {
+    position: relative; overflow: hidden;
+    height: 220px; margin-bottom: 6px;
+    display: grid; place-items: center;
+    border-radius: var(--r-md);
+    background: color-mix(in srgb, var(--tint, var(--kraft)) 18%, var(--paper-2));
+}
+.craft-visual .craft-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.craft-badge {
+    position: absolute; left: 10px; top: 10px; z-index: 1;
+    padding: 4px 10px; border-radius: var(--r-pill);
+    background: var(--paper); color: var(--ink); font: 600 13px/1.3 var(--sans);
+}
+.craft-name { font: 700 19px/1.25 var(--sans); }
+.craft-desc { color: var(--ink-2); font-size: 15px; line-height: 1.5; }
+.craft-ings { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; color: var(--muted); font-size: 14px; }
+.craft-ings ul { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+.craft-ings li { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
+.craft-ings .ing-dot { width: 18px; height: 18px; background-size: 5px 5px, 7px 7px; }
+.craft-notify { margin-top: 6px; }
+.craft-form-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.craft-form-row .btn { min-height: 52px; }
+.craft-form-note { margin-top: 6px; color: var(--muted); font-size: 13px; }
+.craft-done { display: flex; align-items: center; gap: 8px; color: var(--forest); font: 600 15px var(--sans); }
+.craft-done::before { content: '✓'; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--forest); color: var(--on-forest); font-size: 12px; }
+.craft-empty { color: var(--ink-2); }
+
+/* odkazy z ingrediencí a z detailu čaje */
+.link-btn {
+    padding: 0; border: 0; background: none; cursor: pointer;
+    color: var(--forest); font: inherit; font-weight: 600;
+    text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+}
+.ing-card-craft { font-size: 14px; color: var(--ink-2); }
+.detail-craft { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.detail-craft-item {
+    width: 100%; display: flex; align-items: center; gap: 14px;
+    margin-top: 8px; padding: 10px 14px 10px 10px;
+    border: 1px solid var(--line); border-radius: var(--r-md);
+    background: var(--surface); color: var(--ink); text-align: left; cursor: pointer;
+}
+.detail-craft-item:hover { border-color: var(--ink); }
+.detail-craft-visual { width: 72px; height: 56px; display: grid; place-items: center; flex-shrink: 0; border-radius: var(--r-sm); background: var(--paper-2); }
+.detail-craft-visual .craft-photo { width: 100%; height: 100%; object-fit: cover; border-radius: var(--r-sm); }
+.detail-craft-text { display: grid; }
+.detail-craft-text strong { font: 700 16px/1.3 var(--sans); }
+.detail-craft-text span { color: var(--muted); font-size: 14px; }
+
 /* ─── HLÁŠKY, COOKIES ────────────────────────── */
 .toast {
     position: fixed; left: 50%; z-index: 120;

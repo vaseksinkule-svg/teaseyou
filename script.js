@@ -1044,6 +1044,7 @@ function showPage(pageId) {
     if (pageId === 'home-page')         setTimeout(initReveal, 50);
     if (pageId === 'quiz-page')         setTimeout(startQuiz, 0);
     if (pageId === 'ingredients-page')  renderIngredientEncyclopedia();
+    if (pageId === 'craft-page')        renderCraft();
     // Update bottom nav active state
     document.querySelectorAll('.bottom-nav-item, .nav-links [data-page]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.page === pageId);
@@ -1079,6 +1080,7 @@ function openDetail(name, desc, price, ingredients, colors) {
     const localDesc = LANG === 'cs' && BLEND_DESCS_CS[name] ? BLEND_DESCS_CS[name] : desc;
     document.getElementById('detail-desc').innerText = localDesc;
     renderDetailVisual(name, ingredients);
+    renderDetailCraft(ingredients);
 
     // Set brew params based on base
     const base = ingredients[0];
@@ -2141,6 +2143,7 @@ function renderIngredientEncyclopedia() {
                 ${caffeine}
                 <p class="ing-card-taste">${escHtml(ing.flavor.map(tTag).join(', '))}</p>
                 <p class="ing-card-pairs">${escHtml(t('ing_pairs'))} ${escHtml(ing.pairs.map(tIng).join(', '))}</p>
+                ${craftUsing(ing.code).length ? `<p class="ing-card-craft">${escHtml(t('craft_also_in'))} ${craftUsing(ing.code).map(p => `<button type="button" class="link-btn" data-craft="${escHtml(p.id)}">${escHtml(craftName(p))}</button>`).join(', ')}</p>` : ''}
                 ${out || !ing.code ? '' : `<button type="button" class="btn btn-quiet btn-small ing-use" data-mix="${escHtml(ing.code)}">${escHtml(t('ing_use'))}</button>`}
             </article>`;
         }).join('');
@@ -2156,6 +2159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderBlendCards();
     applyTranslations();
     initRedesign();
+    initCraft();
     if (localStorage.getItem('teaseyou_promo_dismissed')) {
         const bar = document.getElementById('promo-bar');
         if (bar) bar.style.display = 'none';
@@ -2562,6 +2566,23 @@ const ING_CATEGORY_GROUP = { base: 'bases', flavor: 'flavors', extra: 'extras' }
 let catalogLoaded   = false;   // true = nabídka pochází z databáze (živě nebo z cache)
 let catalogBlends   = BUILTIN_BLENDS.slice();  // řádky tabulky blends (bez databáze vestavěné)
 let catalogShipping = null;    // { post: { price, active }, … }
+/* Mýdla a balzámy. Bez databáze (nebo dokud v ní tabulka není) se ukážou
+   tyhle vestavěné ukázky. */
+const BUILTIN_CRAFT = [
+    { id: 'levandulovy_vecer', kind: 'soap', name_cs: 'Levandulový večer', name_en: 'Lavender Evening', color: '#b8a0cc', ingredients: ['Lavender', 'Chamomile'],
+      desc_cs: 'Jemné mýdlo s levandulí a heřmánkem. Voní jako večerní šálek.', desc_en: 'A gentle soap with lavender and chamomile. Smells like an evening cup.' },
+    { id: 'zelene_rano', kind: 'soap', name_cs: 'Zelené ráno', name_en: 'Green Morning', color: '#8da676', ingredients: ['Green Tea', 'Mint'],
+      desc_cs: 'Svěží mýdlo se zeleným čajem a mátou.', desc_en: 'A fresh soap with green tea and mint.' },
+    { id: 'rooibos_pomeranc', kind: 'soap', name_cs: 'Rooibos a pomeranč', name_en: 'Rooibos & Orange', color: '#e8720c', ingredients: ['Rooibos', 'Orange'],
+      desc_cs: 'Hřejivé mýdlo s rooibosem a pomerančovou kůrou.', desc_en: 'A warm soap with rooibos and orange peel.' },
+    { id: 'ruze_bily_caj', kind: 'soap', name_cs: 'Růže a bílý čaj', name_en: 'Rose & White Tea', color: '#e8607a', ingredients: ['Rose', 'White Tea'],
+      desc_cs: 'Květinové mýdlo s růží a bílým čajem.', desc_en: 'A floral soap with rose and white tea.' },
+    { id: 'med_vanilka', kind: 'balm', name_cs: 'Med a vanilka', name_en: 'Honey & Vanilla', color: '#ffc107', ingredients: ['Honey', 'Vanilla'],
+      desc_cs: 'Balzám na rty ze včelího vosku s medem a vanilkou.', desc_en: 'A beeswax lip balm with honey and vanilla.' },
+    { id: 'mata', kind: 'balm', name_cs: 'Máta', name_en: 'Mint', color: '#a8d8a8', ingredients: ['Spearmint'],
+      desc_cs: 'Chladivý balzám na rty s mátou peprnou.', desc_en: 'A cooling lip balm with spearmint.' },
+];
+let catalogCraft = BUILTIN_CRAFT.slice();
 let promoBarEnabled = true;
 
 Object.assign(TRANSLATIONS.cs, {
@@ -2735,6 +2756,15 @@ function applyCatalog(c) {
         MIX_PRESETS.push({ emoji: b.emoji || '🍵', name: b.name, ingredients: b.ingredients.slice() });
     });
 
+    if (Array.isArray(c.craft)) {
+        catalogCraft = c.craft
+            .filter(r => r && r.active !== false && typeof r.id === 'string' && /^[a-z0-9_]{2,40}$/.test(r.id)
+                && (r.kind === 'soap' || r.kind === 'balm') && typeof r.name_cs === 'string')
+            .map(r => ({ ...r, color: /^#[0-9a-f]{6}$/i.test(r.color || '') ? r.color : '#d9c4a0',
+                         ingredients: (r.ingredients || []).filter(code => typeof code === 'string') }))
+            .sort(bySort);
+    }
+
     catalogLoaded = true;
     return true;
 }
@@ -2744,6 +2774,7 @@ function renderCatalogDom() {
     if (!catalogLoaded) return;
     renderIngredientButtons();
     renderBlendCards();
+    renderCraft();
     renderPriceOptions();
     renderShippingOptions();
     const bar = document.getElementById('promo-bar');
@@ -2948,14 +2979,17 @@ function refreshCatalog() {
     if (catalogRefreshing) return catalogRefreshing;
     catalogRefreshing = (async () => {
         try {
-            const [ingredients, blends, prices, shipping, settingsRows] = await Promise.all([
+            const [ingredients, blends, prices, shipping, settingsRows, craft] = await Promise.all([
                 TeaDB.select('ingredients',      { order: 'sort.asc,name_cs.asc' }),
                 TeaDB.select('blends',           { order: 'sort.asc,name.asc' }),
                 TeaDB.select('price_tiers',      { order: 'weight_g.asc' }),
                 TeaDB.select('shipping_methods', { order: 'sort.asc' }),
                 TeaDB.select('settings',         { id: 'eq.1' }),
+                // Tabulka mýdel přibyla později. Dokud v databázi není,
+                // web ukáže vestavěné ukázky a zbytek katalogu jede normálně.
+                TeaDB.select('craft_products',   { order: 'sort.asc' }).catch(() => null),
             ]);
-            const fresh = { ingredients, blends, prices, shipping, settings: (settingsRows || [])[0] || null };
+            const fresh = { ingredients, blends, prices, shipping, settings: (settingsRows || [])[0] || null, craft };
             const previous = readCatalogCache();
             if (!applyCatalog(fresh)) {
                 console.warn('[teaseyou] Katalog z databáze je neúplný (chybí ceník nebo ingredience), nechávám původní.');
@@ -3737,4 +3771,252 @@ function initRedesign() {
     if (copy) copy.textContent = `© ${new Date().getFullYear()} Tease you`;
     document.body.dataset.page = document.querySelector('.page.active')?.id || 'home-page';
     setMixerStep(firstOpenMixerStep(), { scroll: false });
+}
+
+/* ─── Mýdla a balzámy ───────────────────────── */
+/* Ze stejných surovin jako čaj. Zatím se neprodávají: web je ukazuje
+   a u každého se dá nechat e-mail, až bude k mání. */
+Object.assign(TRANSLATIONS.cs, {
+    nav_craft:          'Mýdla a balzámy',
+    nav_craft_short:    'Mýdla',
+    craft_home_title:   'Ze stejných bylinek i mýdla',
+    craft_home_lede:    'Levanduli, heřmánek nebo zelený čaj nedáváme jen do čaje. Ručně z nich vyrábíme mýdla a balzámy na rty, v malých várkách.',
+    craft_home_btn:     'Prohlédnout mýdla a balzámy',
+    craft_title:        'Mýdla a balzámy',
+    craft_lede:         'Ze stejných bylinek, čajů a koření, ze kterých mícháme čaj. Vyrábíme je ručně v malých várkách.',
+    craft_soon_note:    'Zatím je připravujeme. Nech nám e-mail u toho, co tě láká, a dáme ti vědět, až bude.',
+    craft_soaps:        'Mýdla',
+    craft_balms:        'Balzámy na rty',
+    craft_empty:        'Teď tu nic není. Brzy přidáme.',
+    craft_kind_soap:    'Mýdlo',
+    craft_kind_balm:    'Balzám na rty',
+    craft_soon:         'Připravujeme',
+    craft_like_tea:     'Jako v čaji:',
+    craft_notify:       'Dej mi vědět, až bude',
+    craft_send:         'Poslat',
+    craft_form_note:    'Napíšeme ti jednou, až bude k mání. Nic jiného.',
+    craft_done:         'Hotovo, dáme ti vědět.',
+    craft_err_email:    'Zadej platný e-mail.',
+    craft_err_many:     'Z tohohle e-mailu už je zájemců dost. Zkus to zítra.',
+    craft_err_other:    'Teď se to nepovedlo uložit. Napiš nám na hello@teaseyou.cz.',
+    craft_mail_subject: 'Chci vědět, až bude',
+    craft_also_in:      'Najdeš i v:',
+    craft_same_title:   'Ze stejných surovin',
+    craft_open:         'Mýdla a balzámy',
+});
+Object.assign(TRANSLATIONS.en, {
+    nav_craft:          'Soaps & balms',
+    nav_craft_short:    'Soaps',
+    craft_home_title:   'The same herbs, now in soap',
+    craft_home_lede:    'Lavender, chamomile and green tea do not only go into tea. We make soaps and lip balms from them by hand, in small batches.',
+    craft_home_btn:     'See soaps and balms',
+    craft_title:        'Soaps & balms',
+    craft_lede:         'Made from the same herbs, teas and spices we blend our tea from. Made by hand in small batches.',
+    craft_soon_note:    'They are not ready yet. Leave your e-mail by the one you like and we will let you know.',
+    craft_soaps:        'Soaps',
+    craft_balms:        'Lip balms',
+    craft_empty:        'Nothing here right now. More soon.',
+    craft_kind_soap:    'Soap',
+    craft_kind_balm:    'Lip balm',
+    craft_soon:         'Coming soon',
+    craft_like_tea:     'Same as in tea:',
+    craft_notify:       'Let me know when it is ready',
+    craft_send:         'Send',
+    craft_form_note:    'We will write once, when it is available. Nothing else.',
+    craft_done:         'Done, we will let you know.',
+    craft_err_email:    'Enter a valid e-mail.',
+    craft_err_many:     'Too many sign-ups from this e-mail. Try again tomorrow.',
+    craft_err_other:    'We could not save it right now. Write to hello@teaseyou.cz.',
+    craft_mail_subject: 'Let me know when it is ready',
+    craft_also_in:      'Also in:',
+    craft_same_title:   'Made from the same',
+    craft_open:         'Soaps & balms',
+});
+
+const CRAFT_NOTIFIED_KEY = 'teaseyou_notified';
+const CRAFT_EMAIL_KEY = 'teaseyou_notify_email';
+
+function craftName(p) { return LANG === 'en' ? (p.name_en || p.name_cs) : p.name_cs; }
+function craftDesc(p) { return LANG === 'en' ? (p.desc_en || p.desc_cs || '') : (p.desc_cs || ''); }
+function craftUsing(code) { return code ? catalogCraft.filter(p => (p.ingredients || []).includes(code)) : []; }
+function craftNotified() { const v = readStore(CRAFT_NOTIFIED_KEY, []); return Array.isArray(v) ? v : []; }
+
+/* Mýdlo: kostka v barvě hlavní suroviny s kraftovou páskou a etiketou.
+   Balzám: plechovka shora s kraftovou nálepkou. */
+const SOAP_SVG = `<svg viewBox="0 0 200 150" preserveAspectRatio="none" focusable="false" aria-hidden="true">
+    <rect x="2" y="2" width="196" height="146" rx="34" class="soap-body"/>
+    <rect x="2" y="2" width="196" height="146" rx="34" fill="url(#soap-speck)"/>
+    <rect x="2" y="2" width="196" height="146" rx="34" fill="url(#soap-shade)"/>
+    <g clip-path="url(#soap-clip)">
+        <rect x="0" y="46" width="200" height="58" fill="url(#kraft-fill)"/>
+        <rect x="0" y="46" width="200" height="58" filter="url(#kraft-grain)" opacity=".35"/>
+        <rect x="0" y="46" width="200" height="1.5" fill="#000" fill-opacity=".14"/>
+        <rect x="0" y="102.5" width="200" height="1.5" fill="#000" fill-opacity=".14"/>
+    </g>
+</svg>`;
+const TIN_SVG = `<svg viewBox="0 0 140 140" focusable="false" aria-hidden="true">
+    <circle cx="70" cy="70" r="68" fill="url(#tin-metal)"/>
+    <circle cx="70" cy="70" r="61" fill="none" stroke="#000" stroke-opacity=".16" stroke-width="2"/>
+    <circle cx="70" cy="70" r="54" fill="url(#kraft-fill)"/>
+    <rect width="140" height="140" filter="url(#kraft-grain)" opacity=".3" clip-path="url(#tin-clip)"/>
+    <path d="M28 46A50 50 0 0 1 64 21" stroke="#fff" stroke-opacity=".55" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>`;
+
+function craftVisualHtml(p, size) {
+    const photo = safePhoto(p.photo_url);
+    if (photo) return `<img class="craft-photo" src="${escHtml(photo)}" alt="" loading="lazy" decoding="async">`;
+    const dots = (p.ingredients || []).map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('');
+    const cls = p.kind === 'balm' ? 'craft-tin' : 'craft-soap';
+    return `<div class="${cls} ${size || ''}" style="--c:${escHtml(p.color)}">${p.kind === 'balm' ? TIN_SVG : SOAP_SVG}`
+        + `<div class="craft-label"><span class="craft-brand">Tease you</span><span class="craft-label-name">${escHtml(craftName(p))}</span>`
+        + `<span class="craft-dots">${dots}</span></div></div>`;
+}
+
+function craftIngsHtml(codes) {
+    return (codes || []).filter(c => ING_KEYS[c]).map(c =>
+        `<li><span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>${escHtml(tIng(c))}</li>`).join('');
+}
+
+function craftCardHtml(p, done) {
+    const id = escHtml(p.id);
+    return `<article class="craft-card" id="craft-${id}" data-id="${id}">
+        <div class="craft-visual" style="--tint:${escHtml(p.color)}">
+            <span class="craft-badge">${escHtml(t('craft_soon'))}</span>
+            ${craftVisualHtml(p)}
+        </div>
+        <h3 class="craft-name">${escHtml(craftName(p))}</h3>
+        <p class="craft-desc">${escHtml(craftDesc(p))}</p>
+        ${(p.ingredients || []).length ? `<div class="craft-ings"><span>${escHtml(t('craft_like_tea'))}</span><ul>${craftIngsHtml(p.ingredients)}</ul></div>` : ''}
+        <div class="craft-notify">
+            <button type="button" class="btn btn-quiet craft-notify-btn" aria-expanded="false" aria-controls="craft-form-${id}"${done ? ' hidden' : ''}>${escHtml(t('craft_notify'))}</button>
+            <form class="craft-form" id="craft-form-${id}" novalidate hidden>
+                <label class="visually-hidden" for="craft-email-${id}">E-mail</label>
+                <div class="craft-form-row">
+                    <input type="email" id="craft-email-${id}" class="field" placeholder="tvuj@email.cz" autocomplete="email" inputmode="email" required>
+                    <button type="submit" class="btn btn-primary">${escHtml(t('craft_send'))}</button>
+                </div>
+                <p class="field-error" role="alert"></p>
+                <p class="craft-form-note">${escHtml(t('craft_form_note'))}</p>
+            </form>
+            <p class="craft-done"${done ? '' : ' hidden'}>${escHtml(t('craft_done'))}</p>
+        </div>
+    </article>`;
+}
+
+function renderCraft() {
+    const done = new Set(craftNotified());
+    const soaps = catalogCraft.filter(p => p.kind === 'soap');
+    const balms = catalogCraft.filter(p => p.kind === 'balm');
+    [['soap', soaps], ['balm', balms]].forEach(([kind, list]) => {
+        const grid = document.getElementById('craft-grid-' + kind);
+        if (!grid) return;
+        grid.innerHTML = list.map(p => craftCardHtml(p, done.has(p.id))).join('');
+        grid.closest('.craft-section').hidden = !list.length;
+    });
+    const empty = document.getElementById('craft-empty');
+    if (empty) empty.hidden = catalogCraft.length > 0;
+
+    // Úvodní stránka: dvě mýdla a jeden balzám, jako na fotce shora.
+    const home = document.getElementById('craft-home');
+    const lay = document.getElementById('craft-home-items');
+    if (home) home.hidden = !catalogCraft.length;
+    if (lay) {
+        const pick = [...soaps.slice(0, 2), ...balms.slice(0, 1)];
+        while (pick.length < 3 && catalogCraft[pick.length]) pick.push(catalogCraft[pick.length]);
+        lay.innerHTML = pick.map((p, i) => `<div class="flatlay-item flatlay-${i + 1}">${craftVisualHtml(p)}</div>`).join('');
+    }
+    // Ingredience mají odkaz „Najdeš i v“, takže se překreslí taky.
+    if (document.getElementById('ingredients-page')?.classList.contains('active')) renderIngredientEncyclopedia();
+}
+
+function renderDetailCraft(ingredients) {
+    const box = document.getElementById('detail-craft');
+    const list = document.getElementById('detail-craft-list');
+    if (!box || !list) return;
+    const codes = new Set((ingredients || []).filter(c => c && c !== 'Empty'));
+    const matches = catalogCraft.filter(p => (p.ingredients || []).some(c => codes.has(c))).slice(0, 2);
+    box.hidden = !matches.length;
+    list.innerHTML = matches.map(p => {
+        const shared = p.ingredients.filter(c => codes.has(c));
+        return `<button type="button" class="detail-craft-item" data-craft="${escHtml(p.id)}">
+            <span class="detail-craft-visual" aria-hidden="true">${craftVisualHtml(p, 'craft--xs')}</span>
+            <span class="detail-craft-text"><strong>${escHtml(craftName(p))}</strong>
+            <span>${escHtml(t(p.kind === 'balm' ? 'craft_kind_balm' : 'craft_kind_soap'))}, ${escHtml(shared.map(c => tIng(c).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en')).join(', '))}</span></span>
+        </button>`;
+    }).join('');
+}
+
+function openCraft(id) {
+    showPage('craft-page');
+    const card = id && document.getElementById('craft-' + id);
+    if (!card) return;
+    setTimeout(() => {
+        card.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
+        card.classList.add('is-flash');
+        setTimeout(() => card.classList.remove('is-flash'), 1400);
+    }, 80);
+}
+
+async function joinCraftWaitlist(form) {
+    const card = form.closest('.craft-card');
+    const id = card?.dataset.id;
+    const input = form.querySelector('input[type="email"]');
+    const err = form.querySelector('.field-error');
+    const btn = form.querySelector('button[type="submit"]');
+    const email = (input.value || '').trim();
+    const showErr = msg => { err.textContent = msg; input.classList.toggle('input-error', !!msg); input.setAttribute('aria-invalid', msg ? 'true' : 'false'); };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr(t('craft_err_email')); input.focus(); return; }
+    showErr('');
+    const finish = () => {
+        try { localStorage.setItem(CRAFT_EMAIL_KEY, JSON.stringify(email)); } catch (_) {}
+        const list = craftNotified();
+        if (!list.includes(id)) list.push(id);
+        try { localStorage.setItem(CRAFT_NOTIFIED_KEY, JSON.stringify(list)); } catch (_) {}
+        form.hidden = true;
+        card.querySelector('.craft-done').hidden = false;
+    };
+    // Bez databáze aspoň předvyplněný e-mail, ať zájem nepropadne.
+    const viaMail = () => {
+        const p = catalogCraft.find(x => x.id === id);
+        location.href = `mailto:hello@teaseyou.cz?subject=${encodeURIComponent(t('craft_mail_subject') + ': ' + (p ? craftName(p) : id))}&body=${encodeURIComponent(email)}`;
+    };
+    if (!window.TeaDB || !TeaDB.configured) { viaMail(); finish(); return; }
+    btn.disabled = true;
+    try {
+        await TeaDB.rpc('join_craft_waitlist', { p_product: id, p_email: email, p_lang: LANG === 'en' ? 'en' : 'cs' });
+        finish();
+    } catch (e) {
+        const code = e && e.message;
+        console.warn('[teaseyou] Zájem o produkt se nepodařilo uložit:', e);
+        if (code === 'invalid_email') showErr(t('craft_err_email'));
+        else if (code === 'too_many') showErr(t('craft_err_many'));
+        else showErr(t('craft_err_other'));
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+function initCraft() {
+    renderCraft();
+    document.addEventListener('click', e => {
+        const go = e.target.closest('[data-craft]');
+        if (go) { e.preventDefault(); openCraft(go.dataset.craft); return; }
+        const open = e.target.closest('.craft-notify-btn');
+        if (open) {
+            const form = open.parentElement.querySelector('.craft-form');
+            open.hidden = true;
+            open.setAttribute('aria-expanded', 'true');
+            form.hidden = false;
+            const input = form.querySelector('input');
+            const saved = readStore(CRAFT_EMAIL_KEY, '');
+            if (typeof saved === 'string' && !input.value) input.value = saved;
+            input.focus();
+        }
+    });
+    document.addEventListener('submit', e => {
+        const form = e.target.closest('.craft-form');
+        if (!form) return;
+        e.preventDefault();
+        joinCraftWaitlist(form);
+    });
 }
