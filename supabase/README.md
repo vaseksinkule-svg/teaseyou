@@ -101,3 +101,20 @@ v administraci.
 - **Zdravotní tvrzení.** U potravin smí web uvádět jen tvrzení schválená EU
   (nařízení 1924/2006). Pole *Přínosy* teď obsahuje věci jako „Detox“ nebo
   „Úleva od úzkosti“ — před spuštěním prodeje je projdi.
+
+## Když přibude něco nového (třeba mýdla a balzámy)
+
+`setup.sql` jde spustit kolikrát chceš. Když web dostane novou část
+databáze, stačí v SQL Editoru znovu vložit celý soubor a dát *Run*.
+Doplní jen to, co chybí; ceny, ingredience, objednávky ani nic jiného, co
+jsi změnil v administraci, nepřepíše.
+
+Mýdla a balzámy (listopad 2026) přidaly tabulky `craft_products`
+(produkty) a `craft_waitlist` (e-maily lidí, kteří chtějí vědět, až bude
+produkt k mání). Do seznamu zájemců web zapisuje jen přes funkci
+`join_craft_waitlist()`; číst a mazat ho smí jen admin. Dokud tabulky
+v databázi nejsou, web ukazuje vestavěné ukázky a zbytek jede normálně.
+
+Než se mýdla nebo balzámy začnou prodávat: kosmetika v EU potřebuje
+bezpečnostní posouzení od odborníka, registraci v portálu CPNP
+a etiketu se složením (INCI). Na web jim nepiš léčivé účinky.

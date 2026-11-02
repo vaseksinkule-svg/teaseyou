@@ -983,6 +983,7 @@ function initCookieBanner() {
 /* ─── BACK TO TOP ────────────────────────────── */
 function initBackToTop() {
     const btn = document.getElementById('back-to-top');
+    if (!btn) return;
     window.addEventListener('scroll', () => {
         btn.classList.toggle('visible', window.scrollY > 400);
     }, { passive: true });
@@ -1043,10 +1044,13 @@ function showPage(pageId) {
     if (pageId === 'home-page')         setTimeout(initReveal, 50);
     if (pageId === 'quiz-page')         setTimeout(startQuiz, 0);
     if (pageId === 'ingredients-page')  renderIngredientEncyclopedia();
+    if (pageId === 'craft-page')        renderCraft();
     // Update bottom nav active state
-    document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+    document.querySelectorAll('.bottom-nav-item, .nav-links [data-page]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.page === pageId);
     });
+    document.body.dataset.page = pageId;
+    if (pageId === 'product-page' && typeof updateMixerUI === 'function') updateMixerUI();
     // Show/hide the mobile mix-summary drawer (mixer page only)
     if (typeof updateMixDrawer === 'function') updateMixDrawer();
 }
@@ -1075,10 +1079,8 @@ function openDetail(name, desc, price, ingredients, colors) {
     document.getElementById('detail-title').innerText = name;
     const localDesc = LANG === 'cs' && BLEND_DESCS_CS[name] ? BLEND_DESCS_CS[name] : desc;
     document.getElementById('detail-desc').innerText = localDesc;
-    document.getElementById('detail-ingredients-list').innerText = ingredients.map(tIng).join(' • ');
-    document.getElementById('detail-part1').style.backgroundColor = colors[0];
-    document.getElementById('detail-part2').style.backgroundColor = colors[1];
-    document.getElementById('detail-part3').style.backgroundColor = colors[2];
+    renderDetailVisual(name, ingredients);
+    renderDetailCraft(ingredients);
 
     // Set brew params based on base
     const base = ingredients[0];
@@ -1088,12 +1090,31 @@ function openDetail(name, desc, price, ingredients, colors) {
     if (tempEl) tempEl.innerHTML = brew.temp;
     if (timeEl) timeEl.innerHTML = brew.time;
 
-    document.querySelectorAll('#product-detail-page .qty-btn').forEach(b => b.classList.remove('selected'));
-    const addBtn = document.getElementById('detail-add-btn');
-    addBtn.disabled = true;
-    addBtn.classList.add('disabled');
-    animateGlass('detail-glass-frame');
+    renderPriceOptions();
+    preselectQty(document.querySelector('#product-detail-page .qty-options'));
     showPage('product-detail-page');
+}
+
+/* Sáček a seznam ingrediencí na detailu hotové směsi */
+function renderDetailVisual(name, ingredients) {
+    const weight = parseInt(currentProduct.weight, 10);
+    const box = document.getElementById('detail-pouch');
+    if (box) box.innerHTML = pouchHtml({ name, codes: ingredients, size: 'pouch--hero', weight: weight ? weight + ' g' : '' });
+    const list = document.getElementById('detail-ingredients-list');
+    if (list) list.innerHTML = (ingredients || []).map((c, i) => c && c !== 'Empty'
+        ? `<li><span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>`
+          + `<span><strong>${escHtml(tIng(c))}</strong><span>${escHtml(t(LAYER_LABELS[i]).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en'))}</span></span></li>`
+        : '').join('');
+}
+
+/* Na detailu je rovnou vybraná prostřední velikost (100 g), ať jde
+   tlačítko Do košíku zmáčknout hned. */
+function preselectQty(box) {
+    if (!box) return;
+    const w = sortedWeights();
+    const pick = w.includes(100) ? 100 : w[Math.floor(w.length / 2)];
+    const btn = [...box.querySelectorAll('.qty-btn')].find(b => parseInt(b.textContent, 10) === pick);
+    if (btn) selectQty(pick, { target: btn });
 }
 
 /* ─── QUANTITY SELECTION ─────────────────────── */
@@ -1109,6 +1130,9 @@ function selectQty(amount, e) {
         const b = document.getElementById(id);
         if (b) { b.disabled = false; b.classList.remove('disabled'); }
     });
+    const add = document.getElementById('detail-add-btn');
+    if (add) add.textContent = t('add_for').replace('{price}', fmt(currentProduct.priceBase));
+    if (btn.closest('#product-detail-page')) renderDetailVisual(currentProduct.name, currentProduct.ingredients);
 }
 
 /* ─── SHIPPING COST ──────────────────────────── */
@@ -1227,10 +1251,10 @@ function renderFreeShip() {
     const pct   = Math.min(100, Math.round(goods / FREE_SHIP_THRESHOLD * 100));
     if (fill) fill.style.width = pct + '%';
     if (goods >= FREE_SHIP_THRESHOLD) {
-        if (text) text.innerHTML = '🎉 ' + t('freeship_unlocked');
+        if (text) text.textContent = t('freeship_done');
         wrap.classList.add('unlocked');
     } else {
-        if (text) text.innerHTML = `${t('freeship_add')} <strong>${fmt(FREE_SHIP_THRESHOLD - goods)}</strong> ${t('freeship_more')}`;
+        if (text) text.innerHTML = escHtml(t('freeship_left')).replace('{amount}', `<strong>${fmt(FREE_SHIP_THRESHOLD - goods)}</strong>`);
         wrap.classList.remove('unlocked');
     }
 }
@@ -1239,15 +1263,15 @@ function renderFreeShip() {
 function modifyReadyMade() {
     showPage('product-page');
     document.getElementById('mix-name').value = currentProduct.name;
-    document.getElementById('part1').style.backgroundColor = currentProduct.colors[0];
-    document.getElementById('part2').style.backgroundColor = currentProduct.colors[1];
-    document.getElementById('part3').style.backgroundColor = currentProduct.colors[2];
+    ['part1', 'part2', 'part3'].forEach((id, i) => paintLayer(document.getElementById(id), currentProduct.colors[i]));
     document.querySelectorAll('.ingredient-btn').forEach(btn => {
         btn.classList.remove('selected');
         if (currentProduct.ingredients.includes(btn.getAttribute('data-name')))
             btn.classList.add('selected');
     });
     validateSelection();
+    updateGlassLabels();
+    if (typeof setMixerStep === 'function') setMixerStep(1, { scroll: false });
 }
 
 /* ─── GLASS ANIMATIONS ───────────────────────── */
@@ -1340,10 +1364,10 @@ document.addEventListener('click', function(e) {
         const targetId = ingBtn.getAttribute('data-target');
         const color    = ingBtn.getAttribute('data-color');
         const name     = ingBtn.getAttribute('data-name');
+        const wasEmpty = !ingBtn.parentElement.querySelector('.ingredient-btn.selected');
         ingBtn.parentElement.querySelectorAll('.ingredient-btn').forEach(b => b.classList.remove('selected'));
         ingBtn.classList.add('selected');
-        document.getElementById(targetId).style.backgroundColor = color;
-        fillGlassPart(targetId);
+        paintLayer(document.getElementById(targetId), color);
         fillGlassPart(targetId);
         animateGlass('main-glass-frame');
         const idx = parseInt(targetId.replace('part','')) - 1;
@@ -1352,12 +1376,15 @@ document.addEventListener('click', function(e) {
         showIngInfo(name);
         validateSelection();
         updateGlassLabels();
+        // Na mobilu po prvním výběru v kroku rovnou na další krok. Jen při
+        // skutečném kliknutí — presety a sdílené odkazy klikají programově.
+        if (e.isTrusted && wasEmpty && typeof mixerAutoAdvance === 'function') mixerAutoAdvance(idx + 1);
     }
 
     const clearBtn = e.target.closest('.clear-btn[data-target]');
     if (clearBtn) {
         const tid = clearBtn.getAttribute('data-target');
-        document.getElementById(tid).style.backgroundColor = 'transparent';
+        paintLayer(document.getElementById(tid), 'transparent');
         fillGlassPart(tid);
         animateGlass('main-glass-frame');
         clearBtn.closest('.selection-group').querySelectorAll('.ingredient-btn').forEach(b => b.classList.remove('selected'));
@@ -1471,36 +1498,41 @@ function validateSelection() {
     updateProgress();
     updateCompletion();
     renderSelectedIngPanel();
+    if (typeof updateMixerUI === 'function') updateMixerUI();
 }
 
 /* ─── LIVE NAME UPDATE ───────────────────────── */
 document.addEventListener('input', function(e) {
-    if (e.target.id === 'mix-name') { updateGlassLabels(); updateProgress(); }
+    if (e.target.id === 'mix-name') { updateGlassLabels(); updateProgress(); if (typeof updateMixerUI === 'function') updateMixerUI(); }
 });
 
 /* ─── SUMMARY ────────────────────────────────── */
 function showSummary() {
-    currentProduct.name = document.getElementById('mix-name').value || 'Custom Mix';
-    document.getElementById('display-mix-name').innerText = currentProduct.name;
-    ['part1','part2','part3'].forEach((p, i) => {
-        document.getElementById(`summary-${p}`).style.backgroundColor = currentProduct.colors[i];
+    openInMixer(currentProduct.ingredients, document.getElementById('mix-name')?.value.trim() || currentProduct.name, 4);
+}
+
+/* Otevře mixér s danými ingrediencemi a jménem. */
+function openInMixer(ingredients, name, step) {
+    showPage('product-page');
+    const codes = [0, 1, 2].map(i => (ingredients && ingredients[i]) || 'Empty');
+    document.querySelectorAll('.ingredient-btn').forEach(btn => {
+        const on = codes[Number(btn.dataset.target?.replace('part', '')) - 1] === btn.dataset.name;
+        btn.classList.toggle('selected', on && !btn.classList.contains('is-out'));
     });
-    const chipsEl = document.getElementById('summary-chips');
-    chipsEl.innerHTML = '';
-    currentProduct.ingredients.forEach((name, i) => {
-        if (name === 'Empty') return;
-        const chip = document.createElement('div');
-        chip.className = 'summary-chip';
-        chip.innerHTML = `<div class="summary-chip-dot" style="background:${currentProduct.colors[i]}"></div><span>${tIng(name)}</span>`;
-        chipsEl.appendChild(chip);
-    });
-    const btn = document.getElementById('summary-order-btn');
-    btn.disabled = true;
-    btn.classList.add('disabled');
-    document.querySelectorAll('#summary-page .qty-btn').forEach(b => b.classList.remove('selected'));
-    currentProduct.weight = '';
-    currentProduct.priceBase = 0;
-    showPage('summary-page');
+    const input = document.getElementById('mix-name');
+    if (input && name !== undefined) input.value = name || '';
+    validateSelection();
+    setMixerStep(step || firstOpenMixerStep(), { scroll: false });
+}
+
+/* Z encyklopedie: vybere jednu ingredienci a pustí tě na první krok, který chybí. */
+function mixWith(code) {
+    const btn = document.querySelector(`.ingredient-btn[data-name="${String(code).replace(/["\\]/g, '')}"]`);
+    if (!btn) { showPage('product-page'); return; }
+    const idx = Number(btn.dataset.target.replace('part', '')) - 1;
+    const current = [1, 2, 3].map(n => document.querySelector(`.ingredient-btn[data-target="part${n}"].selected`)?.dataset.name || 'Empty');
+    current[idx] = code;
+    openInMixer(current, undefined);
 }
 
 /* ─── SAVE BLEND ─────────────────────────────── */
@@ -1549,26 +1581,20 @@ function renderSavedBlends() {
     empty.style.display = 'none';
 
     savedBlends.forEach(blend => {
-        const card = document.createElement('div');
-        card.className = 'saved-card';
+        const card = document.createElement('article');
+        card.className = 'saved-item';
+        const codes = blend.ingredients.filter(i => i !== 'Empty');
         card.innerHTML = `
-            <div class="saved-card-glass">
-                <div class="cart-mini-glass">
-                    <div style="background:${escHtml(blend.colors[2])}"></div>
-                    <div style="background:${escHtml(blend.colors[1])}"></div>
-                    <div style="background:${escHtml(blend.colors[0])}"></div>
-                </div>
+            <div class="saved-pouch" aria-hidden="true">${pouchHtml({ name: blend.name, codes: blend.ingredients, size: 'pouch--xs' })}</div>
+            <div class="saved-text">
+                <h2 class="saved-name">${escHtml(blend.name)}</h2>
+                <p class="saved-mix">${escHtml(blendSubtitle(codes))}</p>
+                <p class="saved-date">${escHtml(t('saved_date_prefix'))} ${escHtml(blend.savedAt)}</p>
             </div>
-            <div class="saved-card-info">
-                <h3 class="font-cosmico saved-card-name">${escHtml(blend.name)}</h3>
-                <p class="saved-card-ingredients font-chaos">${escHtml(blend.ingredients.filter(i=>i!=='Empty').map(tIng).join(' · '))}</p>
-                <span class="saved-card-date">${t('saved_date_prefix')} ${escHtml(blend.savedAt)}</span>
-            </div>
-            <div class="saved-card-actions">
-                <button class="btn btn-secondary" onclick="loadSavedBlend(${blend.id})">${t('btn_load_order')}</button>
-                <button class="clear-btn" onclick="deleteSavedBlend(${blend.id})" style="color:var(--color-ink-faint)">${t('btn_remove')}</button>
-            </div>
-        `;
+            <div class="saved-actions">
+                <button class="btn btn-primary btn-small" onclick="loadSavedBlend(${Number(blend.id)})">${escHtml(t('btn_load_order'))}</button>
+                <button class="btn btn-link btn-small" onclick="deleteSavedBlend(${Number(blend.id)})">${escHtml(t('btn_remove'))}</button>
+            </div>`;
         list.appendChild(card);
     });
 }
@@ -1577,7 +1603,7 @@ function loadSavedBlend(id) {
     const blend = savedBlends.find(b => b.id === id);
     if (!blend) return;
     currentProduct = { name: blend.name, ingredients: [...blend.ingredients], colors: [...blend.colors], priceBase: 0, weight: '' };
-    showSummary();
+    openInMixer(blend.ingredients, blend.name, 4);
 }
 
 function deleteSavedBlend(id) {
@@ -1660,6 +1686,8 @@ function updateCartBadge() {
     }
     badge.textContent = total;
     badge.style.display = total > 0 ? 'flex' : 'none';
+    const bottom = document.getElementById('bottom-cart-badge');
+    if (bottom) { bottom.textContent = total; bottom.style.display = total > 0 ? 'flex' : 'none'; }
 }
 
 /* ─── RENDER CART ────────────────────────────── */
@@ -1667,11 +1695,12 @@ function renderCart() {
     const list  = document.getElementById('cart-items-list');
     const empty = document.getElementById('cart-empty');
     list.innerHTML = '';
+    document.getElementById('cart-page')?.classList.toggle('is-empty', cart.length === 0);
     if (cart.length === 0) {
         empty.style.display = 'flex';
-        document.getElementById('cart-final-total').innerText = t('order_total') + ': 0 Kč';
+        document.getElementById('cart-final-total').textContent = fmt(0);
         const sub = document.getElementById('cart-subtotal');
-        if (sub) sub.textContent = '0 Kč';
+        if (sub) sub.textContent = fmt(0);
         const dl = document.getElementById('cart-discount-line');
         if (dl) dl.style.display = 'none';
         const fs = document.getElementById('cart-freeship');
@@ -1680,31 +1709,26 @@ function renderCart() {
     }
     empty.style.display = 'none';
     cart.forEach(item => {
-        const row = document.createElement('div');
+        const row = document.createElement('li');
         row.className = 'cart-item';
+        const id = Number(item.id);
+        const codes = item.ingredients.filter(c => c !== 'Empty');
         row.innerHTML = `
-            <div class="cart-product-info">
-                <div class="cart-mini-glass">
-                    <div style="background:${escHtml(item.colors[2])}"></div>
-                    <div style="background:${escHtml(item.colors[1])}"></div>
-                    <div style="background:${escHtml(item.colors[0])}"></div>
-                </div>
-                <div class="cart-text">
-                    <h4 class="font-cosmico cart-item-name">${escHtml(item.name)}</h4>
-                    <p class="font-chaos cart-item-ingredients">${escHtml(item.ingredients.map(tIng).join(' \u2022 '))}</p>
-                    <span class="cart-item-weight">${escHtml(item.weight)}</span>
-                </div>
+            <div class="cart-pouch" aria-hidden="true">${pouchHtml({ name: item.name, codes: item.ingredients, size: 'pouch--xs' })}</div>
+            <div class="cart-text">
+                <h2 class="cart-name">${escHtml(item.name)}</h2>
+                <p class="cart-mix">${escHtml(blendSubtitle(codes))}</p>
+                <p class="cart-meta">${escHtml(parseInt(item.weight, 10) + ' g')}, ${escHtml(fmt(item.priceBase))} ${escHtml(t('per_piece'))}</p>
             </div>
-            <div class="cart-price">${fmt(item.priceBase)}</div>
-            <div class="cart-qty">
-                <input type="number" value="${item.qty}" min="1" class="name-input cart-qty-input"
-                    onchange="updateItemQty(${item.id}, this.value)">
+            <div class="cart-qty" role="group" aria-label="${escHtml(t('cart_col_qty'))}">
+                <button type="button" class="qty-step" onclick="updateItemQty(${id}, ${item.qty - 1})" aria-label="${escHtml(t('qty_less'))}"${item.qty <= 1 ? ' disabled' : ''}>−</button>
+                <span class="qty-num" aria-live="polite">${item.qty}</span>
+                <button type="button" class="qty-step" onclick="updateItemQty(${id}, ${item.qty + 1})" aria-label="${escHtml(t('qty_more'))}">+</button>
             </div>
-            <div class="cart-subtotal">
-                <b>${fmt(item.priceBase * item.qty)}</b>
-                <button onclick="removeCartItem(${item.id})" class="cart-remove-btn" title="Remove">\u2715</button>
-            </div>
-        `;
+            <p class="cart-line-price">${fmt(item.priceBase * item.qty)}</p>
+            <button type="button" class="cart-remove" onclick="removeCartItem(${id})" aria-label="${escHtml(t('btn_remove'))} ${escHtml(item.name)}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>`;
         list.appendChild(row);
     });
     updateCartTotal();
@@ -1735,7 +1759,7 @@ function updateCartTotal() {
     if (dl) {
         if (appliedPromo && totals.discount > 0) {
             dl.style.display = 'flex';
-            document.getElementById('cart-discount-code').textContent = '(' + appliedPromo.code + ')';
+            document.getElementById('cart-discount-code').textContent = appliedPromo.code;
             document.getElementById('cart-discount-amount').textContent = '-' + fmt(totals.discount);
         } else {
             dl.style.display = 'none';
@@ -1749,7 +1773,7 @@ function updateCartTotal() {
     const shipLine = document.getElementById('cart-shipping-line');
     if (shipLine) shipLine.textContent = totals.freeShip ? t('ship_free') : t('ship_calculated');
 
-    document.getElementById('cart-final-total').innerText = `${t('order_total')}: ${fmt(totals.total)}`;
+    document.getElementById('cart-final-total').textContent = fmt(totals.total);
     renderFreeShip();
 }
 
@@ -1758,22 +1782,12 @@ function renderCheckoutSummary() {
     const el = document.getElementById('checkout-items-summary');
     el.innerHTML = '';
     cart.forEach(item => {
-        const row = document.createElement('div');
-        row.className = 'checkout-summary-item';
+        const row = document.createElement('li');
+        row.className = 'checkout-item';
         row.innerHTML = `
-            <div class="checkout-item-left">
-                <div class="cart-mini-glass" style="width:28px;height:46px;border-width:2px;">
-                    <div style="flex:1;background:${escHtml(item.colors[0])}"></div>
-                    <div style="flex:1;background:${escHtml(item.colors[1])}"></div>
-                    <div style="flex:1;background:${escHtml(item.colors[2])}"></div>
-                </div>
-                <div>
-                    <p class="font-cosmico checkout-item-name">${escHtml(item.name)}</p>
-                    <p class="checkout-item-meta">${escHtml(item.weight)} · ${LANG === 'cs' ? item.qty + ' ks' : 'qty ' + item.qty}</p>
-                </div>
-            </div>
-            <span class="checkout-item-price">${fmt(item.priceBase * item.qty)}</span>
-        `;
+            <span class="checkout-dots" aria-hidden="true">${item.ingredients.filter(c => c !== 'Empty').map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('')}</span>
+            <span class="checkout-item-text"><strong>${escHtml(item.name)}</strong><span>${escHtml(parseInt(item.weight, 10) + ' g')}, ${item.qty} ${escHtml(t('pieces'))}</span></span>
+            <span class="checkout-item-price">${fmt(item.priceBase * item.qty)}</span>`;
         el.appendChild(row);
     });
 
@@ -1785,7 +1799,7 @@ function renderCheckoutSummary() {
         if (!discRow) {
             discRow = document.createElement('div');
             discRow.id = 'checkout-discount-row';
-            discRow.className = 'checkout-shipping-row checkout-discount-row';
+            discRow.className = 'sum-line sum-line-discount';
             el.parentElement.insertBefore(discRow, document.getElementById('checkout-shipping-row'));
         }
         discRow.innerHTML = `<span>${t('order_discount')} (${escHtml(appliedPromo.code)})</span><span>-${fmt(totals.discount)}</span>`;
@@ -1925,6 +1939,9 @@ function submitOrder(e) {
 
         const el = document.getElementById('success-order-num');
         if (el) el.textContent = t('order_num_prefix') + order.num;
+        const pouch = document.getElementById('success-pouch');
+        const first = order.items[0];
+        if (pouch && first) pouch.innerHTML = pouchHtml({ name: first.name, codes: first.ingredients, size: 'pouch--sm' });
 
         cart = [];
         appliedPromo = null;
@@ -2019,27 +2036,22 @@ function renderOrders() {
     empty.style.display = 'none';
 
     orders.forEach(o => {
-        const itemsHtml = o.items.map(it => `
-            <div class="order-item-row">
-                <span>${escHtml(it.name)} <span class="order-item-meta">${escHtml(it.weight)} × ${it.qty}</span></span>
-                <span>${fmt(it.priceBase * it.qty)}</span>
-            </div>`).join('');
-        const card = document.createElement('div');
+        const itemsHtml = (o.items || []).map(it => `
+            <li><span>${escHtml(it.name)} <span class="order-meta">${escHtml(parseInt(it.weight, 10) + ' g')}, ${Number(it.qty)} ${escHtml(t('pieces'))}</span></span>
+            <span>${fmt(it.priceBase * it.qty)}</span></li>`).join('');
+        const card = document.createElement('article');
         card.className = 'order-card';
         card.innerHTML = `
-            <div class="order-card-head">
-                <div>
-                    <span class="order-num font-cosmico">${t('order_num_prefix')}${escHtml(o.num)}</span>
-                    <span class="order-date">${escHtml(o.date)}</span>
-                </div>
-                <span class="order-status">${t('order_status')}</span>
-            </div>
-            <div class="order-items">${itemsHtml}</div>
-            <div class="order-card-foot">
-                ${o.discount ? `<span class="order-discount">${t('order_discount')}${o.promo ? ' (' + escHtml(o.promo) + ')' : ''}: -${fmt(o.discount)}</span>` : ''}
-                <span class="order-ship">${t('order_shipping')}: ${o.shipping ? fmt(o.shipping) : 'FREE'}</span>
-                <span class="order-total">${t('order_total')}: ${fmt(o.total)}</span>
-            </div>`;
+            <header class="order-head">
+                <h2 class="order-num">${escHtml(t('order_num_prefix'))}${escHtml(o.num)}</h2>
+                <p class="order-date">${escHtml(o.date)}</p>
+            </header>
+            <ul class="order-items">${itemsHtml}</ul>
+            <dl class="order-sums">
+                ${o.discount ? `<div><dt>${escHtml(t('order_discount'))}${o.promo ? ' ' + escHtml(o.promo) : ''}</dt><dd>-${fmt(o.discount)}</dd></div>` : ''}
+                <div><dt>${escHtml(t('order_shipping'))}</dt><dd>${o.shipping ? fmt(o.shipping) : escHtml(t('ship_free_short'))}</dd></div>
+                <div class="order-total"><dt>${escHtml(t('order_total'))}</dt><dd>${fmt(o.total)}</dd></div>
+            </dl>`;
         list.appendChild(card);
     });
 }
@@ -2109,29 +2121,31 @@ const ING_DATA = {
 };
 
 function renderIngredientEncyclopedia() {
-    const caffeineLabel = ['Bez kofeinu','Velmi nízký','Nízký','Střední','Vysoký','Velmi vysoký'];
-    const caffeineEn = ['Caffeine-free','Very low','Low','Medium','High','Very high'];
-    const pairsLabel = LANG === 'cs' ? 'Hodí se s' : 'Pairs well with';
-    const healthLabel = LANG === 'cs' ? 'Přínosy' : 'Benefits';
+    const caffeineCs = ['Bez kofeinu', 'Velmi málo kofeinu', 'Málo kofeinu', 'Středně kofeinu', 'Hodně kofeinu'];
+    const caffeineEn = ['Caffeine-free', 'Very little caffeine', 'Little caffeine', 'Medium caffeine', 'Lots of caffeine'];
     ['bases','flavors','extras'].forEach(cat => {
         const el = document.getElementById('ing-grid-' + cat);
         if (!el) return;
         el.innerHTML = ING_DATA[cat].map(ing => {
             const name = t(ing.key);
             const desc = t(ing.key + '_desc') || '';
-            const caffeine = ing.caffeine !== undefined ? `<div class="ing-caffeine"><span class="ing-caffeine-dots">${'●'.repeat(ing.caffeine)}${'○'.repeat(4 - Math.min(ing.caffeine,4))}</span> ${LANG === 'cs' ? caffeineLabel[ing.caffeine] : caffeineEn[ing.caffeine]}</div>` : '';
-            const soldOut = ing.inStock === false
-                ? `<span class="ing-out-badge ing-out-badge--card">${escHtml(t('ing_sold_out'))}</span>` : '';
-            return `<div class="ing-card${ing.inStock === false ? ' is-out' : ''}">
-                <div class="ing-card-emoji">${ingVisual(ing, 'ing-card')}</div>
-                <h3 class="ing-card-name">${escHtml(name)}${soldOut}</h3>
+            const out = ing.inStock === false;
+            const photo = safePhoto(ing.photo);
+            const dot = photo
+                ? `<span class="ing-dot" style="--dot-photo:url('${escHtml(photo)}')"></span>`
+                : `<span class="ing-dot" style="--dot-color:${escHtml(ing.color || '#ccc')}"></span>`;
+            const lvl = Math.max(0, Math.min(4, ing.caffeine || 0));
+            const caffeine = ing.caffeine !== undefined
+                ? `<p class="ing-caffeine"><span class="ing-meter" aria-hidden="true">${[1,2,3,4].map(n => `<i${n <= lvl ? ' class="on"' : ''}></i>`).join('')}</span>${escHtml((LANG === 'cs' ? caffeineCs : caffeineEn)[lvl])}</p>` : '';
+            return `<article class="ing-card${out ? ' is-out' : ''}">
+                <div class="ing-card-head">${dot}<h3 class="ing-card-name">${escHtml(name)}</h3>${out ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : ''}</div>
                 <p class="ing-card-desc">${escHtml(desc)}</p>
                 ${caffeine}
-                <div class="ing-card-tags">${ing.flavor.map(f => `<span class="ing-tag">${escHtml(tTag(f))}</span>`).join('')}</div>
-                <div class="ing-card-section"><strong>${healthLabel}:</strong> ${escHtml(ing.health.map(tHealth).join(' · '))}</div>
-                <div class="ing-card-section"><strong>${pairsLabel}:</strong> ${escHtml(ing.pairs.map(tIng).join(', '))}</div>
-                <button class="btn btn-small" onclick="closeSidebar(); showPage('product-page');" style="margin-top:auto">${LANG === 'cs' ? 'Použít →' : 'Use →'}</button>
-            </div>`;
+                <p class="ing-card-taste">${escHtml(ing.flavor.map(tTag).join(', '))}</p>
+                <p class="ing-card-pairs">${escHtml(t('ing_pairs'))} ${escHtml(ing.pairs.map(tIng).join(', '))}</p>
+                ${craftUsing(ing.code).length ? `<p class="ing-card-craft">${escHtml(t('craft_also_in'))} ${craftUsing(ing.code).map(p => `<button type="button" class="link-btn" data-craft="${escHtml(p.id)}">${escHtml(craftName(p))}</button>`).join(', ')}</p>` : ''}
+                ${out || !ing.code ? '' : `<button type="button" class="btn btn-quiet btn-small ing-use" data-mix="${escHtml(ing.code)}">${escHtml(t('ing_use'))}</button>`}
+            </article>`;
         }).join('');
     });
 }
@@ -2141,7 +2155,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Katalog z minulé návštěvy hned, ať se nové ceny a nabídka ukážou bez
     // probliknutí. Čerstvý se dotáhne na konci (refreshCatalog).
     applyCachedCatalog();
+    renderIngredientButtons();
+    renderBlendCards();
     applyTranslations();
+    initRedesign();
+    initCraft();
     if (localStorage.getItem('teaseyou_promo_dismissed')) {
         const bar = document.getElementById('promo-bar');
         if (bar) bar.style.display = 'none';
@@ -2165,24 +2183,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBlendFromUrl();  // open a shared blend if ?b= is present
     refreshCatalog();    // čerstvá data ze Supabase (když je nastavený)
 
-    // Hero parallax on scroll
-    (function() {
-        const glasses = document.querySelectorAll('.hero-glass');
-        if (!glasses.length) return;
-        const speeds = [0.12, 0.20, 0.08];
-        let ticking = false;
-        window.addEventListener('scroll', () => {
-            if (ticking) return;
-            requestAnimationFrame(() => {
-                const y = window.scrollY;
-                glasses.forEach((g, i) => {
-                    g.style.transform = `translateY(${-y * speeds[i]}px)`;
-                });
-                ticking = false;
-            });
-            ticking = true;
-        }, { passive: true });
-    })();
 });
 
 
@@ -2322,123 +2322,89 @@ let quizStep = 0;
 
 function startQuiz() {
     quizAnswerTags = [];
+    quizAnswerLog = [];
     quizStep = 0;
     renderQuizStep();
 }
 
 function renderQuizStep() {
-    const progressBar = document.getElementById('quiz-progress-bar');
+    const top = document.getElementById('quiz-progress-bar');
     const body = document.getElementById('quiz-body');
-    if (!progressBar || !body) return;
+    if (!top || !body) return;
+    const total = QUIZ_QUESTIONS.length;
 
-    // Progress dots
-    progressBar.innerHTML = QUIZ_QUESTIONS.map((_, i) =>
-        `<div class="quiz-progress-dot${i < quizStep ? ' done' : ''}"></div>`
-    ).join('');
-
-    if (quizStep >= QUIZ_QUESTIONS.length) {
+    if (quizStep >= total) {
+        top.innerHTML = '';
         renderQuizResult();
         return;
     }
+    top.innerHTML = `
+        <span class="mixer-progress-text">${escHtml(t('quiz_step_of').replace('{n}', quizStep + 1).replace('{total}', total))}</span>
+        <span class="mixer-progress-bar" aria-hidden="true"><span style="width:${(quizStep + 1) / total * 100}%"></span></span>`;
 
     const q = QUIZ_QUESTIONS[quizStep];
     body.innerHTML = `
-        <div class="quiz-card">
-            <p class="font-chaos" style="font-size:12px;color:var(--color-ink-faint);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;">${t('quiz_question_of')} ${quizStep+1} ${t('quiz_of')} ${QUIZ_QUESTIONS.length}</p>
-            <h2 class="quiz-question font-cosmico">${t(q.q)}</h2>
-            <div class="quiz-options">
-                ${q.options.map(opt => `
-                    <button class="quiz-option" data-tags="${opt.tags.join(',')}">
-                        <span class="quiz-option-icon">${opt.icon}</span>
-                        <span>${t(opt.text)}</span>
-                    </button>
-                `).join('')}
-            </div>
+        <h1 class="step-question quiz-question" tabindex="-1">${escHtml(t(q.q))}</h1>
+        <div class="quiz-options" role="list">
+            ${q.options.map(opt => `<button type="button" class="quiz-option" role="listitem" data-tags="${escHtml(opt.tags.join(','))}">${escHtml(t(opt.text))}</button>`).join('')}
         </div>
-    `;
-    // Attach listeners after DOM is updated
+        ${quizStep > 0 ? `<button type="button" class="btn btn-link quiz-back" id="quiz-back">${escHtml(t('mixer_prev'))}</button>` : ''}`;
     body.querySelectorAll('.quiz-option').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tags = btn.getAttribute('data-tags').split(',');
-            quizAnswer(tags);
-        });
+        btn.addEventListener('click', () => quizAnswer(btn.getAttribute('data-tags').split(',')));
     });
+    document.getElementById('quiz-back')?.addEventListener('click', quizBack);
+    if (quizStep > 0) body.querySelector('.quiz-question')?.focus({ preventScroll: true });
 }
 
+let quizAnswerLog = [];
 function quizAnswer(tags) {
-    quizAnswerTags.push(...tags);
+    quizAnswerLog[quizStep] = tags;
+    quizAnswerTags = quizAnswerLog.slice(0, quizStep + 1).flat();
     quizStep++;
+    renderQuizStep();
+}
+function quizBack() {
+    if (quizStep === 0) return;
+    quizStep--;
+    quizAnswerTags = quizAnswerLog.slice(0, quizStep).flat();
     renderQuizStep();
 }
 
 function renderQuizResult() {
     const body = document.getElementById('quiz-body');
-
-    // Score each blend
-    const scored = QUIZ_BLENDS.map(blend => {
-        const score = blend.tags.filter(t => quizAnswerTags.includes(t)).length;
-        return { ...blend, score };
-    }).sort((a, b) => b.score - a.score);
-
+    const scored = QUIZ_BLENDS.map(blend => ({ ...blend, score: blend.tags.filter(tg => quizAnswerTags.includes(tg)).length }))
+        .sort((a, b) => b.score - a.score);
     const best = scored[0];
     const runnerUp = scored.find(b => b.name !== best.name && b.score > 0);
-
-    // Friendly match score: 50% baseline + up to 50% from matched traits
-    const maxTags = best.tags.length || 1;
-    const matchPct = Math.round(50 + (best.score / maxTags) * 50);
-
-    // Which of the blend's traits the answers matched (fallback to its own traits)
     let matched = best.tags.filter(tg => quizAnswerTags.includes(tg));
     if (!matched.length) matched = best.tags.slice();
-    const whyChips = matched.map(tg => `<span class="quiz-why-chip">${escHtml(tQuizTag(tg))}</span>`).join('');
-
-    const desc = LANG === 'cs' && best.desc_cs ? best.desc_cs : best.desc;
-    const runnerUpHtml = runnerUp ? `
-        <div class="quiz-runnerup">
-            <span class="quiz-runnerup-label">${t('quiz_also')}</span>
-            <button class="quiz-runnerup-card" id="quiz-runnerup-btn">
-                <span class="quiz-runnerup-glass">
-                    <span style="background:${escHtml(runnerUp.colors[0])}"></span>
-                    <span style="background:${escHtml(runnerUp.colors[1])}"></span>
-                    <span style="background:${escHtml(runnerUp.colors[2])}"></span>
-                </span>
-                <span class="quiz-runnerup-name">${escHtml(runnerUp.name)}</span>
-                <span class="quiz-runnerup-arrow">→</span>
-            </button>
-        </div>` : '';
+    const descOf = b => (LANG === 'cs' && b.desc_cs ? b.desc_cs : b.desc);
 
     body.innerHTML = `
         <div class="quiz-result">
-            <p class="quiz-result-label font-chaos">${t('quiz_result_label')}</p>
-            <h1 class="logo quiz-result-name">${escHtml(best.name)}</h1>
-            <div class="quiz-match-badge"><span class="quiz-match-pct">${matchPct}%</span> ${t('quiz_match')}</div>
-            <div class="quiz-result-glass">
-                <div class="glass-frame" style="width:100%;height:100%;border-color:rgba(0,0,0,0.15)">
-                    <div class="glass-part" style="background:${escHtml(best.colors[0])}"></div>
-                    <div class="glass-part" style="background:${escHtml(best.colors[1])}"></div>
-                    <div class="glass-part" style="background:${escHtml(best.colors[2])}"></div>
+            <div class="quiz-result-copy">
+                <p class="quiz-result-intro">${escHtml(t('quiz_result_intro'))}</p>
+                <h1 class="page-title">${escHtml(best.name)}</h1>
+                <p class="quiz-result-desc">${escHtml(descOf(best))}</p>
+                <p class="quiz-result-why">${escHtml(t('quiz_why'))}: ${escHtml(matched.map(tQuizTag).join(', '))}.</p>
+                <div class="quiz-actions">
+                    <button type="button" class="btn btn-primary btn-lg" id="quiz-order-btn">${escHtml(t('btn_order_blend'))}</button>
+                    <button type="button" class="btn btn-link" onclick="startQuiz()">${escHtml(t('btn_try_again'))}</button>
                 </div>
             </div>
-            <p class="quiz-result-desc font-chaos">${escHtml(desc)}</p>
-            <div class="quiz-why">
-                <span class="quiz-why-label">${t('quiz_why')}:</span>
-                <div class="quiz-why-chips">${whyChips}</div>
-            </div>
-            <div class="quiz-actions">
-                <button class="btn btn-large" id="quiz-order-btn">${t('btn_order_blend')}</button>
-                <button class="btn btn-secondary" onclick="startQuiz()">${t('btn_try_again')}</button>
-                <button class="btn btn-ghost" onclick="showPage('home-page')">${t('btn_back_home')}</button>
-            </div>
-            ${runnerUpHtml}
-        </div>
-    `;
-    document.getElementById('quiz-order-btn').addEventListener('click', () => {
-        openDetail(best.name, desc, 89, best.ingredients, best.colors);
-    });
-    const ruBtn = document.getElementById('quiz-runnerup-btn');
-    if (ruBtn) ruBtn.addEventListener('click', () => {
-        openDetail(runnerUp.name, LANG === 'cs' && runnerUp.desc_cs ? runnerUp.desc_cs : runnerUp.desc, 89, runnerUp.ingredients, runnerUp.colors);
-    });
+            <figure class="quiz-stage" aria-hidden="true">${pouchHtml({ name: best.name, codes: best.ingredients, size: 'pouch--hero', weight: '100 g' })}</figure>
+            ${runnerUp ? `
+            <div class="quiz-runnerup">
+                <p>${escHtml(t('quiz_also'))}</p>
+                <button type="button" class="quiz-runnerup-card" id="quiz-runnerup-btn">
+                    <span class="quiz-runnerup-dots" aria-hidden="true">${runnerUp.ingredients.map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('')}</span>
+                    <span class="quiz-runnerup-text"><strong>${escHtml(runnerUp.name)}</strong><span>${escHtml(blendSubtitle(runnerUp.ingredients))}</span></span>
+                </button>
+            </div>` : ''}
+        </div>`;
+    const price = PRICES[100] || Object.values(PRICES)[0] || 0;
+    document.getElementById('quiz-order-btn').addEventListener('click', () => openDetail(best.name, descOf(best), price, best.ingredients, best.colors));
+    document.getElementById('quiz-runnerup-btn')?.addEventListener('click', () => openDetail(runnerUp.name, descOf(runnerUp), price, runnerUp.ingredients, runnerUp.colors));
 }
 
 /* ─── RANDOM BLEND ───────────────────────────── */
@@ -2464,16 +2430,14 @@ function randomBlend() {
         const btn = document.querySelector(`.ingredient-btn[data-name="${name}"]`);
         if (btn) btn.classList.add('selected');
         const part = document.getElementById(partId);
-        if (part) { part.style.backgroundColor = color; fillGlassPart(partId); }
+        if (part) { paintLayer(part, color); fillGlassPart(partId); }
         const idx = parseInt(partId.replace('part','')) - 1;
         currentProduct.colors[idx]      = color;
         currentProduct.ingredients[idx] = name;
     });
 
     // Random name
-    const adjectives = ['Morning','Early','Late','Slow','Dark','Quiet','Warm','Still','Deep','Open'];
-    const nouns      = ['Window','Tuesday','Winter','Light','Air','Evening','Hour','Field','Corner','Shelf'];
-    const randomName = pick(adjectives) + ' ' + pick(nouns);
+    const randomName = pick(mixNameIdeas());
     const nameInput  = document.getElementById('mix-name');
     if (nameInput) nameInput.value = randomName;
 
@@ -2487,7 +2451,8 @@ function randomBlend() {
     animateGlass('main-glass-frame');
     validateSelection();
     updateGlassLabels();
-    showToast(`${t('toast_random')} ${randomName} 🎲`, '🎲');
+    if (typeof setMixerStep === 'function') setMixerStep(4, { scroll: false });
+    showToast(`${t('toast_random')} ${escHtml(randomName)}`, '🎲');
 }
 
 /* ─── APPLY A BLEND TO THE CONFIGURATOR ──────── */
@@ -2504,6 +2469,7 @@ function applyBlendToConfigurator(ingredients, name) {
         const inp = document.getElementById('mix-name');
         if (inp) { inp.value = name; inp.dispatchEvent(new Event('input', { bubbles: true })); }
     }
+    if (typeof setMixerStep === 'function') setMixerStep(firstOpenMixerStep(), { scroll: false });
 }
 
 /* ─── QUICK-START PRESETS (mixer) ────────────── */
@@ -2569,14 +2535,54 @@ function loadBlendFromUrl() {
    Když databáze neodpoví, zůstane to, co bylo. Obchod kvůli tomu nespadne.
 */
 
+/* Hotové směsi, když databáze není napojená nebo neodpoví. Stejné jako
+   výchozí data v supabase/setup.sql. */
+const BUILTIN_BLENDS = [
+    { id: 'morning_window', name: 'Morning Window', emoji: '☀️', is_preset: true,  ingredients: ['Green Tea', 'Mint', 'Lemon'],
+      desc_cs: 'Zelený čaj s mátou a citronem. Čistý a svěží — pohár, který rozjede den správným způsobem.',
+      desc_en: 'Green tea with mint and lemon. Clean and bright — the kind of cup that gets the day started right.' },
+    { id: 'still_evening',  name: 'Still Evening',  emoji: '🍓', is_preset: true,  ingredients: ['White Tea', 'Strawberry', 'Honey'],
+      desc_cs: 'Bílý čaj s jahodou a medem. Jemně sladký a klidný — měkký závěr dne.',
+      desc_en: 'White tea with strawberry and honey. Gently sweet and unhurried — a soft end to the day.' },
+    { id: 'deep_winter',    name: 'Deep Winter',    emoji: '❄️', is_preset: true,  ingredients: ['Black Tea', 'Ginger', 'Vanilla'],
+      desc_cs: 'Černý čaj se zázvorem a vanilkou. Plný a hřejivý — nejlepší s oběma rukama kolem hrnku.',
+      desc_en: 'Black tea with ginger and vanilla. Full and warming — best with both hands around the mug.' },
+    { id: 'late_light',     name: 'Late Light',     emoji: '🌅', is_preset: false, ingredients: ['Oolong Tea', 'Rose', 'Lavender'],
+      desc_cs: 'Oolong s růží a levandulí. Měkký a trochu květinový — na ten tichý kus odpoledne.',
+      desc_en: 'Oolong with rose and lavender. Soft and a little floral — for the quiet part of the afternoon.' },
+    { id: 'open_air',       name: 'Open Air',       emoji: '🌿', is_preset: false, ingredients: ['Rooibos', 'Orange', 'Spearmint'],
+      desc_cs: 'Rooibos s pomerančem a mátou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.',
+      desc_en: 'Rooibos with orange and spearmint. Naturally sweet and caffeine-free — good any time.' },
+    { id: 'slow_tuesday',   name: 'Slow Tuesday',   emoji: '🌙', is_preset: true,  ingredients: ['Chamomile', 'Turmeric', 'Cinnamon'],
+      desc_cs: 'Heřmánek s kurkumou a skořicí. Zemitý a teplý — čajový ekvivalent nicnedělání.',
+      desc_en: 'Chamomile with turmeric and cinnamon. Earthy and warm — the tea equivalent of doing nothing.' },
+];
+
 const CATALOG_CACHE_KEY  = 'teaseyou_catalog_v1';
 const CATALOG_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;   // starší cache už nebereme
 const ING_GROUPS = { bases: 'part1', flavors: 'part2', extras: 'part3' };
 const ING_CATEGORY_GROUP = { base: 'bases', flavor: 'flavors', extra: 'extras' };
 
 let catalogLoaded   = false;   // true = nabídka pochází z databáze (živě nebo z cache)
-let catalogBlends   = [];      // řádky tabulky blends
+let catalogBlends   = BUILTIN_BLENDS.slice();  // řádky tabulky blends (bez databáze vestavěné)
 let catalogShipping = null;    // { post: { price, active }, … }
+/* Mýdla a balzámy. Bez databáze (nebo dokud v ní tabulka není) se ukážou
+   tyhle vestavěné ukázky. */
+const BUILTIN_CRAFT = [
+    { id: 'levandulovy_vecer', kind: 'soap', name_cs: 'Levandulový večer', name_en: 'Lavender Evening', color: '#b8a0cc', ingredients: ['Lavender', 'Chamomile'],
+      desc_cs: 'Jemné mýdlo s levandulí a heřmánkem. Voní jako večerní šálek.', desc_en: 'A gentle soap with lavender and chamomile. Smells like an evening cup.' },
+    { id: 'zelene_rano', kind: 'soap', name_cs: 'Zelené ráno', name_en: 'Green Morning', color: '#8da676', ingredients: ['Green Tea', 'Mint'],
+      desc_cs: 'Svěží mýdlo se zeleným čajem a mátou.', desc_en: 'A fresh soap with green tea and mint.' },
+    { id: 'rooibos_pomeranc', kind: 'soap', name_cs: 'Rooibos a pomeranč', name_en: 'Rooibos & Orange', color: '#e8720c', ingredients: ['Rooibos', 'Orange'],
+      desc_cs: 'Hřejivé mýdlo s rooibosem a pomerančovou kůrou.', desc_en: 'A warm soap with rooibos and orange peel.' },
+    { id: 'ruze_bily_caj', kind: 'soap', name_cs: 'Růže a bílý čaj', name_en: 'Rose & White Tea', color: '#e8607a', ingredients: ['Rose', 'White Tea'],
+      desc_cs: 'Květinové mýdlo s růží a bílým čajem.', desc_en: 'A floral soap with rose and white tea.' },
+    { id: 'med_vanilka', kind: 'balm', name_cs: 'Med a vanilka', name_en: 'Honey & Vanilla', color: '#ffc107', ingredients: ['Honey', 'Vanilla'],
+      desc_cs: 'Balzám na rty ze včelího vosku s medem a vanilkou.', desc_en: 'A beeswax lip balm with honey and vanilla.' },
+    { id: 'mata', kind: 'balm', name_cs: 'Máta', name_en: 'Mint', color: '#a8d8a8', ingredients: ['Spearmint'],
+      desc_cs: 'Chladivý balzám na rty s mátou peprnou.', desc_en: 'A cooling lip balm with spearmint.' },
+];
+let catalogCraft = BUILTIN_CRAFT.slice();
 let promoBarEnabled = true;
 
 Object.assign(TRANSLATIONS.cs, {
@@ -2750,6 +2756,15 @@ function applyCatalog(c) {
         MIX_PRESETS.push({ emoji: b.emoji || '🍵', name: b.name, ingredients: b.ingredients.slice() });
     });
 
+    if (Array.isArray(c.craft)) {
+        catalogCraft = c.craft
+            .filter(r => r && r.active !== false && typeof r.id === 'string' && /^[a-z0-9_]{2,40}$/.test(r.id)
+                && (r.kind === 'soap' || r.kind === 'balm') && typeof r.name_cs === 'string')
+            .map(r => ({ ...r, color: /^#[0-9a-f]{6}$/i.test(r.color || '') ? r.color : '#d9c4a0',
+                         ingredients: (r.ingredients || []).filter(code => typeof code === 'string') }))
+            .sort(bySort);
+    }
+
     catalogLoaded = true;
     return true;
 }
@@ -2759,6 +2774,7 @@ function renderCatalogDom() {
     if (!catalogLoaded) return;
     renderIngredientButtons();
     renderBlendCards();
+    renderCraft();
     renderPriceOptions();
     renderShippingOptions();
     const bar = document.getElementById('promo-bar');
@@ -2775,13 +2791,16 @@ function renderIngredientButtons() {
         grid.innerHTML = ING_DATA[group].map(ing => {
             const photo = safePhoto(ing.photo);
             const out = ing.inStock === false;
+            const selected = chosen === ing.code && !out;
             const style = `--dot-color:${ing.color};` + (photo ? `--dot-photo:url("${photo}");` : '');
-            const cls = ['ingredient-btn', photo && 'has-photo', out && 'is-out',
-                         chosen === ing.code && !out && 'selected'].filter(Boolean).join(' ');
+            const cls = ['ingredient-btn', photo && 'has-photo', out && 'is-out', selected && 'selected'].filter(Boolean).join(' ');
             return `<button type="button" class="${cls}" data-target="${part}" data-color="${ing.color}"`
-                + ` data-name="${escHtml(ing.code)}" data-desc="${escHtml(t(ing.key + '_desc'))}"`
-                + ` data-i18n-desc="${ing.key}_desc" style="${escHtml(style)}"${out ? ' aria-disabled="true"' : ''}>`
-                + `${escHtml(t(ing.key))}${out ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : ''}</button>`;
+                + ` data-name="${escHtml(ing.code)}" style="${escHtml(style)}" aria-pressed="${selected}"${out ? ' aria-disabled="true"' : ''}>`
+                + `<span class="ing-dot" aria-hidden="true"></span>`
+                + `<span class="ing-text"><span class="ing-name">${escHtml(t(ing.key))}</span>`
+                + `<span class="ing-note">${escHtml(t(ing.key + '_desc') || '')}</span></span>`
+                + (out ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : '')
+                + `</button>`;
         }).join('');
 
         // Vybraná ingredience mohla zmizet z nabídky nebo se vyprodat.
@@ -2791,11 +2810,11 @@ function renderIngredientButtons() {
             if (!ing || ing.inStock === false) {
                 currentProduct.ingredients[idx] = 'Empty';
                 currentProduct.colors[idx] = 'transparent';
-                if (glassPart) glassPart.style.backgroundColor = 'transparent';
+                paintLayer(glassPart, 'transparent');
                 selectionChanged = true;
             } else if (currentProduct.colors[idx] !== ing.color) {
                 currentProduct.colors[idx] = ing.color;
-                if (glassPart) glassPart.style.backgroundColor = ing.color;
+                paintLayer(glassPart, ing.color);
             }
         }
     });
@@ -2811,20 +2830,19 @@ function renderBlendCards() {
     const section = grid.closest('.ready-made-section');
     if (section) section.style.display = catalogBlends.length ? '' : 'none';
     grid.innerHTML = catalogBlends.map(b => {
-        const colors = b.ingredients.map(c => ingColor(c) || '#dddddd');
         const photo = safePhoto(b.photo_url);
         const visual = photo
-            ? `<div class="ready-photo"><img src="${escHtml(photo)}" alt="${escHtml(b.name)}" loading="lazy" decoding="async"></div>`
-            : `<div class="ready-glass-mini">${colors.slice().reverse().map(c => `<div style="background:${escHtml(c)}"></div>`).join('')}</div>`;
+            ? `<div class="ready-photo"><img src="${escHtml(photo)}" alt="" loading="lazy" decoding="async"></div>`
+            : jarHtml(b.ingredients, 'jar--sm', b.name);
         const soldOut = outOfStockIn(b.ingredients).length
-            ? `<span class="ing-out-badge ing-out-badge--card">${escHtml(t('ing_sold_out'))}</span>` : '';
-        return `<div class="ready-card" role="button" tabindex="0" data-blend="${escHtml(b.id)}">
-                ${visual}
-                <h3 class="font-cosmico">${escHtml(b.name)}</h3>
-                <p class="font-chaos">${escHtml(blendSubtitle(b.ingredients))}</p>
-                <span class="ready-price" data-i18n="price_from">${escHtml(t('price_from'))}</span>
-                ${soldOut}
-            </div>`;
+            ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : '';
+        const tint = ingColor(b.ingredients[1]) || ingColor(b.ingredients[0]) || '';
+        return `<article class="ready-card" role="button" tabindex="0" data-blend="${escHtml(b.id)}" aria-label="${escHtml(b.name)}">
+                <div class="ready-visual"${tint ? ` style="--tint:${escHtml(tint)}"` : ''}>${visual}</div>
+                <h3 class="ready-name">${escHtml(b.name)}</h3>
+                <p class="ready-mix">${escHtml(blendSubtitle(b.ingredients))}</p>
+                <p class="ready-foot"><span class="ready-price" data-i18n="price_from">${escHtml(t('price_from'))}</span>${soldOut}</p>
+            </article>`;
     }).join('');
     grid.querySelectorAll('.ready-card[data-blend]').forEach(card => {
         const open = () => openBlend(card.getAttribute('data-blend'));
@@ -2849,7 +2867,7 @@ function showDetailPhotoAndStock(name, ingredients) {
     const blend = catalogBlends.find(b => b.name === name);
     const photo = blend ? safePhoto(blend.photo_url) : '';
     const img = document.getElementById('detail-photo');
-    const glass = document.querySelector('#product-detail-page .detail-visual .glass-container');
+    const glass = document.getElementById('detail-pouch');
     if (img) {
         if (photo) { img.src = photo; img.alt = name; img.hidden = false; }
         else { img.hidden = true; img.removeAttribute('src'); }
@@ -2866,11 +2884,11 @@ function showDetailPhotoAndStock(name, ingredients) {
 function renderPriceOptions() {
     const weights = Object.keys(PRICES).map(Number).sort((a, b) => a - b);
     const current = parseInt(currentProduct.weight, 10) || 0;
-    document.querySelectorAll('.qty-options').forEach(box => {
+    document.querySelectorAll('.qty-options:not(#mixer-sizes)').forEach(box => {
         const selectedHere = box.querySelector('.qty-btn.selected');
         box.innerHTML = weights.map(w =>
             `<button type="button" class="qty-btn${selectedHere && w === current ? ' selected' : ''}" onclick="selectQty(${w}, event)">`
-            + `${w}g<span class="qty-price">${fmt(PRICES[w])}</span></button>`
+            + `${w} g<span class="qty-price">${fmt(PRICES[w])}</span></button>`
         ).join('');
     });
     if (current && PRICES[current]) {
@@ -2924,6 +2942,7 @@ function repriceCart() {
 
 function rerenderAfterCatalog() {
     renderCatalogDom();
+    if (typeof refreshRedesign === 'function') refreshRedesign();
     applyTranslations();
     renderIngredientEncyclopedia();
     renderPresets();
@@ -2951,6 +2970,7 @@ function applyCachedCatalog() {
         renderCatalogDom();
         repriceCart();
     }
+    // (hero, spíž a ceny se vykreslí v initRedesign hned potom)
 }
 
 let catalogRefreshing = null;
@@ -2959,14 +2979,17 @@ function refreshCatalog() {
     if (catalogRefreshing) return catalogRefreshing;
     catalogRefreshing = (async () => {
         try {
-            const [ingredients, blends, prices, shipping, settingsRows] = await Promise.all([
+            const [ingredients, blends, prices, shipping, settingsRows, craft] = await Promise.all([
                 TeaDB.select('ingredients',      { order: 'sort.asc,name_cs.asc' }),
                 TeaDB.select('blends',           { order: 'sort.asc,name.asc' }),
                 TeaDB.select('price_tiers',      { order: 'weight_g.asc' }),
                 TeaDB.select('shipping_methods', { order: 'sort.asc' }),
                 TeaDB.select('settings',         { id: 'eq.1' }),
+                // Tabulka mýdel přibyla později. Dokud v databázi není,
+                // web ukáže vestavěné ukázky a zbytek katalogu jede normálně.
+                TeaDB.select('craft_products',   { order: 'sort.asc' }).catch(() => null),
             ]);
-            const fresh = { ingredients, blends, prices, shipping, settings: (settingsRows || [])[0] || null };
+            const fresh = { ingredients, blends, prices, shipping, settings: (settingsRows || [])[0] || null, craft };
             const previous = readCatalogCache();
             if (!applyCatalog(fresh)) {
                 console.warn('[teaseyou] Katalog z databáze je neúplný (chybí ceník nebo ingredience), nechávám původní.');
@@ -3074,4 +3097,926 @@ function notifyFormspree(form, order) {
     } catch (err) {
         console.warn('[teaseyou] E-mail o objednávce se neodeslal (objednávka je uložená):', err);
     }
+}
+
+
+/* =============================================
+   NOVÝ VZHLED — sklenice, úvodní stránka, mixér po krocích
+   ============================================= */
+
+Object.assign(TRANSLATIONS.cs, {
+    hero_title:        'Namíchej si čaj. Pojmenuj ho.',
+    hero_lede:         'Vybereš základ, příchuť a doplněk. Směs čerstvě namícháme a pošleme ti ji v sáčku s tvým jménem.',
+    hero_quiz_btn:     'Poradit kvízem',
+    hero_quiz_link:    'Nevíš, co vybrat? Poradí ti kvíz',
+    how_result_note:   'Namícháme po objednání, odešleme do 24 hodin.',
+    hero_pick:         'Chci tuhle',
+    hero_shuffle:      'Zamíchat jinak',
+    hero_note_price:   'Balení od {price}.',
+    hero_note_ship:    'Nad {limit} doprava zdarma.',
+    how_1_title:       'Vyber základ',
+    howx_1:            'Šest čajů od výrazného černého po heřmánek bez kofeinu. Základ určuje charakter směsi.',
+    howx_2_title:      'Přidej příchuť',
+    howx_2:            'Ovoce, květy, kakao nebo kokos. Tady začne být směs tvoje.',
+    howx_3_title:      'Dolaď doplňkem',
+    howx_3:            'Med, citron, zázvor nebo koření. Malá věc, která chuť dotáhne.',
+    howx_4_title:      'Pojmenuj ji',
+    howx_4:            'Směs zabalíme pod tvým jménem a do 24 hodin odešleme.',
+    how_cta:           'Začít míchat',
+    shelf_title:       'Naše směsi',
+    shelf_lede:        'Hotové kombinace. Objednej je rovnou, nebo si je v mixéru uprav podle sebe.',
+    quizband_title:    'Nevíš, co by ti chutnalo?',
+    quizband_text:     'Odpověz na pět krátkých otázek a doporučíme ti směs, která sedí tvé náladě i denní době.',
+    quizband_btn:      'Spustit kvíz',
+    pantry_title:      'Z čeho mícháme',
+    pantry_lede:       'Z {bases} základů, {flavors} příchutí a {extras} doplňků poskládáš {combos} různých směsí.',
+    pantry_bases:      'Základy',
+    pantry_flavors:    'Příchutě',
+    pantry_extras:     'Doplňky',
+    pantry_link:       'Prohlédnout všechny ingredience',
+    faq_lede:          'Něco tu chybí? Napiš na <a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a>.',
+    mixer_sub:         'Jeden základ, jedna příchuť, jeden doplněk. Jméno je na tobě.',
+    preset_label2:     'Nechceš začínat od nuly?',
+    step_1_title:      'Vyber základ',
+    step_1_hint:       'Určuje charakter směsi a kolik bude mít kofeinu.',
+    step_2_title:      'Přidej příchuť',
+    step_2_hint:       'Ovoce, květy nebo něco sladšího.',
+    step_3_title:      'Dolaď doplňkem',
+    step_3_hint:       'Med, citrus nebo koření na dotažení chuti.',
+    step_4_title:      'Pojmenuj ji',
+    step_4_hint:       'Pod tímhle jménem ji zabalíme. Nech prázdné a bude to Moje směs.',
+    prog_extra:        'Doplněk',
+    prog_name:         'Jméno',
+    btn_clear2:        'Vymazat',
+    btn_preview:       'Ukázat směs a cenu',
+    mixer_next_2:      'Dál: příchuť',
+    mixer_next_3:      'Dál: doplněk',
+    mixer_next_4:      'Dál: jméno',
+    mixer_prev:        'Zpět',
+    mixer_pick_first:  'Nejdřív něco vyber',
+    mixer_missing:     'Ještě chybí',
+    mixer_price:       'Od {price} za {weight} g',
+    glass_label_extras:'Doplněk',
+    glass_name_default:'Tvoje směs',
+    default_mix_name:  'Moje směs',
+    name_ideas_label:  'Napadá nás:',
+    nav_mix:           'Namíchat',
+    nav_shelf:         'Naše směsi',
+    nav_quiz:          'Najdi svůj blend',
+    nav_quiz_short:    'Kvíz',
+    nav_saved_short:   'Uložené',
+    footer_shop:       'Obchod',
+    footer_info:       'Informace',
+    footer_tagline2:   'Čajové směsi na míru, míchané až po objednání.',
+    footer_newsletter_desc: 'Nové směsi a nabídky přímo do schránky.',
+    footer_cookies:    'Cookies',
+    footer_made_in:    'Mícháme v Česku',
+    lbl_email_short:   'E-mail',
+    newsletter_ok:     'Hotovo, jsi přihlášený.',
+    theme_dark:        'Tmavý režim',
+    theme_light:       'Světlý režim',
+    aria_menu:         'Menu',
+    aria_close:        'Zavřít',
+    aria_theme:        'Přepnout tmavý režim',
+    aria_mobile_nav:   'Mobilní navigace',
+});
+Object.assign(TRANSLATIONS.en, {
+    hero_title:        'Mix your tea. Name it.',
+    hero_lede:         'Pick a base, a flavour and an extra. We blend it fresh and send it in a pouch with your name on it.',
+    hero_quiz_btn:     'Help me choose',
+    hero_quiz_link:    'Not sure what to pick? Take the quiz',
+    how_result_note:   'Blended after you order, shipped within 24 hours.',
+    hero_pick:         'I want this one',
+    hero_shuffle:      'Shuffle',
+    hero_note_price:   'Packs from {price}.',
+    hero_note_ship:    'Free shipping over {limit}.',
+    how_1_title:       'Pick a base',
+    howx_1:            'Six teas, from bold black to caffeine-free chamomile. The base sets the character.',
+    howx_2_title:      'Add a flavour',
+    howx_2:            'Fruit, flowers, cocoa or coconut. This is where it becomes yours.',
+    howx_3_title:      'Finish with an extra',
+    howx_3:            'Honey, lemon, ginger or spice. A small thing that rounds it off.',
+    howx_4_title:      'Name it',
+    howx_4:            'We pack it under your name and ship within 24 hours.',
+    how_cta:           'Start mixing',
+    shelf_title:       'Our blends',
+    shelf_lede:        'Ready-made combinations. Order one as it is, or tweak it in the mixer.',
+    quizband_title:    'Not sure what you would like?',
+    quizband_text:     'Answer five quick questions and we will suggest a blend for your mood and time of day.',
+    quizband_btn:      'Take the quiz',
+    pantry_title:      'What we blend with',
+    pantry_lede:       '{bases} bases, {flavors} flavours and {extras} extras make {combos} different blends.',
+    pantry_bases:      'Bases',
+    pantry_flavors:    'Flavours',
+    pantry_extras:     'Extras',
+    pantry_link:       'See all ingredients',
+    faq_lede:          'Missing something? Write to <a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a>.',
+    mixer_sub:         'One base, one flavour, one extra. The name is up to you.',
+    preset_label2:     'Rather not start from scratch?',
+    step_1_title:      'Pick a base',
+    step_1_hint:       'It sets the character of the blend and how much caffeine it has.',
+    step_2_title:      'Add a flavour',
+    step_2_hint:       'Fruit, flowers or something sweeter.',
+    step_3_title:      'Finish with an extra',
+    step_3_hint:       'Honey, citrus or spice to round it off.',
+    step_4_title:      'Name it',
+    step_4_hint:       'We pack it under this name. Leave it empty and it will be My blend.',
+    prog_extra:        'Extra',
+    prog_name:         'Name',
+    btn_clear2:        'Clear',
+    btn_preview:       'See blend and price',
+    mixer_next_2:      'Next: flavour',
+    mixer_next_3:      'Next: extra',
+    mixer_next_4:      'Next: name',
+    mixer_prev:        'Back',
+    mixer_pick_first:  'Pick something first',
+    mixer_missing:     'Still missing',
+    mixer_price:       'From {price} for {weight} g',
+    glass_label_extras:'Extra',
+    glass_name_default:'Your blend',
+    default_mix_name:  'My blend',
+    name_ideas_label:  'Ideas:',
+    nav_mix:           'Mix',
+    nav_shelf:         'Our blends',
+    nav_quiz:          'Find my blend',
+    nav_quiz_short:    'Quiz',
+    nav_saved_short:   'Saved',
+    footer_shop:       'Shop',
+    footer_info:       'Information',
+    footer_tagline2:   'Custom tea blends, mixed only after you order.',
+    footer_newsletter_desc: 'New blends and offers straight to your inbox.',
+    footer_cookies:    'Cookies',
+    footer_made_in:    'Blended in Czechia',
+    lbl_email_short:   'E-mail',
+    newsletter_ok:     'Done, you are subscribed.',
+    theme_dark:        'Dark mode',
+    theme_light:       'Light mode',
+    aria_menu:         'Menu',
+    aria_close:        'Close',
+    aria_theme:        'Toggle dark mode',
+    aria_mobile_nav:   'Mobile navigation',
+});
+
+Object.assign(TRANSLATIONS.cs, {
+    q_1:               'Jaký čaj bude základ?',
+    q_1_hint:          'Určuje chuť i to, kolik bude mít kofeinu.',
+    q_2:               'Jakou chceš příchuť?',
+    q_2_hint:          'Ovoce, květy nebo něco sladšího.',
+    q_3:               'Čím ji dolaďíme?',
+    q_3_hint:          'Med, citrus nebo koření.',
+    q_4:               'Hotovo. Pojmenuj ji.',
+    name_label:        'Jméno na sáček',
+    name_placeholder2: 'Např. Tichý večer',
+    name_suggest:      'Vymyslet',
+    size_label:        'Velikost',
+    btn_save_blend:    'Uložit na později',
+    btn_share_blend:   'Poslat odkaz',
+    mixer_step_of:     'Krok {n} ze 4',
+    mixer_next:        'Dál',
+    mixer_add:         'Do košíku',
+    mixer_pick_first:  'Vyber jednu možnost',
+    bar_empty:         'Zatím nic nevybráno',
+    pairs_tag:         'Hodí se',
+    how_pouch_name:    'Tvoje jméno',
+    glass_label_base:  'Základ',
+    glass_label_flavor:'Příchuť',
+    back_to_shelf:     'Naše směsi',
+    back_home:         'Zpět na úvod',
+    btn_edit_in_mixer: 'Upravit v mixéru',
+    add_for:           'Do košíku za {price}',
+    brew_title:        'Jak ji připravit',
+    brew_dose:         'Dávka',
+    brew_dose_val:     '2–3 g na 200 ml vody',
+    brew_water:        'Teplota vody',
+    brew_time:         'Louhování',
+    saved_title:       'Uložené směsi',
+    saved_lede:        'Směsi uložené z mixéru. Objednáš je jedním klepnutím.',
+    saved_empty:       'Zatím tu nic není. V mixéru můžeš každou směs uložit na později.',
+    btn_create_first:  'Namíchat směs',
+    btn_load_order:    'Objednat',
+    orders_lede:       'Objednávky odeslané z tohohle prohlížeče.',
+    orders_empty:      'Zatím tu nejsou žádné objednávky.',
+    cart_title:        'Košík',
+    cart_empty:        'Vyber si některou z našich směsí, nebo si namíchej vlastní.',
+    btn_browse_blends: 'Naše směsi',
+    btn_continue:      'Pokračovat v nákupu',
+    ship_calculated:   'Doprava se připočítá v pokladně.',
+    ship_free:         'Doprava je zdarma.',
+    freeship_left:     'Do dopravy zdarma ti chybí {amount}.',
+    freeship_done:     'Máš dopravu zdarma.',
+    per_piece:         'za kus',
+    pieces:            'ks',
+    qty_less:          'Ubrat kus',
+    qty_more:          'Přidat kus',
+    promo_remove:      'Odebrat kód',
+    checkout_title:    'Pokladna',
+    checkout_summary:  'Tvoje objednávka',
+    checkout_shipping: 'Doprava',
+    country_select:    'Vyber zemi',
+    country_cz:        'Česko',
+    country_sk:        'Slovensko',
+    ship_dpd_name:     'Kurýr DPD',
+    ship_zasilkovna_desc: 'Vyzvedneš na výdejním místě, 2–3 pracovní dny',
+    ship_post_desc:    'Až domů, 3–5 pracovních dní',
+    ship_dpd_desc:     'Až domů, další pracovní den',
+    packeta_choose:    'Vybrat výdejní místo',
+    packeta_change:    'Změnit',
+    pay_title:         'Platba',
+    pay_cod:           'Dobírka',
+    pay_cod_desc:      'Platíš při převzetí (+39 Kč)',
+    pay_card:          'Platební karta online',
+    pay_card_desc:     'Visa, Mastercard přes GoPay / Comgate',
+    pay_transfer:      'Bankovní převod',
+    pay_transfer_desc: 'Údaje k platbě pošleme e-mailem',
+    note_placeholder2: 'Třeba vzkaz na přání, když je to dárek',
+    checkout_legal:    'Odesláním objednávky souhlasíš s <a href="#" onclick="event.preventDefault(); showPage(\'terms-page\')">obchodními podmínkami</a>.',
+    btn_complete_order:'Odeslat objednávku',
+    success_title:     'Díky, objednávka je u nás',
+    success_desc:      'Směs namícháme a do 24 hodin odešleme. Potvrzení ti přijde e-mailem.',
+    success_step1:     'Objednávka přijatá',
+    success_step2:     'Namícháme',
+    success_step3:     'Odešleme do 24 hodin',
+    btn_create_another:'Namíchat další směs',
+    about_cta:         'Chceš si jednu namíchat?',
+    btn_start_creating2:'Namíchat směs',
+    ing_page_title:    'Ingredience',
+    ing_page_sub:      'Ze všeho tady se dá míchat. U každé ingredience je, jak chutná a s čím se hodí.',
+    ing_pairs:         'Hodí se k:',
+    ing_use:           'Namíchat s tímhle',
+    process_cta_title: 'Chceš si jednu namíchat?',
+    btn_start_creating:'Namíchat směs',
+    quiz_step_of:      'Otázka {n} z {total}',
+    quiz_result_intro: 'Podle tvých odpovědí ti nejvíc sedne',
+    quiz_why:          'Vybrali jsme ji, protože hledáš',
+    quiz_also:         'Mohla by ti chutnat i',
+    btn_order_blend:   'Chci tuhle směs',
+    btn_try_again:     'Projít kvíz znovu',
+    modal_qty_title:   'Vyber velikost',
+    btn_confirm:       'Do košíku',
+    toast_saved:       'najdeš v Uložených směsích',
+    nav_blends:        'Uložené směsi',
+    nav_quiz:          'Kvíz',
+});
+Object.assign(TRANSLATIONS.en, {
+    q_1:               'Which tea for the base?',
+    q_1_hint:          'It sets the taste and how much caffeine it has.',
+    q_2:               'Which flavour?',
+    q_2_hint:          'Fruit, flowers or something sweeter.',
+    q_3:               'How do we finish it?',
+    q_3_hint:          'Honey, citrus or spice.',
+    q_4:               'Done. Give it a name.',
+    name_label:        'Name on the pouch',
+    name_placeholder2: 'e.g. Still Evening',
+    name_suggest:      'Suggest',
+    size_label:        'Size',
+    btn_save_blend:    'Save for later',
+    btn_share_blend:   'Share a link',
+    mixer_step_of:     'Step {n} of 4',
+    mixer_next:        'Next',
+    mixer_add:         'Add to cart',
+    mixer_pick_first:  'Pick one option',
+    bar_empty:         'Nothing picked yet',
+    pairs_tag:         'Goes well',
+    how_pouch_name:    'Your name',
+    glass_label_base:  'Base',
+    glass_label_flavor:'Flavour',
+    back_to_shelf:     'Our blends',
+    back_home:         'Back to home',
+    btn_edit_in_mixer: 'Edit in the mixer',
+    add_for:           'Add to cart for {price}',
+    brew_title:        'How to brew it',
+    brew_dose:         'Dose',
+    brew_dose_val:     '2–3 g per 200 ml of water',
+    brew_water:        'Water',
+    brew_time:         'Steep',
+    saved_title:       'Saved blends',
+    saved_lede:        'Blends you saved in the mixer. Order them in one tap.',
+    saved_empty:       'Nothing here yet. You can save any blend in the mixer for later.',
+    btn_create_first:  'Mix a blend',
+    btn_load_order:    'Order',
+    orders_lede:       'Orders placed from this browser.',
+    orders_empty:      'No orders yet.',
+    cart_title:        'Cart',
+    cart_empty:        'Pick one of our blends or mix your own.',
+    btn_browse_blends: 'Our blends',
+    btn_continue:      'Continue shopping',
+    ship_calculated:   'Shipping is added at checkout.',
+    ship_free:         'Shipping is free.',
+    freeship_left:     'Add {amount} more for free shipping.',
+    freeship_done:     'You have free shipping.',
+    per_piece:         'each',
+    pieces:            'pcs',
+    qty_less:          'One less',
+    qty_more:          'One more',
+    promo_remove:      'Remove code',
+    checkout_title:    'Checkout',
+    checkout_summary:  'Your order',
+    checkout_shipping: 'Shipping',
+    country_select:    'Choose a country',
+    country_cz:        'Czechia',
+    country_sk:        'Slovakia',
+    ship_dpd_name:     'DPD courier',
+    ship_zasilkovna_desc: 'Pick up at a Zásilkovna point, 2–3 working days',
+    ship_post_desc:    'To your door, 3–5 working days',
+    ship_dpd_desc:     'To your door, next working day',
+    packeta_choose:    'Choose a pickup point',
+    packeta_change:    'Change',
+    pay_title:         'Payment',
+    pay_cod:           'Cash on delivery',
+    pay_cod_desc:      'Pay when you collect it (+39 Kč)',
+    pay_card:          'Card online',
+    pay_card_desc:     'Visa, Mastercard via GoPay / Comgate',
+    pay_transfer:      'Bank transfer',
+    pay_transfer_desc: 'We will e-mail you the payment details',
+    note_placeholder2: 'A message for the card, if it is a gift',
+    checkout_legal:    'By placing the order you agree to our <a href="#" onclick="event.preventDefault(); showPage(\'terms-page\')">terms</a>.',
+    btn_complete_order:'Place order',
+    success_title:     'Thanks, we have your order',
+    success_desc:      'We will blend it and ship within 24 hours. A confirmation is on its way to your inbox.',
+    success_step1:     'Order received',
+    success_step2:     'We blend it',
+    success_step3:     'Shipped within 24 hours',
+    btn_create_another:'Mix another blend',
+    about_cta:         'Want to mix one?',
+    btn_start_creating2:'Mix a blend',
+    ing_page_title:    'Ingredients',
+    ing_page_sub:      'Everything here goes into the mixer, with how it tastes and what it pairs with.',
+    ing_pairs:         'Pairs with:',
+    ing_use:           'Mix with this',
+    process_cta_title: 'Want to mix one?',
+    btn_start_creating:'Mix a blend',
+    quiz_step_of:      'Question {n} of {total}',
+    quiz_result_intro: 'Based on your answers, you will like',
+    quiz_why:          'We picked it because you are after',
+    quiz_also:         'You might also like',
+    btn_order_blend:   'I want this one',
+    btn_try_again:     'Take the quiz again',
+    modal_qty_title:   'Choose a size',
+    btn_confirm:       'Add to cart',
+    toast_saved:       'is in your saved blends',
+    nav_blends:        'Saved blends',
+    nav_quiz:          'Quiz',
+});
+
+/* ─── Sáček ─────────────────────────────────── */
+/* Kraftový sáček se zipem — tak, jak se čaj opravdu posílá. Na etiketě je
+   jméno směsi a její tři ingredience. Obrys a textura jsou v <svg><defs>
+   na začátku index.html, tady se na ně jen odkazuje. */
+const POUCH_PATH = 'M14 6H186Q192 6 192 12V20L186 26L192 32Q196 140 196 238Q196 262 172 264Q100 270 28 264Q4 262 4 238Q4 140 8 32L14 26L8 20V12Q8 6 14 6Z';
+const POUCH_SVG = `<svg class="pouch-bag" viewBox="0 0 200 270" preserveAspectRatio="none" focusable="false" aria-hidden="true">
+    <path d="${POUCH_PATH}" fill="url(#kraft-fill)"/>
+    <g clip-path="url(#pouch-clip)">
+        <rect width="200" height="270" filter="url(#kraft-grain)" opacity=".35"/>
+        <rect y="6" width="200" height="29" fill="url(#kraft-crimp)"/>
+        <rect y="34" width="200" height="1.5" fill="#000" fill-opacity=".12"/>
+        <rect y="44" width="200" height="3" fill="#000" fill-opacity=".2"/>
+        <rect y="47" width="200" height="1.5" fill="#fff" fill-opacity=".3"/>
+        <path d="M44 62C40 120 42 180 38 236" stroke="#fff" stroke-opacity=".18" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M160 70C164 130 160 190 163 232" stroke="#000" stroke-opacity=".06" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <path d="M4 240Q100 254 196 240" stroke="#000" stroke-opacity=".14" stroke-width="2" fill="none"/>
+        <rect width="200" height="270" fill="url(#kraft-edge)"/>
+    </g>
+</svg>`;
+const LAYER_LABELS = ['glass_label_base', 'glass_label_flavor', 'glass_label_extras'];
+
+function pouchHtml({ name = '', codes = [], size = '', placeholders = false, weight = '' } = {}) {
+    const real = [0, 1, 2].map(i => (codes[i] && codes[i] !== 'Empty' ? codes[i] : null));
+    const rows = real.map((code, i) => {
+        if (code) return `<li><i style="--c:${escHtml(ingColor(code) || '#cccccc')}"></i>${escHtml(tIng(code))}</li>`;
+        return placeholders ? `<li class="is-empty"><i></i>${escHtml(t(LAYER_LABELS[i]))}</li>` : '';
+    }).join('');
+    const dots = real.filter(Boolean).map(c => `<i style="--c:${escHtml(ingColor(c) || '#cccccc')}"></i>`).join('');
+    return `<div class="pouch ${size}">${POUCH_SVG}<div class="pouch-label">`
+        + `<span class="pouch-brand">Tease you</span>`
+        + `<span class="pouch-name${name ? '' : ' is-empty'}">${escHtml(name || t('glass_name_default'))}</span>`
+        + `<ul class="pouch-ings">${rows}</ul>`
+        + `<span class="pouch-dots">${dots}</span>`
+        + (weight ? `<span class="pouch-weight">${escHtml(weight)}</span>` : '')
+        + `</div></div>`;
+}
+
+/* Starý kód (detail, souhrn) pořád barví vrstvy sklenice. */
+function paintLayer(el, color) {
+    if (!el) return;
+    const empty = !color || color === 'transparent';
+    el.style.backgroundColor = empty ? 'transparent' : color;
+    el.classList.toggle('is-empty', empty);
+}
+/* Police s hotovými směsmi ukazuje malé sáčky. */
+function jarHtml(codes, cls, label) {
+    return pouchHtml({ name: label || '', codes, size: 'pouch--sm' });
+}
+
+function mixNameIdeas() {
+    return LANG === 'cs'
+        ? ['Ranní okno', 'Pomalé úterý', 'Tichý večer', 'Hluboká zima', 'Pozdní světlo', 'Volný vzduch',
+           'Neděle v posteli', 'Druhý dech', 'Teplý kout', 'Krátká pauza', 'Dlouhá noc', 'Lehká hlava']
+        : ['Morning Window', 'Slow Tuesday', 'Still Evening', 'Deep Winter', 'Late Light', 'Open Air',
+           'Sunday in Bed', 'Second Wind', 'Warm Corner', 'Short Break', 'Long Night', 'Light Head'];
+}
+function sortedWeights() {
+    return Object.keys(PRICES).map(Number).filter(w => PRICES[w] > 0).sort((a, b) => a - b);
+}
+function minPriceTier() {
+    const w = sortedWeights();
+    return w.length ? { weight: w[0], price: PRICES[w[0]] } : null;
+}
+const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ─── Úvodní stránka ────────────────────────── */
+let heroBlendId = null;
+
+function renderHero(id, animate) {
+    const box = document.getElementById('hero-pouch');
+    if (!box || !catalogBlends.length) return;
+    const b = catalogBlends.find(x => x.id === id) || catalogBlends[0];
+    heroBlendId = b.id;
+    const weights = sortedWeights();
+    const weight = weights.includes(100) ? '100 g' : (weights[0] ? weights[0] + ' g' : '');
+    box.innerHTML = pouchHtml({ name: b.name, codes: b.ingredients, size: 'pouch--hero', weight });
+    if (animate && !reduceMotion()) {
+        box.classList.remove('is-swapping');
+        void box.offsetWidth;
+        box.classList.add('is-swapping');
+    }
+    const mix = document.getElementById('hero-mix');
+    if (mix) mix.textContent = blendSubtitle(b.ingredients);
+}
+function shuffleHero() {
+    const others = catalogBlends.filter(b => b.id !== heroBlendId);
+    if (others.length) renderHero(others[Math.floor(Math.random() * others.length)].id, true);
+}
+function renderHeroNote() {
+    const el = document.getElementById('hero-note');
+    if (!el) return;
+    const tier = minPriceTier();
+    const parts = [];
+    if (tier) parts.push(t('hero_note_price').replace('{price}', fmt(tier.price)));
+    if (FREE_SHIP_THRESHOLD > 0) parts.push(t('hero_note_ship').replace('{limit}', fmt(FREE_SHIP_THRESHOLD)));
+    el.textContent = parts.join(' ');
+}
+/* Jak to funguje: základ + příchuť + doplněk = sáček s tvým jménem */
+function renderHow() {
+    const lede = document.getElementById('how-lede');
+    if (lede) {
+        const n = { bases: ING_DATA.bases.length, flavors: ING_DATA.flavors.length, extras: ING_DATA.extras.length };
+        lede.textContent = t('pantry_lede').replace('{bases}', n.bases).replace('{flavors}', n.flavors)
+            .replace('{extras}', n.extras).replace('{combos}', (n.bases * n.flavors * n.extras).toLocaleString(LANG === 'cs' ? 'cs-CZ' : 'en'));
+    }
+    const list = document.getElementById('how-formula');
+    if (!list) return;
+    const codes = ['Green Tea', 'Mint', 'Lemon'];
+    const roles = LAYER_LABELS.map(k => t(k).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en'));
+    list.innerHTML = codes.map((c, i) =>
+        `<li class="formula-item">${i ? '<span class="formula-op" aria-hidden="true">+</span>' : ''}`
+        + `<span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>`
+        + `<span class="formula-text"><strong>${escHtml(tIng(c))}</strong><span>${escHtml(roles[i])}</span></span></li>`
+    ).join('')
+        + `<li class="formula-item formula-result"><span class="formula-op" aria-hidden="true">=</span>`
+        + `<span class="formula-pouch">${pouchHtml({ name: t('how_pouch_name'), codes, size: 'pouch--xs' })}</span>`
+        + `<span class="formula-text"><strong>${escHtml(t('how_pouch_name'))}</strong><span>${escHtml(t('how_result_note'))}</span></span></li>`;
+}
+function goToShelf() {
+    const onHome = document.getElementById('home-page')?.classList.contains('active');
+    if (!onHome) showPage('home-page');
+    setTimeout(() => document.getElementById('shelf')?.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' }), onHome ? 0 : 60);
+}
+
+/* ─── Mixér: jedna otázka na obrazovku ──────── */
+let mixerStep = 1;
+let mixerWeight = 0;
+
+function mixerStepDone(n) {
+    if (n <= 3) return !!document.querySelector(`.ingredient-btn[data-target="part${n}"].selected`);
+    return true;
+}
+function firstOpenMixerStep() {
+    for (let n = 1; n <= 3; n++) if (!mixerStepDone(n)) return n;
+    return 4;
+}
+function mixerComplete() { return [1, 2, 3].every(mixerStepDone); }
+
+/* currentProduct sdílí mixér i detail hotové směsi, takže se ze stavu
+   tlačítek pokaždé znovu sestaví — jinak by do košíku šla jiná směs. */
+function mixerSyncProduct() {
+    const codes = [1, 2, 3].map(n => document.querySelector(`.ingredient-btn[data-target="part${n}"].selected`)?.dataset.name || 'Empty');
+    currentProduct.ingredients = codes;
+    currentProduct.colors = codes.map(c => (c === 'Empty' ? 'transparent' : ingColor(c) || 'transparent'));
+    currentProduct.name = document.getElementById('mix-name')?.value.trim() || t('default_mix_name');
+    if (mixerWeight && PRICES[mixerWeight]) {
+        currentProduct.weight = mixerWeight + 'g';
+        currentProduct.priceBase = PRICES[mixerWeight];
+    }
+}
+
+function setMixerStep(n, opts = {}) {
+    const page = document.getElementById('product-page');
+    if (!page) return;
+    mixerStep = Math.min(4, Math.max(1, n));
+    page.dataset.step = String(mixerStep);
+    if (mixerStep === 4 && !PRICES[mixerWeight]) {
+        const w = sortedWeights();
+        mixerWeight = w.includes(100) ? 100 : (w[Math.floor(w.length / 2)] || 0);
+    }
+    if (opts.scroll !== false && page.classList.contains('active')) {
+        const top = page.getBoundingClientRect().top + window.scrollY;
+        if (window.scrollY > top) window.scrollTo({ top, behavior: reduceMotion() ? 'auto' : 'smooth' });
+    }
+    updateMixerUI();
+    if (opts.focus) page.querySelector(`.selection-group[data-step="${mixerStep}"] .step-question`)?.focus?.();
+}
+
+function mixerAutoAdvance(fromStep) {
+    if (fromStep !== mixerStep || fromStep > 3) return;
+    clearTimeout(mixerAutoAdvance.timer);
+    mixerAutoAdvance.timer = setTimeout(() => {
+        if (mixerStep === fromStep) setMixerStep(fromStep + 1);
+    }, 380);
+}
+
+function mixerNext() {
+    if (mixerStep < 4) {
+        if (!mixerStepDone(mixerStep)) { showToast(t('mixer_pick_first'), '👆'); return; }
+        setMixerStep(mixerStep + 1);
+        return;
+    }
+    if (!mixerComplete()) { setMixerStep(firstOpenMixerStep()); return; }
+    mixerSyncProduct();
+    confirmOrder();
+}
+function mixerBack() {
+    if (mixerStep === 1) { showPage('home-page'); return; }
+    setMixerStep(mixerStep - 1);
+}
+
+function renderMixerSizes() {
+    const box = document.getElementById('mixer-sizes');
+    if (!box) return;
+    box.innerHTML = sortedWeights().map(w =>
+        `<button type="button" class="qty-btn${w === mixerWeight ? ' selected' : ''}" data-weight="${w}" aria-pressed="${w === mixerWeight}">`
+        + `${w} g<span class="qty-price">${fmt(PRICES[w])}</span></button>`
+    ).join('');
+}
+
+function updateMixerUI() {
+    const page = document.getElementById('product-page');
+    if (!page) return;
+    mixerSyncProduct();
+    const codes = currentProduct.ingredients;
+    const name = document.getElementById('mix-name')?.value.trim() || '';
+
+    const progressText = document.getElementById('mixer-progress-text');
+    if (progressText) progressText.textContent = t('mixer_step_of').replace('{n}', mixerStep);
+    const fill = document.getElementById('mixer-progress-fill');
+    if (fill) fill.style.width = (mixerStep / 4 * 100) + '%';
+
+    page.querySelectorAll('.ingredient-btn').forEach(btn => btn.setAttribute('aria-checked', String(btn.classList.contains('selected'))));
+
+    // doporučení podle základu
+    const base = ingByCode(codes[0]);
+    const pairs = new Set(base ? base.pairs : []);
+    page.querySelectorAll('.btn-grid[data-group="flavors"] .ingredient-btn, .btn-grid[data-group="extras"] .ingredient-btn')
+        .forEach(btn => {
+            const paired = pairs.has(btn.dataset.name) && !btn.classList.contains('is-out');
+            btn.classList.toggle('is-paired', paired);
+            let tag = btn.querySelector('.ing-tag');
+            if (paired && !tag) {
+                tag = document.createElement('span');
+                tag.className = 'ing-tag';
+                tag.textContent = t('pairs_tag');
+                btn.querySelector('.ing-name')?.appendChild(tag);
+            } else if (!paired && tag) {
+                tag.remove();
+            }
+        });
+
+    const pouch = pouchHtml({ name, codes, size: 'pouch--mixer', placeholders: true, weight: mixerStep === 4 && mixerWeight ? mixerWeight + ' g' : '' });
+    const aside = document.getElementById('mixer-pouch');
+    if (aside) aside.innerHTML = pouch;
+    const final = document.getElementById('mixer-pouch-final');
+    if (final && mixerStep === 4) final.innerHTML = pouch.replace('pouch--mixer', 'pouch--final');
+
+    renderMixerSizes();
+
+    const summary = document.getElementById('mixer-bar-summary');
+    const next = document.getElementById('mixer-next');
+    if (mixerStep < 4) {
+        const picked = codes.filter(c => c !== 'Empty');
+        if (summary) summary.innerHTML = picked.length
+            ? `<span class="bar-dots">${picked.map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('')}</span>`
+              + `<span class="bar-text">${escHtml(picked.map(tIng).join(' + '))}</span>`
+            : `<span class="bar-text is-muted">${escHtml(t('bar_empty'))}</span>`;
+        if (next) {
+            next.textContent = t('mixer_next');
+            const ready = mixerStepDone(mixerStep);
+            next.classList.toggle('is-waiting', !ready);
+            next.setAttribute('aria-disabled', String(!ready));
+        }
+    } else {
+        if (summary) summary.innerHTML = mixerWeight
+            ? `<span class="bar-price">${fmt(PRICES[mixerWeight] || 0)}</span><span class="bar-text">${mixerWeight} g</span>` : '';
+        if (next) {
+            next.textContent = t('mixer_add');
+            const ready = mixerComplete() && !!PRICES[mixerWeight];
+            next.classList.toggle('is-waiting', !ready);
+            next.setAttribute('aria-disabled', String(!ready));
+        }
+    }
+
+    const note = document.getElementById('mixer-price');
+    const tier = minPriceTier();
+    if (note) note.textContent = mixerStep < 4 && tier
+        ? t('mixer_price').replace('{price}', fmt(tier.price)).replace('{weight}', tier.weight) : '';
+}
+
+/* ─── Start ─────────────────────────────────── */
+function refreshRedesign() {
+    renderHero(heroBlendId, false);
+    renderHeroNote();
+    renderHow();
+    updateMixerUI();
+}
+
+function initRedesign() {
+    renderHero(null, false);
+    renderHeroNote();
+    renderHow();
+    renderPriceOptions();
+    document.getElementById('hero-shuffle')?.addEventListener('click', shuffleHero);
+    document.getElementById('hero-open')?.addEventListener('click', () => openBlend(heroBlendId));
+    document.getElementById('mixer-next')?.addEventListener('click', mixerNext);
+    document.getElementById('mixer-back')?.addEventListener('click', mixerBack);
+    document.getElementById('mixer-sizes')?.addEventListener('click', e => {
+        const btn = e.target.closest('[data-weight]');
+        if (!btn) return;
+        mixerWeight = Number(btn.dataset.weight);
+        updateMixerUI();
+    });
+    document.getElementById('name-suggest')?.addEventListener('click', () => {
+        const input = document.getElementById('mix-name');
+        const ideas = mixNameIdeas().filter(n => n !== input.value);
+        input.value = ideas[Math.floor(Math.random() * ideas.length)];
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    document.getElementById('mix-name')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+    });
+    document.getElementById('mixer-save')?.addEventListener('click', () => { mixerSyncProduct(); saveBlend(); });
+    document.getElementById('ingredients-page')?.addEventListener('click', e => {
+        const btn = e.target.closest('[data-mix]');
+        if (btn) mixWith(btn.dataset.mix);
+    });
+    document.getElementById('mixer-share')?.addEventListener('click', () => { mixerSyncProduct(); shareBlend(); });
+    const copy = document.getElementById('footer-copy');
+    if (copy) copy.textContent = `© ${new Date().getFullYear()} Tease you`;
+    document.body.dataset.page = document.querySelector('.page.active')?.id || 'home-page';
+    setMixerStep(firstOpenMixerStep(), { scroll: false });
+}
+
+/* ─── Mýdla a balzámy ───────────────────────── */
+/* Ze stejných surovin jako čaj. Zatím se neprodávají: web je ukazuje
+   a u každého se dá nechat e-mail, až bude k mání. */
+Object.assign(TRANSLATIONS.cs, {
+    nav_craft:          'Mýdla a balzámy',
+    nav_craft_short:    'Mýdla',
+    craft_home_title:   'Ze stejných bylinek i mýdla',
+    craft_home_lede:    'Levanduli, heřmánek nebo zelený čaj nedáváme jen do čaje. Ručně z nich vyrábíme mýdla a balzámy na rty, v malých várkách.',
+    craft_home_btn:     'Prohlédnout mýdla a balzámy',
+    craft_title:        'Mýdla a balzámy',
+    craft_lede:         'Ze stejných bylinek, čajů a koření, ze kterých mícháme čaj. Vyrábíme je ručně v malých várkách.',
+    craft_soon_note:    'Zatím je připravujeme. Nech nám e-mail u toho, co tě láká, a dáme ti vědět, až bude.',
+    craft_soaps:        'Mýdla',
+    craft_balms:        'Balzámy na rty',
+    craft_empty:        'Teď tu nic není. Brzy přidáme.',
+    craft_kind_soap:    'Mýdlo',
+    craft_kind_balm:    'Balzám na rty',
+    craft_soon:         'Připravujeme',
+    craft_like_tea:     'Jako v čaji:',
+    craft_notify:       'Dej mi vědět, až bude',
+    craft_send:         'Poslat',
+    craft_form_note:    'Napíšeme ti jednou, až bude k mání. Nic jiného.',
+    craft_done:         'Hotovo, dáme ti vědět.',
+    craft_err_email:    'Zadej platný e-mail.',
+    craft_err_many:     'Z tohohle e-mailu už je zájemců dost. Zkus to zítra.',
+    craft_err_other:    'Teď se to nepovedlo uložit. Napiš nám na hello@teaseyou.cz.',
+    craft_mail_subject: 'Chci vědět, až bude',
+    craft_also_in:      'Najdeš i v:',
+    craft_same_title:   'Ze stejných surovin',
+    craft_open:         'Mýdla a balzámy',
+});
+Object.assign(TRANSLATIONS.en, {
+    nav_craft:          'Soaps & balms',
+    nav_craft_short:    'Soaps',
+    craft_home_title:   'The same herbs, now in soap',
+    craft_home_lede:    'Lavender, chamomile and green tea do not only go into tea. We make soaps and lip balms from them by hand, in small batches.',
+    craft_home_btn:     'See soaps and balms',
+    craft_title:        'Soaps & balms',
+    craft_lede:         'Made from the same herbs, teas and spices we blend our tea from. Made by hand in small batches.',
+    craft_soon_note:    'They are not ready yet. Leave your e-mail by the one you like and we will let you know.',
+    craft_soaps:        'Soaps',
+    craft_balms:        'Lip balms',
+    craft_empty:        'Nothing here right now. More soon.',
+    craft_kind_soap:    'Soap',
+    craft_kind_balm:    'Lip balm',
+    craft_soon:         'Coming soon',
+    craft_like_tea:     'Same as in tea:',
+    craft_notify:       'Let me know when it is ready',
+    craft_send:         'Send',
+    craft_form_note:    'We will write once, when it is available. Nothing else.',
+    craft_done:         'Done, we will let you know.',
+    craft_err_email:    'Enter a valid e-mail.',
+    craft_err_many:     'Too many sign-ups from this e-mail. Try again tomorrow.',
+    craft_err_other:    'We could not save it right now. Write to hello@teaseyou.cz.',
+    craft_mail_subject: 'Let me know when it is ready',
+    craft_also_in:      'Also in:',
+    craft_same_title:   'Made from the same',
+    craft_open:         'Soaps & balms',
+});
+
+const CRAFT_NOTIFIED_KEY = 'teaseyou_notified';
+const CRAFT_EMAIL_KEY = 'teaseyou_notify_email';
+
+function craftName(p) { return LANG === 'en' ? (p.name_en || p.name_cs) : p.name_cs; }
+function craftDesc(p) { return LANG === 'en' ? (p.desc_en || p.desc_cs || '') : (p.desc_cs || ''); }
+function craftUsing(code) { return code ? catalogCraft.filter(p => (p.ingredients || []).includes(code)) : []; }
+function craftNotified() { const v = readStore(CRAFT_NOTIFIED_KEY, []); return Array.isArray(v) ? v : []; }
+
+/* Mýdlo: kostka v barvě hlavní suroviny s kraftovou páskou a etiketou.
+   Balzám: plechovka shora s kraftovou nálepkou. */
+const SOAP_SVG = `<svg viewBox="0 0 200 150" preserveAspectRatio="none" focusable="false" aria-hidden="true">
+    <rect x="2" y="2" width="196" height="146" rx="34" class="soap-body"/>
+    <rect x="2" y="2" width="196" height="146" rx="34" fill="url(#soap-speck)"/>
+    <rect x="2" y="2" width="196" height="146" rx="34" fill="url(#soap-shade)"/>
+    <g clip-path="url(#soap-clip)">
+        <rect x="0" y="46" width="200" height="58" fill="url(#kraft-fill)"/>
+        <rect x="0" y="46" width="200" height="58" filter="url(#kraft-grain)" opacity=".35"/>
+        <rect x="0" y="46" width="200" height="1.5" fill="#000" fill-opacity=".14"/>
+        <rect x="0" y="102.5" width="200" height="1.5" fill="#000" fill-opacity=".14"/>
+    </g>
+</svg>`;
+const TIN_SVG = `<svg viewBox="0 0 140 140" focusable="false" aria-hidden="true">
+    <circle cx="70" cy="70" r="68" fill="url(#tin-metal)"/>
+    <circle cx="70" cy="70" r="61" fill="none" stroke="#000" stroke-opacity=".16" stroke-width="2"/>
+    <circle cx="70" cy="70" r="54" fill="url(#kraft-fill)"/>
+    <rect width="140" height="140" filter="url(#kraft-grain)" opacity=".3" clip-path="url(#tin-clip)"/>
+    <path d="M28 46A50 50 0 0 1 64 21" stroke="#fff" stroke-opacity=".55" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>`;
+
+function craftVisualHtml(p, size) {
+    const photo = safePhoto(p.photo_url);
+    if (photo) return `<img class="craft-photo" src="${escHtml(photo)}" alt="" loading="lazy" decoding="async">`;
+    const dots = (p.ingredients || []).map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('');
+    const cls = p.kind === 'balm' ? 'craft-tin' : 'craft-soap';
+    return `<div class="${cls} ${size || ''}" style="--c:${escHtml(p.color)}">${p.kind === 'balm' ? TIN_SVG : SOAP_SVG}`
+        + `<div class="craft-label"><span class="craft-brand">Tease you</span><span class="craft-label-name">${escHtml(craftName(p))}</span>`
+        + `<span class="craft-dots">${dots}</span></div></div>`;
+}
+
+function craftIngsHtml(codes) {
+    return (codes || []).filter(c => ING_KEYS[c]).map(c =>
+        `<li><span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>${escHtml(tIng(c))}</li>`).join('');
+}
+
+function craftCardHtml(p, done) {
+    const id = escHtml(p.id);
+    return `<article class="craft-card" id="craft-${id}" data-id="${id}">
+        <div class="craft-visual" style="--tint:${escHtml(p.color)}">
+            <span class="craft-badge">${escHtml(t('craft_soon'))}</span>
+            ${craftVisualHtml(p)}
+        </div>
+        <h3 class="craft-name">${escHtml(craftName(p))}</h3>
+        <p class="craft-desc">${escHtml(craftDesc(p))}</p>
+        ${(p.ingredients || []).length ? `<div class="craft-ings"><span>${escHtml(t('craft_like_tea'))}</span><ul>${craftIngsHtml(p.ingredients)}</ul></div>` : ''}
+        <div class="craft-notify">
+            <button type="button" class="btn btn-quiet craft-notify-btn" aria-expanded="false" aria-controls="craft-form-${id}"${done ? ' hidden' : ''}>${escHtml(t('craft_notify'))}</button>
+            <form class="craft-form" id="craft-form-${id}" novalidate hidden>
+                <label class="visually-hidden" for="craft-email-${id}">E-mail</label>
+                <div class="craft-form-row">
+                    <input type="email" id="craft-email-${id}" class="field" placeholder="tvuj@email.cz" autocomplete="email" inputmode="email" required>
+                    <button type="submit" class="btn btn-primary">${escHtml(t('craft_send'))}</button>
+                </div>
+                <p class="field-error" role="alert"></p>
+                <p class="craft-form-note">${escHtml(t('craft_form_note'))}</p>
+            </form>
+            <p class="craft-done"${done ? '' : ' hidden'}>${escHtml(t('craft_done'))}</p>
+        </div>
+    </article>`;
+}
+
+function renderCraft() {
+    const done = new Set(craftNotified());
+    const soaps = catalogCraft.filter(p => p.kind === 'soap');
+    const balms = catalogCraft.filter(p => p.kind === 'balm');
+    [['soap', soaps], ['balm', balms]].forEach(([kind, list]) => {
+        const grid = document.getElementById('craft-grid-' + kind);
+        if (!grid) return;
+        grid.innerHTML = list.map(p => craftCardHtml(p, done.has(p.id))).join('');
+        grid.closest('.craft-section').hidden = !list.length;
+    });
+    const empty = document.getElementById('craft-empty');
+    if (empty) empty.hidden = catalogCraft.length > 0;
+
+    // Úvodní stránka: dvě mýdla a jeden balzám, jako na fotce shora.
+    const home = document.getElementById('craft-home');
+    const lay = document.getElementById('craft-home-items');
+    if (home) home.hidden = !catalogCraft.length;
+    if (lay) {
+        const pick = [...soaps.slice(0, 2), ...balms.slice(0, 1)];
+        while (pick.length < 3 && catalogCraft[pick.length]) pick.push(catalogCraft[pick.length]);
+        lay.innerHTML = pick.map((p, i) => `<div class="flatlay-item flatlay-${i + 1}">${craftVisualHtml(p)}</div>`).join('');
+    }
+    // Ingredience mají odkaz „Najdeš i v“, takže se překreslí taky.
+    if (document.getElementById('ingredients-page')?.classList.contains('active')) renderIngredientEncyclopedia();
+}
+
+function renderDetailCraft(ingredients) {
+    const box = document.getElementById('detail-craft');
+    const list = document.getElementById('detail-craft-list');
+    if (!box || !list) return;
+    const codes = new Set((ingredients || []).filter(c => c && c !== 'Empty'));
+    const matches = catalogCraft.filter(p => (p.ingredients || []).some(c => codes.has(c))).slice(0, 2);
+    box.hidden = !matches.length;
+    list.innerHTML = matches.map(p => {
+        const shared = p.ingredients.filter(c => codes.has(c));
+        return `<button type="button" class="detail-craft-item" data-craft="${escHtml(p.id)}">
+            <span class="detail-craft-visual" aria-hidden="true">${craftVisualHtml(p, 'craft--xs')}</span>
+            <span class="detail-craft-text"><strong>${escHtml(craftName(p))}</strong>
+            <span>${escHtml(t(p.kind === 'balm' ? 'craft_kind_balm' : 'craft_kind_soap'))}, ${escHtml(shared.map(c => tIng(c).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en')).join(', '))}</span></span>
+        </button>`;
+    }).join('');
+}
+
+function openCraft(id) {
+    showPage('craft-page');
+    const card = id && document.getElementById('craft-' + id);
+    if (!card) return;
+    setTimeout(() => {
+        card.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
+        card.classList.add('is-flash');
+        setTimeout(() => card.classList.remove('is-flash'), 1400);
+    }, 80);
+}
+
+async function joinCraftWaitlist(form) {
+    const card = form.closest('.craft-card');
+    const id = card?.dataset.id;
+    const input = form.querySelector('input[type="email"]');
+    const err = form.querySelector('.field-error');
+    const btn = form.querySelector('button[type="submit"]');
+    const email = (input.value || '').trim();
+    const showErr = msg => { err.textContent = msg; input.classList.toggle('input-error', !!msg); input.setAttribute('aria-invalid', msg ? 'true' : 'false'); };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr(t('craft_err_email')); input.focus(); return; }
+    showErr('');
+    const finish = () => {
+        try { localStorage.setItem(CRAFT_EMAIL_KEY, JSON.stringify(email)); } catch (_) {}
+        const list = craftNotified();
+        if (!list.includes(id)) list.push(id);
+        try { localStorage.setItem(CRAFT_NOTIFIED_KEY, JSON.stringify(list)); } catch (_) {}
+        form.hidden = true;
+        card.querySelector('.craft-done').hidden = false;
+    };
+    // Bez databáze aspoň předvyplněný e-mail, ať zájem nepropadne.
+    const viaMail = () => {
+        const p = catalogCraft.find(x => x.id === id);
+        location.href = `mailto:hello@teaseyou.cz?subject=${encodeURIComponent(t('craft_mail_subject') + ': ' + (p ? craftName(p) : id))}&body=${encodeURIComponent(email)}`;
+    };
+    if (!window.TeaDB || !TeaDB.configured) { viaMail(); finish(); return; }
+    btn.disabled = true;
+    try {
+        await TeaDB.rpc('join_craft_waitlist', { p_product: id, p_email: email, p_lang: LANG === 'en' ? 'en' : 'cs' });
+        finish();
+    } catch (e) {
+        const code = e && e.message;
+        console.warn('[teaseyou] Zájem o produkt se nepodařilo uložit:', e);
+        if (code === 'invalid_email') showErr(t('craft_err_email'));
+        else if (code === 'too_many') showErr(t('craft_err_many'));
+        else showErr(t('craft_err_other'));
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+function initCraft() {
+    renderCraft();
+    document.addEventListener('click', e => {
+        const go = e.target.closest('[data-craft]');
+        if (go) { e.preventDefault(); openCraft(go.dataset.craft); return; }
+        const open = e.target.closest('.craft-notify-btn');
+        if (open) {
+            const form = open.parentElement.querySelector('.craft-form');
+            open.hidden = true;
+            open.setAttribute('aria-expanded', 'true');
+            form.hidden = false;
+            const input = form.querySelector('input');
+            const saved = readStore(CRAFT_EMAIL_KEY, '');
+            if (typeof saved === 'string' && !input.value) input.value = saved;
+            input.focus();
+        }
+    });
+    document.addEventListener('submit', e => {
+        const form = e.target.closest('.craft-form');
+        if (!form) return;
+        e.preventDefault();
+        joinCraftWaitlist(form);
+    });
 }

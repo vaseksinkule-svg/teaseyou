@@ -28,7 +28,7 @@
     const state = {
         tab: 'orders',
         ingredients: [], blends: [], prices: [], shipping: [], settings: null,
-        promos: [], orders: [],
+        promos: [], orders: [], craft: [], waitlist: [],
         orderFilter: 'open',
         catalogLoaded: false,
     };
@@ -47,6 +47,9 @@
         if (/jwt|token/i.test(m) && err.status === 401) return 'Přihlášení vypršelo. Přihlas se prosím znovu.';
         if (err.code === '42501' || err.status === 403 || /row-level security/i.test(m)) {
             return 'Na tohle tvůj účet nemá oprávnění. Je v tabulce admins?';
+        }
+        if (err.code === '42P01' || err.code === 'PGRST205' || /could not find the table/i.test(m)) {
+            return 'V databázi chybí tabulka. Spusť znovu celý supabase/setup.sql v SQL Editoru (nic se tím nepřepíše).';
         }
         if (err.code === '23505') return 'Tohle už existuje. Zvol jiný název nebo kód.';
         if (err.code === '23514') return 'Databáze hodnotu nepřijala. Zkontroluj formát (barva, délka textu, rozsah čísla).';
@@ -169,7 +172,7 @@
         $('#user-email').textContent = (user && user.email) || '';
         show('app');
         const fromHash = (location.hash || '').replace('#', '');
-        switchTab(['orders', 'ingredients', 'blends', 'pricing', 'promos'].includes(fromHash) ? fromHash : 'orders');
+        switchTab(['orders', 'ingredients', 'blends', 'pricing', 'promos', 'craft'].includes(fromHash) ? fromHash : 'orders');
     }
 
     db && db.auth.onChange(session => {
@@ -250,6 +253,8 @@
             openBlend(null);
         } else if (action === 'new-promo') {
             openPromo(null);
+        } else if (action === 'new-craft') {
+            openCraft(null);
         }
     });
 
@@ -293,6 +298,13 @@
             } else if (name === 'promos') {
                 state.promos = await db.select('promo_codes', { order: 'created_at.desc' });
                 renderPromos();
+            } else if (name === 'craft') {
+                const [craft, waitlist] = await Promise.all([
+                    db.select('craft_products', { order: 'sort.asc,name_cs.asc' }),
+                    db.select('craft_waitlist', { order: 'created_at.desc', limit: 2000 }),
+                ]);
+                Object.assign(state, { craft, waitlist });
+                renderCraft();
             }
         } catch (err) {
             if (target) target.innerHTML = `<p class="empty">${esc(friendly(err))}</p>`;
@@ -936,6 +948,194 @@
                     closeSheet(true);
                     renderBlends();
                 } catch (err) { formError('#blend-error', friendly(err)); }
+            });
+            return () => photo.discard();
+        });
+    }
+
+    /* ═══ MÝDLA A BALZÁMY ══════════════════════════════════════════ */
+    const CRAFT_KIND = { soap: 'Mýdlo', balm: 'Balzám na rty' };
+
+    function craftSwatch(p) {
+        const photo = safePhoto(p.photo_url);
+        if (photo) return `<img class="thumb" src="${esc(photo)}" alt="" loading="lazy">`;
+        return `<span class="swatch${p.kind === 'balm' ? ' swatch-round' : ''}" style="background:${esc(p.color)}" aria-hidden="true"></span>`;
+    }
+
+    function renderCraft() {
+        const el = $('#craft-list');
+        const counts = {};
+        state.waitlist.forEach(w => { counts[w.product_id] = (counts[w.product_id] || 0) + 1; });
+        const badge = $('#count-waitlist');
+        badge.textContent = state.waitlist.length;
+        badge.hidden = !state.waitlist.length;
+        el.innerHTML = state.craft.length ? state.craft.map(p => `
+            <button type="button" class="row${p.active ? '' : ' is-muted'}" data-craft="${esc(p.id)}">
+                ${craftSwatch(p)}
+                <span class="row-main">
+                    <span class="row-title">${esc(p.name_cs)}</span>
+                    <span class="row-sub">${esc(CRAFT_KIND[p.kind] || p.kind)}${p.ingredients.length ? ', ' + esc(p.ingredients.map(ingName).join(', ')) : ''}</span>
+                </span>
+                <span class="row-side">
+                    ${counts[p.id] ? `<span class="pill pill-new">${counts[p.id]} ${counts[p.id] === 1 ? 'zájemce' : counts[p.id] < 5 ? 'zájemci' : 'zájemců'}</span>` : ''}
+                    ${!p.active ? '<span class="pill">Skrytý</span>' : ''}
+                </span>
+            </button>`).join('') : '<p class="empty">Zatím žádné produkty. Dokud tu nic není, web ukazuje vestavěné ukázky.</p>';
+        $$('#craft-list [data-craft]').forEach(row => row.addEventListener('click', () => {
+            openCraft(state.craft.find(p => p.id === row.dataset.craft));
+        }));
+        renderWaitlist();
+    }
+
+    function renderWaitlist() {
+        const el = $('#waitlist-list');
+        $('#waitlist-count').textContent = state.waitlist.length ? `(${state.waitlist.length})` : '';
+        $('#waitlist-export').hidden = !state.waitlist.length;
+        if (!state.waitlist.length) {
+            el.innerHTML = '<p class="empty">Zatím nikdo. Jakmile si někdo na webu nechá poslat zprávu, objeví se tady.</p>';
+            return;
+        }
+        const name = id => (state.craft.find(p => p.id === id) || {}).name_cs || id;
+        el.innerHTML = state.waitlist.map(w => `
+            <div class="table-row waitlist-row" data-id="${esc(w.id)}">
+                <span class="row-main">
+                    <span class="row-title"><a href="mailto:${esc(w.email)}">${esc(w.email)}</a></span>
+                    <span class="row-sub">${esc(name(w.product_id))}, ${esc(formatDate(w.created_at, false))}${w.lang === 'en' ? ', anglicky' : ''}</span>
+                </span>
+                <button type="button" class="icon-btn" data-field="delete" aria-label="Smazat ${esc(w.email)}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg>
+                </button>
+            </div>`).join('');
+        $$('#waitlist-list .waitlist-row').forEach(row => {
+            $('[data-field=delete]', row).addEventListener('click', async () => {
+                const w = state.waitlist.find(x => String(x.id) === row.dataset.id);
+                if (!w || !(await confirmDialog(`Smazat ${w.email} ze seznamu zájemců?`))) return;
+                try {
+                    const rows = await db.remove('craft_waitlist', { id: 'eq.' + w.id });
+                    if (!rows.length) throw new db.DbError('no_rows', 0);
+                    state.waitlist = state.waitlist.filter(x => x !== w);
+                    renderCraft();
+                    toast('Smazáno.');
+                } catch (err) { fail(err); }
+            });
+        });
+    }
+
+    $('#waitlist-export').addEventListener('click', () => {
+        const name = id => (state.craft.find(p => p.id === id) || {}).name_cs || id;
+        const cell = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
+        const lines = [['Produkt', 'E-mail', 'Datum', 'Jazyk'].map(cell).join(';')]
+            .concat(state.waitlist.map(w => [name(w.product_id), w.email, formatDate(w.created_at, false), w.lang].map(cell).join(';')));
+        const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `zajemci-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    });
+
+    function openCraft(product) {
+        const isNew = !product;
+        const p = product || {
+            kind: 'soap', name_cs: '', name_en: '', desc_cs: '', desc_en: '', ingredients: [],
+            color: '#d9c4a0', photo_url: null, active: true,
+            sort: Math.max(0, ...state.craft.map(x => x.sort || 0)) + 10,
+        };
+        const groups = ['base', 'flavor', 'extra'].map(cat => `
+            <div class="pick-group"><span class="pick-label">${CATEGORY_GROUP[cat]}</span><div class="pick-chips">
+                ${state.ingredients.filter(i => i.category === cat).map(i => `
+                    <label class="pick-chip"><input type="checkbox" name="ing" value="${esc(i.code)}" ${p.ingredients.includes(i.code) ? 'checked' : ''}>
+                    <span><i style="background:${esc(i.color)}"></i>${esc(i.name_cs)}</span></label>`).join('')}
+            </div></div>`).join('');
+        const html = `
+            <form id="craft-form" novalidate>
+                <p class="form-error" id="craft-error" role="alert" hidden></p>
+                ${photoFieldHtml}
+                <p class="help">Bez fotky web nakreslí mýdlo nebo plechovku v barvě níž.</p>
+                <label class="field"><span>Druh</span>
+                    <select name="kind">${Object.entries(CRAFT_KIND).map(([k, v]) => `<option value="${k}"${p.kind === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
+                </label>
+                <label class="field"><span>Název česky</span><input type="text" name="name_cs" maxlength="60" required value="${esc(p.name_cs)}"></label>
+                <label class="field"><span>Název anglicky</span><input type="text" name="name_en" maxlength="60" value="${esc(p.name_en)}"><small>Prázdné = česky i v angličtině.</small></label>
+                <fieldset class="field picks"><span>Suroviny z čajů (nejvýš 4)</span>${groups}
+                    <small>U těchhle ingrediencí web ukáže odkaz „Najdeš i v“ a u čajů s nimi „Ze stejných surovin“.</small></fieldset>
+                <label class="field"><span>Popis česky</span><textarea name="desc_cs" rows="3" maxlength="500">${esc(p.desc_cs)}</textarea><small>Jak voní a z čeho je. Žádné léčivé účinky, ty u kosmetiky uvádět nejde.</small></label>
+                <label class="field"><span>Popis anglicky</span><textarea name="desc_en" rows="3" maxlength="500">${esc(p.desc_en)}</textarea></label>
+                <label class="field field-inline"><span>Barva</span><input type="color" name="color" value="${esc(p.color)}"></label>
+                <label class="switch-row"><input type="checkbox" class="switch" name="active" ${p.active ? 'checked' : ''}><span>Zobrazovat na webu</span></label>
+                <label class="field field-inline"><span>Pořadí</span><input type="number" name="sort" step="1" value="${esc(p.sort)}"></label>
+                <div class="sheet-actions">
+                    <button type="submit" class="btn btn-primary">${isNew ? 'Přidat produkt' : 'Uložit změny'}</button>
+                    <button type="button" class="btn btn-secondary" data-action="close-sheet">Zrušit</button>
+                    <span class="spacer"></span>
+                    ${isNew ? '' : '<button type="button" class="btn-link" id="craft-delete">Smazat</button>'}
+                </div>
+            </form>`;
+
+        openSheet(isNew ? 'Nový produkt' : p.name_cs, html, body => {
+            const form = $('#craft-form', body);
+            const photo = photoControl(body, p.photo_url, 'craft', () => form.name_cs.value || p.id, '🧼');
+            const boxes = () => $$('input[name=ing]', form);
+            const limit = () => {
+                const on = boxes().filter(b => b.checked).length;
+                boxes().forEach(b => { b.disabled = !b.checked && on >= 4; });
+            };
+            limit();
+            form.addEventListener('change', e => { if (e.target.name === 'ing') limit(); });
+
+            form.addEventListener('submit', async e => {
+                e.preventDefault();
+                formError('#craft-error', '');
+                const row = {
+                    kind: form.kind.value === 'balm' ? 'balm' : 'soap',
+                    name_cs: form.name_cs.value.trim(),
+                    name_en: form.name_en.value.trim(),
+                    desc_cs: form.desc_cs.value.trim(),
+                    desc_en: form.desc_en.value.trim(),
+                    ingredients: boxes().filter(b => b.checked).map(b => b.value).slice(0, 4),
+                    color: /^#[0-9a-f]{6}$/i.test(form.color.value) ? form.color.value : '#d9c4a0',
+                    active: form.active.checked,
+                    photo_url: photo.url,
+                    sort: parseInt(form.sort.value, 10) || 0,
+                };
+                if (!row.name_cs) { formError('#craft-error', 'Vyplň název.'); return; }
+                if (isNew) row.id = uniqueId(slugify(row.name_cs) || 'produkt', state.craft.map(x => x.id));
+                const btn = form.querySelector('[type=submit]');
+                btn.disabled = true;
+                try {
+                    if (isNew) {
+                        const [saved] = await db.insert('craft_products', row);
+                        state.craft.push(saved);
+                    } else {
+                        Object.assign(product, await updateOne('craft_products', { id: 'eq.' + p.id }, row));
+                    }
+                    state.craft.sort((x, y) => (x.sort - y.sort) || x.name_cs.localeCompare(y.name_cs, 'cs'));
+                    photo.commit();
+                    toast(isNew ? `Přidáno: ${row.name_cs}` : `Uloženo: ${row.name_cs}`);
+                    closeSheet(true);
+                    renderCraft();
+                } catch (err) {
+                    formError('#craft-error', friendly(err));
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+            const del = $('#craft-delete', body);
+            if (del) del.addEventListener('click', async () => {
+                const n = state.waitlist.filter(w => w.product_id === p.id).length;
+                const extra = n ? ` Smažou se i ${n} ${n === 1 ? 'zájemce' : n < 5 ? 'zájemci' : 'zájemců'}.` : '';
+                if (!(await confirmDialog(`Smazat ${p.name_cs}? Z webu zmizí.${extra} Když ho chceš jen schovat, vypni „Zobrazovat na webu“.`))) return;
+                try {
+                    const rows = await db.remove('craft_products', { id: 'eq.' + p.id });
+                    if (!rows.length) throw new db.DbError('no_rows', 0);
+                    state.craft = state.craft.filter(x => x.id !== p.id);
+                    state.waitlist = state.waitlist.filter(w => w.product_id !== p.id);
+                    removePhotos([p.photo_url]);
+                    toast(`Smazáno: ${p.name_cs}`);
+                    closeSheet(true);
+                    renderCraft();
+                } catch (err) { formError('#craft-error', friendly(err)); }
             });
             return () => photo.discard();
         });

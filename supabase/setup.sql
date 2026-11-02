@@ -487,6 +487,94 @@ create policy "photos_admin_delete" on storage.objects for delete to authenticat
     using (bucket_id = 'photos' and public.is_admin());
 
 
+-- ─── MÝDLA A BALZÁMY ────────────────────────────────────────────────
+-- Ručně dělaná mýdla a balzámy na rty ze stejných surovin jako čaj.
+-- Zatím se neprodávají: web je ukazuje a sbírá e-maily lidí, kteří
+-- chtějí vědět, až budou k mání. `ingredients` jsou kódy ingrediencí
+-- z katalogu (Lavender, Green Tea…), web podle nich ukáže propojení
+-- s čajem.
+
+create table if not exists public.craft_products (
+    id          text primary key check (id ~ '^[a-z0-9_]{2,40}$'),
+    kind        text not null check (kind in ('soap', 'balm')),
+    name_cs     text not null check (length(name_cs) between 1 and 60),
+    name_en     text not null default '' check (length(name_en) <= 60),
+    desc_cs     text not null default '' check (length(desc_cs) <= 500),
+    desc_en     text not null default '' check (length(desc_en) <= 500),
+    ingredients text[] not null default '{}' check (cardinality(ingredients) <= 4),
+    color       text not null default '#d9c4a0' check (color ~* '^#[0-9a-f]{6}$'),
+    photo_url   text check (photo_url ~ '^https://'),
+    active      boolean not null default true,
+    sort        integer not null default 0,
+    updated_at  timestamptz not null default now()
+);
+
+-- Kdo chce dát vědět, až bude produkt k mání. Stejný e-mail u stejného
+-- produktu je tu jen jednou.
+create table if not exists public.craft_waitlist (
+    id          bigint generated always as identity primary key,
+    product_id  text not null references public.craft_products (id) on delete cascade,
+    email       text not null check (length(email) <= 200 and email ~ '^[^\s@]+@[^\s@]+\.[^\s@]+$'),
+    lang        text not null default 'cs' check (lang in ('cs', 'en')),
+    created_at  timestamptz not null default now(),
+    unique (product_id, email)
+);
+create index if not exists craft_waitlist_created_idx on public.craft_waitlist (created_at desc);
+create index if not exists craft_waitlist_email_idx   on public.craft_waitlist (email, created_at);
+
+drop trigger if exists craft_products_updated_at on public.craft_products;
+create trigger craft_products_updated_at before update on public.craft_products
+    for each row execute function public.set_updated_at();
+
+alter table public.craft_products enable row level security;
+alter table public.craft_waitlist enable row level security;
+
+drop policy if exists "craft_products_read" on public.craft_products;
+create policy "craft_products_read" on public.craft_products for select
+    using (active or public.is_admin());
+drop policy if exists "craft_products_admin" on public.craft_products;
+create policy "craft_products_admin" on public.craft_products for all to authenticated
+    using (public.is_admin()) with check (public.is_admin());
+-- Seznam zájemců vidí jen admin. Web do něj zapisuje přes funkci níž.
+drop policy if exists "craft_waitlist_admin" on public.craft_waitlist;
+create policy "craft_waitlist_admin" on public.craft_waitlist for all to authenticated
+    using (public.is_admin()) with check (public.is_admin());
+
+grant select on public.craft_products to anon, authenticated;
+grant insert, update, delete on public.craft_products to authenticated;
+grant select, delete on public.craft_waitlist to authenticated;
+
+-- Zápis do seznamu zájemců. Zkontroluje e-mail a produkt a z jednoho
+-- e-mailu pustí nejvýš 10 zápisů za den.
+create or replace function public.join_craft_waitlist(p_product text, p_email text, p_lang text default 'cs')
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_email text := lower(btrim(coalesce(p_email, '')));
+begin
+    if length(v_email) > 200 or v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]+$' then
+        raise exception 'invalid_email' using errcode = 'P0001';
+    end if;
+    if not exists (select 1 from public.craft_products where id = p_product and active) then
+        raise exception 'unknown_product' using errcode = 'P0001';
+    end if;
+    if (select count(*) from public.craft_waitlist
+        where email = v_email and created_at > now() - interval '1 day') >= 10 then
+        raise exception 'too_many' using errcode = 'P0001';
+    end if;
+    insert into public.craft_waitlist (product_id, email, lang)
+    values (p_product, v_email, case when p_lang = 'en' then 'en' else 'cs' end)
+    on conflict (product_id, email) do nothing;
+    return true;
+end;
+$$;
+revoke all on function public.join_craft_waitlist(text, text, text) from public;
+grant execute on function public.join_craft_waitlist(text, text, text) to anon, authenticated;
+
+
 -- ─── VÝCHOZÍ DATA ───────────────────────────────────────────────────
 -- Přesně to, co je teď natvrdo ve webu. Vloží se jen jednou.
 
@@ -552,3 +640,34 @@ insert into public.promo_codes (code, rate)
 values
     ('FIRSTBLEND', 0.1)
 on conflict (code) do nothing;
+
+-- Ukázková mýdla a balzámy: vloží se jen do prázdné tabulky, takže
+-- co v administraci smažeš, se po dalším spuštění nevrátí.
+insert into public.craft_products (id, kind, name_cs, name_en, desc_cs, desc_en, ingredients, color, sort)
+select * from (values
+    ('levandulovy_vecer', 'soap', 'Levandulový večer', 'Lavender Evening',
+     'Jemné mýdlo s levandulí a heřmánkem. Voní jako večerní šálek.',
+     'A gentle soap with lavender and chamomile. Smells like an evening cup.',
+     array['Lavender', 'Chamomile']::text[], '#b8a0cc', 10),
+    ('zelene_rano', 'soap', 'Zelené ráno', 'Green Morning',
+     'Svěží mýdlo se zeleným čajem a mátou.',
+     'A fresh soap with green tea and mint.',
+     array['Green Tea', 'Mint']::text[], '#8da676', 20),
+    ('rooibos_pomeranc', 'soap', 'Rooibos a pomeranč', 'Rooibos & Orange',
+     'Hřejivé mýdlo s rooibosem a pomerančovou kůrou.',
+     'A warm soap with rooibos and orange peel.',
+     array['Rooibos', 'Orange']::text[], '#e8720c', 30),
+    ('ruze_bily_caj', 'soap', 'Růže a bílý čaj', 'Rose & White Tea',
+     'Květinové mýdlo s růží a bílým čajem.',
+     'A floral soap with rose and white tea.',
+     array['Rose', 'White Tea']::text[], '#e8607a', 40),
+    ('med_vanilka', 'balm', 'Med a vanilka', 'Honey & Vanilla',
+     'Balzám na rty ze včelího vosku s medem a vanilkou.',
+     'A beeswax lip balm with honey and vanilla.',
+     array['Honey', 'Vanilla']::text[], '#ffc107', 50),
+    ('mata', 'balm', 'Máta', 'Mint',
+     'Chladivý balzám na rty s mátou peprnou.',
+     'A cooling lip balm with spearmint.',
+     array['Spearmint']::text[], '#a8d8a8', 60)
+) as v(id, kind, name_cs, name_en, desc_cs, desc_en, ingredients, color, sort)
+where not exists (select 1 from public.craft_products);

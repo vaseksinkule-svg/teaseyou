@@ -6,6 +6,36 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (mýdla a balzámy)
+- **Mýdla a balzámy na rty** ze stejných surovin jako čaj: sekce na úvodní
+  stránce, vlastní stránka a odkazy z ingrediencí („Najdeš i v“) i z detailu
+  čaje („Ze stejných surovin“). Zatím se neprodávají, u každého jde nechat
+  e-mail a dostat zprávu, až bude k mání.
+- V administraci nová záložka Mýdla a balzámy: produkty s fotkou, barvou
+  a surovinami z čajů, seznam zájemců s exportem do CSV.
+- Databáze: tabulky `craft_products` a `craft_waitlist` a funkce
+  `join_craft_waitlist()`. Je potřeba znovu spustit `supabase/setup.sql`.
+
+### Změněno
+- **Nový vzhled celého webu, hlavně na telefonu.** Značka zůstává (logo,
+  barvy), písmo je nově jen Archivo: nadpisy široké a tučné jako potisk
+  na obalu. Místo sklenice je všude kraftový sáček s etiketou, na které je
+  jméno směsi a její složení.
+- Mixér se ptá na jednu věc na obrazovce: základ, příchuť, doplněk a nakonec
+  jméno a velikost. K vybranému základu ukáže, co se k němu hodí. Samostatná
+  stránka se souhrnem odpadla, do košíku se jde rovnou z posledního kroku.
+- Detail hotové směsi má rovnou vybraných 100 g a cenu na tlačítku.
+- Košík má tlačítka − a + místo políčka s číslem, pokladna formulář
+  s doplňováním adresy a vlastní kontrolou polí.
+- Kvíz jde po otázkách s možností vrátit se zpět, výsledek ukáže sáček.
+- Uložené směsi se otevřou v mixéru na posledním kroku. V encyklopedii
+  ingrediencí tlačítko „Namíchat s tímhle“ ingredienci rovnou vybere.
+- Z encyklopedie zmizely zdravotní přínosy (např. „detox“, „na spánek“).
+  U potravin je v EU smí uvádět jen schválená tvrzení.
+
+### Odstraněno
+- `legacy.css` a starý vzhled.
+
 ### Přidáno
 - **Databáze a administrace.** Ceny, ingredience, hotové směsi, fotky,
   doprava, slevové kódy a objednávky jsou v Supabase a mění se na `/admin/`

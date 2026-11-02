@@ -9,7 +9,7 @@
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#3a5f3c">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%233a5f3c'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23f5f1e9' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E">
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -82,6 +82,7 @@
         <button role="tab" class="tab" data-tab="blends" aria-selected="false">Směsi</button>
         <button role="tab" class="tab" data-tab="pricing" aria-selected="false">Ceny a doprava</button>
         <button role="tab" class="tab" data-tab="promos" aria-selected="false">Slevy</button>
+        <button role="tab" class="tab" data-tab="craft" aria-selected="false">Mýdla a balzámy <span class="tab-count" id="count-waitlist" hidden></span></button>
     </nav>
 
     <main class="views">
@@ -160,6 +161,23 @@
             </div>
             <p class="view-note">Zákazník kód zadá v košíku. Sleva se počítá z ceny zboží, ne z dopravy.</p>
             <div class="list" id="promos-list"></div>
+        </section>
+
+        <section class="view" id="view-craft" role="tabpanel" hidden>
+            <div class="view-head">
+                <h2>Mýdla a balzámy</h2>
+                <button type="button" class="btn btn-primary btn-small" data-action="new-craft">Přidat produkt</button>
+            </div>
+            <p class="view-note">Na webu mají štítek <em>Připravujeme</em> a dají se jen prohlížet. Kdo chce vědět, až budou k mání, nechá e-mail. Seznam je níž.</p>
+            <div class="list" id="craft-list"></div>
+            <div class="panel">
+                <div class="panel-head">
+                    <h3>Zájemci <span class="panel-count" id="waitlist-count"></span></h3>
+                    <button type="button" class="btn btn-secondary btn-small" id="waitlist-export">Stáhnout CSV</button>
+                </div>
+                <p class="panel-note">Až bude produkt hotový, napiš jim jednou e-mail a pak je tady smaž. Víc jim psát nesmíš, souhlasili jen s touhle jednou zprávou.</p>
+                <div id="waitlist-list"></div>
+            </div>
         </section>
     </main>
 </div>
