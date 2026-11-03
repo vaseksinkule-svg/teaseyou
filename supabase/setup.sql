@@ -575,6 +575,94 @@ revoke all on function public.join_craft_waitlist(text, text, text) from public;
 grant execute on function public.join_craft_waitlist(text, text, text) to anon, authenticated;
 
 
+-- ─── NÁKUP: DODAVATELÉ, SUROVINY, NABÍDKY, ÚKOLY ────────────────────
+-- Pracovní deník pro hledání dodavatelů. Vidí a mění ho jen admin;
+-- web pro zákazníky k těmhle tabulkám nemá žádný přístup.
+
+create table if not exists public.purchase_suppliers (
+    id           uuid primary key default gen_random_uuid(),
+    name         text not null check (length(name) between 1 and 120),
+    status       text not null default 'find'
+                 check (status in ('find', 'contacted', 'samples', 'testing', 'approved', 'rejected')),
+    website      text not null default '' check (length(website) <= 300),
+    contact      text not null default '' check (length(contact) <= 200),
+    email        text not null default '' check (length(email) <= 200),
+    phone        text not null default '' check (length(phone) <= 50),
+    supplies     text not null default '' check (length(supplies) <= 500),
+    min_order    text not null default '' check (length(min_order) <= 200),
+    lead_time    text not null default '' check (length(lead_time) <= 200),
+    certificates text not null default '' check (length(certificates) <= 300),
+    notes        text not null default '' check (length(notes) <= 5000),
+    last_contact date,
+    created_at   timestamptz not null default now(),
+    updated_at   timestamptz not null default now()
+);
+
+-- Suroviny: všechno, co se kupuje. U bylinek a čajů z obchodu je vyplněný
+-- ingredient_code (odkaz na ingredienci v obchodě), suroviny jen na mýdla
+-- a balzámy (oleje, vosk, louh…) ho mají prázdný.
+create table if not exists public.purchase_materials (
+    id              uuid primary key default gen_random_uuid(),
+    name            text not null unique check (length(name) between 1 and 120),
+    ingredient_code text check (ingredient_code is null or length(ingredient_code) <= 40),
+    for_tea         boolean not null default false,
+    for_soap        boolean not null default false,
+    for_balm        boolean not null default false,
+    status          text not null default 'research'
+                    check (status in ('research', 'testing', 'approved', 'dropped')),
+    notes           text not null default '' check (length(notes) <= 10000),
+    sources         text not null default '' check (length(sources) <= 3000),
+    created_at      timestamptz not null default now(),
+    updated_at      timestamptz not null default now()
+);
+
+-- Nabídka = jeden dodavatel a jedna surovina: cena, vzorek, hodnocení.
+create table if not exists public.purchase_offers (
+    id          uuid primary key default gen_random_uuid(),
+    supplier_id uuid not null references public.purchase_suppliers (id) on delete cascade,
+    material_id uuid not null references public.purchase_materials (id) on delete cascade,
+    price_czk   numeric(10, 2) check (price_czk >= 0),
+    amount_g    integer check (amount_g between 1 and 10000000),   -- za kolik gramů je cena
+    sample      text not null default 'none' check (sample in ('none', 'requested', 'received')),
+    rating      smallint check (rating between 1 and 5),
+    note        text not null default '' check (length(note) <= 2000),
+    created_at  timestamptz not null default now(),
+    updated_at  timestamptz not null default now()
+);
+create index if not exists purchase_offers_material_idx on public.purchase_offers (material_id);
+create index if not exists purchase_offers_supplier_idx on public.purchase_offers (supplier_id);
+
+create table if not exists public.purchase_tasks (
+    id          uuid primary key default gen_random_uuid(),
+    title       text not null check (length(title) between 1 and 300),
+    done        boolean not null default false,
+    due         date,
+    who         text not null default '' check (length(who) <= 60),
+    supplier_id uuid references public.purchase_suppliers (id) on delete set null,
+    material_id uuid references public.purchase_materials (id) on delete set null,
+    done_at     timestamptz,
+    created_at  timestamptz not null default now(),
+    updated_at  timestamptz not null default now()
+);
+
+do $$
+declare t text;
+begin
+    foreach t in array array['purchase_suppliers', 'purchase_materials', 'purchase_offers', 'purchase_tasks'] loop
+        execute format('drop trigger if exists %I_updated_at on public.%I', t, t);
+        execute format('create trigger %I_updated_at before update on public.%I
+                        for each row execute function public.set_updated_at()', t, t);
+        execute format('alter table public.%I enable row level security', t);
+        execute format('drop policy if exists "%s_admin" on public.%I', t, t);
+        execute format('create policy "%s_admin" on public.%I for all to authenticated
+                        using (public.is_admin()) with check (public.is_admin())', t, t);
+        execute format('revoke all on public.%I from anon', t);
+        execute format('grant select, insert, update, delete on public.%I to authenticated', t);
+    end loop;
+end;
+$$;
+
+
 -- ─── VÝCHOZÍ DATA ───────────────────────────────────────────────────
 -- Přesně to, co je teď natvrdo ve webu. Vloží se jen jednou.
 
@@ -671,3 +759,43 @@ select * from (values
      array['Spearmint']::text[], '#a8d8a8', 60)
 ) as v(id, kind, name_cs, name_en, desc_cs, desc_en, ingredients, color, sort)
 where not exists (select 1 from public.craft_products);
+
+-- Nákup: suroviny z obchodu, suroviny na mýdla a balzámy a pár tipů na
+-- dodavatele k prověření. Vloží se jen do prázdných tabulek.
+do $$
+begin
+    if not exists (select 1 from public.purchase_materials) then
+        insert into public.purchase_materials (name, ingredient_code, for_tea, for_soap, for_balm)
+        select name_cs, code, true,
+               code = any (array['Lavender', 'Chamomile', 'Green Tea', 'Mint', 'Rooibos', 'Orange', 'Rose', 'White Tea']),
+               code = any (array['Honey', 'Vanilla', 'Spearmint'])
+        from public.ingredients
+        on conflict (name) do nothing;
+        insert into public.purchase_materials (name, for_soap, for_balm, notes) values
+            ('Bambucké máslo', true, true, ''),
+            ('Kokosový olej', true, true, ''),
+            ('Olivový olej', true, false, ''),
+            ('Ricinový olej', true, false, ''),
+            ('Včelí vosk', false, true, ''),
+            ('Hydroxid sodný (louh)', true, false, 'Na mýdlo studenou cestou. Je to žíravina: rukavice, brýle, větrat.'),
+            ('Esenciální olej levandule', true, true, '')
+        on conflict (name) do nothing;
+    end if;
+    if not exists (select 1 from public.purchase_suppliers) then
+        insert into public.purchase_suppliers (name, website, supplies, notes) values
+            ('Oxalis', 'https://www.oxalis.cz', 'Sypané čaje a bylinné směsi',
+             'Český výrobce ze Slavičína. Zjistit, jestli prodává čaje a byliny ve velkém i firmám (B2B).'),
+            ('CGfoods', '', 'Velkoobchod čaje a kávy',
+             'Našli jsme v katalogu vystavovatelů BVV. Dohledat kontakt a ceník.'),
+            ('Nutrada (katalog dodavatelů)', 'https://nutrada.com/cz/produkty/byliny/levandule-velkoobchod', 'Byliny ve velkém: levandule, heřmánek, máta',
+             'B2B katalog, dodavatelé často z Egypta. Hlídat certifikáty a kvalitu, nejdřív vzorky.'),
+            ('Ekokoza', 'https://www.ekokoza.cz', 'Suroviny na mýdla a kosmetiku: bambucké máslo, oleje, vosky',
+             'Na start pro mýdla a balzámy. Zeptat se na větší balení.'),
+            ('Dobrý kolonial', 'https://www.dobrykolonial.cz/tuky-oleje/', 'Tuky a oleje na výrobu mýdla', ''),
+            ('Mýdlový svět', 'https://www.mydlovysvet.cz', 'Mýdlové hmoty a formy',
+             'Glycerinové mýdlové hmoty: mýdlo jde dělat i bez louhu.'),
+            ('Handymade', 'https://www.handymade.sk', 'Másla a oleje na kosmetiku (SK)',
+             'U surovin mají atesty, to se bude hodit k bezpečnostnímu posouzení.');
+    end if;
+end;
+$$;
