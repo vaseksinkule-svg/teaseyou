@@ -6,6 +6,15 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Změněno (písma a úvod)
+- **Nová písma na celém webu i v administraci:** nadpisy a logo v Unbounded,
+  text v Albert Sans. Climate Crisis a Archivo jsou pryč.
+- **Úvod celý v zelené:** nadpis „namíchej si“ je světlý na tmavě zeleném
+  pásu přes celou šířku, sáček stojí pod ním. Zbytek stránky zůstává světlý.
+- **Srovnaná horní lišta:** na počítači logo vlevo, menu uprostřed, ikony
+  vpravo. Nadpisy na podstránkách jsou o něco menší a vyrovnané.
+- Service worker v6, aby se nová písma načetla hned.
+
 ### Přidáno (nákup)
 - **Záložka Nákup v administraci:** dodavatelé se stavem jednání
   (najít, osloveno, vzorky, testujeme, schválený, zamítnutý), suroviny
