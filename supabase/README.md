@@ -118,3 +118,21 @@ v databázi nejsou, web ukazuje vestavěné ukázky a zbytek jede normálně.
 Než se mýdla nebo balzámy začnou prodávat: kosmetika v EU potřebuje
 bezpečnostní posouzení od odborníka, registraci v portálu CPNP
 a etiketu se složením (INCI). Na web jim nepiš léčivé účinky.
+
+## Nákup (listopad 2026)
+
+Záložka *Nákup* v administraci je pracovní deník pro hledání dodavatelů:
+tabulky `purchase_suppliers` (dodavatelé a stav jednání),
+`purchase_materials` (suroviny a poznámky k nim), `purchase_offers`
+(nabídka = dodavatel a surovina: cena, vzorek, hodnocení) a
+`purchase_tasks` (úkoly). Čte a mění je jen admin, web pro zákazníky
+k nim přístup nemá. Přibudou dalším spuštěním `setup.sql`.
+
+Přístup pro dalšího člověka (třeba Kláru): v Supabase *Authentication →
+Users → Add user* (e-mail, heslo, zaškrtnout *Auto Confirm User*) a pak
+v SQL Editoru:
+
+```sql
+insert into public.admins (user_id, email)
+select id, email from auth.users where email = 'jeji@email.cz';
+```

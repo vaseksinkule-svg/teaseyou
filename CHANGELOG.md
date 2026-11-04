@@ -6,6 +6,16 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (nákup)
+- **Záložka Nákup v administraci:** dodavatelé se stavem jednání
+  (najít, osloveno, vzorky, testujeme, schválený, zamítnutý), suroviny
+  s poznámkami a zdroji, nabídky s přepočtem na kilo a porovnáním,
+  úkoly s termínem a kalkulačka nákladů a marže na sáček.
+- Předvyplněné suroviny (24 z obchodu a 7 na mýdla a balzámy) a sedm tipů
+  na dodavatele k prověření.
+- Databáze: tabulky `purchase_*`, jen pro admina. Je potřeba znovu spustit
+  `supabase/setup.sql`.
+
 ### Přidáno (mýdla a balzámy)
 - **Mýdla a balzámy na rty** ze stejných surovin jako čaj: sekce na úvodní
   stránce, vlastní stránka a odkazy z ingrediencí („Najdeš i v“) i z detailu

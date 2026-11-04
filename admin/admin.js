@@ -29,6 +29,8 @@
         tab: 'orders',
         ingredients: [], blends: [], prices: [], shipping: [], settings: null,
         promos: [], orders: [], craft: [], waitlist: [],
+        suppliers: [], materials: [], offers: [], tasks: [],
+        purchaseView: 'overview', supplierFilter: 'all', materialFilter: 'all',
         orderFilter: 'open',
         catalogLoaded: false,
     };
@@ -172,7 +174,7 @@
         $('#user-email').textContent = (user && user.email) || '';
         show('app');
         const fromHash = (location.hash || '').replace('#', '');
-        switchTab(['orders', 'ingredients', 'blends', 'pricing', 'promos', 'craft'].includes(fromHash) ? fromHash : 'orders');
+        switchTab(['orders', 'ingredients', 'blends', 'pricing', 'promos', 'craft', 'purchase'].includes(fromHash) ? fromHash : 'orders');
     }
 
     db && db.auth.onChange(session => {
@@ -298,6 +300,9 @@
             } else if (name === 'promos') {
                 state.promos = await db.select('promo_codes', { order: 'created_at.desc' });
                 renderPromos();
+            } else if (name === 'purchase') {
+                await loadPurchase();
+                renderPurchase();
             } else if (name === 'craft') {
                 const [craft, waitlist] = await Promise.all([
                     db.select('craft_products', { order: 'sort.asc,name_cs.asc' }),
@@ -951,6 +956,633 @@
             });
             return () => photo.discard();
         });
+    }
+
+    /* ═══ NÁKUP ════════════════════════════════════════════════════ */
+    const SUP_STATUS = {
+        find: ['Najít', 'pill'], contacted: ['Osloveno', 'pill-new'], samples: ['Čekám na vzorky', 'pill-paid'],
+        testing: ['Testujeme', 'pill-shipped'], approved: ['Schválený', 'pill-done'], rejected: ['Zamítnutý', 'pill-cancelled'],
+    };
+    const MAT_STATUS = {
+        research: ['Zjišťujeme', 'pill'], testing: ['Testujeme', 'pill-paid'],
+        approved: ['Máme dodavatele', 'pill-shipped'], dropped: ['Nebudeme', 'pill-done'],
+    };
+    const SAMPLE = { none: 'Bez vzorku', requested: 'Vzorek vyžádaný', received: 'Vzorek dorazil' };
+    const PURCHASE_VIEWS = [['overview', 'Přehled'], ['suppliers', 'Dodavatelé'], ['materials', 'Suroviny'], ['tasks', 'Úkoly'], ['calc', 'Kalkulačka']];
+    const CALC_KEY = 'teaseyou_admin_calc';
+
+    const today = () => new Date().toLocaleDateString('sv-SE');
+    const supById = id => state.suppliers.find(x => x.id === id);
+    const matById = id => state.materials.find(x => x.id === id);
+    const perKg = o => (o && Number(o.price_czk) >= 0 && o.price_czk !== null && Number(o.amount_g) > 0)
+        ? Number(o.price_czk) / Number(o.amount_g) * 1000 : null;
+    const kcKg = n => (n == null ? '' : (Math.round(n * 10) / 10).toLocaleString('cs-CZ') + ' Kč/kg');
+    const daysSince = d => d ? Math.floor((Date.parse(today()) - Date.parse(d)) / 86400000) : null;
+    function bestOffer(materialId) {
+        return state.offers
+            .filter(o => o.material_id === materialId && perKg(o) != null && (supById(o.supplier_id) || {}).status !== 'rejected')
+            .sort((a, b) => perKg(a) - perKg(b))[0] || null;
+    }
+    const pillHtml = (map, key) => { const [label, cls] = map[key] || [key, 'pill']; return `<span class="pill ${cls}">${esc(label)}</span>`; };
+    const linkHtml = url => /^https?:\/\//i.test(url || '') ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</a>` : '';
+    function uses(m) {
+        return [m.for_tea && 'čaj', m.for_soap && 'mýdla', m.for_balm && 'balzámy'].filter(Boolean).join(', ');
+    }
+
+    async function loadPurchase() {
+        const [suppliers, materials, offers, tasks] = await Promise.all([
+            db.select('purchase_suppliers', { order: 'name.asc' }),
+            db.select('purchase_materials', { order: 'name.asc' }),
+            db.select('purchase_offers', { order: 'created_at.asc' }),
+            db.select('purchase_tasks', { order: 'created_at.desc', limit: 1000 }),
+        ]);
+        Object.assign(state, { suppliers, materials, offers, tasks });
+    }
+
+    function openTasks() { return state.tasks.filter(t => !t.done); }
+    function urgentTasks() { return openTasks().filter(t => t.due && t.due <= today()); }
+
+    function renderPurchase() {
+        const badge = $('#count-tasks');
+        const urgent = urgentTasks().length;
+        badge.textContent = urgent;
+        badge.hidden = !urgent;
+        $('#purchase-nav').innerHTML = PURCHASE_VIEWS.map(([k, label]) =>
+            `<button type="button" class="chip" data-pview="${k}" aria-pressed="${state.purchaseView === k}">${esc(label)}</button>`).join('');
+        const el = $('#purchase-list');
+        ({ overview: renderOverview, suppliers: renderSuppliers, materials: renderMaterials, tasks: renderTasks, calc: renderCalc })[state.purchaseView](el);
+    }
+    $('#purchase-nav').addEventListener('click', e => {
+        const b = e.target.closest('[data-pview]');
+        if (!b) return;
+        state.purchaseView = b.dataset.pview;
+        renderPurchase();
+    });
+
+    /* Přehled: co hoří, kdo neodpověděl, kde chybí cena */
+    function renderOverview(el) {
+        const urgent = urgentTasks().sort((a, b) => a.due.localeCompare(b.due));
+        const stale = state.suppliers.filter(s => ['contacted', 'samples'].includes(s.status)
+            && (s.last_contact == null || daysSince(s.last_contact) >= 7));
+        const teaNoOffer = state.materials.filter(m => m.status !== 'dropped' && !state.offers.some(o => o.material_id === m.id));
+        const counts = Object.keys(SUP_STATUS).map(k => [k, state.suppliers.filter(s => s.status === k).length]);
+        const priced = state.materials.filter(m => bestOffer(m.id)).length;
+        el.innerHTML = `
+            <div class="kpis">
+                <div class="kpi"><strong>${openTasks().length}</strong><span>otevřených úkolů</span></div>
+                <div class="kpi"><strong>${state.suppliers.filter(s => s.status === 'approved').length} z ${state.suppliers.length}</strong><span>dodavatelů schválených</span></div>
+                <div class="kpi"><strong>${priced} z ${state.materials.length}</strong><span>surovin má cenu</span></div>
+            </div>
+            <div class="pipeline">${counts.map(([k, n]) => `<button type="button" class="pipe" data-sfilter="${k}"><strong>${n}</strong><span>${esc(SUP_STATUS[k][0])}</span></button>`).join('')}</div>
+            <div class="panel">
+                <h3>Úkoly na dnes a po termínu</h3>
+                ${urgent.length ? `<div class="task-list">${urgent.map(taskRowHtml).join('')}</div>` : '<p class="panel-note">Nic nehoří.</p>'}
+            </div>
+            <div class="panel">
+                <h3>Komu se připomenout</h3>
+                <p class="panel-note">Oslovení dodavatelé, od kterých jste týden nic neslyšeli.</p>
+                ${stale.length ? `<div class="list">${stale.map(supplierRowHtml).join('')}</div>` : '<p class="panel-note">Nikomu, všichni jsou v obraze.</p>'}
+            </div>
+            <div class="panel">
+                <h3>Suroviny bez nabídky (${teaNoOffer.length})</h3>
+                <p class="panel-note">U těchhle zatím nemáte žádného dodavatele ani cenu.</p>
+                <p class="tag-cloud">${teaNoOffer.map(m => `<button type="button" class="chip" data-material="${esc(m.id)}">${esc(m.name)}</button>`).join('') || 'Všechno má aspoň jednu nabídku.'}</p>
+            </div>`;
+        bindPurchaseRows(el);
+        $$('[data-sfilter]', el).forEach(b => b.addEventListener('click', () => {
+            state.supplierFilter = b.dataset.sfilter;
+            state.purchaseView = 'suppliers';
+            renderPurchase();
+        }));
+    }
+
+    function supplierRowHtml(s) {
+        const offers = state.offers.filter(o => o.supplier_id === s.id).length;
+        const last = s.last_contact ? `naposledy ${formatDate(s.last_contact, false)}` : '';
+        return `<button type="button" class="row${s.status === 'rejected' ? ' is-muted' : ''}" data-supplier="${esc(s.id)}">
+            <span class="swatch swatch-letter" aria-hidden="true">${esc((s.name || '?').slice(0, 1).toUpperCase())}</span>
+            <span class="row-main">
+                <span class="row-title">${esc(s.name)}</span>
+                <span class="row-sub">${esc([s.supplies, offers ? `${offers} ${offers === 1 ? 'nabídka' : offers < 5 ? 'nabídky' : 'nabídek'}` : '', last].filter(Boolean).join(', '))}</span>
+            </span>
+            <span class="row-side">${pillHtml(SUP_STATUS, s.status)}</span>
+        </button>`;
+    }
+
+    function materialRowHtml(m) {
+        const best = bestOffer(m.id);
+        const n = state.offers.filter(o => o.material_id === m.id).length;
+        const color = m.ingredient_code ? ingColor(m.ingredient_code) : '#d9c4a0';
+        return `<button type="button" class="row${m.status === 'dropped' ? ' is-muted' : ''}" data-material="${esc(m.id)}">
+            <span class="swatch" style="background:${esc(color)}" aria-hidden="true"></span>
+            <span class="row-main">
+                <span class="row-title">${esc(m.name)}</span>
+                <span class="row-sub">${esc([uses(m), n ? `${n} ${n === 1 ? 'nabídka' : n < 5 ? 'nabídky' : 'nabídek'}` : 'bez nabídky'].filter(Boolean).join(', '))}</span>
+            </span>
+            <span class="row-side">${best ? `<span class="row-price">od ${esc(kcKg(perKg(best)))}</span>` : ''}${pillHtml(MAT_STATUS, m.status)}</span>
+        </button>`;
+    }
+
+    function taskRowHtml(t) {
+        const overdue = t.due && t.due < today() && !t.done;
+        const links = [t.supplier_id && supById(t.supplier_id) && supById(t.supplier_id).name,
+                       t.material_id && matById(t.material_id) && matById(t.material_id).name].filter(Boolean);
+        const meta = [t.due ? (t.due === today() ? 'dnes' : formatDate(t.due, false)) : '', t.who, ...links].filter(Boolean).join(', ');
+        return `<div class="task${t.done ? ' is-done' : ''}${overdue ? ' is-overdue' : ''}" data-task="${esc(t.id)}">
+            <input type="checkbox" class="task-check" ${t.done ? 'checked' : ''} aria-label="Hotovo: ${esc(t.title)}">
+            <button type="button" class="task-main" data-task-open="${esc(t.id)}">
+                <span class="task-title">${esc(t.title)}</span>
+                ${meta ? `<span class="task-meta">${overdue ? 'po termínu, ' : ''}${esc(meta)}</span>` : ''}
+            </button>
+        </div>`;
+    }
+
+    function bindPurchaseRows(root) {
+        $$('[data-supplier]', root).forEach(b => b.addEventListener('click', () => openSupplier(supById(b.dataset.supplier))));
+        $$('[data-material]', root).forEach(b => b.addEventListener('click', () => openMaterial(matById(b.dataset.material))));
+        $$('[data-task-open]', root).forEach(b => b.addEventListener('click', () => openTask(state.tasks.find(t => t.id === b.dataset.taskOpen))));
+        $$('.task-check', root).forEach(c => c.addEventListener('change', () => toggleTask(c.closest('[data-task]').dataset.task, c.checked)));
+    }
+
+    async function toggleTask(id, done) {
+        const t = state.tasks.find(x => x.id === id);
+        if (!t) return;
+        try {
+            Object.assign(t, await updateOne('purchase_tasks', { id: 'eq.' + id }, { done, done_at: done ? new Date().toISOString() : null }));
+            if (done) toast('Hotovo: ' + t.title);
+        } catch (err) { fail(err); }
+        renderPurchase();
+    }
+
+    function renderSuppliers(el) {
+        const counts = { all: state.suppliers.length };
+        Object.keys(SUP_STATUS).forEach(k => { counts[k] = state.suppliers.filter(s => s.status === k).length; });
+        const list = state.supplierFilter === 'all' ? state.suppliers : state.suppliers.filter(s => s.status === state.supplierFilter);
+        el.innerHTML = `
+            <div class="subhead">
+                <div class="filters filters-tight">${[['all', 'Všichni'], ...Object.entries(SUP_STATUS).map(([k, v]) => [k, v[0]])].map(([k, label]) =>
+                    `<button type="button" class="chip" data-supfilter="${k}" aria-pressed="${state.supplierFilter === k}">${esc(label)} (${counts[k]})</button>`).join('')}</div>
+                <button type="button" class="btn btn-primary btn-small" id="new-supplier">Přidat dodavatele</button>
+            </div>
+            <div class="list">${list.map(supplierRowHtml).join('') || '<p class="empty">Tady zatím nikdo není.</p>'}</div>`;
+        $$('[data-supfilter]', el).forEach(b => b.addEventListener('click', () => { state.supplierFilter = b.dataset.supfilter; renderPurchase(); }));
+        $('#new-supplier', el).addEventListener('click', () => openSupplier(null));
+        bindPurchaseRows(el);
+    }
+
+    const MAT_FILTERS = [['all', 'Vše'], ['tea', 'Čaj'], ['soap', 'Mýdla'], ['balm', 'Balzámy'], ['nooffer', 'Bez nabídky']];
+    function renderMaterials(el) {
+        const pass = {
+            all: () => true, tea: m => m.for_tea, soap: m => m.for_soap, balm: m => m.for_balm,
+            nooffer: m => !state.offers.some(o => o.material_id === m.id),
+        };
+        const list = state.materials.filter(pass[state.materialFilter]);
+        el.innerHTML = `
+            <div class="subhead">
+                <div class="filters filters-tight">${MAT_FILTERS.map(([k, label]) =>
+                    `<button type="button" class="chip" data-matfilter="${k}" aria-pressed="${state.materialFilter === k}">${esc(label)} (${state.materials.filter(pass[k]).length})</button>`).join('')}</div>
+                <button type="button" class="btn btn-primary btn-small" id="new-material">Přidat surovinu</button>
+            </div>
+            <div class="list">${list.map(materialRowHtml).join('') || '<p class="empty">Nic tu není.</p>'}</div>`;
+        $$('[data-matfilter]', el).forEach(b => b.addEventListener('click', () => { state.materialFilter = b.dataset.matfilter; renderPurchase(); }));
+        $('#new-material', el).addEventListener('click', () => openMaterial(null));
+        bindPurchaseRows(el);
+    }
+
+    function supplierOptions(selected) {
+        return state.suppliers.map(s => `<option value="${esc(s.id)}"${s.id === selected ? ' selected' : ''}>${esc(s.name)}</option>`).join('');
+    }
+    function materialOptions(selected) {
+        return state.materials.map(m => `<option value="${esc(m.id)}"${m.id === selected ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
+    }
+
+    function renderTasks(el) {
+        const open = openTasks().sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999'));
+        const done = state.tasks.filter(t => t.done).sort((a, b) => String(b.done_at || '').localeCompare(String(a.done_at || '')));
+        const who = [...new Set(state.tasks.map(t => t.who).filter(Boolean).concat(['Václav', 'Klára']))];
+        el.innerHTML = `
+            <form class="panel task-add" id="task-add" novalidate>
+                <label class="field"><span>Nový úkol</span><input type="text" name="title" maxlength="300" placeholder="Např. poslat poptávku na levanduli" required></label>
+                <div class="field-row">
+                    <label class="field"><span>Termín</span><input type="date" name="due"></label>
+                    <label class="field"><span>Kdo</span><input type="text" name="who" maxlength="60" list="task-who"></label>
+                </div>
+                <datalist id="task-who">${who.map(w => `<option value="${esc(w)}">`).join('')}</datalist>
+                <div class="field-row">
+                    <label class="field"><span>Dodavatel</span><select name="supplier_id"><option value="">— žádný —</option>${supplierOptions('')}</select></label>
+                    <label class="field"><span>Surovina</span><select name="material_id"><option value="">— žádná —</option>${materialOptions('')}</select></label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-small">Přidat úkol</button>
+            </form>
+            <div class="task-list">${open.map(taskRowHtml).join('') || '<p class="empty">Žádné otevřené úkoly.</p>'}</div>
+            ${done.length ? `<details class="done-tasks"><summary>Hotové (${done.length})</summary><div class="task-list">${done.map(taskRowHtml).join('')}</div></details>` : ''}`;
+        bindPurchaseRows(el);
+        $('#task-add', el).addEventListener('submit', async e => {
+            e.preventDefault();
+            const f = e.currentTarget;
+            const row = {
+                title: f.title.value.trim(), due: f.due.value || null, who: f.who.value.trim(),
+                supplier_id: f.supplier_id.value || null, material_id: f.material_id.value || null,
+            };
+            if (!row.title) { f.title.focus(); toast('Napiš, co je potřeba udělat.', true); return; }
+            const btn = f.querySelector('[type=submit]');
+            btn.disabled = true;
+            try {
+                const [saved] = await db.insert('purchase_tasks', row);
+                state.tasks.unshift(saved);
+                toast('Úkol přidaný.');
+                renderPurchase();
+                $('#task-add [name=title]') && $('#task-add [name=title]').focus();
+            } catch (err) { fail(err); btn.disabled = false; }
+        });
+    }
+
+    function openTask(t, onDone) {
+        if (!t) return;
+        const html = `
+            <form id="task-form" novalidate>
+                <p class="form-error" id="task-error" role="alert" hidden></p>
+                <label class="field"><span>Úkol</span><input type="text" name="title" maxlength="300" required value="${esc(t.title)}"></label>
+                <div class="field-row">
+                    <label class="field"><span>Termín</span><input type="date" name="due" value="${esc(t.due || '')}"></label>
+                    <label class="field"><span>Kdo</span><input type="text" name="who" maxlength="60" value="${esc(t.who)}"></label>
+                </div>
+                <div class="field-row">
+                    <label class="field"><span>Dodavatel</span><select name="supplier_id"><option value="">— žádný —</option>${supplierOptions(t.supplier_id)}</select></label>
+                    <label class="field"><span>Surovina</span><select name="material_id"><option value="">— žádná —</option>${materialOptions(t.material_id)}</select></label>
+                </div>
+                <label class="switch-row"><input type="checkbox" class="switch" name="done" ${t.done ? 'checked' : ''}><span>Hotovo</span></label>
+                <div class="sheet-actions">
+                    <button type="submit" class="btn btn-primary">Uložit</button>
+                    <button type="button" class="btn btn-secondary" data-action="close-sheet">Zrušit</button>
+                    <span class="spacer"></span>
+                    <button type="button" class="btn-link" id="task-delete">Smazat</button>
+                </div>
+            </form>`;
+        openSheet('Úkol', html, body => {
+            const form = $('#task-form', body);
+            form.addEventListener('submit', async e => {
+                e.preventDefault();
+                const done = form.done.checked;
+                const row = {
+                    title: form.title.value.trim(), due: form.due.value || null, who: form.who.value.trim(),
+                    supplier_id: form.supplier_id.value || null, material_id: form.material_id.value || null,
+                    done, done_at: done ? (t.done_at || new Date().toISOString()) : null,
+                };
+                if (!row.title) { formError('#task-error', 'Napiš, co je potřeba udělat.'); return; }
+                try {
+                    Object.assign(t, await updateOne('purchase_tasks', { id: 'eq.' + t.id }, row));
+                    closeSheet(true);
+                    toast('Uloženo.');
+                    onDone ? onDone() : renderPurchase();
+                } catch (err) { formError('#task-error', friendly(err)); }
+            });
+            $('#task-delete', body).addEventListener('click', async () => {
+                if (!(await confirmDialog(`Smazat úkol „${t.title}“?`))) return;
+                try {
+                    const rows = await db.remove('purchase_tasks', { id: 'eq.' + t.id });
+                    if (!rows.length) throw new db.DbError('no_rows', 0);
+                    state.tasks = state.tasks.filter(x => x !== t);
+                    closeSheet(true);
+                    toast('Smazáno.');
+                    onDone ? onDone() : renderPurchase();
+                } catch (err) { formError('#task-error', friendly(err)); }
+            });
+        });
+    }
+
+    /* Nabídky v panelu dodavatele i suroviny */
+    function offersTableHtml(offers, by) {
+        if (!offers.length) return '<p class="panel-note">Zatím žádná nabídka.</p>';
+        const sorted = offers.slice().sort((a, b) => (perKg(a) ?? Infinity) - (perKg(b) ?? Infinity));
+        const cheapest = by === 'supplier' ? perKg(sorted[0]) : null;
+        return `<div class="offer-list">${sorted.map(o => {
+            const other = by === 'supplier' ? (supById(o.supplier_id) || {}).name : (matById(o.material_id) || {}).name;
+            const pk = perKg(o);
+            return `<button type="button" class="offer${cheapest != null && pk === cheapest && sorted.length > 1 ? ' is-best' : ''}" data-offer="${esc(o.id)}">
+                <span class="offer-main"><strong>${esc(other || '?')}</strong>
+                <span>${esc([o.price_czk != null && o.amount_g ? `${Number(o.price_czk).toLocaleString('cs-CZ')} Kč za ${Number(o.amount_g).toLocaleString('cs-CZ')} g` : 'bez ceny', SAMPLE[o.sample], o.rating ? `hodnocení ${o.rating}/5` : ''].filter(Boolean).join(', '))}</span></span>
+                <span class="offer-price">${esc(kcKg(pk))}</span>
+            </button>`;
+        }).join('')}</div>`;
+    }
+
+    function openOffer(offer, preset, reopen) {
+        const isNew = !offer;
+        const o = offer || { supplier_id: preset.supplier_id || '', material_id: preset.material_id || '', price_czk: null, amount_g: 1000, sample: 'none', rating: null, note: '' };
+        const html = `
+            <form id="offer-form" novalidate>
+                <p class="form-error" id="offer-error" role="alert" hidden></p>
+                <label class="field"><span>Dodavatel</span><select name="supplier_id" required><option value="">— vyber —</option>${supplierOptions(o.supplier_id)}</select></label>
+                <label class="field"><span>Surovina</span><select name="material_id" required><option value="">— vyber —</option>${materialOptions(o.material_id)}</select></label>
+                <div class="field-row">
+                    <label class="field field-inline"><span>Cena</span><input type="number" name="price_czk" min="0" step="0.01" inputmode="decimal" value="${o.price_czk ?? ''}"><em>Kč</em></label>
+                    <label class="field field-inline"><span>za</span><input type="number" name="amount_g" min="1" step="1" inputmode="numeric" value="${o.amount_g ?? ''}"><em>g</em></label>
+                </div>
+                <p class="help" id="offer-perkg"></p>
+                <div class="field-row">
+                    <label class="field"><span>Vzorek</span><select name="sample">${Object.entries(SAMPLE).map(([k, v]) => `<option value="${k}"${o.sample === k ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
+                    <label class="field"><span>Hodnocení</span><select name="rating"><option value="">—</option>${[1, 2, 3, 4, 5].map(n => `<option value="${n}"${o.rating === n ? ' selected' : ''}>${n} z 5</option>`).join('')}</select></label>
+                </div>
+                <label class="field"><span>Poznámka</span><textarea name="note" rows="3" maxlength="2000" placeholder="Jak vzorek voní a chutná, balení, platební podmínky…">${esc(o.note)}</textarea></label>
+                <div class="sheet-actions">
+                    <button type="submit" class="btn btn-primary">${isNew ? 'Přidat nabídku' : 'Uložit'}</button>
+                    <button type="button" class="btn btn-secondary" id="offer-back">Zpět</button>
+                    <span class="spacer"></span>
+                    ${isNew ? '' : '<button type="button" class="btn-link" id="offer-delete">Smazat</button>'}
+                </div>
+            </form>`;
+        openSheet(isNew ? 'Nová nabídka' : 'Nabídka', html, body => {
+            const form = $('#offer-form', body);
+            const paint = () => {
+                const pk = perKg({ price_czk: form.price_czk.value === '' ? null : Number(form.price_czk.value), amount_g: Number(form.amount_g.value) });
+                $('#offer-perkg', body).textContent = pk != null ? `To je ${kcKg(pk)}.` : '';
+            };
+            paint();
+            form.addEventListener('input', paint);
+            const back = () => { closeSheet(true); reopen && reopen(); };
+            $('#offer-back', body).addEventListener('click', back);
+            form.addEventListener('submit', async e => {
+                e.preventDefault();
+                const row = {
+                    supplier_id: form.supplier_id.value, material_id: form.material_id.value,
+                    price_czk: form.price_czk.value === '' ? null : Number(form.price_czk.value),
+                    amount_g: form.amount_g.value === '' ? null : parseInt(form.amount_g.value, 10),
+                    sample: form.sample.value, rating: form.rating.value ? Number(form.rating.value) : null,
+                    note: form.note.value.trim(),
+                };
+                if (!row.supplier_id || !row.material_id) { formError('#offer-error', 'Vyber dodavatele i surovinu.'); return; }
+                try {
+                    if (isNew) state.offers.push((await db.insert('purchase_offers', row))[0]);
+                    else Object.assign(offer, await updateOne('purchase_offers', { id: 'eq.' + offer.id }, row));
+                    toast(isNew ? 'Nabídka přidaná.' : 'Uloženo.');
+                    back();
+                } catch (err) { formError('#offer-error', friendly(err)); }
+            });
+            const del = $('#offer-delete', body);
+            if (del) del.addEventListener('click', async () => {
+                if (!(await confirmDialog('Smazat tuhle nabídku?'))) return;
+                try {
+                    const rows = await db.remove('purchase_offers', { id: 'eq.' + offer.id });
+                    if (!rows.length) throw new db.DbError('no_rows', 0);
+                    state.offers = state.offers.filter(x => x !== offer);
+                    toast('Smazáno.');
+                    back();
+                } catch (err) { formError('#offer-error', friendly(err)); }
+            });
+        });
+    }
+
+    function linkedTasksHtml(filter) {
+        const list = state.tasks.filter(filter).sort((a, b) => Number(a.done) - Number(b.done) || (a.due || '9999').localeCompare(b.due || '9999'));
+        return list.length ? `<div class="task-list">${list.map(taskRowHtml).join('')}</div>` : '<p class="panel-note">Žádné úkoly.</p>';
+    }
+
+    function openSupplier(sup) {
+        const isNew = !sup;
+        const s = sup || { name: '', status: 'find', website: '', contact: '', email: '', phone: '', supplies: '', min_order: '', lead_time: '', certificates: '', notes: '', last_contact: null };
+        const offers = isNew ? [] : state.offers.filter(o => o.supplier_id === s.id);
+        const html = `
+            <form id="supplier-form" novalidate>
+                <p class="form-error" id="supplier-error" role="alert" hidden></p>
+                <label class="field"><span>Název</span><input type="text" name="name" maxlength="120" required value="${esc(s.name)}"></label>
+                <div class="field-row">
+                    <label class="field"><span>Stav</span><select name="status">${Object.entries(SUP_STATUS).map(([k, v]) => `<option value="${k}"${s.status === k ? ' selected' : ''}>${v[0]}</option>`).join('')}</select></label>
+                    <label class="field"><span>Naposledy v kontaktu</span><input type="date" name="last_contact" value="${esc(s.last_contact || '')}"></label>
+                </div>
+                <label class="field"><span>Co dodává</span><input type="text" name="supplies" maxlength="500" value="${esc(s.supplies)}"></label>
+                <label class="field"><span>Web</span><input type="url" name="website" maxlength="300" placeholder="https://" value="${esc(s.website)}">${s.website ? `<small>${linkHtml(s.website)}</small>` : ''}</label>
+                <div class="field-row">
+                    <label class="field"><span>Kontaktní osoba</span><input type="text" name="contact" maxlength="200" value="${esc(s.contact)}"></label>
+                    <label class="field"><span>Telefon</span><input type="tel" name="phone" maxlength="50" value="${esc(s.phone)}"></label>
+                </div>
+                <label class="field"><span>E-mail</span><input type="email" name="email" maxlength="200" value="${esc(s.email)}">${s.email ? `<small><a href="mailto:${esc(s.email)}">Napsat e-mail</a></small>` : ''}</label>
+                <div class="field-row">
+                    <label class="field"><span>Minimální objednávka</span><input type="text" name="min_order" maxlength="200" value="${esc(s.min_order)}"></label>
+                    <label class="field"><span>Dodací lhůta</span><input type="text" name="lead_time" maxlength="200" value="${esc(s.lead_time)}"></label>
+                </div>
+                <label class="field"><span>Certifikáty</span><input type="text" name="certificates" maxlength="300" placeholder="Bio, potravinářská kvalita, atesty…" value="${esc(s.certificates)}"></label>
+                <label class="field"><span>Poznámky</span><textarea name="notes" rows="5" maxlength="5000">${esc(s.notes)}</textarea></label>
+                ${isNew ? '' : `
+                <section class="sheet-section">
+                    <div class="panel-head"><h3>Nabídky</h3><button type="button" class="btn btn-secondary btn-small" id="sup-add-offer">Přidat nabídku</button></div>
+                    ${offersTableHtml(offers, 'material')}
+                </section>
+                <section class="sheet-section">
+                    <h3>Úkoly</h3>
+                    ${linkedTasksHtml(t => t.supplier_id === s.id)}
+                </section>`}
+                <div class="sheet-actions">
+                    <button type="submit" class="btn btn-primary">${isNew ? 'Přidat dodavatele' : 'Uložit'}</button>
+                    <button type="button" class="btn btn-secondary" data-action="close-sheet">Zavřít</button>
+                    <span class="spacer"></span>
+                    ${isNew ? '' : '<button type="button" class="btn-link" id="supplier-delete">Smazat</button>'}
+                </div>
+            </form>`;
+        openSheet(isNew ? 'Nový dodavatel' : s.name, html, body => {
+            const form = $('#supplier-form', body);
+            const reopen = () => { renderPurchase(); openSupplier(supById(s.id)); };
+            const read = () => ({
+                name: form.name.value.trim(), status: form.status.value, last_contact: form.last_contact.value || null,
+                supplies: form.supplies.value.trim(), website: form.website.value.trim(), contact: form.contact.value.trim(),
+                phone: form.phone.value.trim(), email: form.email.value.trim(), min_order: form.min_order.value.trim(),
+                lead_time: form.lead_time.value.trim(), certificates: form.certificates.value.trim(), notes: form.notes.value.trim(),
+            });
+            form.addEventListener('submit', async e => {
+                e.preventDefault();
+                const row = read();
+                if (!row.name) { formError('#supplier-error', 'Vyplň název.'); return; }
+                if (row.website && !/^https?:\/\//i.test(row.website)) row.website = 'https://' + row.website;
+                try {
+                    if (isNew) state.suppliers.push((await db.insert('purchase_suppliers', row))[0]);
+                    else Object.assign(sup, await updateOne('purchase_suppliers', { id: 'eq.' + s.id }, row));
+                    state.suppliers.sort((a, b) => a.name.localeCompare(b.name, 'cs'));
+                    closeSheet(true);
+                    toast(isNew ? `Přidáno: ${row.name}` : `Uloženo: ${row.name}`);
+                    renderPurchase();
+                } catch (err) { formError('#supplier-error', friendly(err)); }
+            });
+            const addOffer = $('#sup-add-offer', body);
+            if (addOffer) addOffer.addEventListener('click', () => { closeSheet(true); openOffer(null, { supplier_id: s.id }, reopen); });
+            $$('[data-offer]', body).forEach(b => b.addEventListener('click', () => {
+                closeSheet(true);
+                openOffer(state.offers.find(o => o.id === b.dataset.offer), {}, reopen);
+            }));
+            $$('.task-check', body).forEach(c => c.addEventListener('change', () => toggleTask(c.closest('[data-task]').dataset.task, c.checked)));
+            $$('[data-task-open]', body).forEach(b => b.addEventListener('click', () => {
+                closeSheet(true);
+                openTask(state.tasks.find(t => t.id === b.dataset.taskOpen), reopen);
+            }));
+            const del = $('#supplier-delete', body);
+            if (del) del.addEventListener('click', async () => {
+                if (!(await confirmDialog(`Smazat dodavatele ${s.name}? Smažou se i jeho nabídky (${offers.length}).`))) return;
+                try {
+                    const rows = await db.remove('purchase_suppliers', { id: 'eq.' + s.id });
+                    if (!rows.length) throw new db.DbError('no_rows', 0);
+                    state.suppliers = state.suppliers.filter(x => x.id !== s.id);
+                    state.offers = state.offers.filter(o => o.supplier_id !== s.id);
+                    state.tasks.forEach(t => { if (t.supplier_id === s.id) t.supplier_id = null; });
+                    closeSheet(true);
+                    toast(`Smazáno: ${s.name}`);
+                    renderPurchase();
+                } catch (err) { formError('#supplier-error', friendly(err)); }
+            });
+        });
+    }
+
+    function openMaterial(mat) {
+        const isNew = !mat;
+        const m = mat || { name: '', ingredient_code: null, for_tea: false, for_soap: false, for_balm: false, status: 'research', notes: '', sources: '' };
+        const offers = isNew ? [] : state.offers.filter(o => o.material_id === m.id);
+        const ing = m.ingredient_code ? ingByCode(m.ingredient_code) : null;
+        const html = `
+            <form id="material-form" novalidate>
+                <p class="form-error" id="material-error" role="alert" hidden></p>
+                <label class="field"><span>Název</span><input type="text" name="name" maxlength="120" required value="${esc(m.name)}"></label>
+                ${ing ? `<p class="help">Na webu jako ingredience <strong>${esc(ing.name_cs)}</strong> (${esc(CATEGORY[ing.category] || '')}).</p>` : ''}
+                <label class="field"><span>Stav</span><select name="status">${Object.entries(MAT_STATUS).map(([k, v]) => `<option value="${k}"${m.status === k ? ' selected' : ''}>${v[0]}</option>`).join('')}</select></label>
+                <div class="check-row">
+                    <label><input type="checkbox" name="for_tea" ${m.for_tea ? 'checked' : ''}> Do čaje</label>
+                    <label><input type="checkbox" name="for_soap" ${m.for_soap ? 'checked' : ''}> Do mýdel</label>
+                    <label><input type="checkbox" name="for_balm" ${m.for_balm ? 'checked' : ''}> Do balzámů</label>
+                </div>
+                <label class="field"><span>Poznámky</span><textarea name="notes" rows="8" maxlength="10000" placeholder="Chuť, vůně, jak se připravuje, kolik dávat do směsi, bezpečnost a alergeny, co jste zjistili…">${esc(m.notes)}</textarea></label>
+                <label class="field"><span>Zdroje</span><textarea name="sources" rows="3" maxlength="3000" placeholder="Odkazy na články, knihy, technické listy">${esc(m.sources)}</textarea></label>
+                ${isNew ? '' : `
+                <section class="sheet-section">
+                    <div class="panel-head"><h3>Nabídky</h3><button type="button" class="btn btn-secondary btn-small" id="mat-add-offer">Přidat nabídku</button></div>
+                    <p class="panel-note">Seřazené od nejlevnější za kilo.</p>
+                    ${offersTableHtml(offers, 'supplier')}
+                </section>
+                <section class="sheet-section">
+                    <h3>Úkoly</h3>
+                    ${linkedTasksHtml(t => t.material_id === m.id)}
+                </section>`}
+                <div class="sheet-actions">
+                    <button type="submit" class="btn btn-primary">${isNew ? 'Přidat surovinu' : 'Uložit'}</button>
+                    <button type="button" class="btn btn-secondary" data-action="close-sheet">Zavřít</button>
+                    <span class="spacer"></span>
+                    ${isNew ? '' : '<button type="button" class="btn-link" id="material-delete">Smazat</button>'}
+                </div>
+            </form>`;
+        openSheet(isNew ? 'Nová surovina' : m.name, html, body => {
+            const form = $('#material-form', body);
+            const reopen = () => { renderPurchase(); openMaterial(matById(m.id)); };
+            form.addEventListener('submit', async e => {
+                e.preventDefault();
+                const row = {
+                    name: form.name.value.trim(), status: form.status.value,
+                    for_tea: form.for_tea.checked, for_soap: form.for_soap.checked, for_balm: form.for_balm.checked,
+                    notes: form.notes.value.trim(), sources: form.sources.value.trim(),
+                };
+                if (!row.name) { formError('#material-error', 'Vyplň název.'); return; }
+                try {
+                    if (isNew) state.materials.push((await db.insert('purchase_materials', row))[0]);
+                    else Object.assign(mat, await updateOne('purchase_materials', { id: 'eq.' + m.id }, row));
+                    state.materials.sort((a, b) => a.name.localeCompare(b.name, 'cs'));
+                    closeSheet(true);
+                    toast(isNew ? `Přidáno: ${row.name}` : `Uloženo: ${row.name}`);
+                    renderPurchase();
+                } catch (err) { formError('#material-error', friendly(err)); }
+            });
+            const addOffer = $('#mat-add-offer', body);
+            if (addOffer) addOffer.addEventListener('click', () => { closeSheet(true); openOffer(null, { material_id: m.id }, reopen); });
+            $$('[data-offer]', body).forEach(b => b.addEventListener('click', () => {
+                closeSheet(true);
+                openOffer(state.offers.find(o => o.id === b.dataset.offer), {}, reopen);
+            }));
+            $$('.task-check', body).forEach(c => c.addEventListener('change', () => toggleTask(c.closest('[data-task]').dataset.task, c.checked)));
+            $$('[data-task-open]', body).forEach(b => b.addEventListener('click', () => {
+                closeSheet(true);
+                openTask(state.tasks.find(t => t.id === b.dataset.taskOpen), reopen);
+            }));
+            const del = $('#material-delete', body);
+            if (del) del.addEventListener('click', async () => {
+                if (!(await confirmDialog(`Smazat surovinu ${m.name}? Smažou se i nabídky (${offers.length}). Na webu se nic nezmění.`))) return;
+                try {
+                    const rows = await db.remove('purchase_materials', { id: 'eq.' + m.id });
+                    if (!rows.length) throw new db.DbError('no_rows', 0);
+                    state.materials = state.materials.filter(x => x.id !== m.id);
+                    state.offers = state.offers.filter(o => o.material_id !== m.id);
+                    state.tasks.forEach(t => { if (t.material_id === m.id) t.material_id = null; });
+                    closeSheet(true);
+                    toast(`Smazáno: ${m.name}`);
+                    renderPurchase();
+                } catch (err) { formError('#material-error', friendly(err)); }
+            });
+        });
+    }
+
+    /* Kalkulačka: kolik stojí suroviny na jeden sáček a kolik zbyde */
+    function renderCalc(el) {
+        let saved = {};
+        try { saved = JSON.parse(localStorage.getItem(CALC_KEY) || '{}') || {}; } catch (_) {}
+        const byCat = cat => state.materials.filter(m => m.ingredient_code && (ingByCode(m.ingredient_code) || {}).category === cat);
+        const pick = (name, cat) => {
+            const list = byCat(cat);
+            const sel = saved[name] && list.some(m => m.id === saved[name]) ? saved[name] : (list[0] || {}).id;
+            return `<label class="field"><span>${CATEGORY[cat]}</span><select name="${name}">${list.map(m =>
+                `<option value="${esc(m.id)}"${m.id === sel ? ' selected' : ''}>${esc(m.name)}${bestOffer(m.id) ? '' : ' (bez ceny)'}</option>`).join('')}</select></label>`;
+        };
+        const tiers = state.prices.filter(p => p.active);
+        const weight = tiers.some(p => p.weight_g === saved.weight) ? saved.weight : ((tiers.find(p => p.weight_g === 100) || tiers[0] || {}).weight_g);
+        el.innerHTML = `
+            <form class="panel calc" id="calc-form" novalidate>
+                <h3>Kolik stojí jeden sáček</h3>
+                <p class="panel-note">Počítá s nejlevnější nabídkou u každé suroviny (bez zamítnutých dodavatelů).</p>
+                <div class="calc-grid">
+                    ${pick('base', 'base')}
+                    <label class="field field-inline"><span>Podíl</span><input type="number" name="r_base" min="0" max="100" step="1" value="${saved.r_base ?? 70}"><em>%</em></label>
+                    ${pick('flavor', 'flavor')}
+                    <label class="field field-inline"><span>Podíl</span><input type="number" name="r_flavor" min="0" max="100" step="1" value="${saved.r_flavor ?? 20}"><em>%</em></label>
+                    ${pick('extra', 'extra')}
+                    <label class="field field-inline"><span>Podíl</span><input type="number" name="r_extra" min="0" max="100" step="1" value="${saved.r_extra ?? 10}"><em>%</em></label>
+                </div>
+                <div class="field-row">
+                    <label class="field"><span>Velikost</span><select name="weight">${tiers.map(p => `<option value="${p.weight_g}"${p.weight_g === weight ? ' selected' : ''}>${p.weight_g} g (prodej ${kc(p.price_czk)})</option>`).join('')}</select></label>
+                    <label class="field field-inline"><span>Sáček a etiketa</span><input type="number" name="pack" min="0" step="0.1" inputmode="decimal" value="${saved.pack ?? ''}" placeholder="0"><em>Kč</em></label>
+                </div>
+                <div id="calc-out" aria-live="polite"></div>
+            </form>`;
+        const form = $('#calc-form', el);
+        const paint = () => {
+            const v = {
+                base: form.base.value, flavor: form.flavor.value, extra: form.extra.value,
+                r_base: Number(form.r_base.value) || 0, r_flavor: Number(form.r_flavor.value) || 0, r_extra: Number(form.r_extra.value) || 0,
+                weight: Number(form.weight.value) || 0, pack: form.pack.value === '' ? '' : Number(form.pack.value),
+            };
+            try { localStorage.setItem(CALC_KEY, JSON.stringify(v)); } catch (_) {}
+            const sum = v.r_base + v.r_flavor + v.r_extra;
+            const tier = state.prices.find(p => p.weight_g === v.weight);
+            const lines = [['base', v.r_base], ['flavor', v.r_flavor], ['extra', v.r_extra]].map(([k, r]) => {
+                const m = matById(v[k]);
+                const grams = v.weight * (sum ? r / sum : 0);
+                const pk = m ? perKg(bestOffer(m.id)) : null;
+                return { name: m ? m.name : '—', grams, pk, cost: pk != null ? grams / 1000 * pk : null };
+            });
+            const missing = lines.filter(l => l.cost == null).map(l => l.name);
+            const ingredients = lines.reduce((a, l) => a + (l.cost || 0), 0);
+            const cost = ingredients + (Number(v.pack) || 0);
+            const price = tier ? tier.price_czk : 0;
+            const margin = price - cost;
+            const r1 = n => (Math.round(n * 10) / 10).toLocaleString('cs-CZ');
+            $('#calc-out', el).innerHTML = `
+                ${sum !== 100 ? `<p class="help">Podíly dávají dohromady ${sum} %, počítám je poměrem.</p>` : ''}
+                <div class="calc-table">
+                    ${lines.map(l => `<div><span>${esc(l.name)}, ${r1(l.grams)} g</span><span>${l.cost == null ? 'chybí cena' : r1(l.cost) + ' Kč'}</span></div>`).join('')}
+                    <div><span>Sáček a etiketa</span><span>${r1(Number(v.pack) || 0)} Kč</span></div>
+                    <div class="calc-sum"><span>Náklady celkem</span><span>${missing.length ? 'aspoň ' : ''}${r1(cost)} Kč</span></div>
+                    <div><span>Prodejní cena</span><span>${kc(price)}</span></div>
+                    ${missing.length
+                        ? '<div class="calc-margin is-unknown"><span>Zbyde</span><span>doplň ceny</span></div>'
+                        : `<div class="calc-margin${margin < 0 ? ' is-neg' : ''}"><span>Zbyde</span><span>${r1(margin)} Kč${price ? ` (${Math.round(margin / price * 100)} %)` : ''}</span></div>`}
+                </div>
+                ${missing.length ? `<p class="help">Bez ceny: ${esc(missing.join(', '))}. Přidej nabídku v části Suroviny.</p>` : ''}
+                <p class="help">Prodejní cena je s DPH. Jestli budeš plátce DPH, počítej s cenou bez daně. Doprava a poplatky za platbu tu nejsou.</p>`;
+        };
+        form.addEventListener('input', paint);
+        form.addEventListener('change', paint);
+        paint();
     }
 
     /* ═══ MÝDLA A BALZÁMY ══════════════════════════════════════════ */
