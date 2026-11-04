@@ -9,7 +9,6 @@
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#3a5f3c">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%233a5f3c'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23f5f1e9' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E">
-    <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:ital,wght@0,300..800;1,400&family=Unbounded:wght@400..800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -139,6 +138,10 @@
                     <span>Doprava zdarma od</span>
                     <input type="number" name="free_ship_threshold" min="0" step="1" inputmode="numeric"><em>Kč</em>
                 </label>
+                <label class="field field-inline">
+                    <span>Příplatek za dobírku</span>
+                    <input type="number" name="cod_fee_czk" min="0" max="1000" step="1" inputmode="numeric"><em>Kč</em>
+                </label>
                 <label class="switch-row">
                     <input type="checkbox" name="promo_bar_enabled" class="switch">
                     <span>Ukazovat lištu nahoře na webu</span>
@@ -152,6 +155,29 @@
                     <textarea name="promo_bar_en" rows="2" maxlength="300" placeholder="Prázdné = výchozí text webu"></textarea>
                 </label>
                 <button type="submit" class="btn btn-primary">Uložit nastavení</button>
+            </form>
+            <form class="panel" id="seller-form" novalidate>
+                <h3>Prodávající a etiketa</h3>
+                <p class="help">Ukáže se v obchodních podmínkách, v ochraně osobních údajů, v patičce webu a v informacích o potravině. Co nevyplníš, web ukáže jako „[doplnit]“.</p>
+                <label class="field"><span>Jméno a příjmení nebo název firmy</span><input type="text" name="seller_name" maxlength="120" autocomplete="name"></label>
+                <div class="field-row">
+                    <label class="field"><span>IČO</span><input type="text" name="seller_ico" maxlength="8" inputmode="numeric" pattern="[0-9]{8}" placeholder="12345678"></label>
+                    <label class="field"><span>Telefon</span><input type="tel" name="seller_phone" maxlength="30" placeholder="+420 777 123 456"></label>
+                </div>
+                <label class="field"><span>Adresa sídla</span><input type="text" name="seller_address" maxlength="200" placeholder="Ulice 1, 360 01 Karlovy Vary"><small>Adresa ze živnostenského rejstříku.</small></label>
+                <label class="field"><span>E-mail pro zákazníky</span><input type="email" name="seller_email" maxlength="120"></label>
+                <h3>Receptura směsi</h3>
+                <p class="help">Jak velký díl sáčku tvoří základ, příchuť a doplněk. Podle toho web spočítá procenta ve složení a pozná, jestli je to ochucený, bylinný, nebo ovocný čaj. Dohromady 100 %.</p>
+                <div class="field-row field-row-3">
+                    <label class="field"><span>Základ %</span><input type="number" name="recipe_base_pct" min="1" max="100" step="1" inputmode="numeric"></label>
+                    <label class="field"><span>Příchuť %</span><input type="number" name="recipe_flavor_pct" min="0" max="99" step="1" inputmode="numeric"></label>
+                    <label class="field"><span>Doplněk %</span><input type="number" name="recipe_extra_pct" min="0" max="99" step="1" inputmode="numeric"></label>
+                </div>
+                <label class="field field-inline">
+                    <span>Minimální trvanlivost</span>
+                    <input type="number" name="durability_months" min="1" max="36" step="1" inputmode="numeric"><em>měsíců od namíchání</em>
+                </label>
+                <button type="submit" class="btn btn-primary">Uložit údaje</button>
             </form>
         </section>
 

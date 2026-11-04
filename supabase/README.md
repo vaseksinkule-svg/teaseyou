@@ -99,8 +99,8 @@ v administraci.
 - **Ingredienci radši skryj, než smažeš.** Smazat jde jen ta, která není
   v žádné směsi.
 - **Zdravotní tvrzení.** U potravin smí web uvádět jen tvrzení schválená EU
-  (nařízení 1924/2006). Pole *Přínosy* teď obsahuje věci jako „Detox“ nebo
-  „Úleva od úzkosti“ — před spuštěním prodeje je projdi.
+  (nařízení 1924/2006). Pole *Poznámky o účincích* se proto na webu
+  neukazuje, je jen pro tebe.
 
 ## Když přibude něco nového (třeba mýdla a balzámy)
 
@@ -136,3 +136,24 @@ v SQL Editoru:
 insert into public.admins (user_id, email)
 select id, email from auth.users where email = 'jeji@email.cz';
 ```
+
+## Prodávající, etiketa a dobírka (listopad 2026)
+
+Dalším spuštěním `setup.sql` přibude:
+
+- v `settings` údaje o prodávajícím (`seller_*`), příplatek za dobírku
+  (`cod_fee_czk`, výchozí 39 Kč), receptura směsi (`recipe_*_pct`, výchozí
+  70 / 20 / 10 %) a trvanlivost v měsících. Vyplňuje se v administraci
+  *Ceny a doprava → Prodávající a etiketa*. Web z nich skládá obchodní
+  podmínky, patičku a informace o potravině.
+- v `ingredients` název ve složení (`label_cs`), druh (`kind`: pravý čaj,
+  bylina, ovoce, jiné), nejvyšší podíl ve směsi (`max_pct`) a alergeny.
+  U 24 výchozích surovin se vyplní samy, upravit je jde u každé ingredience.
+- v `orders` sloupec `payment_czk` (příplatek za dobírku je teď součástí
+  ceny). Funkce `place_order()` ho počítá sama a platbu kartou zatím
+  odmítne, dokud není napojená brána.
+- do *Nákup → Úkoly* seznam úředních kroků před spuštěním prodeje
+  (živnost, SZPI, HACCP, EKO-KOM…). Vloží se jen jednou.
+
+Popis borůvky sliboval antioxidanty; přepíše se jen tehdy, když jsi ho
+mezitím neměnil.

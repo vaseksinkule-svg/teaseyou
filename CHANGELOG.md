@@ -6,6 +6,37 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (právní věci)
+- **Obchodní podmínky, reklamace, ochrana osobních údajů a cookies** sepsané
+  nanovo podle toho, jak e-shop opravdu funguje. Nová stránka **Odstoupení od
+  smlouvy** se vzorovým formulářem (e-mail nebo tisk).
+- **Údaje o prodávajícím** (jméno, IČO, sídlo, telefon, e-mail) se vyplňují
+  v administraci a web je dosadí do podmínek, patičky i na etiketu. Dokud
+  chybí, je vidět „[doplnit]“.
+- **Informace o potravině** u každé směsi: na detailu, v posledním kroku
+  mixéru a v košíku. Název podle vyhlášky 187/2023 Sb. (ochucený, bylinný
+  nebo ovocný čaj), složení s procenty, alergeny, hmotnost, trvanlivost,
+  skladování, příprava a výrobce. Levandule, kurkuma a kardamom nejvýš 5 %.
+- **Úkoly v administraci** s úředními kroky před spuštěním prodeje.
+
+### Změněno
+- Tlačítko v pokladně je **„Objednat a zaplatit“** a nad ním je poučení, že
+  směsi na míru nejde vrátit bez udání důvodu.
+- **Příplatek za dobírku** se opravdu připočítá do ceny (dřív ho web jen
+  sliboval). Výši nastavíš v administraci.
+- **Platba kartou** zmizela z nabídky, dokud nebude napojená platební brána.
+- **Písma** jsou uložená přímo na webu, nic se nenačítá z Googlu.
+  **Mapa Zásilkovny** se stáhne až po kliknutí na výběr výdejního místa.
+- FAQ: opravené odpovědi o alergenech, vracení a trvanlivosti.
+- Stránka po objednávce už neslibuje potvrzovací e-mail, dokud se neposílá.
+
+### Odebráno
+- **Cookie lišta:** web nic nesleduje, takže souhlas není potřeba.
+- **Přihlášení k newsletteru** v patičce: hlásilo „jsi přihlášený“, ale nic
+  neukládalo.
+- **Zdravotní tvrzení** (antioxidanty a podobně) z webu.
+- Nepoužívané písmo Climate Crisis.
+
 ### Změněno (písma a úvod)
 - **Nová písma na celém webu i v administraci:** nadpisy a logo v Unbounded,
   text v Albert Sans. Climate Crisis a Archivo jsou pryč.

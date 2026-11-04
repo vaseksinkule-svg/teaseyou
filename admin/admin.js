@@ -17,6 +17,9 @@
 
     const CATEGORY = { base: 'Základ', flavor: 'Příchuť', extra: 'Doplněk' };
     const CATEGORY_GROUP = { base: 'Základy', flavor: 'Příchutě', extra: 'Doplňky' };
+    // Druh suroviny rozhoduje o názvu směsi na etiketě (ochucený, bylinný, ovocný čaj).
+    const KIND = { tea: 'Pravý čaj', herb: 'Bylina nebo koření', fruit: 'Sušené ovoce', other: 'Jiné (med, cukr…)' };
+    const defaultKind = category => (category === 'base' ? 'tea' : 'herb');
     const STATUS = { new: 'Nová', paid: 'Zaplacená', shipped: 'Odeslaná', done: 'Vyřízená', cancelled: 'Zrušená' };
     const PAYMENT = { cod: 'Dobírka', card: 'Kartou online', transfer: 'Převodem na účet' };
     const ORDER_FILTERS = [
@@ -530,6 +533,7 @@
                     <div><span>Zboží</span><span>${kc(o.goods_czk)}</span></div>
                     ${o.discount_czk ? `<div><span>Sleva ${esc(o.promo_code || '')}</span><span>−${kc(o.discount_czk)}</span></div>` : ''}
                     <div><span>Doprava</span><span>${o.shipping_czk ? kc(o.shipping_czk) : 'zdarma'}</span></div>
+                    ${o.payment_czk ? `<div><span>Příplatek za dobírku</span><span>${kc(o.payment_czk)}</span></div>` : ''}
                     <div class="grand"><span>Celkem</span><span>${kc(o.total_czk)}</span></div>
                 </div>
             </div>
@@ -708,9 +712,23 @@
                 </div>
                 <label class="field"><span>Chuť česky</span><input type="text" name="flavor_cs" value="${esc((i.flavor_cs || []).join(', '))}"><small>Oddělené čárkou, např. sladká, květinová</small></label>
                 <label class="field"><span>Chuť anglicky</span><input type="text" name="flavor_en" value="${esc((i.flavor_en || []).join(', '))}"></label>
-                <label class="field"><span>Přínosy česky</span><input type="text" name="health_cs" value="${esc((i.health_cs || []).join(', '))}">
-                    <small>Pozor: u potravin smí web uvádět jen zdravotní tvrzení schválená EU (nařízení 1924/2006). Bezpečnější je popisovat chuť a původ.</small></label>
-                <label class="field"><span>Přínosy anglicky</span><input type="text" name="health_en" value="${esc((i.health_en || []).join(', '))}"></label>
+                <fieldset class="field-group">
+                    <legend>Na etiketu a do informací o potravině</legend>
+                    <div class="field-row">
+                        <label class="field"><span>Název ve složení</span><input type="text" name="label_cs" maxlength="80" placeholder="např. citronová kůra" value="${esc(i.label_cs || '')}"></label>
+                        <label class="field"><span>Druh</span>
+                            <select name="kind">${Object.entries(KIND).map(([k, v]) =>
+                                `<option value="${k}"${(i.kind || defaultKind(i.category)) === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
+                        </label>
+                    </div>
+                    <div class="field-row">
+                        <label class="field"><span>Nejvýš ve směsi</span><input type="number" name="max_pct" min="1" max="100" step="1" inputmode="numeric" placeholder="bez limitu" value="${esc(i.max_pct || '')}"><small>V % podle přílohy 1 vyhlášky 187/2023 Sb. Třeba levandule, kurkuma a kardamom nejvýš 5.</small></label>
+                        <label class="field"><span>Alergeny</span><input type="text" name="allergens" maxlength="200" placeholder="žádné" value="${esc(i.allergens || '')}"><small>Podle specifikace od dodavatele, např. oxid siřičitý u sušeného ovoce.</small></label>
+                    </div>
+                </fieldset>
+                <label class="field"><span>Poznámky o účincích česky</span><input type="text" name="health_cs" value="${esc((i.health_cs || []).join(', '))}">
+                    <small>Jen pro tebe, na webu se neukazují. U potravin smí web uvádět jen zdravotní tvrzení schválená EU (nařízení 1924/2006).</small></label>
+                <label class="field"><span>Poznámky o účincích anglicky</span><input type="text" name="health_en" value="${esc((i.health_en || []).join(', '))}"></label>
                 <div class="field"><span>Hodí se s</span>
                     <div class="status-buttons" id="pairs">${others.map(x =>
                         `<button type="button" class="chip" data-pair="${esc(x.code)}" aria-pressed="${(i.pairs || []).includes(x.code)}">${esc(x.name_cs)}</button>`).join('')}</div>
@@ -763,6 +781,10 @@
                     brew_time: category === 'base' ? (v('brew_time') || null) : null,
                     flavor_cs: splitList(v('flavor_cs')), flavor_en: splitList(v('flavor_en')),
                     health_cs: splitList(v('health_cs')), health_en: splitList(v('health_en')),
+                    label_cs: v('label_cs') || null,
+                    kind: form.kind.value,
+                    max_pct: form.max_pct.value === '' ? null : parseInt(form.max_pct.value, 10),
+                    allergens: v('allergens'),
                     pairs: $$('#pairs .chip[aria-pressed="true"]', body).map(c => c.dataset.pair),
                     photo_url: photo.url,
                     in_stock: form.in_stock.checked,
@@ -770,6 +792,9 @@
                     sort: parseInt(v('sort'), 10) || 0,
                 };
                 if (!row.name_cs || !row.name_en) { formError('#ing-error', 'Vyplň český i anglický název.'); return; }
+                if (row.max_pct !== null && !(row.max_pct >= 1 && row.max_pct <= 100)) {
+                    formError('#ing-error', 'Nejvyšší podíl ve směsi musí být 1 až 100 %, nebo nech pole prázdné.'); return;
+                }
                 if (isNew) {
                     const code = codeFromName(row.name_en);
                     if (!/^[A-Za-z0-9]/.test(code)) { formError('#ing-error', 'Anglický název musí obsahovat aspoň jedno písmeno nebo číslici.'); return; }
@@ -1857,11 +1882,41 @@
         });
 
         const form = $('#settings-form');
-        const st = state.settings || { free_ship_threshold: 500, promo_bar_enabled: true, promo_bar_cs: '', promo_bar_en: '' };
+        const st = Object.assign({}, SETTINGS_DEFAULTS, state.settings || {});
         form.free_ship_threshold.value = st.free_ship_threshold;
+        form.cod_fee_czk.value = st.cod_fee_czk;
         form.promo_bar_enabled.checked = st.promo_bar_enabled !== false;
         form.promo_bar_cs.value = st.promo_bar_cs || '';
         form.promo_bar_en.value = st.promo_bar_en || '';
+
+        const sf = $('#seller-form');
+        ['seller_name', 'seller_ico', 'seller_address', 'seller_email', 'seller_phone',
+         'recipe_base_pct', 'recipe_flavor_pct', 'recipe_extra_pct', 'durability_months'].forEach(n => {
+            sf[n].value = st[n] ?? '';
+        });
+    }
+
+    // Výchozí hodnoty, dokud v databázi není řádek nastavení (nebo chybí
+    // sloupce, protože se setup.sql ještě nespustil znovu).
+    const SETTINGS_DEFAULTS = {
+        free_ship_threshold: 500, cod_fee_czk: 39, promo_bar_enabled: true, promo_bar_cs: '', promo_bar_en: '',
+        seller_name: '', seller_ico: '', seller_address: '', seller_email: 'hello@teaseyou.cz', seller_phone: '',
+        recipe_base_pct: 70, recipe_flavor_pct: 20, recipe_extra_pct: 10, durability_months: 12,
+    };
+
+    async function saveSettings(row, btn, okMsg) {
+        btn.disabled = true;
+        try {
+            state.settings = state.settings
+                ? await updateOne('settings', { id: 'eq.1' }, row)
+                : (await db.insert('settings', Object.assign({ id: 1 }, row)))[0];
+            toast(okMsg);
+        } catch (err) {
+            // Sloupec chybí = databáze je ze starší verze setup.sql.
+            if (/column|schema cache/i.test(String(err && (err.message || err)))) {
+                toast('Databáze tyhle údaje ještě nezná. Spusť znovu supabase/setup.sql v Supabase → SQL Editor.', true);
+            } else fail(err);
+        } finally { btn.disabled = false; }
     }
 
     $('#price-add-form').addEventListener('submit', async e => {
@@ -1887,21 +1942,43 @@
         const form = e.currentTarget;
         const threshold = parseInt(form.free_ship_threshold.value, 10);
         if (!(threshold >= 0)) { toast('Hranice pro dopravu zdarma musí být číslo od 0.', true); return; }
+        const codFee = parseInt(form.cod_fee_czk.value, 10);
+        if (!(codFee >= 0 && codFee <= 1000)) { toast('Příplatek za dobírku musí být 0 až 1000 Kč.', true); return; }
         const row = {
             free_ship_threshold: threshold,
             promo_bar_enabled: form.promo_bar_enabled.checked,
             promo_bar_cs: form.promo_bar_cs.value.trim() || null,
             promo_bar_en: form.promo_bar_en.value.trim() || null,
         };
-        const btn = form.querySelector('[type=submit]');
-        btn.disabled = true;
-        try {
-            state.settings = state.settings
-                ? await updateOne('settings', { id: 'eq.1' }, row)
-                : (await db.insert('settings', Object.assign({ id: 1 }, row)))[0];
-            toast('Nastavení uložené.');
-        } catch (err) { fail(err); }
-        finally { btn.disabled = false; }
+        // Sloupec s příplatkem posíláme jen tehdy, když ho databáze už má.
+        if (!state.settings || 'cod_fee_czk' in state.settings) row.cod_fee_czk = codFee;
+        await saveSettings(row, form.querySelector('[type=submit]'), 'Nastavení uložené.');
+    });
+
+    $('#seller-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const f = e.currentTarget;
+        const v = n => f[n].value.trim();
+        const pct = n => parseInt(f[n].value, 10);
+        const ico = v('seller_ico').replace(/\s+/g, '');
+        if (ico && !/^[0-9]{8}$/.test(ico)) { toast('IČO má přesně 8 číslic.', true); return; }
+        const email = v('seller_email');
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('E-mail nevypadá správně.', true); return; }
+        const base = pct('recipe_base_pct'), flavor = pct('recipe_flavor_pct'), extra = pct('recipe_extra_pct');
+        if (![base, flavor, extra].every(Number.isInteger) || base < 1 || flavor < 0 || extra < 0) {
+            toast('Receptura: vyplň celá čísla, základ aspoň 1 %.', true); return;
+        }
+        if (base + flavor + extra !== 100) {
+            toast(`Receptura musí dát dohromady 100 %, teď je to ${base + flavor + extra} %.`, true); return;
+        }
+        const months = pct('durability_months');
+        if (!(months >= 1 && months <= 36)) { toast('Trvanlivost zadej v měsících, 1 až 36.', true); return; }
+        await saveSettings({
+            seller_name: v('seller_name'), seller_ico: ico, seller_address: v('seller_address'),
+            seller_email: email, seller_phone: v('seller_phone'),
+            recipe_base_pct: base, recipe_flavor_pct: flavor, recipe_extra_pct: extra,
+            durability_months: months,
+        }, f.querySelector('[type=submit]'), 'Údaje o prodávajícím uložené.');
     });
 
     /* ═══ SLEVY ════════════════════════════════════════════════════ */

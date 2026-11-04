@@ -1,3 +1,54 @@
+/* Písma leží přímo na webu (složka fonts/), takže se návštěvníkům nic
+   nenačítá z Googlu a jejich IP adresa nikam neodchází. Licence: fonts/OFL.txt */
+@font-face {
+    font-family: 'Unbounded';
+    font-style: normal;
+    font-weight: 200 900;
+    font-display: swap;
+    src: url(../fonts/unbounded-latin-ext-wght-normal.woff2) format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: 'Unbounded';
+    font-style: normal;
+    font-weight: 200 900;
+    font-display: swap;
+    src: url(../fonts/unbounded-latin-wght-normal.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: 'Albert Sans';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url(../fonts/albert-sans-latin-ext-wght-normal.woff2) format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: 'Albert Sans';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url(../fonts/albert-sans-latin-wght-normal.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: 'Albert Sans';
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url(../fonts/albert-sans-latin-ext-wght-italic.woff2) format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: 'Albert Sans';
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url(../fonts/albert-sans-latin-wght-italic.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* Tease you — administrace. Barvy a písma jako web, jinak co nejtišší. */
 
 
@@ -130,6 +181,12 @@ input[type="color"] {
 .field-inline input { max-width: 140px; }
 .field-inline em { font-style: normal; color: var(--muted); }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field-row-3 { grid-template-columns: repeat(3, 1fr); }
+.field-group {
+    border: 1px solid var(--line); border-radius: var(--r-sm);
+    padding: 12px 14px 2px; margin: 4px 0 16px; min-width: 0;
+}
+.field-group legend { padding: 0 6px; font-size: 13px; font-weight: 700; color: var(--ink); }
 .form-error {
     color: var(--rust); background: var(--rust-pale);
     border-radius: var(--r-sm); padding: 10px 12px; margin: 0 0 14px; font-size: 14px;
