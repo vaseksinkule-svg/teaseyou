@@ -71,6 +71,7 @@
     <header class="topbar">
         <a class="wordmark" href="../" title="Otevřít web">Tease you</a>
         <span class="topbar-title">Administrace</span>
+        <span class="env-badge" id="env-badge" hidden></span>
         <span class="topbar-user" id="user-email"></span>
         <button type="button" class="btn btn-ghost btn-small" data-action="logout">Odhlásit</button>
     </header>
@@ -85,7 +86,13 @@
         <button role="tab" class="tab" data-tab="purchase" aria-selected="false">Nákup <span class="tab-count" id="count-tasks" hidden></span></button>
         <button role="tab" class="tab" data-tab="withdrawals" aria-selected="false">Odstoupení <span class="tab-count" id="count-withdrawals" hidden></span></button>
         <button role="tab" class="tab" data-tab="privacy" aria-selected="false">Osobní údaje <span class="tab-count" id="count-privacy" hidden></span></button>
+        <button role="tab" class="tab" data-tab="backups" aria-selected="false">Zálohy a koš</button>
     </nav>
+
+    <div class="backup-alert" id="backup-alert" role="status" hidden>
+        <span id="backup-alert-text"></span>
+        <button type="button" class="btn btn-primary btn-small" data-action="download-backup">Stáhnout zálohu</button>
+    </div>
 
     <main class="views">
         <section class="view" id="view-orders" role="tabpanel" hidden>
@@ -240,6 +247,39 @@
                 <div id="privacy-log"></div>
             </div>
         </section>
+        <section class="view" id="view-backups" role="tabpanel" hidden>
+            <div class="view-head">
+                <h2>Zálohy a koš</h2>
+            </div>
+            <p class="view-note">Supabase na bezplatném plánu databázi sám nezálohuje a fotky nezálohuje nikdy. Záloha se proto stahuje sem k tobě: jeden soubor se vším, i s fotkami.</p>
+
+            <div class="panel">
+                <h3>Záloha</h3>
+                <p class="help" id="backup-last">Zatím žádná záloha.</p>
+                <p><button type="button" class="btn btn-primary" data-action="download-backup" id="backup-download">Stáhnout zálohu</button>
+                <span class="help" id="backup-progress" aria-live="polite"></span></p>
+                <ul class="help-list">
+                    <li>Stahuj jednou týdně a vždycky před spuštěním <code>setup.sql</code> nebo před velkou změnou.</li>
+                    <li>Soubor obsahuje jména, adresy a e-maily zákazníků. Ulož ho na disk nebo do cloudu chráněného heslem a dvoufázovým ověřením. Neposílej ho e-mailem.</li>
+                    <li>Měj aspoň dvě kopie na různých místech (třeba počítač a cloud). Zálohy starší než 3 měsíce smaž, tak to slibují zásady ochrany osobních údajů.</li>
+                </ul>
+            </div>
+
+            <div class="panel">
+                <h3>Obnova ze zálohy</h3>
+                <p class="help">Nejdřív se ukáže, co by se stalo. Dokud nepotvrdíš, nic se nezmění. Objednávky, odstoupení a zájemci se vždycky jen doplní, nikdy se nemažou ani nepřepisují.</p>
+                <label class="field"><span>Soubor se zálohou</span><input type="file" id="restore-file" accept="application/json,.json"></label>
+                <label class="switch-row"><input type="checkbox" class="switch" id="restore-overwrite"><span>Přepsat katalog, nastavení, mýdla a nákup přesně podle zálohy (co v záloze není, půjde do koše)</span></label>
+                <div id="restore-preview"></div>
+                <p><button type="button" class="btn btn-danger" id="restore-run" disabled>Obnovit</button></p>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head"><h3>Koš</h3></div>
+                <p class="panel-note">Co se v administraci smaže, je tady 30 dní a dá se vrátit. Je tu i vidět, kdo co smazal a kdy. Objednávky smazat nejde vůbec.</p>
+                <div id="trash-list"></div>
+            </div>
+        </section>
     </main>
 </div>
 
@@ -258,6 +298,7 @@
 <dialog id="confirm-dialog" class="confirm">
     <form method="dialog">
         <p id="confirm-text"></p>
+        <label class="field" id="confirm-typed" hidden><span id="confirm-typed-label"></span><input type="text" id="confirm-typed-input" autocomplete="off" spellcheck="false"></label>
         <div class="confirm-actions">
             <button value="cancel" class="btn btn-secondary">Zpět</button>
             <button value="ok" class="btn btn-danger" id="confirm-ok">Smazat</button>

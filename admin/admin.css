@@ -534,3 +534,20 @@ body.sheet-open .toast { bottom: max(96px, calc(env(safe-area-inset-bottom) + 96
 .privacy-found { margin: 14px 0 10px; padding-left: 1.2em; display: grid; gap: 4px; }
 .privacy-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 #privacy-form .btn { margin-bottom: 4px; }
+
+/* Prostředí, zálohy, koš */
+.env-badge { padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .01em; }
+.env-badge.env-prod { background: var(--rust-pale); color: var(--rust); }
+.env-badge.env-test { background: var(--pale); color: var(--forest); }
+.backup-alert {
+    max-width: 1080px; margin: 12px auto 0; padding: 10px 16px; display: flex; flex-wrap: wrap;
+    align-items: center; justify-content: space-between; gap: 10px;
+    border-radius: var(--r-sm); background: var(--sun-pale); color: var(--ink); font-size: 14px;
+}
+.backup-alert[hidden] { display: none; }
+.help-list { margin: 10px 0 0; padding-left: 1.2em; display: grid; gap: 4px; color: var(--muted); font-size: 13px; }
+.restore-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+.restore-table th, .restore-table td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.restore-table th:first-child, .restore-table td:first-child { text-align: left; }
+.restore-table .warn { color: var(--rust); font-weight: 700; }
+.trash-row .row-sub { white-space: normal; }
