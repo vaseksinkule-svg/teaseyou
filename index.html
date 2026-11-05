@@ -6,7 +6,7 @@
     <title>Tease you — Namíchej si vlastní čajový blend</title>
     <meta name="description" content="Namíchej si vlastní čaj ze 6 základů, 9 příchutí a 9 doplňků. Pojmenuj ho, my ho čerstvě zabalíme a doručíme. Doprava zdarma nad 500 Kč.">
     <meta property="og:title" content="Tease you — Namíchej si vlastní čajový blend">
-    <meta property="og:description" content="Namíchej si vlastní čaj, pojmenuj ho a my ho odešleme čerstvě zabalený. 500+ kombinací, doprava od 69 Kč.">
+    <meta property="og:description" content="Namíchej si vlastní čaj, pojmenuj ho a my ho odešleme čerstvě zabalený. Stovky kombinací, doprava od 69 Kč.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://teaseyou.cz">
     <meta property="og:image" content="https://teaseyou.cz/og-image.jpg">
@@ -22,9 +22,6 @@
     <link rel="author" href="humans.txt">
     <link rel="license" href="LICENSE">
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:ital,wght@0,300..800;1,400&family=Unbounded:wght@400..800&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%233a5f3c'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23f5f1e9' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%233a5f3c'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23f5f1e9' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E">
     <link rel="manifest" href="manifest.json">
@@ -37,7 +34,6 @@
         "url": "https://teaseyou.cz",
         "image": "https://teaseyou.cz/og-image.jpg",
         "email": "hello@teaseyou.cz",
-        "telephone": "+420123456789",
         "priceRange": "49–199 Kč",
         "currenciesAccepted": "CZK",
         "address": { "@type": "PostalAddress", "addressCountry": "CZ" },
@@ -46,6 +42,7 @@
     </script>
 </head>
 <body>
+<a class="skip-link" href="#obsah" data-i18n="skip_to_content">Přeskočit na obsah</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <defs>
         <linearGradient id="kraft-fill" x1="0" y1="0" x2="0" y2="1">
@@ -88,20 +85,6 @@
     <button class="promo-close" onclick="dismissPromoBar()" aria-label="Zavřít" data-i18n-aria="aria_close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 </div>
 
-<!-- COOKIE CONSENT -->
-<div id="cookie-banner" class="cookie-banner" style="display:none;">
-    <div class="cookie-inner">
-        <div class="cookie-text">
-            <strong data-i18n="cookie_title">We use cookies</strong>
-            <p><span data-i18n="cookie_text">We use cookies to improve your experience and remember your preferences. By continuing you agree to our</span> <a href="#" class="cookie-link" onclick="showPage('cookies-page')" data-i18n="cookie_policy_link">Cookie Policy</a>.</p>
-        </div>
-        <div class="cookie-actions">
-            <button class="btn cookie-decline" onclick="handleCookies(false)" data-i18n="btn_decline">Decline</button>
-            <button class="btn cookie-accept" onclick="handleCookies(true)" data-i18n="btn_accept">Accept all</button>
-        </div>
-    </div>
-</div>
-
 <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
 <nav id="sidebar" class="sidebar" aria-label="Menu">
     <div class="sidebar-head">
@@ -111,15 +94,15 @@
         </button>
     </div>
     <ul class="sidebar-nav">
-        <li onclick="closeSidebar(); showPage('product-page')" data-i18n="nav_create">Namíchej si vlastní</li>
-        <li onclick="closeSidebar(); goToShelf()" data-i18n="nav_shelf">Naše směsi</li>
-        <li onclick="closeSidebar(); showPage('quiz-page')" data-i18n="nav_quiz">Najdi svůj blend</li>
-        <li onclick="closeSidebar(); showPage('ingredients-page')" data-i18n="nav_ingredients">Ingredience</li>
-        <li onclick="closeSidebar(); showPage('craft-page')" data-i18n="nav_craft">Mýdla a balzámy</li>
-        <li onclick="closeSidebar(); showPage('saved-page')" data-i18n="nav_blends">Moje blendy</li>
-        <li onclick="closeSidebar(); showPage('orders-page')" data-i18n="nav_orders">Moje objednávky</li>
-        <li onclick="closeSidebar(); showPage('process-page')" data-i18n="nav_process">Jak to děláme</li>
-        <li onclick="closeSidebar(); showPage('about-page')" data-i18n="nav_about">O nás</li>
+        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('product-page')" data-i18n="nav_create">Namíchej si vlastní</button></li>
+        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); goToShelf()" data-i18n="nav_shelf">Naše směsi</button></li>
+        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('quiz-page')" data-i18n="nav_quiz">Najdi svůj blend</button></li>
+        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('ingredients-page')" data-i18n="nav_ingredients">Ingredience</button></li>
+        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('craft-page')" data-i18n="nav_craft">Mýdla a balzámy</button></li>
+        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('saved-page')" data-i18n="nav_blends">Moje blendy</button></li>
+        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('orders-page')" data-i18n="nav_orders">Moje objednávky</button></li>
+        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('process-page')" data-i18n="nav_process">Jak to děláme</button></li>
+        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('about-page')" data-i18n="nav_about">O nás</button></li>
     </ul>
     <div class="sidebar-foot">
         <button class="theme-switch" onclick="toggleDarkMode()">
@@ -156,7 +139,7 @@
     </div>
 </header>
 
-<main class="content-wrapper">
+<main class="content-wrapper" id="obsah" tabindex="-1">
 
 <!-- ═══ HOME ═══ -->
 <section id="home-page" class="page active">
@@ -237,21 +220,21 @@
                     <span data-i18n="faq_q1">How long does delivery take?</span>
                     <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div class="faq-a" data-i18n="faq_a1">We blend your order the same day and ship within 24 hours. Czech Republic: 2&ndash;3 business days via Zásilkovna or Česká pošta. Slovakia: 3&ndash;5 business days.</div>
+                <div class="faq-a" data-i18n="faq_a1">Směs namícháme až po objednání a obvykle ji odešleme do 24 hodin. Česká republika: 2–3 pracovní dny přes Zásilkovnu nebo Českou poštu. Slovensko: 3–5 pracovních dní.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">
                     <span data-i18n="faq_q2">What are the allergens?</span>
                     <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div class="faq-a" data-i18n="faq_a2">All our blends are naturally free of gluten, dairy and nuts. We do handle nut-adjacent spices (cardamom, cinnamon) in our facility. If you have a severe allergy, please contact us before ordering. All ingredients are 100% natural with no artificial flavourings.</div>
+                <div class="faq-a" data-i18n="faq_a2">Alergeny najdeš u každé směsi v části Složení a informace o potravině, a to podle specifikací od našich dodavatelů. Když máš silnou alergii, napiš nám před objednávkou a probereme to.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">
                     <span data-i18n="faq_q3">Can I return or exchange an order?</span>
                     <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div class="faq-a" data-i18n="faq_a3">Because every blend is made to order, we cannot accept returns for custom blends. If your order arrives damaged or incorrect, we will reship at no charge. Contact us within 7 days of delivery.</div>
+                <div class="faq-a" data-i18n="faq_a3">Směs namíchanou podle tebe děláme na zakázku, takže ji nejde vrátit bez udání důvodu. Hotovou směs z nabídky vrátit můžeš do 14 dnů, pokud je sáček neotevřený. Když cokoli dorazí poškozené nebo jiné, než jsi objednal, napiš nám a pošleme novou. Podrobnosti jsou v obchodních podmínkách.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">
@@ -272,7 +255,7 @@
                     <span data-i18n="faq_q6">How long does the tea stay fresh?</span>
                     <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div class="faq-a" data-i18n="faq_a6">All our blends are packed in resealable, food-grade kraft pouches with an airtight seal. Stored in a cool, dry place away from direct light, your blend will stay fresh for 12&ndash;18 months.</div>
+                <div class="faq-a" data-i18n="faq_a6">Balíme do opakovaně uzavíratelných sáčků pro potraviny. Na každém je datum minimální trvanlivosti, obvykle rok od namíchání. Skladuj v suchu a temnu při pokojové teplotě a po otevření sáček dobře zavři.</div>
             </div>
         </div>
     </section>
@@ -308,6 +291,7 @@
                         <div><dt data-i18n="brew_time">Louhování</dt><dd id="detail-time">3–4 min</dd></div>
                     </dl>
                 </section>
+                <section class="food-info" id="detail-food" aria-labelledby="detail-food-title"></section>
                 <aside class="detail-craft" id="detail-craft" hidden aria-labelledby="detail-craft-title">
                     <h2 class="brew-title" id="detail-craft-title" data-i18n="craft_same_title">Ze stejných surovin</h2>
                     <div id="detail-craft-list"></div>
@@ -335,19 +319,19 @@
             <div class="selection-group" data-step="1">
                 <h1 class="step-question" data-i18n="q_1">Jaký čaj bude základ?</h1>
                 <p class="step-hint" data-i18n="q_1_hint">Určuje chuť i to, kolik bude mít kofeinu.</p>
-                <div class="btn-grid" data-group="bases" role="radiogroup"></div>
+                <div class="btn-grid" data-group="bases" role="group" aria-label="Základ"></div>
             </div>
 
             <div class="selection-group" data-step="2">
                 <h2 class="step-question" data-i18n="q_2">Jakou chceš příchuť?</h2>
                 <p class="step-hint" data-i18n="q_2_hint">Ovoce, květy nebo něco sladšího.</p>
-                <div class="btn-grid" data-group="flavors" role="radiogroup"></div>
+                <div class="btn-grid" data-group="flavors" role="group" aria-label="Příchuť"></div>
             </div>
 
             <div class="selection-group" data-step="3">
                 <h2 class="step-question" data-i18n="q_3">Čím ji dolaďíme?</h2>
                 <p class="step-hint" data-i18n="q_3_hint">Med, citrus nebo koření.</p>
-                <div class="btn-grid" data-group="extras" role="radiogroup"></div>
+                <div class="btn-grid" data-group="extras" role="group" aria-label="Doplněk"></div>
             </div>
 
             <div class="selection-group step-final" data-step="4">
@@ -360,6 +344,7 @@
                 </div>
                 <p class="field-label" data-i18n="size_label">Velikost</p>
                 <div class="qty-options" id="mixer-sizes"></div>
+                <details class="food-info food-info--fold" id="mixer-food"></details>
                 <div class="final-links">
                     <button type="button" class="btn btn-text btn-small" id="mixer-save" data-i18n="btn_save_blend">Uložit na později</button>
                     <button type="button" class="btn btn-text btn-small" id="mixer-share" data-i18n="btn_share_blend">Poslat odkaz</button>
@@ -480,6 +465,10 @@
                     <span data-i18n="order_shipping">Doprava</span>
                     <span id="checkout-shipping-cost">0 Kč</span>
                 </div>
+                <div class="sum-line" id="checkout-payment-row" style="display:none;">
+                    <span data-i18n="order_payment_fee">Příplatek za dobírku</span>
+                    <span id="checkout-payment-cost">0 Kč</span>
+                </div>
                 <div class="sum-line sum-line-total">
                     <span data-i18n="order_total">Celkem</span>
                     <span id="checkout-total-display">0 Kč</span>
@@ -496,23 +485,7 @@
                     <div class="form-group"><label class="field-label" for="f-phone" data-i18n="lbl_phone">Telefon *</label><input type="tel" id="f-phone" name="phone" class="field" required autocomplete="tel" placeholder="+420 123 456 789"></div>
                 </fieldset>
                 <fieldset class="form-step">
-                    <legend class="form-step-title"><span class="form-step-num">2</span><span data-i18n="checkout_address">Doručovací adresa</span></legend>
-                    <div class="form-group"><label class="field-label" for="f-street" data-i18n="lbl_street">Ulice a číslo *</label><input type="text" id="f-street" name="street" class="field" required autocomplete="street-address"></div>
-                    <div class="form-row form-row--zip">
-                        <div class="form-group"><label class="field-label" for="f-city" data-i18n="lbl_city">Město *</label><input type="text" id="f-city" name="city" class="field" required autocomplete="address-level2"></div>
-                        <div class="form-group"><label class="field-label" for="f-zip" data-i18n="lbl_zip">PSČ *</label><input type="text" id="f-zip" name="zip" class="field" required maxlength="6" autocomplete="postal-code" inputmode="numeric"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="field-label" for="f-country" data-i18n="lbl_country">Země *</label>
-                        <select id="f-country" name="country" class="field field-select" required autocomplete="country">
-                            <option value="" data-i18n="country_select">Vyber</option>
-                            <option value="CZ" data-i18n="country_cz">Česko</option>
-                            <option value="SK" data-i18n="country_sk">Slovensko</option>
-                        </select>
-                    </div>
-                </fieldset>
-                <fieldset class="form-step">
-                    <legend class="form-step-title"><span class="form-step-num">3</span><span data-i18n="checkout_shipping">Doprava</span></legend>
+                    <legend class="form-step-title"><span class="form-step-num">2</span><span data-i18n="checkout_shipping">Doprava</span></legend>
                     <div class="choice-list">
                         <label class="choice shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="69" required onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name">Zásilkovna</span><span class="choice-desc shipping-desc" data-i18n="ship_zasilkovna_desc">Vyzvedneš na výdejním místě</span></span><span class="choice-price shipping-price">69 Kč</span></label>
                         <div id="packeta-picker" class="packeta-picker" style="display:none;" aria-live="polite">
@@ -528,19 +501,37 @@
                     </div>
                 </fieldset>
                 <fieldset class="form-step">
-                    <legend class="form-step-title"><span class="form-step-num">4</span><span data-i18n="pay_title">Platba</span></legend>
-                    <div class="choice-list">
-                        <label class="choice payment-option"><input type="radio" name="payment" value="cod" checked><span class="choice-body"><span class="choice-name" data-i18n="pay_cod">Dobírka</span><span class="choice-desc" data-i18n="pay_cod_desc">Platba při převzetí (+39 Kč)</span></span></label>
-                        <label class="choice payment-option"><input type="radio" name="payment" value="card"><span class="choice-body"><span class="choice-name" data-i18n="pay_card">Platební karta online</span><span class="choice-desc" data-i18n="pay_card_desc">Visa, Mastercard přes GoPay / Comgate</span></span></label>
-                        <label class="choice payment-option"><input type="radio" name="payment" value="transfer"><span class="choice-body"><span class="choice-name" data-i18n="pay_transfer">Bankovní převod</span><span class="choice-desc" data-i18n="pay_transfer_desc">Instrukce pošleme e-mailem</span></span></label>
+                    <legend class="form-step-title"><span class="form-step-num">3</span><span data-i18n="checkout_address">Doručovací adresa</span></legend>
+                    <p class="form-step-hint" id="address-hint" hidden data-i18n="address_not_needed">Na výdejní místo Zásilkovny adresu nepotřebujeme, stačí vybrat zemi.</p>
+                    <div class="form-group address-only"><label class="field-label" for="f-street" data-i18n="lbl_street">Ulice a číslo *</label><input type="text" id="f-street" name="street" class="field" required autocomplete="street-address"></div>
+                    <div class="form-row form-row--zip address-only">
+                        <div class="form-group"><label class="field-label" for="f-city" data-i18n="lbl_city">Město *</label><input type="text" id="f-city" name="city" class="field" required autocomplete="address-level2"></div>
+                        <div class="form-group"><label class="field-label" for="f-zip" data-i18n="lbl_zip">PSČ *</label><input type="text" id="f-zip" name="zip" class="field" required maxlength="6" autocomplete="postal-code" inputmode="numeric"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="f-country" data-i18n="lbl_country">Země *</label>
+                        <select id="f-country" name="country" class="field field-select" required autocomplete="country">
+                            <option value="" data-i18n="country_select">Vyber</option>
+                            <option value="CZ" data-i18n="country_cz">Česko</option>
+                            <option value="SK" data-i18n="country_sk">Slovensko</option>
+                        </select>
                     </div>
                 </fieldset>
+                <fieldset class="form-step">
+                    <legend class="form-step-title"><span class="form-step-num">4</span><span data-i18n="pay_title">Platba</span></legend>
+                    <div class="choice-list">
+                        <label class="choice payment-option"><input type="radio" name="payment" value="cod" required onchange="refreshCheckoutTotals()"><span class="choice-body"><span class="choice-name" data-i18n="pay_cod">Dobírka</span><span class="choice-desc" data-i18n="pay_cod_desc">Platba při převzetí (+39 Kč)</span></span></label>
+                        <label class="choice payment-option"><input type="radio" name="payment" value="transfer" onchange="refreshCheckoutTotals()"><span class="choice-body"><span class="choice-name" data-i18n="pay_transfer">Bankovní převod</span><span class="choice-desc" data-i18n="pay_transfer_desc">Instrukce pošleme e-mailem</span></span></label>
+                    </div>
+                </fieldset>
+                <p id="payment-error" class="field-error" role="alert" style="display:none;" data-i18n="err_payment">Vyber, jak chceš zaplatit.</p>
                 <div class="form-group">
                     <label class="field-label" for="f-note"><span data-i18n="checkout_note">Poznámka</span> <span class="field-opt" data-i18n="checkout_note_opt">(nepovinné)</span></label>
                     <textarea id="f-note" name="note" class="field" rows="3" placeholder="Třeba vzkaz na přání, když je to dárek" data-i18n-placeholder="note_placeholder2"></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg btn-block checkout-submit" data-i18n="btn_complete_order">Dokončit objednávku</button>
-                <p class="checkout-legal" data-i18n-html="checkout_legal">Odesláním souhlasíš s <a href="#" onclick="event.preventDefault(); showPage('terms-page')">obchodními podmínkami</a>.</p>
+                <p class="checkout-note" data-i18n-html="checkout_withdraw_note">Směsi namíchané podle tvého výběru děláme na zakázku, takže je nejde vrátit do 14 dnů bez udání důvodu (§ 1837 písm. d) občanského zákoníku). Hotovou směs z nabídky vrátit můžeš, pokud zůstal sáček neotevřený.</p>
+                <p class="checkout-legal" data-i18n-html="checkout_legal">Odesláním objednávky souhlasíš s obchodními podmínkami.</p>
+                <button type="submit" class="btn btn-primary btn-lg btn-block checkout-submit" data-i18n="btn_complete_order">Objednat a zaplatit</button>
             </form>
         </div>
     </div>
@@ -551,7 +542,7 @@
     <div class="page-wrap success">
         <div class="success-pouch" id="success-pouch" aria-hidden="true"></div>
         <h1 class="page-title" data-i18n="success_title">Díky, objednávka je u nás</h1>
-        <p class="page-lede" data-i18n="success_desc">Směs namícháme a do 24 hodin odešleme.</p>
+        <p class="page-lede" data-i18n="success_desc">Směs namícháme a obvykle do 24 hodin odešleme.</p>
         <p class="success-num" id="success-order-num"></p>
         <ol class="success-steps">
             <li class="is-done" data-i18n="success_step1">Objednávka přijatá</li>
@@ -597,64 +588,192 @@
     </div>
 </section>
 
-<!-- ═══ TERMS ═══ -->
+<!-- ═══ OBCHODNÍ PODMÍNKY ═══
+     Údaje v [data-seller] a [data-shop] doplní script.js z Nastavení v administraci. -->
 <section id="terms-page" class="page">
     <div class="page-wrap page-narrow legal">
         <h1 class="page-title">Obchodní podmínky</h1>
         <div class="legal-body">
-            <h2>1. Provozovatel</h2>
-            <p><strong>[DOPLNIT: Jméno / název firmy]</strong>, IČO: [DOPLNIT], se sídlem [DOPLNIT adresa], email: hello@teaseyou.cz, tel.: [DOPLNIT]</p>
+            <p class="legal-lede">Platí pro nákup v e-shopu Tease you na adrese <span data-shop="url">vaseksinkule-svg.github.io/teaseyou</span>. Píšeme je co nejsrozumitelněji. Kde to jde, odkazujeme na zákon, aby bylo jasné, odkud pravidlo pochází.</p>
 
-            <h2>2. Objednávka a uzavření smlouvy</h2>
-            <p>Odesláním objednávky zákazník potvrzuje, že se seznámil s těmito obchodními podmínkami. Smlouva je uzavřena potvrzením objednávky ze strany prodávajícího.</p>
+            <h2>1. Kdo prodává</h2>
+            <dl class="legal-facts">
+                <div><dt>Prodávající</dt><dd data-seller="name">[doplnit]</dd></div>
+                <div><dt>IČO</dt><dd data-seller="ico">[doplnit]</dd></div>
+                <div><dt>Sídlo a adresa pro vrácení zboží</dt><dd data-seller="address">[doplnit]</dd></div>
+                <div><dt>E-mail</dt><dd><a href="mailto:hello@teaseyou.cz" data-seller-mail>hello@teaseyou.cz</a></dd></div>
+                <div><dt>Telefon</dt><dd data-seller="phone">[doplnit]</dd></div>
+            </dl>
+            <p>Prodávající je fyzická osoba podnikající podle živnostenského zákona, zapsaná v živnostenském rejstříku. Není plátcem DPH.</p>
+            <p>Tyto podmínky upravují vztah mezi prodávajícím a kupujícím, který je spotřebitelem. Co v nich není, řídí se občanským zákoníkem (zákon č. 89/2012 Sb.) a zákonem o ochraně spotřebitele (zákon č. 634/1992 Sb.).</p>
 
-            <h2>3. Ceny a platba</h2>
-            <p>Všechny ceny jsou uvedeny v Kč včetně DPH. Platba probíhá [DOPLNIT: bankovním převodem / kartou online]. Objednávka je expedována po přijetí platby.</p>
+            <h2>2. Zboží a ceny</h2>
+            <p>Prodáváme sypané čajové směsi dvou druhů:</p>
+            <ul>
+                <li><strong>Směsi na míru</strong>, které si kupující sestaví v mixéru. Míchají se až po objednání, přesně podle jeho výběru.</li>
+                <li><strong>Hotové směsi</strong> z nabídky „Naše směsi“.</li>
+            </ul>
+            <p>U každé směsi najdeš informace o potravině: název, složení, alergeny, hmotnost, trvanlivost, skladování a výrobce. U hotové směsi jsou na její stránce, u směsi na míru v posledním kroku mixéru a u obou i v košíku.</p>
+            <p>Ceny jsou konečné. Prodávající není plátcem DPH, takže se k nim nic nepřipočítává. Cena dopravy a případný příplatek za dobírku (<span data-shop="cod_fee">39 Kč</span>) se ukážou v pokladně dřív, než objednávku odešleš. Při nákupu zboží nad <span data-shop="free_ship">500 Kč</span> je doprava zdarma, příplatek za dobírku se platí i tak.</p>
+            <p>Slevový kód se uplatňuje jen na cenu zboží, ne na dopravu. Slevy nejdou sčítat.</p>
 
-            <h2>4. Dodání</h2>
-            <p>Každý blend je namíchán v den objednávky a expedován do 24 hodin. Doručení na území ČR: 2–3 pracovní dny (Zásilkovna), 3–5 dní (Česká pošta). Slovensko: 3–5 pracovních dní.</p>
+            <h2>3. Objednávka a uzavření smlouvy</h2>
+            <p>Objednávku odešleš tlačítkem „Objednat a zaplatit“ v pokladně. Do té doby můžeš košík i všechny údaje libovolně měnit a zkontrolovat.</p>
+            <p>Přijetí objednávky ti bez zbytečného odkladu potvrdíme e-mailem. Kupní smlouva vzniká tímto potvrzením. Smlouvu uzavíráme v češtině. Objednávku ukládáme spolu s datem, časem a označením znění těchto podmínek, které při odeslání platilo, a na požádání ti pošleme její kopii.</p>
+            <p>Objednávku můžeme odmítnout, například když se mezitím vyprodá některá surovina nebo je v objednávce zjevná chyba v ceně. Pak se ti ozveme a případně už zaplacenou částku hned vrátíme.</p>
+            <p>Náklady na internet a telefon, které při objednávce máš, si hradíš sám.</p>
 
-            <h2>5. Odstoupení od smlouvy</h2>
-            <p>Zákazník má právo odstoupit od smlouvy do 14 dní od převzetí zboží bez udání důvodu, s výjimkou zboží vyrobeného na zakázku (§ 1837 písm. d) OZ). Blendy namíchané na míru jsou zboží vyrobené na zakázku — na ně právo na odstoupení nevzniká. U poškozené nebo nesprávné zásilky provádíme bezplatné opakované zaslání, kontaktujte nás do 7 dní od doručení.</p>
+            <h2>4. Platba</h2>
+            <ul>
+                <li><strong>Dobírka:</strong> platíš dopravci při převzetí. Příplatek je <span data-shop="cod_fee">39 Kč</span>.</li>
+                <li><strong>Bankovní převod:</strong> údaje k platbě ti pošleme e-mailem. Zaplatit je potřeba do 7 dnů, jinak objednávku zrušíme. Směs odešleme, jakmile platba dorazí na účet.</li>
+            </ul>
+            <p>Způsob platby si vybíráš sám, žádný není předem zaškrtnutý. Doklad o koupi přikládáme k zásilce.</p>
 
-            <h2>6. Reklamace</h2>
-            <p>Reklamaci uplatňujte emailem na hello@teaseyou.cz s popisem závady a fotografií. Reklamaci vyřídíme do 30 dnů.</p>
+            <h2>5. Dodání</h2>
+            <p>Směs mícháme až po objednání a obvykle ji odešleme do 24 hodin. U převodu počítáme od připsání platby. Nejpozději odešleme do 5 pracovních dnů. Kdyby to nešlo, dáme ti vědět a domluvíme se.</p>
+            <p>Doručujeme po Česku a na Slovensko přes Zásilkovnu, Českou poštu nebo kurýra DPD. Doba doručení je uvedená u každého způsobu v pokladně.</p>
+            <p>Při převzetí zkontroluj, že je obal zásilky v pořádku. Když je poškozený, můžeš zásilku odmítnout, nebo s dopravcem sepsat záznam o poškození. Převzetím na tebe přechází nebezpečí škody na zboží.</p>
 
-            <h2>7. Závěrečná ustanovení</h2>
-            <p>Tyto podmínky se řídí právem České republiky. Spotřebitelské spory lze řešit mimosoudně přes Českou obchodní inspekci (coi.cz).</p>
-            <p class="legal-updated">Platné od [DOPLNIT datum]</p>
+            <h2>6. Odstoupení od smlouvy</h2>
+            <h3>Hotové směsi</h3>
+            <p>Od smlouvy můžeš odstoupit bez udání důvodu do 14 dnů od převzetí zboží. Lhůta je zachovaná, když odstoupení odešleš poslední den.</p>
+            <p>Výjimka: čaj je potravina v uzavřeném sáčku. Když sáček otevřeš, nejde ho z hygienických důvodů vrátit (§ 1837 písm. g) občanského zákoníku).</p>
+            <h3>Směsi na míru</h3>
+            <p>Směs namíchaná podle tvého výběru je zboží vyrobené podle požadavků spotřebitele. U ní právo na odstoupení bez udání důvodu nevzniká (§ 1837 písm. d) občanského zákoníku). Když ale dorazí vadná nebo jiná, než jsi objednal, platí pro ni reklamace níže.</p>
+            <h3>Jak odstoupit</h3>
+            <p>Nejsnáz tlačítkem <strong>„Odstoupit od smlouvy“</strong> na stránce <a href="#" onclick="event.preventDefault(); showPage('withdrawal-page')">Odstoupení od smlouvy</a> nebo u objednávky v sekci Moje objednávky. Vyplníš číslo objednávky, jméno a e-mail a odstoupení potvrdíš. Hned uvidíš potvrzení s datem a časem a pošleme ti ho i e-mailem.</p>
+            <p>Odstoupit můžeš i jakoukoli jinou jasnou zprávou, třeba e-mailem na <a href="mailto:hello@teaseyou.cz" data-seller-mail>hello@teaseyou.cz</a>, se vzorovým formulářem, nebo bez něj. I takové odstoupení ti potvrdíme e-mailem.</p>
+            <p>Zboží nám pošli do 14 dnů od odstoupení na adresu <span data-seller="address">[doplnit]</span>. Náklady na vrácení neseš ty. Zboží neposílej na dobírku.</p>
+            <p>Peníze, včetně ceny dopravy v nejlevnější nabízené variantě, ti vrátíme do 14 dnů od odstoupení stejným způsobem, jakým jsi platil (u dobírky převodem na účet, který nám sdělíš). Peníze nevracíme dřív, než nám zboží dorazí nebo než doložíš, že jsi ho odeslal.</p>
+            <p>Za snížení hodnoty zboží, které vzniklo jiným zacházením, než je nutné k seznámení se s ním, odpovídáš ty.</p>
+
+            <h2>7. Reklamace (práva z vadného plnění)</h2>
+            <p>Odpovídáme za to, že zboží při převzetí nemá vady: odpovídá popisu, složení a hmotnosti a je bezpečné. Vadu můžeš vytknout do dvou let od převzetí. Když se projeví do jednoho roku, má se za to, že zboží bylo vadné už při převzetí.</p>
+            <p>Na každém sáčku je datum minimální trvanlivosti. Do něj ručíme za chuť a vůni, pokud je čaj skladovaný podle návodu na sáčku. Zvětrání po tomto datu nebo kvůli nevhodnému skladování není vada zboží.</p>
+            <p><strong>Jak reklamovat:</strong> napiš na <a href="mailto:hello@teaseyou.cz" data-seller-mail>hello@teaseyou.cz</a>, přidej číslo objednávky, popis vady a pokud to jde, fotku. Reklamovaný sáček si nech, dokud se nedomluvíme. Přijetí reklamace ti potvrdíme e-mailem s datem, kdy jsi ji uplatnil.</p>
+            <p>Můžeš chtít novou směs bez vady, nebo, když to nedává smysl, přiměřenou slevu. Když vadu neodstraníme včas nebo se opakuje, můžeš od smlouvy odstoupit. Reklamaci vyřídíme nejpozději do 30 dnů od uplatnění. O výsledku ti dáme vědět e-mailem. Účelně vynaložené náklady na reklamaci ti uhradíme.</p>
+
+            <h2>8. Osobní údaje</h2>
+            <p>Jak s osobními údaji zacházíme, popisuje stránka <a href="#" onclick="event.preventDefault(); showPage('privacy-page')">Ochrana osobních údajů</a>.</p>
+
+            <h2>9. Stížnosti a spory</h2>
+            <p>S čímkoli nespokojeným se nejdřív ozvi nám, vyřešíme to. Spor, na kterém se nedohodneme, můžeš řešit mimosoudně u České obchodní inspekce (Štěpánská 567/15, 120 00 Praha 2, <a href="https://coi.gov.cz" rel="noopener" target="_blank">coi.gov.cz</a>, sekce Mimosoudní řešení sporů). Je to zdarma.</p>
+            <p>Dozor nad dodržováním pravidel na ochranu spotřebitele má Česká obchodní inspekce, nad potravinami Státní zemědělská a potravinářská inspekce (szpi.gov.cz) a nad živností živnostenský úřad.</p>
+
+            <h2>10. Závěrem</h2>
+            <p>Podmínky se řídí českým právem. Platí ve znění, které bylo na webu, když jsi objednávku odeslal. Pozdější změny se tvé objednávky netýkají. Předchozí znění ti na požádání pošleme.</p>
+            <p class="legal-updated">Znění ze dne 5. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
         </div>
         <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
     </div>
 </section>
 
-<!-- ═══ PRIVACY ═══ -->
+<!-- ═══ ODSTOUPENÍ OD SMLOUVY (vzorový formulář) ═══ -->
+<section id="withdrawal-page" class="page">
+    <div class="page-wrap page-narrow legal">
+        <h1 class="page-title">Odstoupení od smlouvy</h1>
+        <div class="legal-body">
+            <p class="legal-lede">Hotovou směs v neotevřeném sáčku můžeš vrátit do 14 dnů od převzetí bez udání důvodu. Směsi namíchané na míru vrátit nejde, ty můžeš jen reklamovat. Podrobnosti jsou v <a href="#" onclick="event.preventDefault(); showPage('terms-page')">obchodních podmínkách</a>, článek 6.</p>
+
+            <section class="wd-online" aria-labelledby="wd-online-title">
+                <h2 id="wd-online-title">Odstoupit online</h2>
+                <p>Vyplníš číslo objednávky, jméno a e-mail a odstoupení potvrdíš. Potvrzení s datem a časem uvidíš hned a pošleme ti ho i e-mailem. Důvod psát nemusíš.</p>
+                <button type="button" class="btn btn-primary" id="wd-start" aria-expanded="false" aria-controls="wd-form">Odstoupit od smlouvy</button>
+                <form id="wd-form" class="wd-form" novalidate hidden>
+                    <div class="form-group"><label class="field-label" for="wd-num">Číslo objednávky *</label><input type="text" id="wd-num" name="orderNum" class="field" required autocomplete="off" placeholder="TY-00012" maxlength="20"></div>
+                    <div class="form-group"><label class="field-label" for="wd-name">Jméno a příjmení *</label><input type="text" id="wd-name" name="name" class="field" required autocomplete="name" maxlength="200"></div>
+                    <div class="form-group"><label class="field-label" for="wd-email">E-mail pro potvrzení *</label><input type="email" id="wd-email" name="email" class="field" required autocomplete="email" inputmode="email" maxlength="200"><span class="field-hint">Ideálně ten, se kterým jsi objednával.</span></div>
+                    <div class="form-group"><label class="field-label" for="wd-items">Co vracíš <span class="field-opt">(nepovinné, jinak celou objednávku)</span></label><textarea id="wd-items" name="items" class="field" rows="2" maxlength="1000" placeholder="Třeba: Late Light 100 g"></textarea></div>
+                    <div class="form-group"><label class="field-label" for="wd-account">Číslo účtu pro vrácení peněz <span class="field-opt">(nepovinné)</span></label><input type="text" id="wd-account" name="bankAccount" class="field" autocomplete="off" maxlength="60" placeholder="123456789/0100"></div>
+                    <div class="form-group"><label class="field-label" for="wd-note">Poznámka <span class="field-opt">(nepovinné)</span></label><textarea id="wd-note" name="note" class="field" rows="2" maxlength="1000"></textarea></div>
+                    <p class="field-error" id="wd-error" role="alert" style="display:none;"></p>
+                    <button type="submit" class="btn btn-primary btn-block" id="wd-confirm">Potvrdit odstoupení od smlouvy</button>
+                    <p class="field-hint">Odesláním odstupuješ od smlouvy. Zpracujeme jméno, e-mail a číslo účtu jen kvůli vyřízení (<a href="#" onclick="event.preventDefault(); showPage('privacy-page')">ochrana osobních údajů</a>).</p>
+                </form>
+                <div id="wd-done" class="wd-done" role="status" tabindex="-1" hidden></div>
+            </section>
+
+            <h2>Nebo e-mailem či poštou</h2>
+            <p>Odstoupit můžeš i jakoukoli jasnou zprávou. Můžeš použít tenhle vzorový formulář, ale nemusíš.</p>
+            <p class="withdrawal-actions">
+                <a class="btn btn-quiet" id="withdrawal-mail" href="mailto:hello@teaseyou.cz">Napsat e-mail s formulářem</a>
+                <button type="button" class="btn btn-quiet" onclick="window.print()">Vytisknout</button>
+            </p>
+
+            <div class="withdrawal-form" id="withdrawal-form-text">
+                <h2>Oznámení o odstoupení od smlouvy</h2>
+                <p><em>Vyplň tento formulář a pošli ho zpět jen v případě, že chceš od smlouvy odstoupit.</em></p>
+                <p><strong>Adresát:</strong> <span data-seller="name">[doplnit]</span>, <span data-seller="address">[doplnit]</span>, IČO <span data-seller="ico">[doplnit]</span>, e-mail <span data-seller="email">hello@teaseyou.cz</span></p>
+                <p>Oznamuji, že tímto odstupuji od smlouvy o nákupu tohoto zboží:</p>
+                <ul class="withdrawal-lines">
+                    <li>Číslo objednávky: ………………………</li>
+                    <li>Zboží (název směsi a gramáž): ………………………</li>
+                    <li>Datum objednání / datum převzetí: ………………………</li>
+                    <li>Jméno a příjmení: ………………………</li>
+                    <li>Adresa: ………………………</li>
+                    <li>Číslo účtu pro vrácení peněz: ………………………</li>
+                    <li>Podpis (jen pokud formulář posíláš v papírové podobě): ………………………</li>
+                    <li>Datum: ………………………</li>
+                </ul>
+            </div>
+        </div>
+        <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
+    </div>
+</section>
+
+<!-- ═══ OCHRANA OSOBNÍCH ÚDAJŮ ═══ -->
 <section id="privacy-page" class="page">
     <div class="page-wrap page-narrow legal">
         <h1 class="page-title">Ochrana osobních údajů</h1>
         <div class="legal-body">
-            <h2>1. Správce osobních údajů</h2>
-            <p><strong>[DOPLNIT: Jméno / název firmy]</strong>, IČO: [DOPLNIT], email: hello@teaseyou.cz</p>
+            <p class="legal-lede">Sbíráme jen to, co potřebujeme, abychom ti mohli poslat čaj. Nic neprodáváme a nesledujeme tě reklamou.</p>
 
-            <h2>2. Jaké údaje zpracováváme</h2>
-            <p>Při objednávce zpracováváme: jméno a příjmení, doručovací adresu, email a telefon. Tyto údaje jsou nezbytné pro splnění smlouvy.</p>
+            <h2>1. Kdo údaje spravuje</h2>
+            <p>Správcem je <span data-seller="name">[doplnit]</span>, IČO <span data-seller="ico">[doplnit]</span>, <span data-seller="address">[doplnit]</span>. S čímkoli kolem osobních údajů piš na <a href="mailto:hello@teaseyou.cz" data-seller-mail>hello@teaseyou.cz</a>. Pověřence pro ochranu osobních údajů nemáme, zákon nám ho neukládá.</p>
+            <p>Všechny údaje máme jen od tebe. Od nikoho dalšího je nezískáváme.</p>
 
-            <h2>3. Účel zpracování</h2>
-            <p>Osobní údaje zpracováváme výhradně za účelem: vyřízení objednávky a doručení zboží, zasílání novinek (pouze se souhlasem), plnění zákonných povinností.</p>
-            <p>Když u mýdla nebo balzámu necháš e-mail, použijeme ho jen k tomu, abychom ti jednou napsali, až bude k mání. Potom ho smažeme. Dřív ho smažeme na požádání na hello@teaseyou.cz.</p>
+            <h2>2. Co zpracováváme a proč</h2>
+            <div class="legal-table-wrap" role="region" aria-label="Přehled zpracování osobních údajů" tabindex="0"><table class="legal-table legal-table--stack">
+                <thead><tr><th>Kdy</th><th>Jaké údaje</th><th>Proč a podle čeho</th><th>Jak dlouho</th></tr></thead>
+                <tbody>
+                    <tr><td data-label="Kdy">Objednávka</td><td data-label="Jaké údaje">jméno a příjmení, e-mail, telefon, doručovací adresa nebo výdejní místo, obsah objednávky, poznámka, slevový kód, datum a znění obchodních podmínek</td><td data-label="Proč a podle čeho">Abychom smlouvu splnili: namíchali, poslali a vyřídili případnou reklamaci (čl. 6 odst. 1 písm. b) GDPR). Bez těchto údajů objednávku vyřídit nejde. U výdejního místa Zásilkovny adresu nechceme.</td><td data-label="Jak dlouho">E-mail, telefon a poznámku smažeme 5 let po objednávce. Jméno, adresu a obsah objednávky si necháme kvůli daním a reklamacím, nejdéle 10 let.</td></tr>
+                    <tr><td data-label="Kdy">Doklady</td><td data-label="Jaké údaje">jméno, adresa, obsah a cena objednávky</td><td data-label="Proč a podle čeho">Povinnost uchovávat daňové záznamy (čl. 6 odst. 1 písm. c) GDPR).</td><td data-label="Jak dlouho">Po dobu, kterou ukládají daňové předpisy, nejdéle 10 let</td></tr>
+                    <tr><td data-label="Kdy">Odstoupení od smlouvy</td><td data-label="Jaké údaje">číslo objednávky, jméno, e-mail, co vracíš, číslo účtu, poznámka, datum a čas</td><td data-label="Proč a podle čeho">Zákon nám ukládá odstoupení přijmout, potvrdit a vrátit peníze (čl. 6 odst. 1 písm. c) GDPR).</td><td data-label="Jak dlouho">10 let</td></tr>
+                    <tr><td data-label="Kdy">Upozornění na mýdla a balzámy</td><td data-label="Jaké údaje">e-mail a vybraný produkt</td><td data-label="Proč a podle čeho">Tvůj souhlas, když e-mail necháš (čl. 6 odst. 1 písm. a) GDPR). Můžeš ho kdykoli odvolat e-mailem. Souhlas může dát člověk od 15 let (§ 7 zákona č. 110/2019 Sb.).</td><td data-label="Jak dlouho">Do odeslání upozornění, nejdéle 2 roky, pak se smaže sám</td></tr>
+                    <tr><td data-label="Kdy">Ochrana proti zneužití</td><td data-label="Jaké údaje">e-mail a čas objednávky nebo odstoupení</td><td data-label="Proč a podle čeho">Oprávněný zájem: omezujeme počet objednávek a odstoupení z jednoho e-mailu (čl. 6 odst. 1 písm. f) GDPR).</td><td data-label="Jak dlouho">Stejně jako objednávka</td></tr>
+                    <tr><td data-label="Kdy">Žádosti o osobní údaje</td><td data-label="Jaké údaje">e-mail, druh žádosti, kdy a jak jsme ji vyřídili</td><td data-label="Proč a podle čeho">Musíme umět doložit, že jsme žádost vyřídili (čl. 5 odst. 2 a čl. 6 odst. 1 písm. c) GDPR).</td><td data-label="Jak dlouho">5 let</td></tr>
+                    <tr><td data-label="Kdy">Když nám napíšeš</td><td data-label="Jaké údaje">e-mail a obsah zprávy</td><td data-label="Proč a podle čeho">Oprávněný zájem odpovědět ti (čl. 6 odst. 1 písm. f) GDPR).</td><td data-label="Jak dlouho">Dokud věc neuzavřeme, nejdéle 2 roky</td></tr>
+                    <tr><td data-label="Kdy">Návštěva webu</td><td data-label="Jaké údaje">IP adresa, čas a typ prohlížeče v technických záznamech serverů</td><td data-label="Proč a podle čeho">Oprávněný zájem na bezpečném a funkčním webu (čl. 6 odst. 1 písm. f) GDPR).</td><td data-label="Jak dlouho">Krátce, podle nastavení poskytovatelů (GitHub, Supabase)</td></tr>
+                </tbody>
+            </table></div>
+            <p>Newsletter ani reklamní e-maily neposíláme.</p>
 
-            <h2>4. Příjemci údajů</h2>
-            <p>Vaše údaje předáváme pouze dopravcům (Zásilkovna / Česká pošta / DPD) v rozsahu nezbytném pro doručení. Údaje neprodáváme třetím stranám.</p>
+            <h2>3. Kdo další se k údajům dostane</h2>
+            <ul>
+                <li><strong>Dopravce, kterého si vybereš</strong> (Zásilkovna s.r.o., Česká pošta, s.p., nebo DPD CZ s.r.o.): jméno, adresa nebo výdejní místo, telefon a e-mail, aby ti mohl zásilku doručit.</li>
+                <li><strong>Supabase, Inc.</strong>: provozuje databázi s objednávkami, odstoupeními a seznamem zájemců a ukládá fotky produktů. Je náš zpracovatel, smlouvu o zpracování osobních údajů máme jako součást jejích podmínek.</li>
+                <li><strong>GitHub, Inc.</strong>: hostuje web. Jako každý server si krátce ukládá technické záznamy o návštěvách, například IP adresu.</li>
+                <li><strong>Zásilkovna</strong>: když v pokladně otevřeš výběr výdejního místa, načte se mapa z jejích serverů.</li>
+                <li>Účetní nebo daňový poradce, pokud ho budeme mít, a úřady, když nám to ukládá zákon.</li>
+            </ul>
+            <p>Supabase a GitHub jsou americké firmy. Údaje proto mohou putovat i mimo EU. Děje se to na základě standardních smluvních doložek schválených Evropskou komisí, případně rámce EU a USA pro ochranu osobních údajů. Kopii nebo popis těchto záruk ti na požádání pošleme.</p>
+            <p>Údaje nikomu neprodáváme, nepoužíváme je k reklamě ani k trénování umělé inteligence.</p>
 
-            <h2>5. Doba uchovávání</h2>
-            <p>Objednávkové údaje uchováváme po dobu 5 let (daňová povinnost). Souhlas s newsletterem můžete kdykoli odvolat emailem.</p>
+            <h2>4. Tvoje práva</h2>
+            <p>Můžeš chtít vědět, jaké údaje o tobě máme, nechat je opravit, vymazat, omezit jejich zpracování, dostat je ve strojově čitelné podobě a vznést námitku proti zpracování z oprávněného zájmu. Souhlas můžeš kdykoli odvolat. Stačí napsat na <a href="mailto:hello@teaseyou.cz" data-seller-mail>hello@teaseyou.cz</a>, odpovíme do měsíce.</p>
+            <p>Když nebudeš spokojený, můžeš si stěžovat u Úřadu pro ochranu osobních údajů (Pplk. Sochora 27, 170 00 Praha 7, <a href="https://uoou.gov.cz" rel="noopener" target="_blank">uoou.gov.cz</a>).</p>
 
-            <h2>6. Vaše práva</h2>
-            <p>Máte právo na přístup ke svým údajům, jejich opravu, výmaz nebo omezení zpracování. Žádosti zasílejte na hello@teaseyou.cz. Máte také právo podat stížnost u ÚOOÚ (uoou.cz).</p>
+            <h2>5. Co si web pamatuje v tvém prohlížeči</h2>
+            <p>Košík, uložené směsi a podobně se ukládají jen ve tvém prohlížeči a nikam se neposílají. Přehled je na stránce <a href="#" onclick="event.preventDefault(); showPage('cookies-page')">Cookies</a>. Analytiku ani reklamní cookies nepoužíváme. Písma máme uložená přímo u nás, takže se nic nenačítá z Googlu.</p>
+            <p>Automatizovaně o tobě nerozhodujeme a nedělíme tě do skupin.</p>
 
-            <h2>7. Cookies</h2>
-            <p>Web používá pouze technické cookies (localStorage) pro uložení košíku a preferencí. Nepoužíváme reklamní ani analytické cookies třetích stran.</p>
-            <p class="legal-updated">Platné od [DOPLNIT datum]</p>
+            <h2>6. Jak údaje chráníme</h2>
+            <p>K databázi má přístup jen přihlášený správce. Web s ní mluví šifrovaně a zákazníci se k cizím objednávkám nedostanou. Staré údaje se mažou samy podle lhůt výš.</p>
+
+            <h2>7. Změny</h2>
+            <p>Když zásady podstatně změníme, upozorníme na to tady na webu. Předchozí znění ti na požádání pošleme.</p>
+            <p class="legal-updated">Znění ze dne 5. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
         </div>
         <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
     </div>
@@ -665,25 +784,28 @@
     <div class="page-wrap page-narrow legal">
         <h1 class="page-title">Cookies</h1>
         <div class="legal-body">
-            <h2>Co jsou cookies</h2>
-            <p>Cookies jsou malé datové soubory ukládané ve vašem prohlížeči. Slouží k zapamatování preferencí a obsahu košíku.</p>
+            <p class="legal-lede">Cookies v pravém slova smyslu nepoužíváme. Web si jen ve tvém prohlížeči (v takzvaném localStorage) pamatuje věci, o které sám požádáš, třeba obsah košíku. Nic z toho se neposílá nám ani nikomu jinému. Proto se tě na souhlas neptáme.</p>
 
-            <h2>Jaké cookies používáme</h2>
-            <div class="legal-table-wrap"><table class="legal-table">
-                <thead><tr><th>Název</th><th>Účel</th><th>Typ</th><th>Platnost</th></tr></thead>
+            <h2>Co si web pamatuje</h2>
+            <div class="legal-table-wrap" role="region" aria-label="Co si web pamatuje" tabindex="0"><table class="legal-table">
+                <thead><tr><th>Název</th><th>K čemu</th><th>Jak dlouho</th></tr></thead>
                 <tbody>
-                    <tr><td>teaseyou_cart</td><td>Obsah košíku</td><td>Nezbytné</td><td>Trvalé (localStorage)</td></tr>
-                    <tr><td>teaseyou_saved</td><td>Uložené blendy</td><td>Nezbytné</td><td>Trvalé (localStorage)</td></tr>
-                    <tr><td>teaseyou_orders</td><td>Historie objednávek</td><td>Nezbytné</td><td>Trvalé (localStorage)</td></tr>
-                    <tr><td>teaseyou_dark</td><td>Tmavý režim</td><td>Nezbytné</td><td>Trvalé (localStorage)</td></tr>
-                    <tr><td>teaseyou_cookies</td><td>Souhlas s cookies</td><td>Nezbytné</td><td>Trvalé (localStorage)</td></tr>
+                    <tr><td>teaseyou_cart</td><td>Obsah košíku</td><td>Dokud ho nesmažeš</td></tr>
+                    <tr><td>teaseyou_promo</td><td>Zadaný slevový kód</td><td>Do dokončení objednávky</td></tr>
+                    <tr><td>teaseyou_saved</td><td>Směsi uložené na později</td><td>Dokud je nesmažeš</td></tr>
+                    <tr><td>teaseyou_orders</td><td>Seznam tvých objednávek na stránce Moje objednávky</td><td>Posledních 50 objednávek</td></tr>
+                    <tr><td>teaseyou_notify_email, teaseyou_notified</td><td>E-mail a produkty, u kterých chceš upozornit, až budou k mání</td><td>Dokud je nesmažeš</td></tr>
+                    <tr><td>teaseyou_promo_dismissed</td><td>Že jsi zavřel lištu nahoře</td><td>Dokud ho nesmažeš</td></tr>
+                    <tr><td>theme</td><td>Světlý nebo tmavý vzhled</td><td>Dokud ho nesmažeš</td></tr>
+                    <tr><td>teaseyou_catalog_v1</td><td>Kopie nabídky, aby se web načetl rychleji</td><td>Přepíše se při další návštěvě</td></tr>
                 </tbody>
             </table></div>
-            <p style="margin-top:16px">Nepoužíváme žádné analytické, reklamní ani cookies třetích stran.</p>
+            <p>Kvůli rychlosti a fungování bez internetu si prohlížeč ukládá i soubory webu (obrázky, písma, skripty).</p>
+            <p>Když v pokladně otevřeš mapu výdejních míst Zásilkovny, načte se z jejích serverů a může si ukládat vlastní údaje podle <a href="https://www.zasilkovna.cz" rel="noopener" target="_blank">pravidel Zásilkovny</a>. Dokud mapu neotevřeš, nic se z ní nenačítá.</p>
 
-            <h2>Správa cookies</h2>
-            <p>Cookies můžete smazat nebo zablokovat v nastavení prohlížeče. Upozorňujeme, že smazání nezbytných cookies může narušit funkčnost webu (košík, uložené blendy).</p>
-            <p class="legal-updated">Platné od [DOPLNIT datum]</p>
+            <h2>Jak to smazat</h2>
+            <p>V nastavení prohlížeče u tohoto webu smaž data stránek. Košík a uložené směsi tím zmizí.</p>
+            <p class="legal-updated">Platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
         </div>
         <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
     </div>
@@ -797,24 +919,25 @@
                 <li><a href="#" onclick="event.preventDefault(); showPage('process-page')" data-i18n="nav_process">Jak to děláme</a></li>
                 <li><a href="#" onclick="event.preventDefault(); showPage('terms-page')" data-i18n="footer_terms">Obchodní podmínky</a></li>
                 <li><a href="#" onclick="event.preventDefault(); showPage('privacy-page')" data-i18n="footer_privacy">Ochrana osobních údajů</a></li>
+                <li><a href="#" onclick="event.preventDefault(); showPage('withdrawal-page')" data-i18n="footer_withdrawal">Odstoupení od smlouvy</a></li>
                 <li><a href="#" onclick="event.preventDefault(); showPage('cookies-page')" data-i18n="footer_cookies">Cookies</a></li>
             </ul>
         </div>
         <div class="footer-col footer-col-wide">
-            <h2 class="footer-col-title" data-i18n="footer_newsletter">Newsletter</h2>
-            <p class="footer-newsletter-desc" data-i18n="footer_newsletter_desc">Nové směsi a nabídky přímo do schránky.</p>
-            <form class="footer-newsletter" onsubmit="subscribeNewsletter(event)">
-                <label class="visually-hidden" for="footer-email" data-i18n="lbl_email_short">E-mail</label>
-                <input type="email" id="footer-email" placeholder="tvuj@email.cz" class="footer-email-input" required>
-                <button type="submit" class="footer-subscribe-btn" data-i18n="footer_subscribe">Odebírat</button>
-            </form>
-            <p id="newsletter-success" class="newsletter-success" style="display:none;" data-i18n="newsletter_ok">Hotovo, jsi přihlášený.</p>
-            <p class="footer-contact"><a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a></p>
+            <h2 class="footer-col-title" data-i18n="footer_contact">Kontakt</h2>
+            <p class="footer-contact"><a href="mailto:hello@teaseyou.cz" data-seller-mail>hello@teaseyou.cz</a></p>
+            <p class="footer-seller">
+                <span data-seller="name">[doplnit]</span><br>
+                <span data-i18n="footer_ico">IČO</span> <span data-seller="ico">[doplnit]</span><br>
+                <span data-seller="address">[doplnit]</span>
+            </p>
+            <p class="footer-seller-note" data-i18n="footer_vat">Nejsme plátci DPH.</p>
         </div>
     </div>
     <div class="footer-bottom">
         <span id="footer-copy"></span>
         <span data-i18n="footer_made_in">Mícháme v Česku</span>
+        <a class="footer-credits" href="THIRD-PARTY-LICENSES.txt" data-i18n="footer_credits">Licence písem a ikon</a>
     </div>
 </footer>
 
@@ -843,7 +966,6 @@
         <span data-i18n="nav_cart">Košík</span>
     </button>
 </nav>
-<script src="https://widget.packeta.com/v6/www/js/library.js" defer></script>
 <script src="config.js"></script>
 <script src="db.js"></script>
 <script src="script.js"></script>

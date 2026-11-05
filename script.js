@@ -39,17 +39,17 @@ const TRANSLATIONS = {
         /* FAQ */
         faq_title:          'Frequently asked',
         faq_q1:             'How long does delivery take?',
-        faq_a1:             'We blend your order the same day and ship within 24 hours. Czech Republic: 2–3 business days via Zásilkovna or Česká pošta. Slovakia: 3–5 business days.',
+        faq_a1:             'We blend your order only after you place it and usually ship within 24 hours. Czech Republic: 2–3 business days via Zásilkovna or Česká pošta. Slovakia: 3–5 business days.',
         faq_q2:             'What are the allergens?',
-        faq_a2:             'All our blends are naturally free of gluten, dairy and nuts. We do handle nut-adjacent spices (cardamom, cinnamon) in our facility. If you have a severe allergy, please contact us before ordering. All ingredients are 100% natural with no artificial flavourings.',
+        faq_a2:             'Every blend lists its allergens under Ingredients and food information, based on our suppliers\' specifications. If you have a severe allergy, write to us before ordering.',
         faq_q3:             'Can I return or exchange an order?',
-        faq_a3:             'Because every blend is made to order, we cannot accept returns for custom blends. If your order arrives damaged or incorrect, we will reship at no charge. Contact us within 7 days of delivery.',
+        faq_a3:             'A blend mixed to your choice is made to order, so it cannot be returned without a reason. A ready-made blend can be returned within 14 days if the pouch is unopened. If anything arrives damaged or wrong, write to us and we will send a new one. Details are in our terms.',
         faq_q4:             'How do I brew my blend?',
         faq_a4:             'Use 2–3 grams per 200ml of water. Green and white teas: 75–80°C for 2–3 minutes. Black and oolong: 90–95°C for 3–4 minutes. Herbal (rooibos, chamomile): 100°C for 5–7 minutes. Each package includes a brewing guide card.',
         faq_q5:             'Can I send a blend as a gift?',
         faq_a5:             'Absolutely — it\'s one of our most popular uses! During checkout, add a personal message in the note field and we\'ll include a handwritten card. We also offer gift wrapping on request.',
         faq_q6:             'How long does the tea stay fresh?',
-        faq_a6:             'All our blends are packed in resealable, food-grade kraft pouches with an airtight seal. Stored in a cool, dry place away from direct light, your blend will stay fresh for 12–18 months.',
+        faq_a6:             'We pack into resealable food-grade pouches. Each one shows a best-before date, usually a year from blending. Keep it dry and dark at room temperature and reseal after opening.',
         /* CTA banner */
         cta_title:          'Start with what sounds good.',
         cta_desc:           'Pick a base, add what you like, name it.',
@@ -150,7 +150,7 @@ const TRANSLATIONS = {
         checkout_note:      'Note',
         checkout_note_opt:  '(optional)',
         note_placeholder:   'Any special requests or gift messages...',
-        btn_complete_order: 'Complete Order',
+        btn_complete_order: 'Order and pay',
         /* Success page */
         success_title:      'Order placed!',
         success_desc:       'Your blend is on its way. We\'ll brew it fresh and send a confirmation to your email.',
@@ -248,13 +248,13 @@ const TRANSLATIONS = {
         about_hero_subtitle: 'Not some brand\'s version. Yours.',
         about_story_p1:      'Tease you started with a school thesis. The founder spent months studying tea house culture, going from one tea house to the next, and thinking about what makes a good cup worth going back to.',
         about_story_p2:      'That turned into this — a place where you choose every part of your blend yourself. No brand deciding for you. Just your base, your flavour, your name.',
-        about_callout_text:  'Every order is mixed on the day it\'s placed. Not before.',
+        about_callout_text:  'Every blend is mixed only after you order. Not before.',
         about_card1_title:   'Fresh every time',
-        about_card1_desc:    'We blend when you order. Not pre-packed, not sitting on a shelf — made the day it ships.',
+        about_card1_desc:    'We blend after you order. Nothing sits pre-packed on a shelf.',
         about_card2_title:   'Your recipe',
         about_card2_desc:    'The configurator is the whole point. Pick your base, your flavour, your extra. Name it. That\'s your tea.',
         about_card3_title:   'Real ingredients',
-        about_card3_desc:    'No artificial flavours, no fillers. Six bases, nine flavours, nine extras — all real, all listed.',
+        about_card3_desc:    'Six bases, nine flavours, nine extras. Every blend lists its full ingredients with percentages.',
         about_cta:           'Ready to find your blend?',
         btn_start_creating2: 'Start creating',
         /* SEO */
@@ -288,7 +288,7 @@ const TRANSLATIONS = {
         ing_vanilla_desc:    'Sweet, creamy and warm.',
         ing_rose_desc:       'Floral and delicate.',
         ing_orange_desc:     'Citrusy, bright and zesty.',
-        ing_blueberry_desc:  'Sweet and tart, antioxidant-rich.',
+        ing_blueberry_desc:  'Sweet and tart, tastes like summer.',
         ing_raspberry_desc:  'Tart, fruity and vibrant.',
         ing_cocoa_desc:      'Rich, chocolatey and earthy.',
         ing_coconut_desc:    'Tropical, sweet and creamy.',
@@ -353,19 +353,19 @@ const TRANSLATIONS = {
         back_btn_text: 'Back',
         /* Process page */
         nav_process: 'How we do it',
-        process_tag: 'From field to cup',
+        process_tag: 'From order to cup',
         process_title: 'How we do it',
-        process_sub: 'Every order is unique. No warehouses, no batches. Just freshly mixed tea, prepared exactly for you.',
+        process_sub: 'Every order is different. We blend only after you order, exactly as you chose.',
         proc_1_title: 'Ingredient sourcing',
-        proc_1_desc: 'We work exclusively with certified suppliers of tea leaves and herbs. Each batch of ingredients undergoes sensory inspection — colour, aroma, taste.',
+        proc_1_desc: 'For every ingredient we keep the supplier specification (origin, allergens, shelf life). We check each delivery before use: colour, aroma and taste.',
         proc_2_title: 'Precise weighing',
-        proc_2_desc: 'Each component of your blend is weighed on a precision digital scale. Ratios are designed so no flavour dominates — unless you explicitly want it to.',
+        proc_2_desc: 'Each component is weighed on a digital scale using the same recipe, so the blend tastes the same every time.',
         proc_3_title: 'Blending',
-        proc_3_desc: 'Components are gently hand-mixed for even distribution without damaging the leaves. Then the blend rests briefly to let aromas meld.',
+        proc_3_desc: 'We mix the components by hand so they blend evenly and the leaves stay whole.',
         proc_4_title: 'Packaging',
-        proc_4_desc: 'We pack in hermetically sealable kraft pouches that preserve freshness for 12–18 months. Each pouch carries your blend name and ingredients.',
+        proc_4_desc: 'We pack into resealable food-grade pouches. Each one shows the blend name, ingredients, best-before date and batch number.',
         proc_5_title: 'Dispatch',
-        proc_5_desc: 'Parcels are sent via Zásilkovna or Česká pošta, typically within 24 hours. You receive a tracking number by email.',
+        proc_5_desc: 'Parcels go via Zásilkovna, Česká pošta or DPD, usually within 24 hours of your order.',
         process_cta_title: 'Ready to mix your blend?',
     },
     cs: {
@@ -396,21 +396,21 @@ const TRANSLATIONS = {
         how_2_title:        'Přidej příchutě',
         how_2_desc:         'Vyber ovoce, květ nebo koření, které ti říká. Tady to začne být osobní.',
         how_3_title:        'Čerstvě odešleme',
-        how_3_desc:         'Blend smícháme ve stejný den, kdy objednáváš, a pošleme přímo k tobě. Žádný sklad, žádné čekání na polici.',
+        how_3_desc:         'Směs namícháme až po objednání a pošleme přímo k tobě. Nic neleží předbalené na polici.',
         /* FAQ */
         faq_title:          'Časté otázky',
         faq_q1:             'Jak dlouho trvá doručení?',
-        faq_a1:             'Blend smícháme ve stejný den a expedujeme do 24 hodin. Česká republika: 2–3 pracovní dny přes Zásilkovnu nebo Českou poštu. Slovensko: 3–5 pracovních dní.',
+        faq_a1:             'Směs namícháme až po objednání a obvykle ji odešleme do 24 hodin. Česká republika: 2–3 pracovní dny přes Zásilkovnu nebo Českou poštu. Slovensko: 3–5 pracovních dní.',
         faq_q2:             'Jaké jsou alergeny?',
-        faq_a2:             'Všechny naše blendy jsou přirozeně bez lepku, mléčných výrobků a ořechů. V naší provozovně manipulujeme s kořením příbuzným ořechům (kardamom, skořice). Pokud máš silnou alergii, kontaktuj nás před objednávkou. Všechny ingredience jsou 100% přírodní bez umělých aromatizátorů.',
+        faq_a2:             'Alergeny najdeš u každé směsi v části Složení a informace o potravině, a to podle specifikací od našich dodavatelů. Když máš silnou alergii, napiš nám před objednávkou a probereme to.',
         faq_q3:             'Mohu vrátit nebo vyměnit objednávku?',
-        faq_a3:             'Protože každý blend připravujeme na objednávku, nemůžeme přijímat vrácení u vlastních blendů. Pokud objednávka dorazí poškozená nebo nesprávná, zašleme ji znovu zdarma. Kontaktuj nás do 7 dnů od doručení.',
+        faq_a3:             'Směs namíchanou podle tebe děláme na zakázku, takže ji nejde vrátit bez udání důvodu. Hotovou směs z nabídky vrátit můžeš do 14 dnů, pokud je sáček neotevřený. Když cokoli dorazí poškozené nebo jiné, než jsi objednal, napiš nám a pošleme novou. Podrobnosti jsou v obchodních podmínkách.',
         faq_q4:             'Jak připravit svůj blend?',
         faq_a4:             'Použij 2–3 gramy na 200 ml vody. Zelené a bílé čaje: 75–80 °C po dobu 2–3 minut. Černý čaj a oolong: 90–95 °C po dobu 3–4 minut. Bylinkové čaje (rooibos, heřmánek): 100 °C po dobu 5–7 minut. Každé balení obsahuje kartičku s návodem na přípravu.',
         faq_q5:             'Mohu blend poslat jako dárek?',
         faq_a5:             'Rozhodně — je to jedno z nejoblíbenějších použití! Při objednávce přidej osobní zprávu do pole pro poznámky a my přiložíme ručně psanou kartičku. Na vyžádání nabízíme také dárkové balení.',
         faq_q6:             'Jak dlouho čaj vydrží čerstvý?',
-        faq_a6:             'Všechny naše blendy jsou zabaleny v opakovaně uzavíratelných, potravinářských kraft sáčcích se vzduchotěsným uzávěrem. Uskladněny na chladném, suchém místě mimo přímé světlo vydrží čerstvé 12–18 měsíců.',
+        faq_a6:             'Balíme do opakovaně uzavíratelných sáčků pro potraviny. Na každém je datum minimální trvanlivosti, obvykle rok od namíchání. Skladuj v suchu a temnu při pokojové teplotě a po otevření sáček dobře zavři.',
         /* CTA banner */
         cta_title:          'Začni s tím, co ti zní dobře.',
         cta_desc:           'Vyber základ, přidej co chceš, pojmenuj to.',
@@ -511,7 +511,7 @@ const TRANSLATIONS = {
         checkout_note:      'Poznámka',
         checkout_note_opt:  '(nepovinné)',
         note_placeholder:   'Speciální přání nebo dárkové zprávy...',
-        btn_complete_order: 'Dokončit objednávku',
+        btn_complete_order: 'Objednat a zaplatit',
         /* Success page */
         success_title:      'Objednávka odeslána!',
         success_desc:       'Tvůj blend je na cestě. Čerstvě ho namícháme a potvrzení pošleme na tvůj e-mail.',
@@ -609,13 +609,13 @@ const TRANSLATIONS = {
         about_hero_subtitle: 'Ne to, co si o čaji myslí někdo jiný. Ten tvůj.',
         about_story_p1:      'Tease you vzniklo kvůli maturitní práci. Zakladatel strávil měsíce studováním kultury čajoven, přecházel z jedné do druhé a přemýšlel, co dělá dobrý šálek takovým, ke kterému se vrátíš.',
         about_story_p2:      'Z toho vzniklo toto — místo, kde si každou část svého blendu vybereš sám. Žádná značka nerozhoduje za tebe. Jen tvůj základ, tvá příchuť, tvůj název.',
-        about_callout_text:  'Každá objednávka se míchá v den, kdy ji zadáš. Ne dřív.',
+        about_callout_text:  'Každou směs mícháme až po objednání. Ne dřív.',
         about_card1_title:   'Vždy čerstvé',
-        about_card1_desc:    'Mícháme, když objednáváš. Nepředbaleno, neležící na polici — připraveno v den odeslání.',
+        about_card1_desc:    'Mícháme až po objednání. Nic neleží předbalené na polici.',
         about_card2_title:   'Tvůj recept',
         about_card2_desc:    'Konfigurátor je celý smysl. Vyber základ, příchuť, doplněk. Pojmenuj to. To je tvůj čaj.',
         about_card3_title:   'Skutečné ingredience',
-        about_card3_desc:    'Žádné umělé aromatizátory, žádná plnidla. Šest základů, devět příchutí, devět doplňků — všechno skutečné, vše uvedené.',
+        about_card3_desc:    'Šest základů, devět příchutí, devět doplňků. U každé směsi uvádíme celé složení i s procenty.',
         about_cta:           'Připraven/a najít svůj blend?',
         btn_start_creating2: 'Začít vytvářet',
         /* SEO */
@@ -649,7 +649,7 @@ const TRANSLATIONS = {
         ing_vanilla_desc:    'Sladká, krémová a hřejivá.',
         ing_rose_desc:       'Květinová a jemná.',
         ing_orange_desc:     'Citrusový, svěží a šťavnatý.',
-        ing_blueberry_desc:  'Sladká a nakyslá, plná antioxidantů.',
+        ing_blueberry_desc:  'Sladká a nakyslá, chutná jako léto.',
         ing_raspberry_desc:  'Nakyslá, ovocná a živá.',
         ing_cocoa_desc:      'Bohaté, čokoládové a zemité.',
         ing_coconut_desc:    'Tropický, sladký a krémový.',
@@ -714,19 +714,19 @@ const TRANSLATIONS = {
         back_btn_text: 'Zpět',
         /* Process page */
         nav_process: 'Jak to děláme',
-        process_tag: 'Od políčka do šálku',
+        process_tag: 'Od objednávky do šálku',
         process_title: 'Jak to děláme',
-        process_sub: 'Každá objednávka je unikátní. Žádné sklady, žádné šarže. Jen čerstvě namíchaný čaj, připravený přesně pro tebe.',
+        process_sub: 'Každá objednávka je jiná. Mícháme až po objednání, přesně podle tvého výběru.',
         proc_1_title: 'Výběr surovin',
-        proc_1_desc: 'Pracujeme výhradně s certifikovanými dodavateli čajových listů a bylinek. Každá šarže surovin prochází smyslovou kontrolou — barva, vůně, chuť.',
+        proc_1_desc: 'Ke každé surovině máme od dodavatele specifikaci (původ, alergeny, trvanlivost). Každou dodávku před použitím zkontrolujeme: barvu, vůni i chuť.',
         proc_2_title: 'Přesné vážení',
-        proc_2_desc: 'Každou složku tvého blendu vážíme na přesné digitální váze. Poměry jsou navrženy tak, aby žádná příchuť nedominovala — pokud si to výslovně nepřeješ.',
+        proc_2_desc: 'Každou složku vážíme na digitální váze podle stejné receptury, takže směs chutná pokaždé stejně.',
         proc_3_title: 'Namíchání',
-        proc_3_desc: 'Složky šetrně ručně mícháme, aby se rovnoměrně prolnuly bez poškození listů. Pak necháme blend chvíli odpočinout, aby vůně splynuly.',
+        proc_3_desc: 'Složky ručně promícháme, aby se rovnoměrně prolnuly a listy zůstaly celé.',
         proc_4_title: 'Balení',
-        proc_4_desc: 'Balíme do hermeticky uzavíratelných kraft sáčků, které zachovávají čerstvost 12–18 měsíců. Na každém sáčku je tvoje jméno blendu a složení.',
+        proc_4_desc: 'Balíme do opakovaně uzavíratelných sáčků pro potraviny. Na každém je jméno směsi, složení, datum minimální trvanlivosti a číslo šarže.',
         proc_5_title: 'Odeslání',
-        proc_5_desc: 'Balíky odesíláme přes Zásilkovnu nebo Českou poštu zpravidla do 24 hodin. Dostaneš sledovací číslo emailem.',
+        proc_5_desc: 'Balíky posíláme přes Zásilkovnu, Českou poštu nebo DPD, obvykle do 24 hodin od objednávky.',
         process_cta_title: 'Připraven/a namíchat svůj blend?',
     }
 };
@@ -904,7 +904,7 @@ function cartGoods() {
         return s + (isFinite(line) ? line : 0);
     }, 0);
 }
-function computeTotals(shipping = 0) {
+function computeTotals(shipping = 0, payFee = 0) {
     const goods    = cartGoods();
     // Sazba se drží v rozumných mezích, ať se do součtu nikdy nedostane
     // NaN ani záporná sleva (ta by cenu naopak zvyšovala).
@@ -914,7 +914,15 @@ function computeTotals(shipping = 0) {
     const afterDiscount = goods - discount;
     const freeShip = goods >= FREE_SHIP_THRESHOLD;
     const ship     = freeShip ? 0 : shipping;
-    return { goods, discount, afterDiscount, freeShip, ship, total: afterDiscount + ship };
+    // Příplatek za dobírku platí i při dopravě zdarma (stejně počítá databáze).
+    const pay      = Math.max(0, Number(payFee) || 0);
+    return { goods, discount, afterDiscount, freeShip, ship, pay, total: afterDiscount + ship + pay };
+}
+
+/* Příplatek za zvolený způsob platby v pokladně. */
+function selectedPayFee() {
+    const r = document.querySelector('#checkout-form input[name="payment"]:checked');
+    return r && r.value === 'cod' ? COD_FEE : 0;
 }
 
 /* ─── BREW PARAMS per base ───────────────────── */
@@ -965,20 +973,11 @@ function toggleDarkMode() {
 }
 if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
 
-/* ─── COOKIE CONSENT ─────────────────────────── */
-function handleCookies(accepted) {
-    localStorage.setItem('teaseyou_cookies', accepted ? 'accepted' : 'declined');
-    const banner = document.getElementById('cookie-banner');
-    banner.style.transform = 'translateY(120%)';
-    setTimeout(() => banner.style.display = 'none', 400);
-}
-function initCookieBanner() {
-    if (!localStorage.getItem('teaseyou_cookies')) {
-        const banner = document.getElementById('cookie-banner');
-        banner.style.display = 'block';
-        setTimeout(() => banner.classList.add('visible'), 600);
-    }
-}
+/* ─── COOKIES ────────────────────────────────── */
+// Web si v prohlížeči pamatuje jen to, o co si návštěvník sám řekne (košík,
+// uložené směsi…). Na to se souhlas nevyžaduje, takže lišta s cookies zmizela.
+// Uklidíme po ní i starou odpověď.
+try { localStorage.removeItem('teaseyou_cookies'); } catch (_) {}
 
 /* ─── BACK TO TOP ────────────────────────────── */
 function initBackToTop() {
@@ -1105,6 +1104,7 @@ function renderDetailVisual(name, ingredients) {
         ? `<li><span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>`
           + `<span><strong>${escHtml(tIng(c))}</strong><span>${escHtml(t(LAYER_LABELS[i]).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en'))}</span></span></li>`
         : '').join('');
+    renderFoodInfo(document.getElementById('detail-food'), ingredients, currentProduct.weight);
 }
 
 /* Na detailu je rovnou vybraná prostřední velikost (100 g), ať jde
@@ -1136,19 +1136,44 @@ function selectQty(amount, e) {
 }
 
 /* ─── SHIPPING COST ──────────────────────────── */
-function updateShippingCost(radio) {
-    const cost = parseFloat(radio.getAttribute('data-price')) || 0;
-    const totals = computeTotals(cost);
+function updateShippingCost() { refreshCheckoutTotals(); }
+
+/* Přepočítá v pokladně dopravu, příplatek za dobírku a celkovou cenu podle
+   toho, co je zrovna vybrané. Zákazník tak před odesláním vidí konečnou cenu. */
+function refreshCheckoutTotals() {
+    const payErr = document.getElementById('payment-error');
+    if (payErr && document.querySelector('#checkout-form input[name="payment"]:checked')) payErr.style.display = 'none';
+    const shipRadio = document.querySelector('#checkout-form input[name="shipping"]:checked');
+    const cost = shipRadio ? parseFloat(shipRadio.getAttribute('data-price')) || 0 : 0;
+    const totals = computeTotals(cost, selectedPayFee());
     const row = document.getElementById('checkout-shipping-row');
     const costEl = document.getElementById('checkout-shipping-cost');
-    const totalEl = document.getElementById('checkout-total-display');
-    if (row) row.style.display = 'flex';
+    if (row) row.style.display = shipRadio ? 'flex' : 'none';
     if (costEl) costEl.textContent = totals.freeShip ? t('ship_free_short') : fmt(totals.ship);
+    const payRow = document.getElementById('checkout-payment-row');
+    const payEl = document.getElementById('checkout-payment-cost');
+    if (payRow) payRow.style.display = totals.pay ? 'flex' : 'none';
+    if (payEl) payEl.textContent = fmt(totals.pay);
+    const totalEl = document.getElementById('checkout-total-display');
     if (totalEl) totalEl.textContent = fmt(totals.total);
+    return totals;
+}
+
+function syncAddressFields() {
+    const ship = document.querySelector('#checkout-form input[name="shipping"]:checked');
+    const pickup = !!ship && ship.value === 'zasilkovna';
+    document.querySelectorAll('#checkout-form .address-only').forEach(el => { el.hidden = pickup; });
+    ['f-street', 'f-city', 'f-zip'].forEach(id => {
+        const f = document.getElementById(id);
+        if (f) { f.required = !pickup; if (pickup) setFieldError(f, ''); }
+    });
+    const hint = document.getElementById('address-hint');
+    if (hint) hint.hidden = !pickup;
 }
 
 function handleShippingChange(radio) {
     updateShippingCost(radio);
+    syncAddressFields();
     const picker = document.getElementById('packeta-picker');
     if (!picker) return;
     const isZasilkovna = radio.value === 'zasilkovna';
@@ -1164,7 +1189,25 @@ function handleShippingChange(radio) {
     if (errEl) errEl.style.display = 'none';
 }
 
-function openPacketaWidget() {
+/* Mapa výdejních míst se stáhne ze Zásilkovny až ve chvíli, kdy ji zákazník
+   otevře. Do té doby se jejím serverům nic neposílá. */
+let packetaLoading = null;
+function loadPacketaLibrary() {
+    if (typeof Packeta !== 'undefined' && Packeta.Widget) return Promise.resolve(true);
+    if (!packetaLoading) {
+        packetaLoading = new Promise(resolve => {
+            const el = document.createElement('script');
+            el.src = 'https://widget.packeta.com/v6/www/js/library.js';
+            el.async = true;
+            el.onload = () => resolve(true);
+            el.onerror = () => { packetaLoading = null; resolve(false); };
+            document.head.appendChild(el);
+        });
+    }
+    return packetaLoading;
+}
+async function openPacketaWidget() {
+    await loadPacketaLibrary();
     if (typeof Packeta === 'undefined' || !Packeta.Widget) {
         showToast(t('packeta_unavailable'), '⚠️');
         return;
@@ -1339,9 +1382,10 @@ function showIngInfo(name) {
         document.getElementById('info-rich-caffeine').style.display = 'none';
     }
     document.getElementById('info-rich-tags').innerHTML = data.flavor.map(f => `<span class="ing-tag">${escHtml(tTag(f))}</span>`).join('');
-    const healthLabel = LANG === 'cs' ? 'Přínosy' : 'Benefits';
+    // Účinky se na webu neukazují: u potravin smí být jen zdravotní tvrzení
+    // schválená EU (nařízení 1924/2006).
     const pairsLabel  = LANG === 'cs' ? 'Hodí se s' : 'Pairs well with';
-    document.getElementById('info-rich-health').innerHTML = `<strong>${healthLabel}:</strong> ${escHtml(data.health.map(tHealth).join(' · '))}`;
+    document.getElementById('info-rich-health').innerHTML = '';
     document.getElementById('info-rich-pairs').innerHTML  = `<strong>${pairsLabel}:</strong> ${escHtml(data.pairs.map(tIng).join(', '))}`;
     if (def) def.style.display = 'none';
     rich.style.display = '';
@@ -1728,7 +1772,8 @@ function renderCart() {
             <p class="cart-line-price">${fmt(item.priceBase * item.qty)}</p>
             <button type="button" class="cart-remove" onclick="removeCartItem(${id})" aria-label="${escHtml(t('btn_remove'))} ${escHtml(item.name)}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-            </button>`;
+            </button>
+            <details class="food-info food-info--fold cart-food"><summary>${escHtml(t('food_title'))}</summary>${foodInfoRows(item.ingredients, item.weight)}</details>`;
         list.appendChild(row);
     });
     updateCartTotal();
@@ -1808,10 +1853,7 @@ function renderCheckoutSummary() {
         discRow.style.display = 'none';
     }
 
-    document.getElementById('checkout-total-display').textContent = fmt(totals.total);
-    // Reset shipping row
-    const row = document.getElementById('checkout-shipping-row');
-    if (row) row.style.display = 'none';
+    refreshCheckoutTotals();
 }
 
 /* ─── CHECKOUT VALIDATION ────────────────────── */
@@ -1830,6 +1872,8 @@ function setFieldError(field, msg) {
 function validateCheckout(form) {
     let ok = true;
     let firstInvalid = null;
+    const shipChoice = form.querySelector('input[name="shipping"]:checked');
+    const needsAddress = !shipChoice || shipChoice.value !== 'zasilkovna';
     const checks = [
         ['firstName', v => v.trim().length >= 2,                      t('err_firstname')],
         ['lastName',  v => v.trim().length >= 2,                      t('err_lastname')],
@@ -1843,12 +1887,19 @@ function validateCheckout(form) {
     checks.forEach(([name, test, msg]) => {
         const field = form.elements[name];
         if (!field) return;
+        if (!needsAddress && ['street', 'city', 'zip'].includes(name)) { setFieldError(field, ''); return; }
         const valid = test(field.value);
         setFieldError(field, valid ? '' : msg);
         if (!valid) { ok = false; if (!firstInvalid) firstInvalid = field; }
     });
     const ship = form.querySelector('input[name="shipping"]:checked');
     if (!ship) { ok = false; showToast(t('toast_select_shipping'), '🚚'); }
+    // Platba není předvybraná: dobírka stojí víc a příplatek smí zákazník
+    // jen sám výslovně zvolit (ne odklikávat předvolbu).
+    const payErr = document.getElementById('payment-error');
+    const paid = form.querySelector('input[name="payment"]:checked');
+    if (payErr) payErr.style.display = paid ? 'none' : 'block';
+    if (!paid) { ok = false; if (!firstInvalid) firstInvalid = form.querySelector('input[name="payment"]'); }
     if (ship && ship.value === 'zasilkovna' && !packetaPoint) {
         const errEl = document.getElementById('packeta-error');
         if (errEl) { errEl.textContent = t('packeta_required'); errEl.style.display = 'block'; }
@@ -1880,17 +1931,19 @@ function submitOrder(e) {
 
     const shipRadio = form.querySelector('input[name="shipping"]:checked');
     const shipPrice = shipRadio ? parseFloat(shipRadio.getAttribute('data-price')) || 0 : 0;
-    const totals = computeTotals(shipPrice);
+    const totals = computeTotals(shipPrice, selectedPayFee());
     const orderNum = 'TY-' + Date.now().toString(36).toUpperCase().slice(-6);
 
     const order = {
         num:      orderNum,
         date:     new Date().toLocaleDateString('cs-CZ'),
+        created:  new Date().toISOString(),
         items:    cart.map(i => ({ name: i.name, ingredients: [...i.ingredients], colors: [...i.colors], weight: i.weight, priceBase: i.priceBase, qty: i.qty })),
         goods:       totals.goods,
         discount:    totals.discount,
         promo:       appliedPromo ? appliedPromo.code : null,
         shipping:    totals.ship,
+        payment:     totals.pay,
         total:       totals.total,
         packetaPoint: packetaPoint ? `${packetaPoint.name}, ${packetaPoint.city}` : null
     };
@@ -1931,6 +1984,7 @@ function submitOrder(e) {
             order.goods    = serverResult.goods;
             order.discount = serverResult.discount;
             order.shipping = serverResult.shipping;
+            if (Number.isFinite(serverResult.payment)) order.payment = serverResult.payment;
             order.total    = serverResult.total;
         }
         orders.unshift(order);
@@ -2051,21 +2105,131 @@ function renderOrders() {
                 ${o.discount ? `<div><dt>${escHtml(t('order_discount'))}${o.promo ? ' ' + escHtml(o.promo) : ''}</dt><dd>-${fmt(o.discount)}</dd></div>` : ''}
                 <div><dt>${escHtml(t('order_shipping'))}</dt><dd>${o.shipping ? fmt(o.shipping) : escHtml(t('ship_free_short'))}</dd></div>
                 <div class="order-total"><dt>${escHtml(t('order_total'))}</dt><dd>${fmt(o.total)}</dd></div>
-            </dl>`;
+            </dl>
+            ${orderWithdrawable(o) ? `<p class="order-actions"><button type="button" class="btn btn-quiet btn-small" data-withdraw="${escHtml(o.num)}">${escHtml(t('wd_button'))}</button></p>` : ''}`;
         list.appendChild(card);
     });
 }
 
-/* ─── NEWSLETTER ─────────────────────────────── */
-function subscribeNewsletter(e) {
-    e.preventDefault();
-    e.target.style.display = 'none';
-    document.getElementById('newsletter-success').style.display = 'block';
+/* ─── ODSTOUPENÍ OD SMLOUVY ──────────────────
+   Tlačítko „Odstoupit od smlouvy“ (§ 1830a občanského zákoníku, od
+   1. 1. 2027): krok 1 formulář, krok 2 „Potvrdit odstoupení od smlouvy“,
+   hned potom potvrzení s datem a časem. Admin ho pak pošle i e-mailem. */
+function orderDate(o) {
+    if (o.created) { const d = new Date(o.created); if (!isNaN(d)) return d; }
+    const m = /^(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/.exec(o.date || '');
+    return m ? new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1])) : null;
 }
+// Lhůta je 14 dnů od převzetí. Den převzetí neznáme, tak tlačítko necháme
+// 30 dnů od objednání; o pozdním odstoupení rozhodne admin.
+function orderWithdrawable(o) {
+    const d = orderDate(o);
+    return !!o.num && !!d && Date.now() - d.getTime() < 30 * 864e5;
+}
+
+function openWithdrawalForm(num) {
+    const form = document.getElementById('wd-form');
+    const start = document.getElementById('wd-start');
+    const done = document.getElementById('wd-done');
+    if (!form) return;
+    form.hidden = false;
+    if (done) done.hidden = true;
+    if (start) start.setAttribute('aria-expanded', 'true');
+    if (num) form.elements.orderNum.value = num;
+    (num ? form.elements.name : form.elements.orderNum).focus();
+}
+
+function startWithdrawal(num) {
+    showPage('withdrawal-page');
+    openWithdrawalForm(num);
+}
+
+async function submitWithdrawal(e) {
+    e.preventDefault();
+    const form = e.target;
+    const err = document.getElementById('wd-error');
+    const v = n => String(form.elements[n].value || '').trim();
+    const data = {
+        orderNum: v('orderNum').toUpperCase(), name: v('name'), email: v('email'),
+        items: v('items'), bankAccount: v('bankAccount'), note: v('note'),
+    };
+    const problems = [];
+    if (!/^TY-[0-9A-Z]{3,12}$/.test(data.orderNum)) problems.push(['orderNum', t('wd_err_num')]);
+    if (data.name.length < 2) problems.push(['name', t('err_firstname')]);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) problems.push(['email', t('err_email')]);
+    ['orderNum', 'name', 'email'].forEach(n => setFieldError(form.elements[n], ''));
+    problems.forEach(([n, msg]) => setFieldError(form.elements[n], msg));
+    if (problems.length) { form.elements[problems[0][0]].focus(); return; }
+
+    const btn = document.getElementById('wd-confirm');
+    if (btn.disabled) return;
+    btn.disabled = true;
+    if (err) err.style.display = 'none';
+    let when = new Date();
+    let saved = false;
+    if (window.TeaDB && TeaDB.configured) {
+        try {
+            const res = await TeaDB.rpc('submit_withdrawal', { p: data });
+            if (res && res.created_at) when = new Date(res.created_at);
+            saved = true;
+        } catch (ex) {
+            console.warn('[teaseyou] Odstoupení se nepodařilo uložit:', ex);
+            btn.disabled = false;
+            if (err) {
+                err.textContent = (ex && ex.message === 'too_many') ? t('wd_err_many') : t('wd_err_failed');
+                err.style.display = 'block';
+            }
+            return;
+        }
+    }
+    btn.disabled = false;
+    showWithdrawalDone(data, when, saved);
+}
+
+function showWithdrawalDone(data, when, saved) {
+    const form = document.getElementById('wd-form');
+    const done = document.getElementById('wd-done');
+    if (!done) return;
+    const stamp = when.toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const address = SELLER.address || '[doplnit]';
+    const mail = `mailto:${SELLER.email}?subject=${encodeURIComponent('Odstoupení od smlouvy ' + data.orderNum)}&body=${encodeURIComponent(
+        `Odstupuji od smlouvy k objednávce ${data.orderNum}.\nJméno: ${data.name}\nE-mail: ${data.email}` +
+        (data.items ? `\nZboží: ${data.items}` : '') + (data.bankAccount ? `\nÚčet: ${data.bankAccount}` : ''))}`;
+    done.innerHTML = saved ? `
+        <h3>${escHtml(t('wd_done_title'))}</h3>
+        <dl class="legal-facts">
+            <div><dt>${escHtml(t('wd_done_when'))}</dt><dd>${escHtml(stamp)}</dd></div>
+            <div><dt>${escHtml(t('wd_done_order'))}</dt><dd>${escHtml(data.orderNum)}</dd></div>
+            <div><dt>${escHtml(t('wd_done_who'))}</dt><dd>${escHtml(data.name)}, ${escHtml(data.email)}</dd></div>
+            ${data.items ? `<div><dt>${escHtml(t('wd_done_items'))}</dt><dd>${escHtml(data.items)}</dd></div>` : ''}
+        </dl>
+        <p>${escHtml(t('wd_done_next').replace('{address}', address))}</p>
+        <p class="withdrawal-actions"><button type="button" class="btn btn-quiet" onclick="document.body.classList.add('print-wd'); window.print(); document.body.classList.remove('print-wd');">${escHtml(t('wd_done_print'))}</button></p>`
+        : `<h3>${escHtml(t('wd_offline_title'))}</h3>
+        <p>${escHtml(t('wd_offline_text'))}</p>
+        <p class="withdrawal-actions"><a class="btn btn-primary" href="${escHtml(mail)}">${escHtml(t('wd_offline_send'))}</a></p>`;
+    done.hidden = false;
+    if (form && saved) { form.hidden = true; form.reset(); }
+    const start = document.getElementById('wd-start');
+    if (start && saved) start.setAttribute('aria-expanded', 'false');
+    done.focus();
+}
+
+document.addEventListener('click', e => {
+    const w = e.target.closest('[data-withdraw]');
+    if (w) { startWithdrawal(w.dataset.withdraw); return; }
+    if (e.target.closest('#wd-start')) {
+        const form = document.getElementById('wd-form');
+        if (form && !form.hidden) { form.hidden = true; e.target.closest('#wd-start').setAttribute('aria-expanded', 'false'); }
+        else openWithdrawalForm('');
+    }
+});
+document.addEventListener('submit', e => { if (e.target.id === 'wd-form') submitWithdrawal(e); });
+
 
 /* ─── ACCESSIBILITY ──────────────────────────── */
 function initA11y() {
-    const selectors = '.ready-card, .nav-logo, .nav-cart-icon, .nav-menu-icon, .sidebar-nav li, .footer-links a[onclick], .back-link';
+    const selectors = '.ready-card, .nav-logo, .nav-cart-icon, .nav-menu-icon, .footer-links a[onclick], .back-link';
     document.querySelectorAll(selectors).forEach(el => {
         if (!el.hasAttribute('role'))     el.setAttribute('role', 'button');
         if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
@@ -2172,7 +2336,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const completionLabel = document.getElementById('completion-label');
     if (completionLabel) completionLabel.textContent = `0 / 3 ${t('completion_selected')}`;
     initReveal();
-    initCookieBanner();
+    applySeller();
     initBackToTop();
     initA11y();
     updateCartBadge();   // restore badge from persisted cart
@@ -2643,6 +2807,189 @@ function blendSubtitle(codes) {
     return [names[0], ...rest].join(', ') + (LANG === 'cs' ? ' a ' : ' & ') + last;
 }
 
+/* ─── PRODÁVAJÍCÍ A NASTAVENÍ OBCHODU ───────────
+   Údaje se vyplňují v administraci (Nastavení → Prodávající a etiketa)
+   a web je dosadí do podmínek, patičky a informací o potravině. */
+const SELLER = { name: '', ico: '', address: '', email: 'hello@teaseyou.cz', phone: '' };
+let COD_FEE = 39;                                  // Kč, příplatek za dobírku
+const RECIPE = { base: 70, flavor: 20, extra: 10 }; // podíl základu, příchutě a doplňku v %
+let DURABILITY_MONTHS = 12;
+
+function applyShopSettings(st) {
+    const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+    SELLER.name    = str(st.seller_name, 120);
+    SELLER.ico     = /^[0-9]{8}$/.test(st.seller_ico || '') ? st.seller_ico : '';
+    SELLER.address = str(st.seller_address, 200);
+    SELLER.phone   = str(st.seller_phone, 30);
+    const mail = str(st.seller_email, 120);
+    SELLER.email   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail) ? mail : 'hello@teaseyou.cz';
+    if (Number.isInteger(st.cod_fee_czk) && st.cod_fee_czk >= 0) COD_FEE = st.cod_fee_czk;
+    const b = st.recipe_base_pct, f = st.recipe_flavor_pct, e = st.recipe_extra_pct;
+    if ([b, f, e].every(Number.isInteger) && b >= 1 && f >= 0 && e >= 0 && b + f + e === 100) {
+        Object.assign(RECIPE, { base: b, flavor: f, extra: e });
+    }
+    if (Number.isInteger(st.durability_months) && st.durability_months >= 1 && st.durability_months <= 36) {
+        DURABILITY_MONTHS = st.durability_months;
+    }
+    const codText = COD_FEE ? ` (+${COD_FEE} Kč)` : '';
+    TRANSLATIONS.cs.pay_cod_desc = 'Platíš při převzetí' + codText;
+    TRANSLATIONS.en.pay_cod_desc = 'Pay when you collect it' + codText;
+}
+
+/* Dosadí údaje o prodávajícím do všech [data-seller] a [data-shop]. Co chybí,
+   ukáže jako „[doplnit]“, ať je vidět, že to ještě není hotové. */
+function applySeller() {
+    document.querySelectorAll('[data-seller]').forEach(el => {
+        const v = SELLER[el.dataset.seller] || '';
+        el.textContent = v || '[doplnit]';
+        el.classList.toggle('is-missing', !v);
+    });
+    document.querySelectorAll('[data-seller-mail]').forEach(a => {
+        a.href = 'mailto:' + SELLER.email;
+        a.textContent = SELLER.email;
+    });
+    const shop = {
+        cod_fee:   COD_FEE ? fmt(COD_FEE) : '0 Kč',
+        free_ship: fmt(FREE_SHIP_THRESHOLD),
+        url:       (location.host + location.pathname).replace(/\/(index\.html)?$/, ''),
+    };
+    document.querySelectorAll('[data-shop]').forEach(el => {
+        if (shop[el.dataset.shop] !== undefined) el.textContent = shop[el.dataset.shop];
+        else el.classList.add('is-missing');
+    });
+    const mail = document.getElementById('withdrawal-mail');
+    if (mail) {
+        const body = [
+            'Oznamuji, že tímto odstupuji od smlouvy o nákupu tohoto zboží:', '',
+            'Číslo objednávky: ', 'Zboží (název směsi a gramáž): ', 'Datum objednání / datum převzetí: ',
+            'Jméno a příjmení: ', 'Adresa: ', 'Číslo účtu pro vrácení peněz: ', 'Datum: ',
+        ].join('\n');
+        mail.href = `mailto:${SELLER.email}?subject=${encodeURIComponent('Odstoupení od smlouvy')}&body=${encodeURIComponent(body)}`;
+    }
+}
+
+/* ─── INFORMACE O POTRAVINĚ ─────────────────────
+   Co musí zákazník vidět dřív, než objedná, a co patří na sáček (nařízení
+   EU 1169/2011, vyhláška 187/2023 Sb.): název podle složení, složení
+   s procenty, alergeny, hmotnost, trvanlivost, skladování a kdo směs vyrobil.
+
+   Vestavěné hodnoty platí, dokud je nepřepíše administrace:
+   [druh, název ve složení, nejvyšší podíl v %]. */
+const LABEL_DEFAULTS = {
+    'Green Tea':  ['tea', 'zelený čaj'],          'Black Tea':  ['tea', 'černý čaj'],
+    'White Tea':  ['tea', 'bílý čaj'],            'Oolong Tea': ['tea', 'čaj oolong'],
+    'Rooibos':    ['herb', 'rooibos'],            'Chamomile':  ['herb', 'heřmánek (květ)'],
+    'Strawberry': ['fruit', 'sušené jahody'],     'Mint':       ['herb', 'máta (list)'],
+    'Vanilla':    ['herb', 'vanilka'],            'Rose':       ['herb', 'růže (okvětní lístky)'],
+    'Orange':     ['fruit', 'pomerančová kůra', 30], 'Blueberry': ['fruit', 'sušené borůvky'],
+    'Raspberry':  ['fruit', 'sušené maliny'],     'Cocoa':      ['herb', 'kakaové slupky'],
+    'Coconut':    ['fruit', 'sušený kokos'],      'Honey':      ['other', 'med'],
+    'Lemon':      ['fruit', 'citronová kůra', 30], 'Ginger':    ['herb', 'zázvor'],
+    'Lavender':   ['herb', 'levandule (květ)', 5], 'Turmeric':  ['herb', 'kurkuma', 5],
+    'Cinnamon':   ['herb', 'skořice'],            'Spearmint':  ['herb', 'máta klasnatá (list)'],
+    'Rose Hip':   ['fruit', 'šípek'],             'Cardamom':   ['herb', 'kardamom', 5],
+};
+
+function ingLabelInfo(code) {
+    const ing = ingByCode(code) || {};
+    const d = LABEL_DEFAULTS[code] || [];
+    return {
+        kind:      ing.kind || d[0] || (ing.category === 'base' ? 'tea' : 'herb'),
+        label:     ing.label || d[1] || tIng(code).toLocaleLowerCase('cs'),
+        maxPct:    ing.maxPct || d[2] || null,
+        allergens: ing.allergens || '',
+    };
+}
+
+/* Podíly surovin podle receptury. Pozice 0 je základ, 1 příchuť, 2 doplněk.
+   Chybějící díl připadne základu, stejně jako to, co je nad limit
+   z vyhlášky (levandule nejvýš 5 % a podobně). Seřazené od největšího. */
+function blendComposition(codes) {
+    const slots = [0, 1, 2].map(i => (codes && codes[i] && codes[i] !== 'Empty' ? codes[i] : null));
+    if (!slots[0]) return [];
+    const share = [RECIPE.base, RECIPE.flavor, RECIPE.extra];
+    const pct = [0, 0, 0];
+    slots.forEach((c, i) => { if (c) pct[i] += share[i]; else pct[0] += share[i]; });
+    for (let i = 1; i < 3; i++) {
+        const max = slots[i] && ingLabelInfo(slots[i]).maxPct;
+        if (max && pct[i] > max) { pct[0] += pct[i] - max; pct[i] = max; }
+    }
+    const merged = new Map();
+    slots.forEach((c, i) => { if (c) merged.set(c, (merged.get(c) || 0) + pct[i]); });
+    return [...merged].map(([code, p]) => Object.assign({ code, pct: p }, ingLabelInfo(code)))
+        .sort((a, b) => b.pct - a.pct);
+}
+
+/* Název podle vyhlášky 187/2023 Sb., § 2: pravý čaj s přísadami do 50 % je
+   „ochucený čaj“, víc než polovina bylin „bylinný čaj“, víc než polovina
+   sušeného ovoce „ovocný čaj“. */
+function legalBlendName(comp) {
+    const sum = kind => comp.filter(c => c.kind === kind).reduce((s, c) => s + c.pct, 0);
+    const teas = comp.filter(c => c.kind === 'tea');
+    const tea = sum('tea');
+    const cap = str => str.charAt(0).toLocaleUpperCase('cs') + str.slice(1);
+    if (tea >= 50) {
+        const group = teas.length === 1 ? teas[0].label : 'čaj';
+        return tea === 100 ? cap(group) : 'Ochucený ' + group;
+    }
+    const herb = sum('herb'), fruit = sum('fruit');
+    if (herb > 50) return 'Bylinný čaj';
+    if (fruit > 50) return 'Ovocný čaj';
+    // Nic nepřesahuje polovinu (jen při neobvyklé receptuře): podle většiny.
+    return fruit > herb ? 'Ovocný čaj' : 'Bylinný čaj';
+}
+
+function foodInfo(codes) {
+    const comp = blendComposition(codes);
+    if (!comp.length) return null;
+    const name = legalBlendName(comp);
+    const allergens = [...new Set(comp.flatMap(c => c.allergens.split(/[,;]/).map(a => a.trim()).filter(Boolean)
+        .filter(a => !/^(žádné|zadne|none|-)$/i.test(a))))];
+    return {
+        name,
+        composition: comp.map(c => `${c.label} ${c.pct} %`).join(', '),
+        allergens,
+        comp,
+    };
+}
+
+function foodInfoRows(codes, weight) {
+    const info = foodInfo(codes);
+    if (!info) return '';
+    const g = parseInt(weight, 10);
+    const base = codes && codes[0];
+    const brew = BREW[base] || { temp: '90–95°C', time: '3–4 min' };
+    const maker = [SELLER.name, SELLER.address].filter(Boolean).join(', ');
+    const herbalWithTea = info.comp.some(c => c.kind === 'tea') && /^(Bylinný|Ovocný)/.test(info.name);
+    const rows = [
+        [t('food_name'), info.name + (herbalWithTea ? '. ' + t('food_caffeine') : '')],
+        [t('food_ingredients'), info.composition],
+        [t('food_allergens'), info.allergens.length ? info.allergens.join(', ') : t('food_no_allergens')],
+        [t('food_weight'), g ? `${g} g` : t('food_weight_pick')],
+        [t('food_durability'), t('food_durability_val').replace('{n}', DURABILITY_MONTHS)],
+        [t('food_storage'), t('food_storage_val')],
+        [t('food_prep'), `2–3 g ${t('food_prep_per')} 200 ml, ${brew.temp}, ${brew.time}`],
+        [t('food_maker'), maker || '[doplnit]'],
+    ];
+    return `<dl class="food-facts">${rows.map(([k, v]) =>
+        `<div><dt>${escHtml(k)}</dt><dd${v === '[doplnit]' ? ' class="is-missing"' : ''}>${escHtml(v)}</dd></div>`).join('')}</dl>`;
+}
+
+/* Vyplní blok s informacemi. U <details> zůstane shrnutí nahoře. */
+function renderFoodInfo(el, codes, weight) {
+    if (!el) return;
+    const rows = foodInfoRows(codes, weight);
+    el.hidden = !rows;
+    if (!rows) { el.innerHTML = ''; return; }
+    if (el.tagName === 'DETAILS') {
+        const open = el.open;
+        el.innerHTML = `<summary>${escHtml(t('food_title'))}</summary>${rows}`;
+        el.open = open;
+    } else {
+        el.innerHTML = `<h2 class="brew-title" id="${el.id}-title">${escHtml(t('food_title'))}</h2>${rows}`;
+    }
+}
+
 /* Vestavěná data doplníme o to, co bylo dřív jen v HTML (barva, skupina,
    vnitřní název), ať se s nimi pracuje stejně jako s daty z databáze. */
 (function enrichBuiltinIngredients() {
@@ -2702,6 +3049,10 @@ function applyCatalog(c) {
             pairs:    (r.pairs || []).filter(p => typeof p === 'string'),
             photo:    safePhoto(r.photo_url),
             inStock:  r.in_stock !== false,
+            kind:      ['tea', 'herb', 'fruit', 'other'].includes(r.kind) ? r.kind : '',
+            label:     typeof r.label_cs === 'string' ? r.label_cs.trim() : '',
+            maxPct:    Number.isInteger(r.max_pct) && r.max_pct > 0 && r.max_pct <= 100 ? r.max_pct : null,
+            allergens: typeof r.allergens === 'string' ? r.allergens.trim() : '',
         };
         if (r.category === 'base') {
             if (Number.isInteger(r.caffeine)) ing.caffeine = Math.max(0, Math.min(5, r.caffeine));
@@ -2742,6 +3093,7 @@ function applyCatalog(c) {
         FREE_SHIP_THRESHOLD = st.free_ship_threshold;
     }
     promoBarEnabled = st.promo_bar_enabled !== false;
+    applyShopSettings(st);
     if (st.promo_bar_cs) TRANSLATIONS.cs.promo_text = st.promo_bar_cs;
     if (st.promo_bar_en) TRANSLATIONS.en.promo_text = st.promo_bar_en;
     else if (st.promo_bar_cs) TRANSLATIONS.en.promo_text = st.promo_bar_cs;
@@ -2944,6 +3296,10 @@ function rerenderAfterCatalog() {
     renderCatalogDom();
     if (typeof refreshRedesign === 'function') refreshRedesign();
     applyTranslations();
+    applySeller();
+    if (document.getElementById('product-detail-page')?.classList.contains('active') && currentProduct) {
+        renderFoodInfo(document.getElementById('detail-food'), currentProduct.ingredients, currentProduct.weight);
+    }
     renderIngredientEncyclopedia();
     renderPresets();
     repriceCart();
@@ -3029,15 +3385,24 @@ async function revalidateStoredPromo() {
 }
 
 /* ─── Objednávka do databáze ───────────────── */
+/* Datum znění obchodních podmínek a zásad ochrany osobních údajů, které
+   jsou teď na webu. Ukládá se ke každé objednávce jako záznam o tom, s čím
+   zákazník souhlasil. Při změně podmínek ho přepiš a staré znění si nech
+   (je v historii gitu). */
+const TERMS_VERSION = '2026-11-05';
+
 function buildOrderPayload(form) {
     const val = name => (form.elements[name] ? String(form.elements[name].value || '').trim() : '');
     const ship = form.querySelector('input[name="shipping"]:checked');
     const pay  = form.querySelector('input[name="payment"]:checked');
+    // Na výdejní místo adresu nepotřebujeme, tak ji ani neposíláme.
+    const needsAddress = !ship || ship.value !== 'zasilkovna';
+    const addr = name => (needsAddress ? val(name) : '');
     return {
         customer: {
             firstName: val('firstName'), lastName: val('lastName'),
             email: val('email'), phone: val('phone'),
-            street: val('street'), city: val('city'), zip: val('zip'), country: val('country'),
+            street: addr('street'), city: addr('city'), zip: addr('zip'), country: val('country'),
         },
         items: cart.map(i => ({
             name:        i.name,
@@ -3053,6 +3418,7 @@ function buildOrderPayload(form) {
             ? { id: String(packetaPoint.id || ''), name: `${packetaPoint.name}, ${packetaPoint.city}` }
             : null,
         lang: LANG,
+        termsVersion: TERMS_VERSION,
     };
 }
 
@@ -3109,7 +3475,7 @@ Object.assign(TRANSLATIONS.cs, {
     hero_lede:         'Vybereš základ, příchuť a doplněk. Směs čerstvě namícháme a pošleme ti ji v sáčku s tvým jménem.',
     hero_quiz_btn:     'Poradit kvízem',
     hero_quiz_link:    'Nevíš, co vybrat? Poradí ti kvíz',
-    how_result_note:   'Namícháme po objednání, odešleme do 24 hodin.',
+    how_result_note:   'Namícháme po objednání, obvykle odešleme do 24 hodin.',
     hero_pick:         'Chci tuhle',
     hero_shuffle:      'Zamíchat jinak',
     hero_note_price:   'Balení od {price}.',
@@ -3121,7 +3487,7 @@ Object.assign(TRANSLATIONS.cs, {
     howx_3_title:      'Dolaď doplňkem',
     howx_3:            'Med, citron, zázvor nebo koření. Malá věc, která chuť dotáhne.',
     howx_4_title:      'Pojmenuj ji',
-    howx_4:            'Směs zabalíme pod tvým jménem a do 24 hodin odešleme.',
+    howx_4:            'Směs zabalíme pod tvým jménem a obvykle do 24 hodin odešleme.',
     how_cta:           'Začít míchat',
     shelf_title:       'Naše směsi',
     shelf_lede:        'Hotové kombinace. Objednej je rovnou, nebo si je v mixéru uprav podle sebe.',
@@ -3185,7 +3551,7 @@ Object.assign(TRANSLATIONS.en, {
     hero_lede:         'Pick a base, a flavour and an extra. We blend it fresh and send it in a pouch with your name on it.',
     hero_quiz_btn:     'Help me choose',
     hero_quiz_link:    'Not sure what to pick? Take the quiz',
-    how_result_note:   'Blended after you order, shipped within 24 hours.',
+    how_result_note:   'Blended after you order, usually shipped within 24 hours.',
     hero_pick:         'I want this one',
     hero_shuffle:      'Shuffle',
     hero_note_price:   'Packs from {price}.',
@@ -3197,7 +3563,7 @@ Object.assign(TRANSLATIONS.en, {
     howx_3_title:      'Finish with an extra',
     howx_3:            'Honey, lemon, ginger or spice. A small thing that rounds it off.',
     howx_4_title:      'Name it',
-    howx_4:            'We pack it under your name and ship within 24 hours.',
+    howx_4:            'We pack it under your name and usually ship within 24 hours.',
     how_cta:           'Start mixing',
     shelf_title:       'Our blends',
     shelf_lede:        'Ready-made combinations. Order one as it is, or tweak it in the mixer.',
@@ -3318,24 +3684,62 @@ Object.assign(TRANSLATIONS.cs, {
     ship_dpd_name:     'Kurýr DPD',
     ship_zasilkovna_desc: 'Vyzvedneš na výdejním místě, 2–3 pracovní dny',
     ship_post_desc:    'Až domů, 3–5 pracovních dní',
-    ship_dpd_desc:     'Až domů, další pracovní den',
+    ship_dpd_desc:     'Až domů, obvykle další pracovní den',
     packeta_choose:    'Vybrat výdejní místo',
     packeta_change:    'Změnit',
     pay_title:         'Platba',
     pay_cod:           'Dobírka',
     pay_cod_desc:      'Platíš při převzetí (+39 Kč)',
-    pay_card:          'Platební karta online',
-    pay_card_desc:     'Visa, Mastercard přes GoPay / Comgate',
     pay_transfer:      'Bankovní převod',
     pay_transfer_desc: 'Údaje k platbě pošleme e-mailem',
     note_placeholder2: 'Třeba vzkaz na přání, když je to dárek',
-    checkout_legal:    'Odesláním objednávky souhlasíš s <a href="#" onclick="event.preventDefault(); showPage(\'terms-page\')">obchodními podmínkami</a>.',
-    btn_complete_order:'Odeslat objednávku',
+    checkout_legal:    'Odesláním objednávky potvrzuješ, že ses seznámil s <a href="#" onclick="event.preventDefault(); showPage(\'terms-page\')">obchodními podmínkami</a> a <a href="#" onclick="event.preventDefault(); showPage(\'privacy-page\')">ochranou osobních údajů</a>.',
+    checkout_withdraw_note: 'Směsi namíchané podle tvého výběru děláme na zakázku, takže je nejde vrátit do 14 dnů bez udání důvodu (§ 1837 písm. d) občanského zákoníku). Hotovou směs z nabídky vrátit můžeš, pokud zůstal sáček neotevřený. Reklamovat můžeš obojí.',
+    btn_complete_order:'Objednat a zaplatit',
+    order_payment_fee: 'Příplatek za dobírku',
+    footer_contact:    'Kontakt',
+    footer_ico:        'IČO',
+    footer_vat:        'Nejsme plátci DPH.',
+    footer_withdrawal: 'Odstoupení od smlouvy',
+    food_title:        'Složení a informace o potravině',
+    food_name:         'Název',
+    food_caffeine:     'Obsahuje kofein',
+    food_ingredients:  'Složení',
+    food_allergens:    'Alergeny',
+    food_no_allergens: 'neobsahuje žádný ze 14 hlavních alergenů',
+    food_weight:       'Hmotnost',
+    food_weight_pick:  'podle zvolené velikosti',
+    food_durability:   'Trvanlivost',
+    food_durability_val: 'minimálně {n} měsíců od namíchání, přesné datum a šarže jsou na sáčku',
+    food_storage:      'Skladování',
+    food_storage_val:  'v suchu a temnu při pokojové teplotě, mimo silné pachy; po otevření sáček dobře uzavři',
+    food_prep:         'Příprava',
+    food_prep_per:     'na',
+    food_maker:        'Vyrobil',
+    wd_button:         'Odstoupit od smlouvy',
+    wd_err_num:        'Číslo objednávky vypadá jako TY-00012.',
+    wd_err_many:       'Dnes už jsme od tebe dostali několik odstoupení. Napiš nám prosím e-mail.',
+    wd_err_failed:     'Odstoupení se nepodařilo odeslat. Zkus to znovu, nebo nám napiš e-mail.',
+    wd_done_title:     'Odstoupení jsme přijali',
+    wd_done_when:      'Přijato',
+    wd_done_order:     'Objednávka',
+    wd_done_who:       'Od',
+    wd_done_items:     'Zboží',
+    wd_done_next:      'Potvrzení ti pošleme i e-mailem. Zboží pošli do 14 dnů na adresu {address}. Peníze vrátíme do 14 dnů ode dneška, jakmile zboží dorazí nebo doložíš, že jsi ho odeslal.',
+    wd_done_print:     'Vytisknout potvrzení',
+    wd_offline_title:  'Ještě to pošli e-mailem',
+    wd_offline_text:   'Online odstoupení teď nejde uložit. Klikni níž, e-mail je připravený, stačí ho odeslat.',
+    wd_offline_send:   'Odeslat e-mail',
+    craft_privacy_link:'Jak s e-mailem zacházíme',
+    err_payment:       'Vyber, jak chceš zaplatit.',
+    address_not_needed:'Na výdejní místo Zásilkovny adresu nepotřebujeme, stačí vybrat zemi.',
+    skip_to_content:   'Přeskočit na obsah',
+    footer_credits:    'Licence písem a ikon',
     success_title:     'Díky, objednávka je u nás',
-    success_desc:      'Směs namícháme a do 24 hodin odešleme. Potvrzení ti přijde e-mailem.',
+    success_desc:      'Směs namícháme a obvykle do 24 hodin odešleme. Shrnutí najdeš v Moje objednávky.',
     success_step1:     'Objednávka přijatá',
     success_step2:     'Namícháme',
-    success_step3:     'Odešleme do 24 hodin',
+    success_step3:     'Odešleme',
     btn_create_another:'Namíchat další směs',
     about_cta:         'Chceš si jednu namíchat?',
     btn_start_creating2:'Namíchat směs',
@@ -3424,18 +3828,56 @@ Object.assign(TRANSLATIONS.en, {
     pay_title:         'Payment',
     pay_cod:           'Cash on delivery',
     pay_cod_desc:      'Pay when you collect it (+39 Kč)',
-    pay_card:          'Card online',
-    pay_card_desc:     'Visa, Mastercard via GoPay / Comgate',
     pay_transfer:      'Bank transfer',
     pay_transfer_desc: 'We will e-mail you the payment details',
     note_placeholder2: 'A message for the card, if it is a gift',
-    checkout_legal:    'By placing the order you agree to our <a href="#" onclick="event.preventDefault(); showPage(\'terms-page\')">terms</a>.',
-    btn_complete_order:'Place order',
+    checkout_legal:    'By placing the order you confirm you have read our <a href="#" onclick="event.preventDefault(); showPage(\'terms-page\')">terms</a> and <a href="#" onclick="event.preventDefault(); showPage(\'privacy-page\')">privacy policy</a> (in Czech).',
+    checkout_withdraw_note: 'Blends mixed to your choice are made to order, so they cannot be returned within 14 days without a reason (§ 1837(d) of the Czech Civil Code). A ready-made blend from our range can be returned if the pouch is unopened. You can file a complaint about either.',
+    btn_complete_order:'Order and pay',
+    order_payment_fee: 'Cash on delivery fee',
+    footer_contact:    'Contact',
+    footer_ico:        'Company ID',
+    footer_vat:        'We are not VAT registered.',
+    footer_withdrawal: 'Withdrawal from contract',
+    food_title:        'Ingredients and food information',
+    food_name:         'Name',
+    food_caffeine:     'Contains caffeine',
+    food_ingredients:  'Ingredients',
+    food_allergens:    'Allergens',
+    food_no_allergens: 'none of the 14 main allergens',
+    food_weight:       'Net weight',
+    food_weight_pick:  'depends on the size you pick',
+    food_durability:   'Best before',
+    food_durability_val: 'at least {n} months from blending; exact date and batch are on the pouch',
+    food_storage:      'Storage',
+    food_storage_val:  'dry and dark at room temperature, away from strong smells; reseal after opening',
+    food_prep:         'Brewing',
+    food_prep_per:     'per',
+    food_maker:        'Made by',
+    wd_button:         'Withdraw from contract',
+    wd_err_num:        'The order number looks like TY-00012.',
+    wd_err_many:       'We have already received several withdrawals from you today. Please e-mail us.',
+    wd_err_failed:     'The withdrawal could not be sent. Try again or e-mail us.',
+    wd_done_title:     'Withdrawal received',
+    wd_done_when:      'Received',
+    wd_done_order:     'Order',
+    wd_done_who:       'From',
+    wd_done_items:     'Goods',
+    wd_done_next:      'We will also confirm it by e-mail. Send the goods within 14 days to {address}. We refund within 14 days from today, once the goods arrive or you show you have sent them.',
+    wd_done_print:     'Print confirmation',
+    wd_offline_title:  'Please send it by e-mail',
+    wd_offline_text:   'The online withdrawal cannot be saved right now. Click below, the e-mail is ready to send.',
+    wd_offline_send:   'Send e-mail',
+    craft_privacy_link:'How we handle your e-mail',
+    err_payment:       'Choose how you want to pay.',
+    address_not_needed:'For a Zásilkovna pickup point we do not need your address, just pick the country.',
+    skip_to_content:   'Skip to content',
+    footer_credits:    'Font and icon licences',
     success_title:     'Thanks, we have your order',
-    success_desc:      'We will blend it and ship within 24 hours. A confirmation is on its way to your inbox.',
+    success_desc:      'We will blend it and usually ship within 24 hours. You can find the summary in My orders.',
     success_step1:     'Order received',
     success_step2:     'We blend it',
-    success_step3:     'Shipped within 24 hours',
+    success_step3:     'Shipped',
     btn_create_another:'Mix another blend',
     about_cta:         'Want to mix one?',
     btn_start_creating2:'Mix a blend',
@@ -3670,7 +4112,7 @@ function updateMixerUI() {
     const fill = document.getElementById('mixer-progress-fill');
     if (fill) fill.style.width = (mixerStep / 4 * 100) + '%';
 
-    page.querySelectorAll('.ingredient-btn').forEach(btn => btn.setAttribute('aria-checked', String(btn.classList.contains('selected'))));
+    page.querySelectorAll('.ingredient-btn').forEach(btn => btn.setAttribute('aria-pressed', String(btn.classList.contains('selected'))));
 
     // doporučení podle základu
     const base = ingByCode(codes[0]);
@@ -3697,6 +4139,7 @@ function updateMixerUI() {
     if (final && mixerStep === 4) final.innerHTML = pouch.replace('pouch--mixer', 'pouch--final');
 
     renderMixerSizes();
+    if (mixerStep === 4) renderFoodInfo(document.getElementById('mixer-food'), codes, mixerWeight);
 
     const summary = document.getElementById('mixer-bar-summary');
     const next = document.getElementById('mixer-next');
@@ -3896,7 +4339,7 @@ function craftCardHtml(p, done) {
                     <button type="submit" class="btn btn-primary">${escHtml(t('craft_send'))}</button>
                 </div>
                 <p class="field-error" role="alert"></p>
-                <p class="craft-form-note">${escHtml(t('craft_form_note'))}</p>
+                <p class="craft-form-note">${escHtml(t('craft_form_note'))} <a href="#" onclick="event.preventDefault(); showPage('privacy-page')">${escHtml(t('craft_privacy_link'))}</a></p>
             </form>
             <p class="craft-done"${done ? '' : ' hidden'}>${escHtml(t('craft_done'))}</p>
         </div>

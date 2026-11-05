@@ -1,6 +1,6 @@
              /\
             (  )     Tease you
-             ||      teaseyou.cz
+             ||      čajové směsi na míru
           ___||___
          |________|  Dík, že jsi sem zabrousil.
 
@@ -11,27 +11,31 @@
     Kontakt: hello [at] teaseyou.cz
     Odkud: Česká republika
 
-    Web, texty, míchání čajů i balení krabiček — jeden člověk.
-    Když ti něco nefunguje, píše ti zpátky ten samý.
+    Web, texty, míchání čajů i balení — malý tým.
+    Když ti něco nefunguje, napiš, odpovíme.
 
 
-/* DÍKY */
+/* POUŽITÉ VĚCI A JEJICH LICENCE */
 
-    Packeta / Zásilkovna — výdejní místa a widget
-    Formspree — příjem objednávek bez vlastního backendu
-    Google Fonts — Playfair Display, Lato
-    Climate Crisis — displejové písmo
-    Lidem, co reportovali rozbité věci na mobilu. Byla to pravda.
+    Písma Unbounded a Albert Sans: SIL Open Font License 1.1
+        (text licence je ve fonts/OFL.txt), uložená přímo na webu
+    Ikony: jednoduché SVG, část vychází z Feather Icons
+        (licence MIT, Copyright (c) 2013-2017 Cole Bemis,
+        celý text v THIRD-PARTY-LICENSES.txt)
+    Loga Instagramu, TikToku a Facebooku jsou ochranné známky
+        jejich vlastníků, slouží jen jako odkazy na naše profily
+    Ilustrace sáčku, mýdel a balzámů: vlastní SVG, žádné fotobanky
+    Zásilkovna (Packeta): mapa výdejních míst, načte se až po kliknutí
+    Supabase: databáze objednávek a fotek
+    GitHub Pages: hosting webu
 
 
 /* WEB */
 
-    Spuštěno: březen 2026
     Jazyk: čeština (s anglickým i18n fallbackem)
     Standardy: HTML5, CSS3, ES2020+
     Komponenty: žádný framework, žádný build, žádný bundler
-    Software: prostý textový editor a hodně náhledů v prohlížeči
     Hosting: GitHub Pages
 
-    Postaveno ručně. Bez cookies třetích stran, bez trackerů,
-    bez reklamních skriptů. Analytiku tu nenajdeš, protože tu žádná není.
+    Bez cookies třetích stran, bez trackerů, bez reklamních skriptů.
+    Analytiku tu nenajdeš, protože tu žádná není.

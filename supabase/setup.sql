@@ -80,6 +80,19 @@ create table if not exists public.ingredients (
     updated_at  timestamptz not null default now()
 );
 
+-- Údaje na etiketu a do „Informací o potravině“ na webu.
+--   label_cs   jak se surovina píše ve složení („citronová kůra“, „sušené jahody“)
+--   kind       pravý čaj / bylina nebo koření / sušené ovoce / jiné. Podle toho
+--              web pozná, jestli je směs ochucený, bylinný, nebo ovocný čaj
+--              (vyhláška 187/2023 Sb., § 2).
+--   max_pct    nejvyšší podíl ve směsi podle přílohy 1 vyhlášky (třeba
+--              levandule, kurkuma a kardamom nejvýš 5 %)
+--   allergens  alergeny podle specifikace dodavatele, např. „oxid siřičitý“
+alter table public.ingredients add column if not exists label_cs  text check (length(label_cs) <= 80);
+alter table public.ingredients add column if not exists kind      text check (kind in ('tea', 'herb', 'fruit', 'other'));
+alter table public.ingredients add column if not exists max_pct   smallint check (max_pct between 1 and 100);
+alter table public.ingredients add column if not exists allergens text not null default '' check (length(allergens) <= 200);
+
 -- Hotové směsi (Signature Blends na úvodní stránce).
 create table if not exists public.blends (
     id          text primary key check (id ~ '^[a-z0-9_]{2,40}$'),
@@ -123,6 +136,28 @@ create table if not exists public.settings (
     promo_bar_en         text check (length(promo_bar_en) <= 300),
     updated_at           timestamptz not null default now()
 );
+
+-- Kdo prodává (patří do obchodních podmínek, patičky a na etiketu),
+-- příplatek za dobírku a receptura, podle které web počítá podíly
+-- surovin ve složení. Prázdné údaje web ukáže jako „[doplnit]“.
+alter table public.settings add column if not exists seller_name    text not null default '' check (length(seller_name) <= 120);
+alter table public.settings add column if not exists seller_ico     text not null default '' check (seller_ico ~ '^([0-9]{8})?$');
+alter table public.settings add column if not exists seller_address text not null default '' check (length(seller_address) <= 200);
+alter table public.settings add column if not exists seller_email   text not null default 'hello@teaseyou.cz' check (length(seller_email) <= 120);
+alter table public.settings add column if not exists seller_phone   text not null default '' check (length(seller_phone) <= 30);
+alter table public.settings add column if not exists cod_fee_czk    integer not null default 39 check (cod_fee_czk between 0 and 1000);
+alter table public.settings add column if not exists recipe_base_pct   smallint not null default 70 check (recipe_base_pct between 1 and 100);
+alter table public.settings add column if not exists recipe_flavor_pct smallint not null default 20 check (recipe_flavor_pct between 0 and 99);
+alter table public.settings add column if not exists recipe_extra_pct  smallint not null default 10 check (recipe_extra_pct between 0 and 99);
+alter table public.settings add column if not exists durability_months smallint not null default 12 check (durability_months between 1 and 36);
+do $$
+begin
+    if not exists (select 1 from pg_constraint where conname = 'settings_recipe_sum') then
+        alter table public.settings add constraint settings_recipe_sum
+            check (recipe_base_pct + recipe_flavor_pct + recipe_extra_pct = 100);
+    end if;
+end;
+$$;
 
 -- Slevové kódy. Veřejně se nedají vypsat — web se jen zeptá funkce
 -- check_promo(), jestli konkrétní kód platí.
@@ -172,6 +207,14 @@ create table if not exists public.orders (
     admin_note       text,
     updated_at       timestamptz not null default now()
 );
+-- Příplatek za způsob platby (dobírka). Je součástí total_czk.
+alter table public.orders add column if not exists payment_czk integer not null default 0;
+-- Které znění obchodních podmínek zákazník při objednávce viděl (datum
+-- verze). Spolu s created_at je to záznam o tom, s čím souhlasil.
+alter table public.orders add column if not exists terms_version text check (terms_version ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+-- Kdy se z objednávky smazaly osobní údaje (viz purge_expired_data).
+alter table public.orders add column if not exists contacts_purged_at timestamptz;
+alter table public.orders add column if not exists anonymized_at timestamptz;
 create index if not exists orders_created_idx on public.orders (created_at desc);
 create index if not exists orders_email_idx   on public.orders (email, created_at);
 
@@ -301,6 +344,8 @@ declare
     v_point_id   text  := left(btrim(coalesce(p_order -> 'packetaPoint' ->> 'id', '')), 50);
     v_promo      text  := upper(btrim(coalesce(p_order ->> 'promo', '')));
     v_lang       text  := case when p_order ->> 'lang' = 'en' then 'en' else 'cs' end;
+    v_terms      text  := case when coalesce(p_order ->> 'termsVersion', '') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+                               then p_order ->> 'termsVersion' end;
     v_items      jsonb := p_order -> 'items';
     v_item       jsonb;
     v_lines      jsonb := '[]'::jsonb;
@@ -314,21 +359,27 @@ declare
     v_goods      integer := 0;
     v_discount   integer := 0;
     v_shipping   integer;
+    v_payfee     integer := 0;
     v_rate       numeric;
     v_threshold  integer;
     v_ship       public.shipping_methods%rowtype;
     v_id         bigint;
     v_num        text;
 begin
-    -- Zákazník: stejná pravidla jako formulář na webu.
+    -- Zákazník: stejná pravidla jako formulář na webu. Při doručení na
+    -- výdejní místo Zásilkovny adresu nepotřebujeme, tak ji nechceme
+    -- (minimalizace údajů). Když ji někdo vyplní, musí být celá a platná.
     if length(v_first) not between 2 and 100
        or length(v_last) not between 2 and 100
        or length(v_email) > 200 or v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]+$'
        or v_phone !~ '^\+?[0-9][0-9 ]{7,14}$'
-       or length(v_street) not between 3 and 200
-       or length(v_city) not between 2 and 100
-       or v_zip !~ '^[0-9]{3} ?[0-9]{2}$'
        or v_country not in ('CZ', 'SK') then
+        raise exception 'invalid_customer' using errcode = 'P0001';
+    end if;
+    if (v_ship_id <> 'zasilkovna' or v_street <> '' or v_city <> '' or v_zip <> '')
+       and (length(v_street) not between 3 and 200
+            or length(v_city) not between 2 and 100
+            or v_zip !~ '^[0-9]{3} ?[0-9]{2}$') then
         raise exception 'invalid_customer' using errcode = 'P0001';
     end if;
 
@@ -407,12 +458,17 @@ begin
     if v_ship_id = 'zasilkovna' and v_point = '' then
         raise exception 'pickup_point_required' using errcode = 'P0001';
     end if;
-    if v_pay not in ('cod', 'card', 'transfer') then
+    -- Platba kartou zatím není napojená na bránu, tak ji nebereme.
+    if v_pay not in ('cod', 'transfer') then
         raise exception 'invalid_payment' using errcode = 'P0001';
     end if;
 
     -- Doprava zdarma se počítá z ceny zboží před slevou, stejně jako na webu.
-    select free_ship_threshold into v_threshold from public.settings where id = 1;
+    -- Příplatek za dobírku platí vždy, i při dopravě zdarma.
+    select free_ship_threshold, case when v_pay = 'cod' then cod_fee_czk else 0 end
+      into v_threshold, v_payfee
+      from public.settings where id = 1;
+    v_payfee := coalesce(v_payfee, 0);
     v_shipping := case when v_threshold is not null and v_goods >= v_threshold
                        then 0 else v_ship.price_czk end;
 
@@ -435,11 +491,12 @@ begin
     insert into public.orders (
         first_name, last_name, email, phone, street, city, zip, country, note,
         shipping_method, shipping_name, packeta_point, packeta_point_id, payment_method,
-        items, goods_czk, discount_czk, shipping_czk, total_czk, promo_code, lang)
+        items, goods_czk, discount_czk, shipping_czk, payment_czk, total_czk, promo_code, lang, terms_version)
     values (
         v_first, v_last, v_email, v_phone, v_street, v_city, v_zip, v_country, v_note,
         v_ship_id, v_ship.name, nullif(v_point, ''), nullif(v_point_id, ''), v_pay,
-        v_lines, v_goods, v_discount, v_shipping, v_goods - v_discount + v_shipping, v_promo, v_lang)
+        v_lines, v_goods, v_discount, v_shipping, v_payfee,
+        v_goods - v_discount + v_shipping + v_payfee, v_promo, v_lang, v_terms)
     returning id into v_id;
 
     v_num := 'TY-' || lpad(v_id::text, 5, '0');
@@ -451,7 +508,8 @@ begin
         'goods',    v_goods,
         'discount', v_discount,
         'shipping', v_shipping,
-        'total',    v_goods - v_discount + v_shipping);
+        'payment',  v_payfee,
+        'total',    v_goods - v_discount + v_shipping + v_payfee);
 end;
 $$;
 
@@ -575,6 +633,141 @@ revoke all on function public.join_craft_waitlist(text, text, text) from public;
 grant execute on function public.join_craft_waitlist(text, text, text) to anon, authenticated;
 
 
+-- ─── ODSTOUPENÍ OD SMLOUVY ───────────────────────────────────────────
+-- Online odstoupení přes tlačítko „Odstoupit od smlouvy“ (§ 1830a
+-- občanského zákoníku podle zákona č. 159/2026 Sb., od 1. 1. 2027).
+-- Web zapisuje jen přes submit_withdrawal(), číst a měnit smí jen admin.
+create table if not exists public.withdrawals (
+    id            bigint generated always as identity primary key,
+    created_at    timestamptz not null default now(),
+    order_num     text not null check (order_num ~ '^TY-[0-9A-Z]{3,12}$'),
+    order_id      bigint references public.orders (id) on delete set null,
+    name          text not null check (length(name) between 2 and 200),
+    email         text not null check (length(email) <= 200 and email ~ '^[^\s@]+@[^\s@]+\.[^\s@]+$'),
+    items         text not null default '' check (length(items) <= 1000),
+    bank_account  text not null default '' check (length(bank_account) <= 60),
+    note          text not null default '' check (length(note) <= 1000),
+    status        text not null default 'new' check (status in ('new', 'confirmed', 'refunded', 'rejected')),
+    confirmed_at  timestamptz,
+    admin_note    text not null default '' check (length(admin_note) <= 1000),
+    updated_at    timestamptz not null default now()
+);
+create index if not exists withdrawals_created_idx on public.withdrawals (created_at desc);
+create index if not exists withdrawals_email_idx   on public.withdrawals (email, created_at);
+
+create or replace function public.submit_withdrawal(p jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_num     text := upper(btrim(coalesce(p ->> 'orderNum', '')));
+    v_name    text := btrim(coalesce(p ->> 'name', ''));
+    v_email   text := lower(btrim(coalesce(p ->> 'email', '')));
+    v_items   text := left(btrim(coalesce(p ->> 'items', '')), 1000);
+    v_account text := left(btrim(coalesce(p ->> 'bankAccount', '')), 60);
+    v_note    text := left(btrim(coalesce(p ->> 'note', '')), 1000);
+    v_order   bigint;
+    v_row     public.withdrawals%rowtype;
+begin
+    if v_num !~ '^TY-[0-9A-Z]{3,12}$' then
+        raise exception 'invalid_order_num' using errcode = 'P0001';
+    end if;
+    if length(v_name) not between 2 and 200
+       or length(v_email) > 200 or v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]+$' then
+        raise exception 'invalid_customer' using errcode = 'P0001';
+    end if;
+    if (select count(*) from public.withdrawals
+        where email = v_email and created_at > now() - interval '1 day') >= 5 then
+        raise exception 'too_many' using errcode = 'P0001';
+    end if;
+    -- Objednávku přiřadíme jen tehdy, když sedí i e-mail. Když nesedí,
+    -- odstoupení se stejně uloží (zákon ho nedovoluje odmítnout kvůli
+    -- překlepu) a admin si ho dohledá.
+    select id into v_order from public.orders where num = v_num and email = v_email;
+    insert into public.withdrawals (order_num, order_id, name, email, items, bank_account, note)
+    values (v_num, v_order, v_name, v_email, v_items, v_account, v_note)
+    returning * into v_row;
+    return jsonb_build_object('id', v_row.id, 'created_at', v_row.created_at, 'matched', v_order is not null);
+end;
+$$;
+revoke all on function public.submit_withdrawal(jsonb) from public;
+grant execute on function public.submit_withdrawal(jsonb) to anon, authenticated;
+
+
+-- ─── OSOBNÍ ÚDAJE: ŽÁDOSTI A ÚKLID ───────────────────────────────────
+-- Záznam žádostí podle GDPR (kdo chtěl kopii nebo výmaz, kdy a jak se
+-- vyřídila), aby šlo doložit, že se odpovědělo do měsíce.
+create table if not exists public.privacy_requests (
+    id          bigint generated always as identity primary key,
+    created_at  timestamptz not null default now(),
+    email       text not null check (length(email) <= 200),
+    kind        text not null check (kind in ('access', 'erasure', 'correction', 'objection', 'other')),
+    note        text not null default '' check (length(note) <= 1000),
+    done_at     timestamptz,
+    updated_at  timestamptz not null default now()
+);
+
+do $$
+declare t text;
+begin
+    foreach t in array array['withdrawals', 'privacy_requests'] loop
+        execute format('drop trigger if exists %I_updated_at on public.%I', t, t);
+        execute format('create trigger %I_updated_at before update on public.%I
+                        for each row execute function public.set_updated_at()', t, t);
+        execute format('alter table public.%I enable row level security', t);
+        execute format('drop policy if exists "%s_admin" on public.%I', t, t);
+        execute format('create policy "%s_admin" on public.%I for all to authenticated
+                        using (public.is_admin()) with check (public.is_admin())', t, t);
+        execute format('revoke all on public.%I from anon', t);
+        execute format('grant select, insert, update, delete on public.%I to authenticated', t);
+    end loop;
+end;
+$$;
+
+-- Úklid podle zásad ochrany osobních údajů. Spouští ho administrace při
+-- každém přihlášení, smí ho zavolat jen admin.
+--   e-maily pro upozornění na mýdla a balzámy   smazat po 2 letech
+--   kontakt a poznámka u objednávky             smazat po 5 letech
+--   jméno a adresa u objednávky, odstoupení     smazat po 10 letech
+--   záznamy o žádostech podle GDPR               smazat po 5 letech
+create or replace function public.purge_expired_data()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_wait int; v_contacts int; v_names int; v_wd int; v_req int;
+begin
+    if not public.is_admin() then
+        raise exception 'not_admin' using errcode = '42501';
+    end if;
+    delete from public.craft_waitlist where created_at < now() - interval '2 years';
+    get diagnostics v_wait = row_count;
+    update public.orders
+       set email = 'smazano@example.invalid', phone = '', note = null, admin_note = null,
+           contacts_purged_at = now()
+     where created_at < now() - interval '5 years' and contacts_purged_at is null;
+    get diagnostics v_contacts = row_count;
+    update public.orders
+       set first_name = '—', last_name = '—', street = '', city = '', zip = '',
+           packeta_point = null, packeta_point_id = null, anonymized_at = now()
+     where created_at < now() - interval '10 years' and anonymized_at is null;
+    get diagnostics v_names = row_count;
+    delete from public.withdrawals where created_at < now() - interval '10 years';
+    get diagnostics v_wd = row_count;
+    delete from public.privacy_requests where created_at < now() - interval '5 years';
+    get diagnostics v_req = row_count;
+    return jsonb_build_object('waitlist', v_wait, 'order_contacts', v_contacts, 'order_names', v_names,
+                              'withdrawals', v_wd, 'privacy_requests', v_req);
+end;
+$$;
+revoke all on function public.purge_expired_data() from public;
+grant execute on function public.purge_expired_data() to authenticated;
+
+
 -- ─── NÁKUP: DODAVATELÉ, SUROVINY, NABÍDKY, ÚKOLY ────────────────────
 -- Pracovní deník pro hledání dodavatelů. Vidí a mění ho jen admin;
 -- web pro zákazníky k těmhle tabulkám nemá žádný přístup.
@@ -681,7 +874,7 @@ values
     ('vanilla', 'Vanilla', 'flavor', 'Vanilka', 'Vanilla', 'Sladká, krémová a hřejivá.', 'Sweet, creamy and warm.', '🌸', '#f3e5ab', null, array['sladká', 'krémová', 'hřejivá']::text[], array['sweet', 'creamy', 'warm']::text[], array['Nálada', 'Antioxidanty']::text[], array['Mood lift', 'Antioxidants']::text[], array['Black Tea', 'Rooibos', 'Cinnamon']::text[], null, null, 90),
     ('rose', 'Rose', 'flavor', 'Růže', 'Rose', 'Květinová a jemná.', 'Floral and delicate.', '🌹', '#e8607a', null, array['květinová', 'romantická', 'lehká']::text[], array['floral', 'romantic', 'light']::text[], array['Antioxidanty', 'Nálada', 'Pokožka']::text[], array['Antioxidants', 'Mood', 'Skin']::text[], array['White Tea', 'Oolong', 'Lavender']::text[], null, null, 100),
     ('orange', 'Orange', 'flavor', 'Pomeranč', 'Orange', 'Citrusový, svěží a šťavnatý.', 'Citrusy, bright and zesty.', '🍊', '#ffb347', null, array['citrusová', 'jiskřivá', 'osvěžující']::text[], array['citrusy', 'bright', 'zesty']::text[], array['Vitamín C', 'Imunita', 'Energie']::text[], array['Vitamin C', 'Immunity', 'Energy']::text[], array['Rooibos', 'Black Tea', 'Ginger']::text[], null, null, 110),
-    ('blueberry', 'Blueberry', 'flavor', 'Borůvka', 'Blueberry', 'Sladká a nakyslá, plná antioxidantů.', 'Sweet and tart, antioxidant-rich.', '🫐', '#9b59b6', null, array['sladká', 'ovocná', 'nakyslá']::text[], array['sweet', 'fruity', 'tart']::text[], array['Antioxidanty', 'Zdraví mozku', 'Proti stárnutí']::text[], array['Antioxidants', 'Brain health', 'Anti-aging']::text[], array['Green Tea', 'Lemon', 'Mint']::text[], null, null, 120),
+    ('blueberry', 'Blueberry', 'flavor', 'Borůvka', 'Blueberry', 'Sladká a nakyslá, chutná jako léto.', 'Sweet and tart, tastes like summer.', '🫐', '#9b59b6', null, array['sladká', 'ovocná', 'nakyslá']::text[], array['sweet', 'fruity', 'tart']::text[], array['Antioxidanty', 'Zdraví mozku', 'Proti stárnutí']::text[], array['Antioxidants', 'Brain health', 'Anti-aging']::text[], array['Green Tea', 'Lemon', 'Mint']::text[], null, null, 120),
     ('raspberry', 'Raspberry', 'flavor', 'Malina', 'Raspberry', 'Nakyslá, ovocná a živá.', 'Tart, fruity and vibrant.', '🍇', '#e91e8c', null, array['nakyslá', 'ovocná', 'živá']::text[], array['tart', 'fruity', 'vibrant']::text[], array['Vitamín C', 'Antioxidanty', 'Vláknina']::text[], array['Vitamin C', 'Antioxidants', 'Fiber']::text[], array['Green Tea', 'Mint', 'Lemon']::text[], null, null, 130),
     ('cocoa', 'Cocoa', 'flavor', 'Kakao', 'Cocoa', 'Bohaté, čokoládové a zemité.', 'Rich, chocolatey and earthy.', '🍫', '#795548', null, array['bohatá', 'čokoládová', 'zemitá']::text[], array['rich', 'chocolatey', 'earthy']::text[], array['Nálada', 'Antioxidanty', 'Energie']::text[], array['Mood', 'Antioxidants', 'Energy']::text[], array['Black Tea', 'Rooibos', 'Cinnamon']::text[], null, null, 140),
     ('coconut', 'Coconut', 'flavor', 'Kokos', 'Coconut', 'Tropický, sladký a krémový.', 'Tropical, sweet and creamy.', '🥥', '#4fc3f7', null, array['tropická', 'sladká', 'krémová']::text[], array['tropical', 'sweet', 'creamy']::text[], array['MCT tuky', 'Energie', 'Hydratace']::text[], array['MCTs', 'Energy', 'Hydration']::text[], array['Rooibos', 'Oolong', 'Vanilla']::text[], null, null, 150),
@@ -799,3 +992,70 @@ begin
     end if;
 end;
 $$;
+
+-- Etiketa: jak se suroviny píšou ve složení, jakého jsou druhu a kolik
+-- jich smí ve směsi být (vyhláška 187/2023 Sb., příloha 1). Doplní se jen
+-- tam, kde ještě nic není, takže úpravy z administrace zůstanou.
+update public.ingredients i
+   set kind     = coalesce(i.kind, v.kind),
+       label_cs = coalesce(i.label_cs, v.label_cs),
+       max_pct  = coalesce(i.max_pct, v.max_pct)
+  from (values
+    ('green_tea',  'tea',   'zelený čaj',          null::smallint),
+    ('black_tea',  'tea',   'černý čaj',           null),
+    ('white_tea',  'tea',   'bílý čaj',            null),
+    ('oolong',     'tea',   'čaj oolong',          null),
+    ('rooibos',    'herb',  'rooibos',             null),
+    ('chamomile',  'herb',  'heřmánek (květ)',     null),
+    ('strawberry', 'fruit', 'sušené jahody',       null),
+    ('mint',       'herb',  'máta (list)',         null),
+    ('vanilla',    'herb',  'vanilka',             null),
+    ('rose',       'herb',  'růže (okvětní lístky)', null),
+    ('orange',     'fruit', 'pomerančová kůra',    30),
+    ('blueberry',  'fruit', 'sušené borůvky',      null),
+    ('raspberry',  'fruit', 'sušené maliny',       null),
+    ('cocoa',      'herb',  'kakaové slupky',      null),
+    ('coconut',    'fruit', 'sušený kokos',        null),
+    ('honey',      'other', 'med',                 null),
+    ('lemon',      'fruit', 'citronová kůra',      30),
+    ('ginger',     'herb',  'zázvor',              null),
+    ('lavender',   'herb',  'levandule (květ)',    5),
+    ('turmeric',   'herb',  'kurkuma',             5),
+    ('cinnamon',   'herb',  'skořice',             null),
+    ('spearmint',  'herb',  'máta klasnatá (list)', null),
+    ('rose_hip',   'fruit', 'šípek',               null),
+    ('cardamom',   'herb',  'kardamom',            5)
+  ) as v(id, kind, label_cs, max_pct)
+ where i.id = v.id;
+
+-- Popis borůvky dřív sliboval antioxidanty. To je zdravotní tvrzení, které
+-- u potraviny bez schválení EU nesmí být. Přepíše se jen původní text.
+update public.ingredients
+   set desc_cs = 'Sladká a nakyslá, chutná jako léto.'
+ where id = 'blueberry' and desc_cs = 'Sladká a nakyslá, plná antioxidantů.';
+update public.ingredients
+   set desc_en = 'Sweet and tart, tastes like summer.'
+ where id = 'blueberry' and desc_en = 'Sweet and tart, antioxidant-rich.';
+
+-- Úřední a právní kroky před spuštěním prodeje. Vloží se jednou, potom je
+-- spravuješ v administraci (Nákup → Úkoly).
+insert into public.purchase_tasks (title, who, due)
+select v.title, v.who, v.due
+  from (values
+    ('Ohlásit živnost: Velkoobchod a maloobchod + Výroba potravinářských výrobků (jeden formulář pro úřad, ČSSZ, pojišťovnu i finanční úřad)', 'Václav', null::date),
+    ('Doplnit v administraci Nastavení: jméno, IČO, adresu sídla a telefon (ukážou se v podmínkách, patičce a na etiketě)', 'Václav', null),
+    ('Oznámit SZPI zahájení činnosti: maloobchod + internetový obchod se skladem, uvést adresu e-shopu (nejpozději v den zahájení prodeje)', 'Václav', null),
+    ('Sepsat postupy podle zásad HACCP: příjem surovin, skladování, míchání, balení, čištění, šarže', 'Václav', null),
+    ('Ke každé surovině vyžádat od dodavatele specifikaci (alergeny, původ, trvanlivost) a zapsat alergeny u ingredience', 'Václav', null),
+    ('Ověřit receptury podle vyhlášky 187/2023: levandule, kurkuma a kardamom nejvýš 5 %, citrusová kůra nejvýš 30 %; skořice, zázvor, vanilka, kokos a med nejsou v příloze 1, zeptat se SZPI', 'Václav', null),
+    ('Zeptat se EKO-KOM (info@ekokom.cz), jestli jsem kvůli sáčkům se značkou producent obalů a co mám platit', 'Václav', null),
+    ('Nastavit potvrzovací e-mail zákazníkovi po objednávce (zákon ho vyžaduje), např. Resend + Supabase', 'Václav', null),
+    ('Dokud nejede automatický e-mail: každou objednávku potvrdit zákazníkovi e-mailem ručně a do balíčku přiložit doklad a obchodní podmínky', 'Václav', null),
+    ('Vyzkoušet tlačítko „Odstoupit od smlouvy“ na testovací objednávce a poslat si potvrzení (zákon 159/2026 Sb. platí od 1. 1. 2027)', 'Václav', date '2026-12-31'),
+    ('Ověřit, že ti patří doména teaseyou.cz a funguje e-mail hello@teaseyou.cz (poslat si zkušební zprávu); jinak změnit e-mail v Nastavení', 'Václav', null),
+    ('Nechat obchodní podmínky a ochranu osobních údajů zkontrolovat právníkem', 'Václav', null),
+    ('Ověřit v Supabase (Project Settings → General), ve kterém regionu jsou data, a doplnit to do ochrany osobních údajů', 'Václav', null),
+    ('Mýdla a balzámy: než se začnou prodávat, zjistit cenu posudku bezpečnosti, registraci v CPNP a oznámení hygieně', 'Klára', null),
+    ('Projít znovu PRAVNI-KONTROLA.md v repozitáři (jednou za rok a při každé nové funkci, dodavateli nebo zemi)', 'Václav', date '2027-11-05')
+  ) as v(title, who, due)
+ where not exists (select 1 from public.purchase_tasks where title like 'Ohlásit živnost:%');

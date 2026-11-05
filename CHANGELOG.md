@@ -6,6 +6,62 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (kontrola podle checklistu)
+- **Tlačítko „Odstoupit od smlouvy“** (zákon č. 159/2026 Sb., od 1. 1. 2027): na stránce
+  Odstoupení i u každé objednávky v Moje objednávky, druhý krok „Potvrdit odstoupení od
+  smlouvy“, hned potvrzení s datem a časem. V administraci nová záložka **Odstoupení**
+  s připraveným potvrzovacím e-mailem a stavy.
+- **Záložka Osobní údaje** v administraci: najde vše k e-mailu, stáhne kopii, smaže
+  z upozornění a zapíše žádost (odpověď do měsíce).
+- **Automatický úklid osobních údajů** při přihlášení do administrace podle lhůt v zásadách.
+- U objednávky se ukládá **znění obchodních podmínek**, se kterým zákazník souhlasil.
+- `PRAVNI-KONTROLA.md`: všech 35 bodů checklistu s českými předpisy a stavem.
+- `THIRD-PARTY-LICENSES.txt` a odkaz v patičce (písma, ikony).
+- Odkaz „Přeskočit na obsah“.
+
+### Změněno (kontrola podle checklistu)
+- Platba v pokladně není předvybraná (dobírka stojí víc, musí ji zvolit zákazník).
+- Doprava je v pokladně před adresou. U výdejního místa Zásilkovny se adresa nechce.
+- Věta o podmínkách je těsně nad tlačítkem Objednat a zaplatit.
+- Zásady ochrany osobních údajů: pověřenec, odstoupení, žádosti, technické záznamy,
+  přesné lhůty, zabezpečení, změny a znění. Podmínky popisují online odstoupení.
+- Pryč nepodložená tvrzení: „500+ kombinací“, „certifikovaní dodavatelé“, „žádné šarže“,
+  „bez umělých aromatizátorů“, „ve stejný den“, vymyšlený telefon ve strukturovaných datech.
+  Termíny odeslání jsou „obvykle do 24 hodin“.
+- Přístupnost: tlačítka ingrediencí a menu bez chybných rolí, lepší kontrast poznámky
+  v úvodu, přehled zpracování údajů na telefonu jako karty.
+
+### Přidáno (právní věci)
+- **Obchodní podmínky, reklamace, ochrana osobních údajů a cookies** sepsané
+  nanovo podle toho, jak e-shop opravdu funguje. Nová stránka **Odstoupení od
+  smlouvy** se vzorovým formulářem (e-mail nebo tisk).
+- **Údaje o prodávajícím** (jméno, IČO, sídlo, telefon, e-mail) se vyplňují
+  v administraci a web je dosadí do podmínek, patičky i na etiketu. Dokud
+  chybí, je vidět „[doplnit]“.
+- **Informace o potravině** u každé směsi: na detailu, v posledním kroku
+  mixéru a v košíku. Název podle vyhlášky 187/2023 Sb. (ochucený, bylinný
+  nebo ovocný čaj), složení s procenty, alergeny, hmotnost, trvanlivost,
+  skladování, příprava a výrobce. Levandule, kurkuma a kardamom nejvýš 5 %.
+- **Úkoly v administraci** s úředními kroky před spuštěním prodeje.
+
+### Změněno
+- Tlačítko v pokladně je **„Objednat a zaplatit“** a nad ním je poučení, že
+  směsi na míru nejde vrátit bez udání důvodu.
+- **Příplatek za dobírku** se opravdu připočítá do ceny (dřív ho web jen
+  sliboval). Výši nastavíš v administraci.
+- **Platba kartou** zmizela z nabídky, dokud nebude napojená platební brána.
+- **Písma** jsou uložená přímo na webu, nic se nenačítá z Googlu.
+  **Mapa Zásilkovny** se stáhne až po kliknutí na výběr výdejního místa.
+- FAQ: opravené odpovědi o alergenech, vracení a trvanlivosti.
+- Stránka po objednávce už neslibuje potvrzovací e-mail, dokud se neposílá.
+
+### Odebráno
+- **Cookie lišta:** web nic nesleduje, takže souhlas není potřeba.
+- **Přihlášení k newsletteru** v patičce: hlásilo „jsi přihlášený“, ale nic
+  neukládalo.
+- **Zdravotní tvrzení** (antioxidanty a podobně) z webu.
+- Nepoužívané písmo Climate Crisis.
+
 ### Změněno (písma a úvod)
 - **Nová písma na celém webu i v administraci:** nadpisy a logo v Unbounded,
   text v Albert Sans. Climate Crisis a Archivo jsou pryč.
