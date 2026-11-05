@@ -56,6 +56,7 @@
         if (err.code === '42P01' || err.code === 'PGRST205' || /could not find the table/i.test(m)) {
             return 'V databázi chybí tabulka. Spusť znovu celý supabase/setup.sql v SQL Editoru (nic se tím nepřepíše).';
         }
+        if (m === 'bulk_delete_blocked') return `Tolik položek najednou smazat nejde. ${err.details || ''} Mazej po menších kouscích.`.trim();
         if (err.code === '23505') return 'Tohle už existuje. Zvol jiný název nebo kód.';
         if (err.code === '23514') return 'Databáze hodnotu nepřijala. Zkontroluj formát (barva, délka textu, rozsah čísla).';
         if (err.code === '23503') return 'Na tuhle položku něco odkazuje, takže ji nejde smazat.';
@@ -74,15 +75,36 @@
     }
     const fail = err => { console.error('[admin]', err); toast(friendly(err), true); };
 
-    function confirmDialog(text, okLabel) {
+    // typed: u velkých zásahů musí admin opsat slovo nebo název, jinak
+    // tlačítko nejde zmáčknout. Oprávnění a limity hlídá i tak databáze.
+    function confirmDialog(text, okLabel, typed) {
         const dlg = $('#confirm-dialog');
-        if (!dlg || typeof dlg.showModal !== 'function') return Promise.resolve(window.confirm(text));
+        if (!dlg || typeof dlg.showModal !== 'function') {
+            if (!typed) return Promise.resolve(window.confirm(text));
+            return Promise.resolve(window.prompt(`${text}\n\nPro potvrzení napiš: ${typed}`) === typed);
+        }
         $('#confirm-text').textContent = text;
-        $('#confirm-ok').textContent = okLabel || 'Smazat';
+        const ok = $('#confirm-ok');
+        ok.textContent = okLabel || 'Smazat';
+        const wrap = $('#confirm-typed');
+        const input = $('#confirm-typed-input');
+        wrap.hidden = !typed;
+        input.value = '';
+        ok.disabled = !!typed;
+        const onInput = () => { ok.disabled = input.value.trim() !== typed; };
+        if (typed) {
+            $('#confirm-typed-label').textContent = `Pro potvrzení napiš: ${typed}`;
+            input.addEventListener('input', onInput);
+        }
         dlg.returnValue = '';
         return new Promise(resolve => {
-            dlg.addEventListener('close', () => resolve(dlg.returnValue === 'ok'), { once: true });
+            dlg.addEventListener('close', () => {
+                input.removeEventListener('input', onInput);
+                ok.disabled = false;
+                resolve(dlg.returnValue === 'ok' && (!typed || input.value.trim() === typed));
+            }, { once: true });
             dlg.showModal();
+            if (typed) input.focus();
         });
     }
 
@@ -175,9 +197,10 @@
             return;
         }
         $('#user-email').textContent = (user && user.email) || '';
+        showEnvironment();
         show('app');
         const fromHash = (location.hash || '').replace('#', '');
-        switchTab(['orders', 'ingredients', 'blends', 'pricing', 'promos', 'craft', 'purchase', 'withdrawals', 'privacy'].includes(fromHash) ? fromHash : 'orders');
+        switchTab(['orders', 'ingredients', 'blends', 'pricing', 'promos', 'craft', 'purchase', 'withdrawals', 'privacy', 'backups'].includes(fromHash) ? fromHash : 'orders');
         purgeExpired();
     }
 
@@ -297,6 +320,7 @@
             db.select('settings', { id: 'eq.1' }),
         ]);
         Object.assign(state, { ingredients, blends, prices, shipping, settings: settings[0] || null, catalogLoaded: true });
+        renderBackupAlert();
     }
 
     async function loadTab(name, force) {
@@ -322,6 +346,9 @@
             } else if (name === 'withdrawals') {
                 state.withdrawals = await db.select('withdrawals', { order: 'created_at.desc', limit: 500 });
                 renderWithdrawals();
+            } else if (name === 'backups') {
+                state.trash = await db.select('deleted_rows', { order: 'deleted_at.desc', limit: 500 });
+                renderBackups();
             } else if (name === 'privacy') {
                 state.privacyRequests = await db.select('privacy_requests', { order: 'created_at.desc', limit: 300 });
                 renderPrivacy();
@@ -1461,7 +1488,8 @@
             }));
             const del = $('#supplier-delete', body);
             if (del) del.addEventListener('click', async () => {
-                if (!(await confirmDialog(`Smazat dodavatele ${s.name}? Smažou se i jeho nabídky (${offers.length}).`))) return;
+                if (!(await confirmDialog(`Smazat dodavatele ${s.name}? Smažou se i jeho nabídky (${offers.length}). 30 dní půjde všechno vrátit z koše.`, 'Smazat',
+                    offers.length ? s.name : undefined))) return;
                 try {
                     const rows = await db.remove('purchase_suppliers', { id: 'eq.' + s.id });
                     if (!rows.length) throw new db.DbError('no_rows', 0);
@@ -1544,7 +1572,8 @@
             }));
             const del = $('#material-delete', body);
             if (del) del.addEventListener('click', async () => {
-                if (!(await confirmDialog(`Smazat surovinu ${m.name}? Smažou se i nabídky (${offers.length}). Na webu se nic nezmění.`))) return;
+                if (!(await confirmDialog(`Smazat surovinu ${m.name}? Smažou se i nabídky (${offers.length}). Na webu se nic nezmění. 30 dní půjde všechno vrátit z koše.`, 'Smazat',
+                    offers.length ? m.name : undefined))) return;
                 try {
                     const rows = await db.remove('purchase_materials', { id: 'eq.' + m.id });
                     if (!rows.length) throw new db.DbError('no_rows', 0);
@@ -1712,6 +1741,226 @@
         a.click();
         setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
     });
+
+    /* ═══ PROSTŘEDÍ, ZÁLOHY, KOŠ ════════════════════════════════════ */
+    // Prostředí určuje config.js (ENVIRONMENT), ne adresa v prohlížeči.
+    function showEnvironment() {
+        const env = (window.TEASEYOU_CONFIG && window.TEASEYOU_CONFIG.ENVIRONMENT) || 'production';
+        const badge = $('#env-badge');
+        badge.hidden = false;
+        badge.textContent = env === 'production' ? 'Ostrý provoz' : 'Testovací prostředí';
+        badge.className = 'env-badge ' + (env === 'production' ? 'env-prod' : 'env-test');
+        badge.title = env === 'production' ? 'Pracuješ se skutečnými daty zákazníků.' : 'Testovací databáze, žádná skutečná data.';
+    }
+
+    const BACKUP_MAX_AGE_DAYS = 7;
+    function renderBackupAlert() {
+        const el = $('#backup-alert');
+        if (!el || !state.settings || !('last_backup_at' in state.settings)) { if (el) el.hidden = true; return; }
+        const last = state.settings.last_backup_at ? new Date(state.settings.last_backup_at) : null;
+        const days = last ? Math.floor((Date.now() - last.getTime()) / 864e5) : null;
+        el.hidden = days !== null && days < BACKUP_MAX_AGE_DAYS;
+        $('#backup-alert-text').textContent = days === null
+            ? 'Zatím nemáš žádnou zálohu. Stáhni si ji, ať o data nepřijdeš.'
+            : `Poslední záloha je stará ${days} ${days < 5 ? 'dny' : 'dní'}. Stáhni novou.`;
+        const lastEl = $('#backup-last');
+        if (lastEl) lastEl.textContent = last ? `Poslední záloha: ${formatDate(last.toISOString())}` : 'Zatím žádná záloha.';
+    }
+
+    const blobToBase64 = blob => new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result).split(',')[1] || '');
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(blob);
+    });
+    const base64ToBlob = (b64, type) => {
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return new Blob([bytes], { type: type || 'application/octet-stream' });
+    };
+    const photoPrefix = () => db.publicUrl(PHOTO_BUCKET, '');
+    function photoPathsIn(tables) {
+        const prefix = photoPrefix();
+        const urls = new Set();
+        ['ingredients', 'blends', 'craft_products'].forEach(t => (tables[t] || []).forEach(r => {
+            if (r.photo_url && r.photo_url.startsWith(prefix)) urls.add(r.photo_url);
+        }));
+        return [...urls].map(u => ({ url: u, path: decodeURIComponent(u.slice(prefix.length)) }));
+    }
+
+    async function downloadBackup() {
+        const btns = $$('[data-action="download-backup"]');
+        const progress = $('#backup-progress');
+        btns.forEach(b => { b.disabled = true; });
+        try {
+            if (progress) progress.textContent = 'Stahuji data…';
+            const backup = await db.rpc('export_backup');
+            const photos = photoPathsIn(backup.tables || {});
+            backup.photos = {};
+            let missing = 0;
+            for (let i = 0; i < photos.length; i++) {
+                if (progress) progress.textContent = `Stahuji fotky ${i + 1} / ${photos.length}…`;
+                try {
+                    const res = await fetch(photos[i].url, { cache: 'no-store' });
+                    if (!res.ok) throw new Error(res.status);
+                    const blob = await res.blob();
+                    backup.photos[photos[i].path] = { type: blob.type, data: await blobToBase64(blob) };
+                } catch (_) { missing++; }
+            }
+            const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `tease-you-zaloha-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+            if (state.settings) state.settings.last_backup_at = backup.created_at;
+            renderBackupAlert();
+            const n = Object.values(backup.tables || {}).reduce((sum, rows) => sum + rows.length, 0);
+            if (progress) progress.textContent = `Hotovo: ${n} záznamů a ${photos.length - missing} fotek.${missing ? ` ${missing} fotek se stáhnout nepodařilo.` : ''}`;
+            toast(missing ? `Záloha je stažená, ale ${missing} fotek chybí.` : 'Záloha je stažená.', !!missing);
+        } catch (err) {
+            if (progress) progress.textContent = '';
+            fail(err);
+        } finally {
+            btns.forEach(b => { b.disabled = false; });
+        }
+    }
+    document.addEventListener('click', e => {
+        if (e.target.closest('[data-action="download-backup"]')) downloadBackup();
+    });
+
+    const TABLE_LABEL = {
+        settings: 'Nastavení', ingredients: 'Ingredience', blends: 'Směsi', price_tiers: 'Ceník',
+        shipping_methods: 'Doprava', promo_codes: 'Slevové kódy', craft_products: 'Mýdla a balzámy',
+        craft_waitlist: 'Zájemci', purchase_suppliers: 'Dodavatelé', purchase_materials: 'Suroviny',
+        purchase_offers: 'Nabídky', purchase_tasks: 'Úkoly', orders: 'Objednávky',
+        withdrawals: 'Odstoupení', privacy_requests: 'Žádosti o údaje',
+    };
+    let restoreData = null;
+
+    async function previewRestore() {
+        const out = $('#restore-preview');
+        const run = $('#restore-run');
+        run.disabled = true;
+        if (!restoreData) { out.innerHTML = ''; return; }
+        out.innerHTML = '<p class="loading">Počítám, co by se stalo…</p>';
+        try {
+            const overwrite = $('#restore-overwrite').checked;
+            const res = await db.rpc('restore_backup', { p: restoreData, p_overwrite: overwrite, p_dry_run: true });
+            const rows = Object.entries(res.tables || {}).sort((a, b) => (TABLE_LABEL[a[0]] || a[0]).localeCompare(TABLE_LABEL[b[0]] || b[0], 'cs'));
+            const changes = rows.reduce((n, [, v]) => n + v.added + v.overwritten + v.removed, 0);
+            const photos = Object.keys(restoreData.photos || {}).length;
+            out.innerHTML = `
+                <p class="help">Záloha z ${esc(formatDate(restoreData.created_at))}. Zatím se nic nezměnilo, tohle je jen náhled.</p>
+                <table class="restore-table">
+                    <thead><tr><th>Co</th><th>V záloze</th><th>Přibude</th><th>Přepíše se</th><th>Do koše</th><th>Beze změny</th><th>Nejde</th></tr></thead>
+                    <tbody>${rows.map(([t, v]) => `<tr><td>${esc(TABLE_LABEL[t] || t)}</td><td>${v.in_backup}</td><td>${v.added}</td><td>${v.overwritten}</td>
+                        <td${v.removed ? ' class="warn"' : ''}>${v.removed}</td><td>${v.kept}</td><td${v.failed ? ' class="warn"' : ''}>${v.failed}</td></tr>`).join('')}</tbody>
+                </table>
+                <p class="help">${photos} fotek v záloze: doplní se ty, které v úložišti chybí.${changes ? '' : ' V databázi by se nic nezměnilo.'}</p>`;
+            run.disabled = !changes && !photos;
+            run.dataset.changes = String(changes);
+        } catch (err) {
+            out.innerHTML = '';
+            fail(err);
+        }
+    }
+
+    $('#restore-file').addEventListener('change', async e => {
+        const file = e.target.files && e.target.files[0];
+        restoreData = null;
+        if (file) {
+            try {
+                const data = JSON.parse(await file.text());
+                if (data.format !== 'teaseyou-backup' || !data.tables) throw new Error('format');
+                restoreData = data;
+            } catch (_) {
+                toast('Tohle není záloha z administrace Tease you.', true);
+            }
+        }
+        previewRestore();
+    });
+    $('#restore-overwrite').addEventListener('change', previewRestore);
+
+    $('#restore-run').addEventListener('click', async () => {
+        if (!restoreData) return;
+        const overwrite = $('#restore-overwrite').checked;
+        const text = overwrite
+            ? 'Katalog, nastavení, mýdla a nákup budou přesně jako v záloze. Co v záloze není, půjde do koše. Objednávky se jen doplní.'
+            : 'Doplní se záznamy, které v databázi chybí. Nic se nepřepíše ani nesmaže.';
+        if (!(await confirmDialog(text, 'Obnovit', 'OBNOVIT'))) return;
+        const btn = $('#restore-run');
+        btn.disabled = true;
+        try {
+            const res = await db.rpc('restore_backup', { p: restoreData, p_overwrite: overwrite, p_dry_run: false });
+            // Fotky, které v úložišti chybí, nahrajeme zpátky.
+            let restored = 0, failedPhotos = 0;
+            for (const [path, photo] of Object.entries(restoreData.photos || {})) {
+                try {
+                    const head = await fetch(db.publicUrl(PHOTO_BUCKET, path), { cache: 'no-store' });
+                    if (head.ok) continue;
+                    await db.upload(PHOTO_BUCKET, path, base64ToBlob(photo.data, photo.type), photo.type);
+                    restored++;
+                } catch (_) { failedPhotos++; }
+            }
+            const t = Object.values(res.tables || {});
+            const sum = k => t.reduce((n, v) => n + (v[k] || 0), 0);
+            toast(`Obnoveno: přibylo ${sum('added')}, přepsáno ${sum('overwritten')}, do koše ${sum('removed')}, fotek ${restored}.`
+                + (sum('failed') || failedPhotos ? ` Nepovedlo se ${sum('failed') + failedPhotos}.` : ''), !!(sum('failed') || failedPhotos));
+            state.catalogLoaded = false;
+            await loadCatalog(true);
+            state.trash = await db.select('deleted_rows', { order: 'deleted_at.desc', limit: 500 });
+            renderBackups();
+            previewRestore();
+        } catch (err) { fail(err); btn.disabled = false; }
+    });
+
+    function trashLabel(r) {
+        const d = r.data || {};
+        return d.name_cs || d.name || d.title || d.code || d.email || (d.weight_g ? d.weight_g + ' g' : '') || r.row_key;
+    }
+    function renderBackups() {
+        renderBackupAlert();
+        const el = $('#trash-list');
+        const batches = new Map();
+        (state.trash || []).forEach(r => {
+            if (!batches.has(r.batch)) batches.set(r.batch, []);
+            batches.get(r.batch).push(r);
+        });
+        if (!batches.size) {
+            el.innerHTML = '<p class="empty">Koš je prázdný.</p>';
+            return;
+        }
+        el.innerHTML = [...batches.entries()].map(([batch, rows]) => {
+            const main = rows.slice().sort((a, b) => a.id - b.id)[0];
+            const open = rows.filter(r => !r.restored_at).length;
+            const more = rows.length - 1;
+            return `<div class="table-row trash-row" data-batch="${esc(batch)}">
+                <span class="row-main">
+                    <span class="row-title">${esc(TABLE_LABEL[main.table_name] || main.table_name)}: ${esc(trashLabel(main))}${more ? ` <span class="row-sub-inline">a ${more} dalších</span>` : ''}</span>
+                    <span class="row-sub">smazáno ${esc(formatDate(main.deleted_at))}${main.deleted_by_email ? ', ' + esc(main.deleted_by_email) : ''}${open ? '' : ', už vráceno'}</span>
+                </span>
+                ${open ? '<button type="button" class="btn btn-secondary btn-small" data-field="restore">Vrátit</button>' : ''}
+            </div>`;
+        }).join('');
+        $$('#trash-list .trash-row').forEach(row => {
+            const btn = $('[data-field=restore]', row);
+            if (!btn) return;
+            btn.addEventListener('click', async () => {
+                btn.disabled = true;
+                try {
+                    const res = await db.rpc('restore_deleted', { p_batch: Number(row.dataset.batch) });
+                    toast(res.skipped ? `Vráceno ${res.restored}, ${res.skipped} nešlo (už existuje).` : `Vráceno: ${res.restored}.`);
+                    state.catalogLoaded = false;
+                    await loadCatalog(true);
+                    state.trash = await db.select('deleted_rows', { order: 'deleted_at.desc', limit: 500 });
+                    renderBackups();
+                } catch (err) { btn.disabled = false; fail(err); }
+            });
+        });
+    }
 
     /* ═══ ODSTOUPENÍ OD SMLOUVY ════════════════════════════════════ */
     const WD_STATUS = { new: 'Nové', confirmed: 'Potvrzené', refunded: 'Peníze vrácené', rejected: 'Zamítnuté' };
@@ -1905,7 +2154,7 @@
             if (er) er.addEventListener('click', async () => {
                 if (!(await confirmDialog(`Smazat ${email} ze všech seznamů zájemců?`))) return;
                 try {
-                    await db.remove('craft_waitlist', { email: 'eq.' + email });
+                    await db.rpc('erase_waitlist_email', { p_email: email });
                     await logPrivacyRequest(email, 'erasure', `smazáno z upozornění (${data.waitlist.length}×), objednávky ponechány kvůli dokladům`);
                     toast('Smazáno.');
                     $('#privacy-form').requestSubmit();
@@ -2004,7 +2253,8 @@
             if (del) del.addEventListener('click', async () => {
                 const n = state.waitlist.filter(w => w.product_id === p.id).length;
                 const extra = n ? ` Smažou se i ${n} ${n === 1 ? 'zájemce' : n < 5 ? 'zájemci' : 'zájemců'}.` : '';
-                if (!(await confirmDialog(`Smazat ${p.name_cs}? Z webu zmizí.${extra} Když ho chceš jen schovat, vypni „Zobrazovat na webu“.`))) return;
+                if (!(await confirmDialog(`Smazat ${p.name_cs}? Z webu zmizí.${extra} Když ho chceš jen schovat, vypni „Zobrazovat na webu“.`, 'Smazat',
+                    n ? p.name_cs : undefined))) return;
                 try {
                     const rows = await db.remove('craft_products', { id: 'eq.' + p.id });
                     if (!rows.length) throw new db.DbError('no_rows', 0);

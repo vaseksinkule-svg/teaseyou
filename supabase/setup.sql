@@ -261,8 +261,13 @@ $$;
 
 drop policy if exists "settings_read" on public.settings;
 create policy "settings_read" on public.settings for select using (true);
+-- Nastavení se nikdy nemaže, jen mění (ochrana před ztrátou dat).
 drop policy if exists "settings_admin" on public.settings;
-create policy "settings_admin" on public.settings for all to authenticated
+drop policy if exists "settings_admin_insert" on public.settings;
+drop policy if exists "settings_admin_update" on public.settings;
+create policy "settings_admin_insert" on public.settings for insert to authenticated
+    with check (public.is_admin());
+create policy "settings_admin_update" on public.settings for update to authenticated
     using (public.is_admin()) with check (public.is_admin());
 
 -- Slevy a objednávky: jen admin. Žádná politika pro anon = anon nevidí nic.
@@ -270,8 +275,14 @@ drop policy if exists "promo_codes_admin" on public.promo_codes;
 create policy "promo_codes_admin" on public.promo_codes for all to authenticated
     using (public.is_admin()) with check (public.is_admin());
 
+-- Objednávky admin čte a mění (stav, poznámka), ale nikdy nemaže: patří
+-- k dokladům. Staré osobní údaje z nich odstraňuje jen purge_expired_data().
 drop policy if exists "orders_admin" on public.orders;
-create policy "orders_admin" on public.orders for all to authenticated
+drop policy if exists "orders_admin_read" on public.orders;
+drop policy if exists "orders_admin_update" on public.orders;
+create policy "orders_admin_read" on public.orders for select to authenticated
+    using (public.is_admin());
+create policy "orders_admin_update" on public.orders for update to authenticated
     using (public.is_admin()) with check (public.is_admin());
 
 -- Každý přihlášený vidí jen svůj vlastní řádek v admins (podle toho
@@ -290,10 +301,13 @@ grant select on public.ingredients, public.blends, public.price_tiers,
                 public.shipping_methods, public.settings
     to anon, authenticated;
 grant insert, update, delete on public.ingredients, public.blends, public.price_tiers,
-                public.shipping_methods, public.settings
+                public.shipping_methods
     to authenticated;
+grant insert, update on public.settings to authenticated;
+revoke delete on public.settings from anon, authenticated;
 grant select, insert, update, delete on public.promo_codes to authenticated;
-grant select, update, delete on public.orders to authenticated;
+grant select, update on public.orders to authenticated;
+revoke insert, delete on public.orders from anon, authenticated;
 grant select on public.admins to authenticated;
 
 
@@ -709,6 +723,8 @@ create table if not exists public.privacy_requests (
     updated_at  timestamptz not null default now()
 );
 
+-- Odstoupení a žádosti jsou záznamy, které musíme umět doložit: admin je
+-- čte a mění stav, mazat je smí jen úklid po uplynutí lhůty.
 do $$
 declare t text;
 begin
@@ -718,11 +734,20 @@ begin
                         for each row execute function public.set_updated_at()', t, t);
         execute format('alter table public.%I enable row level security', t);
         execute format('drop policy if exists "%s_admin" on public.%I', t, t);
-        execute format('create policy "%s_admin" on public.%I for all to authenticated
+        execute format('drop policy if exists "%s_admin_read" on public.%I', t, t);
+        execute format('drop policy if exists "%s_admin_update" on public.%I', t, t);
+        execute format('create policy "%s_admin_read" on public.%I for select to authenticated
+                        using (public.is_admin())', t, t);
+        execute format('create policy "%s_admin_update" on public.%I for update to authenticated
                         using (public.is_admin()) with check (public.is_admin())', t, t);
         execute format('revoke all on public.%I from anon', t);
-        execute format('grant select, insert, update, delete on public.%I to authenticated', t);
+        execute format('revoke delete on public.%I from authenticated', t);
+        execute format('grant select, update on public.%I to authenticated', t);
     end loop;
+    drop policy if exists "privacy_requests_admin_insert" on public.privacy_requests;
+    create policy "privacy_requests_admin_insert" on public.privacy_requests for insert to authenticated
+        with check (public.is_admin());
+    grant insert on public.privacy_requests to authenticated;
 end;
 $$;
 
@@ -744,6 +769,10 @@ begin
     if not public.is_admin() then
         raise exception 'not_admin' using errcode = '42501';
     end if;
+    -- Mazání po uplynutí lhůty je záměrné a konečné: nejde do koše a nevadí
+    -- mu limit hromadného mazání (platí jen do konce téhle transakce).
+    perform set_config('teaseyou.skip_trash', 'on', true);
+    perform set_config('teaseyou.allow_bulk', 'on', true);
     delete from public.craft_waitlist where created_at < now() - interval '2 years';
     get diagnostics v_wait = row_count;
     update public.orders
@@ -760,6 +789,10 @@ begin
     get diagnostics v_wd = row_count;
     delete from public.privacy_requests where created_at < now() - interval '5 years';
     get diagnostics v_req = row_count;
+    -- Koš: smazané položky držíme 30 dní, pak zmizí úplně.
+    if to_regclass('public.deleted_rows') is not null then
+        delete from public.deleted_rows where deleted_at < now() - interval '30 days';
+    end if;
     return jsonb_build_object('waitlist', v_wait, 'order_contacts', v_contacts, 'order_names', v_names,
                               'withdrawals', v_wd, 'privacy_requests', v_req);
 end;
@@ -1056,6 +1089,329 @@ select v.title, v.who, v.due
     ('Nechat obchodní podmínky a ochranu osobních údajů zkontrolovat právníkem', 'Václav', null),
     ('Ověřit v Supabase (Project Settings → General), ve kterém regionu jsou data, a doplnit to do ochrany osobních údajů', 'Václav', null),
     ('Mýdla a balzámy: než se začnou prodávat, zjistit cenu posudku bezpečnosti, registraci v CPNP a oznámení hygieně', 'Klára', null),
-    ('Projít znovu PRAVNI-KONTROLA.md v repozitáři (jednou za rok a při každé nové funkci, dodavateli nebo zemi)', 'Václav', date '2027-11-05')
+    ('Projít znovu PRAVNI-KONTROLA.md v repozitáři (jednou za rok a při každé nové funkci, dodavateli nebo zemi)', 'Václav', date '2027-11-05'),
+    ('Zapnout dvoufázové přihlášení na účtech Supabase a GitHub', 'Václav', null),
+    ('Stáhnout první zálohu (Zálohy a koš) a uložit ji na dvě místa; pak jednou týdně', 'Václav', null),
+    ('Zkouška obnovy zálohy do testovacího projektu (postup v ZALOHY-A-OBNOVA.md)', 'Václav', date '2027-11-05')
   ) as v(title, who, due)
  where not exists (select 1 from public.purchase_tasks where title like 'Ohlásit živnost:%');
+
+
+-- ═══ OCHRANA PŘED ZTRÁTOU DAT ══════════════════════════════════════
+-- Free plán Supabase nemá automatické zálohy a zálohy databáze nikdy
+-- neobsahují fotky. Proto:
+--   1. koš: co se v administraci smaže, se 30 dní dá vrátit (deleted_rows)
+--      a je u toho vidět, kdo a kdy to smazal,
+--   2. limit: jeden požadavek nesmaže víc než pár řádků najednou,
+--   3. záloha: export_backup() a restore_backup() pro soubor, který si
+--      admin stáhne k sobě (administrace → Zálohy, přidá i fotky).
+
+alter table public.settings add column if not exists last_backup_at timestamptz;
+
+create table if not exists public.deleted_rows (
+    id                bigint generated always as identity primary key,
+    deleted_at        timestamptz not null default now(),
+    batch             bigint not null default txid_current(),
+    table_name        text not null,
+    row_key           text not null,
+    data              jsonb not null,
+    deleted_by        uuid,
+    deleted_by_email  text,
+    restored_at       timestamptz
+);
+create index if not exists deleted_rows_batch_idx on public.deleted_rows (batch);
+create index if not exists deleted_rows_time_idx  on public.deleted_rows (deleted_at desc);
+alter table public.deleted_rows enable row level security;
+drop policy if exists "deleted_rows_admin_read" on public.deleted_rows;
+create policy "deleted_rows_admin_read" on public.deleted_rows for select to authenticated
+    using (public.is_admin());
+-- Jen pro čtení: zapisuje trigger, obnovuje restore_deleted(). Nikdo nemůže
+-- záznam změnit ani smazat (jen úklid po 30 dnech).
+revoke all on public.deleted_rows from anon, authenticated;
+grant select on public.deleted_rows to authenticated;
+
+-- Každý smazaný řádek se uloží do koše (kromě úmyslného mazání po lhůtě
+-- nebo na žádost podle GDPR, to nastaví teaseyou.skip_trash).
+create or replace function public.trash_deleted_row()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare v_uid uuid;
+begin
+    if coalesce(current_setting('teaseyou.skip_trash', true), '') = 'on' then
+        return old;
+    end if;
+    begin v_uid := auth.uid(); exception when others then v_uid := null; end;
+    insert into public.deleted_rows (table_name, row_key, data, deleted_by, deleted_by_email)
+    values (tg_table_name, to_jsonb(old) ->> tg_argv[0], to_jsonb(old), v_uid,
+            (select email from auth.users where id = v_uid));
+    return old;
+end;
+$$;
+
+-- Hromadné mazání: když jeden příkaz smaže víc řádků než limit, celý se
+-- zruší a nesmaže se nic (i to, co by smazalo kaskádové mazání).
+create or replace function public.guard_bulk_delete()
+returns trigger
+language plpgsql
+as $$
+declare n integer; v_limit integer := tg_argv[0]::integer;
+begin
+    if coalesce(current_setting('teaseyou.allow_bulk', true), '') = 'on' then
+        return null;
+    end if;
+    select count(*) into n from gone;
+    if n > v_limit then
+        raise exception 'bulk_delete_blocked'
+            using errcode = 'P0001',
+                  detail = format('%s: %s řádků najednou, limit je %s. Nesmazalo se nic.', tg_table_name, n, v_limit);
+    end if;
+    return null;
+end;
+$$;
+
+do $$
+declare
+    r record;
+begin
+    for r in select * from (values
+        ('ingredients', 'id', 20), ('blends', 'id', 20), ('price_tiers', 'weight_g', 20),
+        ('shipping_methods', 'id', 20), ('promo_codes', 'code', 20), ('craft_products', 'id', 20),
+        ('craft_waitlist', 'id', 100), ('purchase_suppliers', 'id', 20), ('purchase_materials', 'id', 20),
+        ('purchase_offers', 'id', 100), ('purchase_tasks', 'id', 50)
+    ) as v(t, k, lim) loop
+        execute format('drop trigger if exists %I_trash on public.%I', r.t, r.t);
+        execute format('create trigger %I_trash after delete on public.%I
+                        for each row execute function public.trash_deleted_row(%L)', r.t, r.t, r.k);
+        execute format('drop trigger if exists %I_bulk_guard on public.%I', r.t, r.t);
+        execute format('create trigger %I_bulk_guard after delete on public.%I
+                        referencing old table as gone
+                        for each statement execute function public.guard_bulk_delete(%L)', r.t, r.t, r.lim);
+    end loop;
+end;
+$$;
+
+-- Pořadí tabulek pro obnovu: nejdřív ty, na které ostatní odkazují.
+create or replace function public.restore_order(p_table text)
+returns integer
+language sql
+immutable
+as $$
+    select coalesce(array_position(array[
+        'settings', 'ingredients', 'blends', 'price_tiers', 'shipping_methods', 'promo_codes',
+        'craft_products', 'craft_waitlist', 'purchase_suppliers', 'purchase_materials',
+        'purchase_offers', 'purchase_tasks', 'orders', 'withdrawals', 'privacy_requests'], p_table), 99);
+$$;
+
+-- Vrátí z koše všechno, co se smazalo jedním kliknutím (jedna transakce).
+-- Co mezitím vzniklo znovu se stejným klíčem, nepřepíše.
+create or replace function public.restore_deleted(p_batch bigint)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    r record; n integer; v_ok integer := 0; v_skip integer := 0;
+begin
+    if not public.is_admin() then
+        raise exception 'not_admin' using errcode = '42501';
+    end if;
+    for r in select * from public.deleted_rows
+              where batch = p_batch and restored_at is null
+              order by public.restore_order(table_name), id loop
+        begin
+            execute format('insert into public.%I overriding system value
+                            select * from jsonb_populate_record(null::public.%I, $1)
+                            on conflict do nothing', r.table_name, r.table_name) using r.data;
+            get diagnostics n = row_count;
+        exception when others then
+            n := 0;
+        end;
+        if n > 0 then
+            update public.deleted_rows set restored_at = now() where id = r.id;
+            v_ok := v_ok + 1;
+        else
+            v_skip := v_skip + 1;
+        end if;
+    end loop;
+    return jsonb_build_object('restored', v_ok, 'skipped', v_skip);
+end;
+$$;
+
+-- Výmaz e-mailu ze seznamu zájemců na žádost (GDPR): bez kopie v koši.
+create or replace function public.erase_waitlist_email(p_email text)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare n integer;
+begin
+    if not public.is_admin() then
+        raise exception 'not_admin' using errcode = '42501';
+    end if;
+    perform set_config('teaseyou.skip_trash', 'on', true);
+    delete from public.craft_waitlist where email = lower(btrim(p_email));
+    get diagnostics n = row_count;
+    delete from public.deleted_rows where table_name = 'craft_waitlist' and data ->> 'email' = lower(btrim(p_email));
+    return n;
+end;
+$$;
+
+-- Tabulky v záloze a jejich primární klíče.
+create or replace function public.backup_tables()
+returns table (t text, k text)
+language sql
+immutable
+as $$
+    values ('settings', 'id'), ('ingredients', 'id'), ('blends', 'id'), ('price_tiers', 'weight_g'),
+           ('shipping_methods', 'id'), ('promo_codes', 'code'), ('craft_products', 'id'),
+           ('craft_waitlist', 'id'), ('purchase_suppliers', 'id'), ('purchase_materials', 'id'),
+           ('purchase_offers', 'id'), ('purchase_tasks', 'id'), ('orders', 'id'),
+           ('withdrawals', 'id'), ('privacy_requests', 'id');
+$$;
+
+-- Celá databáze obchodu jako jeden JSON (jeden konzistentní snímek).
+create or replace function public.export_backup()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    r record; v_tables jsonb := '{}'::jsonb; v_rows jsonb;
+begin
+    if not public.is_admin() then
+        raise exception 'not_admin' using errcode = '42501';
+    end if;
+    -- Čas zálohy zapíšeme dřív, než se data přečtou, ať ho záloha obsahuje.
+    update public.settings set last_backup_at = now() where id = 1;
+    for r in select * from public.backup_tables() loop
+        execute format('select coalesce(jsonb_agg(to_jsonb(x) order by x.%I), ''[]''::jsonb) from public.%I x', r.k, r.t)
+            into v_rows;
+        v_tables := v_tables || jsonb_build_object(r.t, v_rows);
+    end loop;
+    return jsonb_build_object('format', 'teaseyou-backup', 'version', 1,
+                              'created_at', now(), 'tables', v_tables);
+end;
+$$;
+
+-- Obnova ze zálohy.
+--   výchozí (p_overwrite = false): jen doplní, co chybí. Nic nemaže ani nepřepíše.
+--   p_overwrite = true: katalog, nastavení, mýdla a nákup budou přesně jako
+--     v záloze (co v záloze není, jde do koše, takže se dá 30 dní vrátit).
+--     Objednávky, odstoupení, žádosti a zájemce vždycky jen doplní.
+--   p_dry_run = true (výchozí): jen spočítá, co by se stalo, a nic nezmění.
+create or replace function public.restore_backup(p jsonb, p_overwrite boolean default false, p_dry_run boolean default true)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    r record; v_row jsonb; n integer; v_cols text; v_sql text;
+    v_report jsonb := '{}'::jsonb; v_ins integer; v_upd integer; v_same integer; v_err integer;
+    v_insert_only text[] := array['orders', 'withdrawals', 'privacy_requests', 'craft_waitlist'];
+    v_exists boolean;
+    v_same_row boolean;
+    v_removed jsonb := '{}'::jsonb;
+    v_last_backup timestamptz := (select last_backup_at from public.settings where id = 1);
+begin
+    if not public.is_admin() then
+        raise exception 'not_admin' using errcode = '42501';
+    end if;
+    if p ->> 'format' is distinct from 'teaseyou-backup' or jsonb_typeof(p -> 'tables') <> 'object' then
+        raise exception 'invalid_backup' using errcode = 'P0001';
+    end if;
+    begin
+        if p_overwrite then
+            -- Nejdřív pryč (do koše) to, co v záloze není: třeba ukázková data,
+            -- která do prázdné databáze vložil setup.sql. Od dětí k rodičům.
+            perform set_config('teaseyou.allow_bulk', 'on', true);
+            for r in select * from public.backup_tables()
+                      where t <> all (v_insert_only) and t <> 'settings'
+                      order by public.restore_order(t) desc loop
+                execute format('delete from public.%I x where not exists (
+                                    select 1 from jsonb_array_elements(coalesce($1 -> %L, ''[]''::jsonb)) e
+                                     where e ->> %L = x.%I::text)', r.t, r.t, r.k, r.k)
+                    using p -> 'tables';
+                get diagnostics n = row_count;
+                v_removed := v_removed || jsonb_build_object(r.t, n);
+            end loop;
+            perform set_config('teaseyou.allow_bulk', '', true);
+        end if;
+        for r in select * from public.backup_tables() order by public.restore_order(t) loop
+            v_ins := 0; v_upd := 0; v_same := 0; v_err := 0;
+            select string_agg(format('%I = excluded.%I', column_name, column_name), ', ')
+              into v_cols
+              from information_schema.columns
+             where table_schema = 'public' and table_name = r.t and column_name <> r.k;
+            for v_row in select * from jsonb_array_elements(coalesce(p -> 'tables' -> r.t, '[]'::jsonb)) loop
+                begin
+                    execute format('select exists (select 1 from public.%I where %I::text = $1)', r.t, r.k)
+                        into v_exists using v_row ->> r.k;
+                    if v_exists and (not p_overwrite or r.t = any (v_insert_only)) then
+                        v_same := v_same + 1;
+                        continue;
+                    end if;
+                    if v_exists then
+                        -- Stejný řádek (kromě času úpravy) nepočítáme jako přepsaný.
+                        execute format('select (to_jsonb(x) - ''updated_at'' - ''last_backup_at'') = ($2 - ''updated_at'' - ''last_backup_at'')
+                                          from public.%I x where %I::text = $1', r.t, r.k)
+                            into v_same_row using v_row ->> r.k, v_row;
+                        if v_same_row then
+                            v_same := v_same + 1;
+                            continue;
+                        end if;
+                    end if;
+                    v_sql := format('insert into public.%I overriding system value
+                                     select * from jsonb_populate_record(null::public.%I, $1) ', r.t, r.t)
+                          || case when v_exists then format('on conflict (%I) do update set %s', r.k, v_cols)
+                                  else 'on conflict do nothing' end;
+                    execute v_sql using v_row;
+                    get diagnostics n = row_count;
+                    if n > 0 and v_exists then v_upd := v_upd + 1;
+                    elsif n > 0 then v_ins := v_ins + 1;
+                    else v_err := v_err + 1; end if;  -- střet s jiným jedinečným údajem
+                exception when others then
+                    v_err := v_err + 1;
+                end;
+            end loop;
+            v_report := v_report || jsonb_build_object(r.t, jsonb_build_object(
+                'in_backup', jsonb_array_length(coalesce(p -> 'tables' -> r.t, '[]'::jsonb)),
+                'added', v_ins, 'overwritten', v_upd, 'kept', v_same, 'failed', v_err,
+                'removed', coalesce((v_removed ->> r.t)::integer, 0)));
+        end loop;
+        -- Čítače ID musí jít za nejvyšší obnovené číslo, jinak by další
+        -- objednávka narazila na existující ID.
+        perform setval(pg_get_serial_sequence('public.orders', 'id'), (select max(id) from public.orders))
+          where exists (select 1 from public.orders);
+        perform setval(pg_get_serial_sequence('public.craft_waitlist', 'id'), (select max(id) from public.craft_waitlist))
+          where exists (select 1 from public.craft_waitlist);
+        perform setval(pg_get_serial_sequence('public.withdrawals', 'id'), (select max(id) from public.withdrawals))
+          where exists (select 1 from public.withdrawals);
+        perform setval(pg_get_serial_sequence('public.privacy_requests', 'id'), (select max(id) from public.privacy_requests))
+          where exists (select 1 from public.privacy_requests);
+        -- Obnova starší zálohy nesmí vrátit čas poslední zálohy do minulosti.
+        update public.settings set last_backup_at = greatest(last_backup_at, v_last_backup) where id = 1;
+        if p_dry_run then
+            raise exception 'dry_run_rollback' using errcode = 'P0099';
+        end if;
+    exception when sqlstate 'P0099' then
+        null;  -- zkušební běh: všechno se vrátilo, zůstal jen přehled
+    end;
+    return jsonb_build_object('dry_run', p_dry_run, 'overwrite', p_overwrite, 'tables', v_report);
+end;
+$$;
+
+revoke all on function public.restore_deleted(bigint) from public;
+revoke all on function public.erase_waitlist_email(text) from public;
+revoke all on function public.export_backup() from public;
+revoke all on function public.restore_backup(jsonb, boolean, boolean) from public;
+grant execute on function public.restore_deleted(bigint) to authenticated;
+grant execute on function public.erase_waitlist_email(text) to authenticated;
+grant execute on function public.export_backup() to authenticated;
+grant execute on function public.restore_backup(jsonb, boolean, boolean) to authenticated;

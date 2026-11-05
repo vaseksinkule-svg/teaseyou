@@ -15,4 +15,7 @@
 window.TEASEYOU_CONFIG = {
     SUPABASE_URL:      'https://afyrschnjxgtlzjkmfjb.supabase.co',
     SUPABASE_ANON_KEY: 'sb_publishable_T3VtG-oG0IkWMRVYkownrA_fzdVm-eP',
+    // 'production' = skutečná data zákazníků. Administrace pak nahoře ukazuje
+    // „Ostrý provoz“. Pro testovací projekt sem dej 'test'.
+    ENVIRONMENT:       'production',
 };

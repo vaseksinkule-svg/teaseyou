@@ -6,6 +6,17 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (ochrana před ztrátou dat)
+- **Zálohy a koš** v administraci: stažení zálohy jedním kliknutím (databáze i fotky
+  v jednom souboru), obnova se zkušebním náhledem a opsáním OBNOVIT, koš na 30 dní
+  s informací, kdo co smazal.
+- Upozornění, když záloha chybí nebo je starší než 7 dní.
+- Štítek **Ostrý provoz** / **Testovací prostředí** v administraci (podle `config.js`).
+- Smazání dodavatele či suroviny s nabídkami a produktu se zájemci chce opsat název.
+- Databáze: koš, limit hromadného mazání, zákaz mazání objednávek, nastavení,
+  odstoupení a žádostí, funkce pro zálohu a obnovu.
+- `ZALOHY-A-OBNOVA.md`: všech 20 opatření a postup obnovy.
+
 ### Přidáno (kontrola podle checklistu)
 - **Tlačítko „Odstoupit od smlouvy“** (zákon č. 159/2026 Sb., od 1. 1. 2027): na stránce
   Odstoupení i u každé objednávky v Moje objednávky, druhý krok „Potvrdit odstoupení od

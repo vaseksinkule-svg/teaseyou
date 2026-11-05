@@ -169,3 +169,19 @@ Dalším spuštěním `setup.sql` přibude:
   v zásadách. Spouští ji administrace při každém přihlášení, nikdo jiný ji zavolat nemůže.
 - v `orders` sloupce `terms_version` (znění podmínek při objednávce), `contacts_purged_at`
   a `anonymized_at`. `place_order()` u Zásilkovny nechce adresu.
+
+## Ochrana před ztrátou dat (listopad 2026)
+
+Dalším spuštěním `setup.sql` přibude:
+
+- **koš** `deleted_rows`: každý řádek smazaný z katalogu, mýdel, slev a nákupu se uloží
+  (kdo, kdy, co). Vrací se přes `restore_deleted()`, po 30 dnech ho smaže úklid.
+- **limit hromadného mazání**: trigger `guard_bulk_delete` zruší příkaz, který by najednou
+  smazal víc než pár řádků.
+- objednávky, nastavení, odstoupení a žádosti **nejde smazat** ani adminem.
+- `export_backup()` a `restore_backup()`: záloha do souboru a obnova (náhled, doplnění,
+  nebo přepsání katalogu). V administraci záložka *Zálohy a koš*.
+- `erase_waitlist_email()`: výmaz zájemce na žádost bez kopie v koši.
+
+**Před každým spuštěním `setup.sql` si v administraci stáhni zálohu.** Postup obnovy je
+v `ZALOHY-A-OBNOVA.md`.
