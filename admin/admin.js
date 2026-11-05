@@ -177,7 +177,20 @@
         $('#user-email').textContent = (user && user.email) || '';
         show('app');
         const fromHash = (location.hash || '').replace('#', '');
-        switchTab(['orders', 'ingredients', 'blends', 'pricing', 'promos', 'craft', 'purchase'].includes(fromHash) ? fromHash : 'orders');
+        switchTab(['orders', 'ingredients', 'blends', 'pricing', 'promos', 'craft', 'purchase', 'withdrawals', 'privacy'].includes(fromHash) ? fromHash : 'orders');
+        purgeExpired();
+    }
+
+    // Úklid osobních údajů podle zásad (staré e-maily zájemců, kontakty
+    // u starých objednávek…). Běží při každém přihlášení, potichu.
+    async function purgeExpired() {
+        try {
+            const r = await db.rpc('purge_expired_data');
+            const n = r ? Object.values(r).reduce((a, b) => a + (Number(b) || 0), 0) : 0;
+            if (n) toast(`Úklid osobních údajů: smazáno nebo anonymizováno ${n} záznamů po uplynutí lhůty.`);
+        } catch (err) {
+            console.warn('[admin] Úklid osobních údajů se nespustil (je spuštěný nový setup.sql?):', err);
+        }
     }
 
     db && db.auth.onChange(session => {
@@ -306,6 +319,12 @@
             } else if (name === 'purchase') {
                 await loadPurchase();
                 renderPurchase();
+            } else if (name === 'withdrawals') {
+                state.withdrawals = await db.select('withdrawals', { order: 'created_at.desc', limit: 500 });
+                renderWithdrawals();
+            } else if (name === 'privacy') {
+                state.privacyRequests = await db.select('privacy_requests', { order: 'created_at.desc', limit: 300 });
+                renderPrivacy();
             } else if (name === 'craft') {
                 const [craft, waitlist] = await Promise.all([
                     db.select('craft_products', { order: 'sort.asc,name_cs.asc' }),
@@ -510,7 +529,8 @@
     function openOrder(o) {
         if (!o) return;
         const items = Array.isArray(o.items) ? o.items : [];
-        const address = [`${o.first_name} ${o.last_name}`, o.street, `${o.zip} ${o.city}`, o.country].join('\n');
+        const address = [`${o.first_name} ${o.last_name}`, o.street, `${o.zip} ${o.city}`.trim(), o.country]
+            .filter(Boolean).join('\n');
         const html = `
             <div class="order-meta">
                 <span class="pill pill-${esc(o.status)}" id="order-status-pill">${esc(STATUS[o.status] || o.status)}</span>
@@ -562,6 +582,7 @@
                     <dt>Platba</dt><dd>${esc(PAYMENT[o.payment_method] || o.payment_method)}</dd>
                     ${o.payment_method === 'transfer' ? `<dt>Variabilní symbol</dt><dd>${esc(o.id)}</dd>` : ''}
                     <dt>Jazyk webu</dt><dd>${o.lang === 'en' ? 'angličtina' : 'čeština'}</dd>
+                    <dt>Obchodní podmínky</dt><dd>${o.terms_version ? `znění z ${esc(o.terms_version)}, odsouhlaseno tlačítkem „Objednat a zaplatit“ ${esc(formatDate(o.created_at))}` : 'neuvedeno'}</dd>
                 </dl>
             </div>
 
@@ -1690,6 +1711,207 @@
         document.body.appendChild(a);
         a.click();
         setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    });
+
+    /* ═══ ODSTOUPENÍ OD SMLOUVY ════════════════════════════════════ */
+    const WD_STATUS = { new: 'Nové', confirmed: 'Potvrzené', refunded: 'Peníze vrácené', rejected: 'Zamítnuté' };
+    const WD_PILL = { new: 'new', confirmed: 'paid', refunded: 'done', rejected: 'cancelled' };
+
+    function withdrawalMail(w) {
+        const when = formatDate(w.created_at);
+        const sellerName = (state.settings && state.settings.seller_name) || 'Tease you';
+        const address = (state.settings && state.settings.seller_address) || '[adresa]';
+        const body = [
+            `Dobrý den,`, '',
+            `potvrzujeme, že jsme ${when} přijali Vaše odstoupení od kupní smlouvy k objednávce ${w.order_num}.`, '',
+            `Obsah odstoupení:`,
+            `Jméno: ${w.name}`, `E-mail: ${w.email}`,
+            w.items ? `Zboží: ${w.items}` : null,
+            w.bank_account ? `Účet pro vrácení peněz: ${w.bank_account}` : null, '',
+            `Zboží prosím pošlete do 14 dnů na adresu: ${address}.`,
+            `Peníze Vám vrátíme do 14 dnů od přijetí odstoupení, ne však dříve, než nám zboží dorazí nebo doložíte, že jste ho odeslali.`, '',
+            `S pozdravem`, sellerName,
+        ].filter(x => x !== null).join('\n');
+        return `mailto:${encodeURIComponent(w.email)}?subject=${encodeURIComponent('Potvrzení odstoupení od smlouvy ' + w.order_num)}&body=${encodeURIComponent(body)}`;
+    }
+
+    function renderWithdrawals() {
+        const el = $('#withdrawals-list');
+        const fresh = state.withdrawals.filter(w => w.status === 'new').length;
+        const badge = $('#count-withdrawals');
+        badge.textContent = fresh;
+        badge.hidden = !fresh;
+        if (!state.withdrawals.length) {
+            el.innerHTML = '<p class="empty">Zatím žádné. Když zákazník na webu klikne na „Odstoupit od smlouvy“ a potvrdí to, objeví se tady.</p>';
+            return;
+        }
+        el.innerHTML = state.withdrawals.map(w => `
+            <button type="button" class="row" data-wd="${w.id}">
+                <span class="row-main">
+                    <span class="row-title">${esc(w.name)} <span class="row-sub-inline">${esc(w.order_num)}</span></span>
+                    <span class="row-sub">${esc(formatDate(w.created_at))}${w.order_id ? '' : ', objednávka se nespárovala'}</span>
+                </span>
+                <span class="row-side"><span class="pill pill-${WD_PILL[w.status] || 'new'}">${esc(WD_STATUS[w.status] || w.status)}</span></span>
+            </button>`).join('');
+        $$('#withdrawals-list [data-wd]').forEach(row => row.addEventListener('click', () => {
+            openWithdrawal(state.withdrawals.find(w => String(w.id) === row.dataset.wd));
+        }));
+    }
+
+    function openWithdrawal(w) {
+        if (!w) return;
+        const order = w.order_id && state.orders ? state.orders.find(o => o.id === w.order_id) : null;
+        const html = `
+            <div class="order-meta">
+                <span class="pill pill-${WD_PILL[w.status] || 'new'}">${esc(WD_STATUS[w.status] || w.status)}</span>
+                <span>přijato ${esc(formatDate(w.created_at))}</span>
+            </div>
+            <div class="sheet-section">
+                <h3>Co zákazník poslal</h3>
+                <dl class="kv">
+                    <dt>Objednávka</dt><dd>${esc(w.order_num)}${w.order_id ? '' : ' <em>(číslo nebo e-mail nesedí s žádnou objednávkou, dohledej ručně)</em>'}</dd>
+                    <dt>Jméno</dt><dd>${esc(w.name)}</dd>
+                    <dt>E-mail</dt><dd><a href="mailto:${esc(w.email)}">${esc(w.email)}</a></dd>
+                    ${w.items ? `<dt>Zboží</dt><dd>${esc(w.items)}</dd>` : ''}
+                    ${w.bank_account ? `<dt>Účet</dt><dd>${esc(w.bank_account)}</dd>` : ''}
+                    ${w.note ? `<dt>Poznámka</dt><dd>${esc(w.note)}</dd>` : ''}
+                    ${order ? `<dt>Zaplaceno</dt><dd>${kc(order.total_czk)} (${esc(PAYMENT[order.payment_method] || order.payment_method)})</dd>` : ''}
+                </dl>
+            </div>
+            <div class="sheet-section">
+                <h3>1. Potvrď přijetí</h3>
+                <p class="help">Zákon chce potvrzení e-mailem bez zbytečného odkladu, s obsahem odstoupení a datem a časem. Tlačítko připraví e-mail, ty ho jen odešleš.</p>
+                <p><a class="btn btn-primary btn-small" id="wd-mail" href="${withdrawalMail(w)}">Napsat potvrzení</a>
+                ${w.confirmed_at ? `<span class="help">Potvrzeno ${esc(formatDate(w.confirmed_at))}</span>` : ''}</p>
+                <p class="help">Pozor: směsi na míru a otevřené sáčky vrátit nejde (§ 1837 písm. d) a g) OZ). Když jde o ně, odepiš to zákazníkovi a dej Zamítnuté.</p>
+            </div>
+            <div class="sheet-section">
+                <h3>2. Stav</h3>
+                <div class="status-buttons" id="wd-status">
+                    ${Object.entries(WD_STATUS).map(([k, label]) =>
+                        `<button type="button" class="chip" data-status="${k}" aria-pressed="${w.status === k}">${esc(label)}</button>`).join('')}
+                </div>
+            </div>
+            <form class="sheet-section" id="wd-note-form">
+                <label class="field"><span>Poznámka pro tebe</span><textarea name="admin_note" rows="3" maxlength="1000">${esc(w.admin_note || '')}</textarea></label>
+                <button type="submit" class="btn btn-secondary btn-small">Uložit poznámku</button>
+            </form>`;
+        openSheet('Odstoupení ' + w.order_num, html, body => {
+            const setStatus = async status => {
+                const patch = { status };
+                if (status === 'confirmed' && !w.confirmed_at) patch.confirmed_at = new Date().toISOString();
+                try {
+                    Object.assign(w, await updateOne('withdrawals', { id: 'eq.' + w.id }, patch));
+                    renderWithdrawals();
+                    openWithdrawal(w);
+                    toast('Stav uložený.');
+                } catch (err) { fail(err); }
+            };
+            $('#wd-mail', body).addEventListener('click', () => {
+                if (w.status === 'new') setTimeout(() => setStatus('confirmed'), 300);
+            });
+            $$('#wd-status .chip', body).forEach(chip => chip.addEventListener('click', () => setStatus(chip.dataset.status)));
+            $('#wd-note-form', body).addEventListener('submit', async e => {
+                e.preventDefault();
+                try {
+                    Object.assign(w, await updateOne('withdrawals', { id: 'eq.' + w.id }, { admin_note: e.currentTarget.admin_note.value.trim() }));
+                    sheetDirty = false;
+                    toast('Poznámka uložená.');
+                } catch (err) { fail(err); }
+            });
+        });
+    }
+
+    /* ═══ OSOBNÍ ÚDAJE (žádosti podle GDPR) ════════════════════════ */
+    const REQ_KIND = { access: 'Kopie údajů', erasure: 'Výmaz', correction: 'Oprava', objection: 'Námitka', other: 'Jiné' };
+
+    function renderPrivacy() {
+        const el = $('#privacy-log');
+        const open = state.privacyRequests.filter(r => !r.done_at).length;
+        const badge = $('#count-privacy');
+        badge.textContent = open;
+        badge.hidden = !open;
+        el.innerHTML = state.privacyRequests.length ? state.privacyRequests.map(r => {
+            const due = new Date(new Date(r.created_at).getTime() + 30 * 864e5);
+            return `<div class="table-row" data-req="${r.id}">
+                <span class="row-main">
+                    <span class="row-title">${esc(r.email)} <span class="row-sub-inline">${esc(REQ_KIND[r.kind] || r.kind)}</span></span>
+                    <span class="row-sub">${esc(formatDate(r.created_at, false))}${r.done_at ? `, vyřízeno ${esc(formatDate(r.done_at, false))}` : `, odpovědět do ${esc(due.toLocaleDateString('cs-CZ'))}`}${r.note ? ' · ' + esc(r.note) : ''}</span>
+                </span>
+                ${r.done_at ? '' : '<button type="button" class="btn btn-secondary btn-small" data-field="done">Vyřízeno</button>'}
+            </div>`;
+        }).join('') : '<p class="empty">Zatím žádné žádosti.</p>';
+        $$('#privacy-log [data-req]').forEach(row => {
+            const btn = $('[data-field=done]', row);
+            if (btn) btn.addEventListener('click', async () => {
+                const r = state.privacyRequests.find(x => String(x.id) === row.dataset.req);
+                try {
+                    Object.assign(r, await updateOne('privacy_requests', { id: 'eq.' + r.id }, { done_at: new Date().toISOString() }));
+                    renderPrivacy();
+                } catch (err) { fail(err); }
+            });
+        });
+    }
+
+    async function logPrivacyRequest(email, kind, note) {
+        const [row] = await db.insert('privacy_requests', { email, kind, note, done_at: new Date().toISOString() });
+        state.privacyRequests.unshift(row);
+        renderPrivacy();
+    }
+
+    async function findPersonalData(email) {
+        const eq = { email: 'eq.' + email };
+        const [orders, waitlist, withdrawals] = await Promise.all([
+            db.select('orders', Object.assign({ order: 'created_at.desc' }, eq)),
+            db.select('craft_waitlist', Object.assign({ order: 'created_at.desc' }, eq)),
+            db.select('withdrawals', Object.assign({ order: 'created_at.desc' }, eq)),
+        ]);
+        return { orders, waitlist, withdrawals };
+    }
+
+    $('#privacy-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const email = e.currentTarget.email.value.trim().toLowerCase();
+        const out = $('#privacy-result');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('Zadej celý e-mail.', true); return; }
+        out.innerHTML = '<p class="loading">Hledám…</p>';
+        try {
+            const data = await findPersonalData(email);
+            state.privacyFound = { email, data };
+            const n = data.orders.length + data.waitlist.length + data.withdrawals.length;
+            out.innerHTML = n ? `
+                <ul class="privacy-found">
+                    <li><strong>${data.orders.length}</strong> objednávek${data.orders.length ? ': ' + data.orders.map(o => esc(o.num)).join(', ') : ''}</li>
+                    <li><strong>${data.waitlist.length}</strong> přihlášení k upozornění na mýdla a balzámy</li>
+                    <li><strong>${data.withdrawals.length}</strong> odstoupení od smlouvy</li>
+                </ul>
+                <div class="privacy-actions">
+                    <button type="button" class="btn btn-primary btn-small" id="privacy-export">Stáhnout kopii (JSON)</button>
+                    <button type="button" class="btn btn-secondary btn-small" id="privacy-erase"${data.waitlist.length ? '' : ' disabled'}>Smazat z upozornění</button>
+                </div>
+                <p class="help">Objednávky a odstoupení mazat nejde: patří k dokladům a reklamacím. Zmizí samy podle lhůt v zásadách (kontakt po 5 letech, zbytek po 10). Zákazníkovi to napiš.</p>`
+                : `<p class="empty">K e-mailu ${esc(email)} nic nemáme. I tak mu odpověz, že o něm žádné údaje nevedeme.</p>`;
+            const exp = $('#privacy-export');
+            if (exp) exp.addEventListener('click', async () => {
+                const blob = new Blob([JSON.stringify({ email, exported_at: new Date().toISOString(), ...data }, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `osobni-udaje-${email.replace(/[^a-z0-9]+/gi, '-')}.json`;
+                document.body.appendChild(a); a.click();
+                setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+                try { await logPrivacyRequest(email, 'access', 'kopie stažena z administrace'); } catch (err) { fail(err); }
+            });
+            const er = $('#privacy-erase');
+            if (er) er.addEventListener('click', async () => {
+                if (!(await confirmDialog(`Smazat ${email} ze všech seznamů zájemců?`))) return;
+                try {
+                    await db.remove('craft_waitlist', { email: 'eq.' + email });
+                    await logPrivacyRequest(email, 'erasure', `smazáno z upozornění (${data.waitlist.length}×), objednávky ponechány kvůli dokladům`);
+                    toast('Smazáno.');
+                    $('#privacy-form').requestSubmit();
+                } catch (err) { fail(err); }
+            });
+        } catch (err) { out.innerHTML = ''; fail(err); }
     });
 
     function openCraft(product) {

@@ -83,6 +83,8 @@
         <button role="tab" class="tab" data-tab="promos" aria-selected="false">Slevy</button>
         <button role="tab" class="tab" data-tab="craft" aria-selected="false">Mýdla a balzámy <span class="tab-count" id="count-waitlist" hidden></span></button>
         <button role="tab" class="tab" data-tab="purchase" aria-selected="false">Nákup <span class="tab-count" id="count-tasks" hidden></span></button>
+        <button role="tab" class="tab" data-tab="withdrawals" aria-selected="false">Odstoupení <span class="tab-count" id="count-withdrawals" hidden></span></button>
+        <button role="tab" class="tab" data-tab="privacy" aria-selected="false">Osobní údaje <span class="tab-count" id="count-privacy" hidden></span></button>
     </nav>
 
     <main class="views">
@@ -202,7 +204,7 @@
                     <h3>Zájemci <span class="panel-count" id="waitlist-count"></span></h3>
                     <button type="button" class="btn btn-secondary btn-small" id="waitlist-export">Stáhnout CSV</button>
                 </div>
-                <p class="panel-note">Až bude produkt hotový, napiš jim jednou e-mail a pak je tady smaž. Víc jim psát nesmíš, souhlasili jen s touhle jednou zprávou.</p>
+                <p class="panel-note">Až bude produkt hotový, napiš jim jednou e-mail a pak je tady smaž. Víc jim psát nesmíš, souhlasili jen s touhle jednou zprávou. Adresy dej do skryté kopie (BCC), ať nikdo nevidí cizí e-maily. V e-mailu napiš, že jde o obchodní sdělení a kdo ho posílá, a nabídni odhlášení (zákon č. 480/2004 Sb., § 7). Kdo se sem přihlásil před víc než dvěma lety, smaže se sám.</p>
                 <div id="waitlist-list"></div>
             </div>
         </section>
@@ -214,6 +216,29 @@
             <p class="view-note">Hledání dodavatelů, nákupní ceny, vzorky a poznámky k surovinám. Vidíte to jen vy dva, zákazníci ne.</p>
             <div class="filters" id="purchase-nav" role="group" aria-label="Část nákupu"></div>
             <div id="purchase-list"></div>
+        </section>
+        <section class="view" id="view-withdrawals" role="tabpanel" hidden>
+            <div class="view-head">
+                <h2>Odstoupení od smlouvy</h2>
+            </div>
+            <p class="view-note">Odstoupení, která zákazníci poslali přes tlačítko na webu. U každého pošli potvrzení e-mailem (tlačítko ho připraví), přijmi zboží a do 14 dnů vrať peníze.</p>
+            <div class="list" id="withdrawals-list"></div>
+        </section>
+
+        <section class="view" id="view-privacy" role="tabpanel" hidden>
+            <div class="view-head">
+                <h2>Osobní údaje</h2>
+            </div>
+            <p class="view-note">Když někdo napíše, že chce vědět, co o něm máte, nebo chce údaje smazat, najdi ho tady podle e-mailu. Odpovědět musíš do měsíce. Každá akce se zapíše do seznamu dole.</p>
+            <form class="panel" id="privacy-form" novalidate>
+                <label class="field"><span>E-mail zákazníka</span><input type="email" name="email" required autocomplete="off" placeholder="jan@email.cz"></label>
+                <button type="submit" class="btn btn-primary btn-small">Najít údaje</button>
+                <div id="privacy-result"></div>
+            </form>
+            <div class="panel">
+                <div class="panel-head"><h3>Žádosti</h3></div>
+                <div id="privacy-log"></div>
+            </div>
         </section>
     </main>
 </div>

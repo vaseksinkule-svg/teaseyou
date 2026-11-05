@@ -6,6 +6,31 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (kontrola podle checklistu)
+- **Tlačítko „Odstoupit od smlouvy“** (zákon č. 159/2026 Sb., od 1. 1. 2027): na stránce
+  Odstoupení i u každé objednávky v Moje objednávky, druhý krok „Potvrdit odstoupení od
+  smlouvy“, hned potvrzení s datem a časem. V administraci nová záložka **Odstoupení**
+  s připraveným potvrzovacím e-mailem a stavy.
+- **Záložka Osobní údaje** v administraci: najde vše k e-mailu, stáhne kopii, smaže
+  z upozornění a zapíše žádost (odpověď do měsíce).
+- **Automatický úklid osobních údajů** při přihlášení do administrace podle lhůt v zásadách.
+- U objednávky se ukládá **znění obchodních podmínek**, se kterým zákazník souhlasil.
+- `PRAVNI-KONTROLA.md`: všech 35 bodů checklistu s českými předpisy a stavem.
+- `THIRD-PARTY-LICENSES.txt` a odkaz v patičce (písma, ikony).
+- Odkaz „Přeskočit na obsah“.
+
+### Změněno (kontrola podle checklistu)
+- Platba v pokladně není předvybraná (dobírka stojí víc, musí ji zvolit zákazník).
+- Doprava je v pokladně před adresou. U výdejního místa Zásilkovny se adresa nechce.
+- Věta o podmínkách je těsně nad tlačítkem Objednat a zaplatit.
+- Zásady ochrany osobních údajů: pověřenec, odstoupení, žádosti, technické záznamy,
+  přesné lhůty, zabezpečení, změny a znění. Podmínky popisují online odstoupení.
+- Pryč nepodložená tvrzení: „500+ kombinací“, „certifikovaní dodavatelé“, „žádné šarže“,
+  „bez umělých aromatizátorů“, „ve stejný den“, vymyšlený telefon ve strukturovaných datech.
+  Termíny odeslání jsou „obvykle do 24 hodin“.
+- Přístupnost: tlačítka ingrediencí a menu bez chybných rolí, lepší kontrast poznámky
+  v úvodu, přehled zpracování údajů na telefonu jako karty.
+
 ### Přidáno (právní věci)
 - **Obchodní podmínky, reklamace, ochrana osobních údajů a cookies** sepsané
   nanovo podle toho, jak e-shop opravdu funguje. Nová stránka **Odstoupení od

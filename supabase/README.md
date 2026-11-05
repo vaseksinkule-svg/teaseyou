@@ -157,3 +157,15 @@ Dalším spuštěním `setup.sql` přibude:
 
 Popis borůvky sliboval antioxidanty; přepíše se jen tehdy, když jsi ho
 mezitím neměnil.
+
+## Odstoupení, osobní údaje a úklid (listopad 2026)
+
+Dalším spuštěním `setup.sql` přibude:
+
+- tabulka `withdrawals` a funkce `submit_withdrawal()`: online odstoupení od smlouvy
+  z webu. Web zapisuje jen přes funkci, číst a měnit smí jen admin (záložka *Odstoupení*).
+- tabulka `privacy_requests`: záznam žádostí podle GDPR (záložka *Osobní údaje*).
+- funkce `purge_expired_data()`: maže a anonymizuje staré osobní údaje podle lhůt
+  v zásadách. Spouští ji administrace při každém přihlášení, nikdo jiný ji zavolat nemůže.
+- v `orders` sloupce `terms_version` (znění podmínek při objednávce), `contacts_purged_at`
+  a `anonymized_at`. `place_order()` u Zásilkovny nechce adresu.

@@ -528,3 +528,9 @@ body.sheet-open .toast { bottom: max(96px, calc(env(safe-area-inset-bottom) + 96
 .calc-margin { font-weight: 700; font-size: 18px; color: var(--forest); }
 .calc-margin.is-neg { color: var(--rust); }
 .calc-margin.is-unknown { color: var(--muted); }
+
+/* Odstoupení a osobní údaje */
+.row-sub-inline { font-weight: 400; color: var(--muted); margin-left: 6px; font-size: 13px; }
+.privacy-found { margin: 14px 0 10px; padding-left: 1.2em; display: grid; gap: 4px; }
+.privacy-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+#privacy-form .btn { margin-bottom: 4px; }

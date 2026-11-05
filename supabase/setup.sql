@@ -209,6 +209,12 @@ create table if not exists public.orders (
 );
 -- Příplatek za způsob platby (dobírka). Je součástí total_czk.
 alter table public.orders add column if not exists payment_czk integer not null default 0;
+-- Které znění obchodních podmínek zákazník při objednávce viděl (datum
+-- verze). Spolu s created_at je to záznam o tom, s čím souhlasil.
+alter table public.orders add column if not exists terms_version text check (terms_version ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+-- Kdy se z objednávky smazaly osobní údaje (viz purge_expired_data).
+alter table public.orders add column if not exists contacts_purged_at timestamptz;
+alter table public.orders add column if not exists anonymized_at timestamptz;
 create index if not exists orders_created_idx on public.orders (created_at desc);
 create index if not exists orders_email_idx   on public.orders (email, created_at);
 
@@ -338,6 +344,8 @@ declare
     v_point_id   text  := left(btrim(coalesce(p_order -> 'packetaPoint' ->> 'id', '')), 50);
     v_promo      text  := upper(btrim(coalesce(p_order ->> 'promo', '')));
     v_lang       text  := case when p_order ->> 'lang' = 'en' then 'en' else 'cs' end;
+    v_terms      text  := case when coalesce(p_order ->> 'termsVersion', '') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+                               then p_order ->> 'termsVersion' end;
     v_items      jsonb := p_order -> 'items';
     v_item       jsonb;
     v_lines      jsonb := '[]'::jsonb;
@@ -358,15 +366,20 @@ declare
     v_id         bigint;
     v_num        text;
 begin
-    -- Zákazník: stejná pravidla jako formulář na webu.
+    -- Zákazník: stejná pravidla jako formulář na webu. Při doručení na
+    -- výdejní místo Zásilkovny adresu nepotřebujeme, tak ji nechceme
+    -- (minimalizace údajů). Když ji někdo vyplní, musí být celá a platná.
     if length(v_first) not between 2 and 100
        or length(v_last) not between 2 and 100
        or length(v_email) > 200 or v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]+$'
        or v_phone !~ '^\+?[0-9][0-9 ]{7,14}$'
-       or length(v_street) not between 3 and 200
-       or length(v_city) not between 2 and 100
-       or v_zip !~ '^[0-9]{3} ?[0-9]{2}$'
        or v_country not in ('CZ', 'SK') then
+        raise exception 'invalid_customer' using errcode = 'P0001';
+    end if;
+    if (v_ship_id <> 'zasilkovna' or v_street <> '' or v_city <> '' or v_zip <> '')
+       and (length(v_street) not between 3 and 200
+            or length(v_city) not between 2 and 100
+            or v_zip !~ '^[0-9]{3} ?[0-9]{2}$') then
         raise exception 'invalid_customer' using errcode = 'P0001';
     end if;
 
@@ -478,12 +491,12 @@ begin
     insert into public.orders (
         first_name, last_name, email, phone, street, city, zip, country, note,
         shipping_method, shipping_name, packeta_point, packeta_point_id, payment_method,
-        items, goods_czk, discount_czk, shipping_czk, payment_czk, total_czk, promo_code, lang)
+        items, goods_czk, discount_czk, shipping_czk, payment_czk, total_czk, promo_code, lang, terms_version)
     values (
         v_first, v_last, v_email, v_phone, v_street, v_city, v_zip, v_country, v_note,
         v_ship_id, v_ship.name, nullif(v_point, ''), nullif(v_point_id, ''), v_pay,
         v_lines, v_goods, v_discount, v_shipping, v_payfee,
-        v_goods - v_discount + v_shipping + v_payfee, v_promo, v_lang)
+        v_goods - v_discount + v_shipping + v_payfee, v_promo, v_lang, v_terms)
     returning id into v_id;
 
     v_num := 'TY-' || lpad(v_id::text, 5, '0');
@@ -618,6 +631,141 @@ end;
 $$;
 revoke all on function public.join_craft_waitlist(text, text, text) from public;
 grant execute on function public.join_craft_waitlist(text, text, text) to anon, authenticated;
+
+
+-- ─── ODSTOUPENÍ OD SMLOUVY ───────────────────────────────────────────
+-- Online odstoupení přes tlačítko „Odstoupit od smlouvy“ (§ 1830a
+-- občanského zákoníku podle zákona č. 159/2026 Sb., od 1. 1. 2027).
+-- Web zapisuje jen přes submit_withdrawal(), číst a měnit smí jen admin.
+create table if not exists public.withdrawals (
+    id            bigint generated always as identity primary key,
+    created_at    timestamptz not null default now(),
+    order_num     text not null check (order_num ~ '^TY-[0-9A-Z]{3,12}$'),
+    order_id      bigint references public.orders (id) on delete set null,
+    name          text not null check (length(name) between 2 and 200),
+    email         text not null check (length(email) <= 200 and email ~ '^[^\s@]+@[^\s@]+\.[^\s@]+$'),
+    items         text not null default '' check (length(items) <= 1000),
+    bank_account  text not null default '' check (length(bank_account) <= 60),
+    note          text not null default '' check (length(note) <= 1000),
+    status        text not null default 'new' check (status in ('new', 'confirmed', 'refunded', 'rejected')),
+    confirmed_at  timestamptz,
+    admin_note    text not null default '' check (length(admin_note) <= 1000),
+    updated_at    timestamptz not null default now()
+);
+create index if not exists withdrawals_created_idx on public.withdrawals (created_at desc);
+create index if not exists withdrawals_email_idx   on public.withdrawals (email, created_at);
+
+create or replace function public.submit_withdrawal(p jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_num     text := upper(btrim(coalesce(p ->> 'orderNum', '')));
+    v_name    text := btrim(coalesce(p ->> 'name', ''));
+    v_email   text := lower(btrim(coalesce(p ->> 'email', '')));
+    v_items   text := left(btrim(coalesce(p ->> 'items', '')), 1000);
+    v_account text := left(btrim(coalesce(p ->> 'bankAccount', '')), 60);
+    v_note    text := left(btrim(coalesce(p ->> 'note', '')), 1000);
+    v_order   bigint;
+    v_row     public.withdrawals%rowtype;
+begin
+    if v_num !~ '^TY-[0-9A-Z]{3,12}$' then
+        raise exception 'invalid_order_num' using errcode = 'P0001';
+    end if;
+    if length(v_name) not between 2 and 200
+       or length(v_email) > 200 or v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]+$' then
+        raise exception 'invalid_customer' using errcode = 'P0001';
+    end if;
+    if (select count(*) from public.withdrawals
+        where email = v_email and created_at > now() - interval '1 day') >= 5 then
+        raise exception 'too_many' using errcode = 'P0001';
+    end if;
+    -- Objednávku přiřadíme jen tehdy, když sedí i e-mail. Když nesedí,
+    -- odstoupení se stejně uloží (zákon ho nedovoluje odmítnout kvůli
+    -- překlepu) a admin si ho dohledá.
+    select id into v_order from public.orders where num = v_num and email = v_email;
+    insert into public.withdrawals (order_num, order_id, name, email, items, bank_account, note)
+    values (v_num, v_order, v_name, v_email, v_items, v_account, v_note)
+    returning * into v_row;
+    return jsonb_build_object('id', v_row.id, 'created_at', v_row.created_at, 'matched', v_order is not null);
+end;
+$$;
+revoke all on function public.submit_withdrawal(jsonb) from public;
+grant execute on function public.submit_withdrawal(jsonb) to anon, authenticated;
+
+
+-- ─── OSOBNÍ ÚDAJE: ŽÁDOSTI A ÚKLID ───────────────────────────────────
+-- Záznam žádostí podle GDPR (kdo chtěl kopii nebo výmaz, kdy a jak se
+-- vyřídila), aby šlo doložit, že se odpovědělo do měsíce.
+create table if not exists public.privacy_requests (
+    id          bigint generated always as identity primary key,
+    created_at  timestamptz not null default now(),
+    email       text not null check (length(email) <= 200),
+    kind        text not null check (kind in ('access', 'erasure', 'correction', 'objection', 'other')),
+    note        text not null default '' check (length(note) <= 1000),
+    done_at     timestamptz,
+    updated_at  timestamptz not null default now()
+);
+
+do $$
+declare t text;
+begin
+    foreach t in array array['withdrawals', 'privacy_requests'] loop
+        execute format('drop trigger if exists %I_updated_at on public.%I', t, t);
+        execute format('create trigger %I_updated_at before update on public.%I
+                        for each row execute function public.set_updated_at()', t, t);
+        execute format('alter table public.%I enable row level security', t);
+        execute format('drop policy if exists "%s_admin" on public.%I', t, t);
+        execute format('create policy "%s_admin" on public.%I for all to authenticated
+                        using (public.is_admin()) with check (public.is_admin())', t, t);
+        execute format('revoke all on public.%I from anon', t);
+        execute format('grant select, insert, update, delete on public.%I to authenticated', t);
+    end loop;
+end;
+$$;
+
+-- Úklid podle zásad ochrany osobních údajů. Spouští ho administrace při
+-- každém přihlášení, smí ho zavolat jen admin.
+--   e-maily pro upozornění na mýdla a balzámy   smazat po 2 letech
+--   kontakt a poznámka u objednávky             smazat po 5 letech
+--   jméno a adresa u objednávky, odstoupení     smazat po 10 letech
+--   záznamy o žádostech podle GDPR               smazat po 5 letech
+create or replace function public.purge_expired_data()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_wait int; v_contacts int; v_names int; v_wd int; v_req int;
+begin
+    if not public.is_admin() then
+        raise exception 'not_admin' using errcode = '42501';
+    end if;
+    delete from public.craft_waitlist where created_at < now() - interval '2 years';
+    get diagnostics v_wait = row_count;
+    update public.orders
+       set email = 'smazano@example.invalid', phone = '', note = null, admin_note = null,
+           contacts_purged_at = now()
+     where created_at < now() - interval '5 years' and contacts_purged_at is null;
+    get diagnostics v_contacts = row_count;
+    update public.orders
+       set first_name = '—', last_name = '—', street = '', city = '', zip = '',
+           packeta_point = null, packeta_point_id = null, anonymized_at = now()
+     where created_at < now() - interval '10 years' and anonymized_at is null;
+    get diagnostics v_names = row_count;
+    delete from public.withdrawals where created_at < now() - interval '10 years';
+    get diagnostics v_wd = row_count;
+    delete from public.privacy_requests where created_at < now() - interval '5 years';
+    get diagnostics v_req = row_count;
+    return jsonb_build_object('waitlist', v_wait, 'order_contacts', v_contacts, 'order_names', v_names,
+                              'withdrawals', v_wd, 'privacy_requests', v_req);
+end;
+$$;
+revoke all on function public.purge_expired_data() from public;
+grant execute on function public.purge_expired_data() to authenticated;
 
 
 -- ─── NÁKUP: DODAVATELÉ, SUROVINY, NABÍDKY, ÚKOLY ────────────────────
@@ -903,9 +1051,11 @@ select v.title, v.who, v.due
     ('Zeptat se EKO-KOM (info@ekokom.cz), jestli jsem kvůli sáčkům se značkou producent obalů a co mám platit', 'Václav', null),
     ('Nastavit potvrzovací e-mail zákazníkovi po objednávce (zákon ho vyžaduje), např. Resend + Supabase', 'Václav', null),
     ('Dokud nejede automatický e-mail: každou objednávku potvrdit zákazníkovi e-mailem ručně a do balíčku přiložit doklad a obchodní podmínky', 'Václav', null),
-    ('Do 31. 12. 2026 přidat na web tlačítko „Odstoupit od smlouvy“ pro hotové směsi (zákon 159/2026 Sb., platí od 1. 1. 2027)', 'Václav', date '2026-12-31'),
+    ('Vyzkoušet tlačítko „Odstoupit od smlouvy“ na testovací objednávce a poslat si potvrzení (zákon 159/2026 Sb. platí od 1. 1. 2027)', 'Václav', date '2026-12-31'),
+    ('Ověřit, že ti patří doména teaseyou.cz a funguje e-mail hello@teaseyou.cz (poslat si zkušební zprávu); jinak změnit e-mail v Nastavení', 'Václav', null),
     ('Nechat obchodní podmínky a ochranu osobních údajů zkontrolovat právníkem', 'Václav', null),
     ('Ověřit v Supabase (Project Settings → General), ve kterém regionu jsou data, a doplnit to do ochrany osobních údajů', 'Václav', null),
-    ('Mýdla a balzámy: než se začnou prodávat, zjistit cenu posudku bezpečnosti, registraci v CPNP a oznámení hygieně', 'Klára', null)
+    ('Mýdla a balzámy: než se začnou prodávat, zjistit cenu posudku bezpečnosti, registraci v CPNP a oznámení hygieně', 'Klára', null),
+    ('Projít znovu PRAVNI-KONTROLA.md v repozitáři (jednou za rok a při každé nové funkci, dodavateli nebo zemi)', 'Václav', date '2027-11-05')
   ) as v(title, who, due)
  where not exists (select 1 from public.purchase_tasks where title like 'Ohlásit živnost:%');
