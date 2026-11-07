@@ -56,6 +56,7 @@
         if (err.code === '42P01' || err.code === 'PGRST205' || /could not find the table/i.test(m)) {
             return 'V databázi chybí tabulka. Spusť znovu celý supabase/setup.sql v SQL Editoru (nic se tím nepřepíše).';
         }
+        if (m === 'seller_missing') return 'Prodej nejde spustit bez údajů prodávajícího. Vyplň jméno, IČO, adresu sídla a e-mail v Prodávající a etiketa.';
         if (m === 'bulk_delete_blocked') return `Tolik položek najednou smazat nejde. ${err.details || ''} Mazej po menších kouscích.`.trim();
         if (err.code === '23505') return 'Tohle už existuje. Zvol jiný název nebo kód.';
         if (err.code === '23514') return 'Databáze hodnotu nepřijala. Zkontroluj formát (barva, délka textu, rozsah čísla).';
@@ -321,6 +322,7 @@
         ]);
         Object.assign(state, { ingredients, blends, prices, shipping, settings: settings[0] || null, catalogLoaded: true });
         renderBackupAlert();
+        renderSales();
     }
 
     async function loadTab(name, force) {
@@ -2466,7 +2468,62 @@
         free_ship_threshold: 500, cod_fee_czk: 39, promo_bar_enabled: true, promo_bar_cs: '', promo_bar_en: '',
         seller_name: '', seller_ico: '', seller_address: '', seller_email: 'hello@teaseyou.cz', seller_phone: '',
         recipe_base_pct: 70, recipe_flavor_pct: 20, recipe_extra_pct: 10, durability_months: 12,
+        sales_open: false, sales_opened_at: null,
     };
+
+    /* ─── Spuštění prodeje ─────────────────────────────────────────── */
+    function sellerMissing(st) {
+        const miss = [];
+        if (!String(st.seller_name || '').trim()) miss.push('jméno');
+        if (!/^[0-9]{8}$/.test(st.seller_ico || '')) miss.push('IČO');
+        if (!String(st.seller_address || '').trim()) miss.push('adresa sídla');
+        if (!String(st.seller_email || '').trim()) miss.push('e-mail');
+        return miss;
+    }
+    function renderSales() {
+        const st = state.settings || {};
+        const known = 'sales_open' in st;
+        const open = st.sales_open === true;
+        const badge = $('#sales-badge');
+        const status = $('#sales-status');
+        const btn = $('#sales-toggle');
+        if (!known) {
+            badge.hidden = true;
+            status.textContent = 'Databáze přepínač prodeje ještě nezná. Spusť znovu supabase/setup.sql v Supabase → SQL Editor.';
+            btn.disabled = true;
+            return;
+        }
+        badge.hidden = false;
+        badge.textContent = open ? 'Prodej běží' : 'Prodej vypnutý';
+        badge.className = 'env-badge ' + (open ? 'sales-open' : 'sales-closed');
+        badge.title = open ? 'Web přijímá objednávky.' : 'Web ukazuje „Připravujeme spuštění“ a objednávky nepřijímá.';
+        const since = st.sales_opened_at ? ` Poprvé spuštěno ${formatDate(st.sales_opened_at)}.` : '';
+        status.textContent = open
+            ? 'Prodej běží: web přijímá objednávky.' + since
+            : 'Prodej je vypnutý: web ukazuje „Připravujeme spuštění“ a objednávky nepřijímá, ani přímo přes databázi.' + since;
+        btn.disabled = false;
+        btn.textContent = open ? 'Zastavit prodej' : 'Spustit prodej';
+        btn.className = 'btn ' + (open ? 'btn-danger' : 'btn-primary');
+    }
+    $('#sales-toggle').addEventListener('click', async e => {
+        const btn = e.currentTarget;
+        const st = state.settings || {};
+        const open = st.sales_open === true;
+        if (!open) {
+            const miss = sellerMissing(st);
+            if (miss.length) {
+                toast(`Nejdřív vyplň v Prodávající a etiketa: ${miss.join(', ')}. Pak ulož a spusť prodej.`, true);
+                $('#seller-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+            const ok = await confirmDialog('Web začne přijímat skutečné objednávky. Máš ohlášenou živnost, oznámení SZPI, funkční e-mail a zkontrolované podmínky?', 'Spustit prodej', 'SPUSTIT');
+            if (!ok) return;
+        } else if (!(await confirmDialog('Web přestane přijímat objednávky a ukáže „Připravujeme spuštění“. Objednávky, které už přišly, zůstanou.', 'Zastavit prodej'))) {
+            return;
+        }
+        await saveSettings({ sales_open: !open }, btn, open ? 'Prodej je zastavený.' : 'Prodej běží. Web přijímá objednávky.');
+        renderSales();
+    });
 
     async function saveSettings(row, btn, okMsg) {
         btn.disabled = true;

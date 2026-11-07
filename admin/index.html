@@ -72,6 +72,7 @@
         <a class="wordmark" href="../" title="Otevřít web">Tease you</a>
         <span class="topbar-title">Administrace</span>
         <span class="env-badge" id="env-badge" hidden></span>
+        <span class="env-badge" id="sales-badge" hidden></span>
         <span class="topbar-user" id="user-email"></span>
         <button type="button" class="btn btn-ghost btn-small" data-action="logout">Odhlásit</button>
     </header>
@@ -124,6 +125,17 @@
 
         <section class="view" id="view-pricing" role="tabpanel" hidden>
             <div class="view-head"><h2>Ceny a doprava</h2></div>
+
+            <div class="panel" id="sales-panel">
+                <h3>Prodej</h3>
+                <p class="help" id="sales-status">Načítám…</p>
+                <ul class="help-list" id="sales-checklist">
+                    <li>Než prodej spustíš: ohlášená živnost, oznámení SZPI o zahájení činnosti, funkční e-mail pro zákazníky a zkontrolované obchodní podmínky.</li>
+                    <li>Jméno, IČO, adresu sídla a e-mail vyplň níž v <em>Prodávající a etiketa</em>. Bez nich prodej zapnout nejde.</li>
+                    <li>Den prvního spuštění se ukáže v podmínkách jako „platné od“.</li>
+                </ul>
+                <p><button type="button" class="btn btn-primary" id="sales-toggle" disabled>Spustit prodej</button></p>
+            </div>
 
             <div class="panel">
                 <h3>Ceník podle gramáže</h3>

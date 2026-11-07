@@ -539,6 +539,9 @@ body.sheet-open .toast { bottom: max(96px, calc(env(safe-area-inset-bottom) + 96
 .env-badge { padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .01em; }
 .env-badge.env-prod { background: var(--rust-pale); color: var(--rust); }
 .env-badge.env-test { background: var(--pale); color: var(--forest); }
+.env-badge.sales-open { background: var(--pale); color: var(--forest); }
+.env-badge.sales-closed { background: var(--sun-pale); color: var(--sun); }
+.env-badge[hidden] { display: none; }
 .backup-alert {
     max-width: 1080px; margin: 12px auto 0; padding: 10px 16px; display: flex; flex-wrap: wrap;
     align-items: center; justify-content: space-between; gap: 10px;

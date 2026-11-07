@@ -254,6 +254,31 @@ a { color: var(--forest); }
 }
 @media (min-width: 900px) { .promo-bar { font-size: 13px; padding: 8px 48px; } }
 body.dark .promo-bar { background: #26402a; color: #e8f0e4; }
+
+/* Před spuštěním prodeje (zapíná se v administraci). Nejde zavřít. */
+.launch-bar {
+    background: var(--kraft);
+    color: var(--kraft-ink);
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: center;
+    padding: 7px 16px;
+}
+.launch-bar[hidden] { display: none; }
+@media (min-width: 900px) { .launch-bar { font-size: 13px; padding: 8px 48px; } }
+body.dark .launch-bar { background: #4f3d27; color: #f5ead6; }
+.sales-closed-note {
+    margin: 4px 0 10px;
+    padding: 10px 12px;
+    border-radius: var(--r-md);
+    background: var(--warn-pale);
+    color: var(--warn);
+    font-size: 13.5px;
+    line-height: 1.45;
+}
+.sales-closed-note[hidden] { display: none; }
+body.dark .sales-closed-note { background: #33231a; color: #f0b48f; }
 .promo-close {
     position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
     width: 32px; height: 32px; display: grid; place-items: center;

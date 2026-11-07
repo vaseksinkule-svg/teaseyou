@@ -226,3 +226,17 @@ spustit `backup_snapshot()`. Nevidí do tabulek, nic nesmaže ani nezmění.
 Výpis běhů je u veřejného repozitáře vidět všem, proto skript vypisuje jen počty.
 Soubor zálohy bez hesla nikdo neotevře (AES-256-GCM, klíč z hesla přes PBKDF2-SHA256,
 600 000 opakování).
+
+## Spuštění prodeje (listopad 2026)
+
+Po spuštění `setup.sql` je prodej **vypnutý**: web ukazuje „Připravujeme spuštění“
+a `place_order()` vrací `sales_closed`, i když by někdo obešel web. Míchat a ukládat
+směsi jde dál.
+
+Zapíná se v administraci: *Ceny a doprava* → **Prodej** → *Spustit prodej* (opsat SPUSTIT).
+Databáze to dovolí, jen když jsou v *Prodávající a etiketa* vyplněné jméno, IČO,
+adresa sídla a e-mail (`seller_missing`). Den prvního spuštění (`sales_opened_at`)
+se ukáže v obchodních podmínkách a zásadách jako „platné od“ a dál se nemění.
+
+Před spuštěním: ohlášená živnost, oznámení SZPI, funkční e-mail pro zákazníky
+a zkontrolované podmínky (úkoly v *Nákup → Úkoly*).

@@ -150,6 +150,52 @@ alter table public.settings add column if not exists recipe_base_pct   smallint 
 alter table public.settings add column if not exists recipe_flavor_pct smallint not null default 20 check (recipe_flavor_pct between 0 and 99);
 alter table public.settings add column if not exists recipe_extra_pct  smallint not null default 10 check (recipe_extra_pct between 0 and 99);
 alter table public.settings add column if not exists durability_months smallint not null default 12 check (durability_months between 1 and 36);
+-- Spuštění prodeje. Dokud je vypnuté, web ukazuje „Připravujeme spuštění“
+-- a place_order() objednávky odmítne. Zapnout jde jen s vyplněným jménem,
+-- IČO, adresou a e-mailem prodávajícího (§ 435 OZ, zákon 480/2004 § 5).
+alter table public.settings add column if not exists sales_open      boolean not null default false;
+alter table public.settings add column if not exists sales_opened_at timestamptz;
+
+create or replace function public.check_sales_open()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+    v_check boolean := false;
+begin
+    -- Hlídá se jen zapnutí prodeje a změna údajů prodávajícího. Jiné úpravy
+    -- nastavení (třeba čas noční zálohy) projdou vždycky.
+    if new.sales_open then
+        if tg_op = 'INSERT' then
+            v_check := true;
+        else
+            v_check := not old.sales_open
+                or (new.seller_name, new.seller_ico, new.seller_address, new.seller_email)
+                   is distinct from (old.seller_name, old.seller_ico, old.seller_address, old.seller_email);
+        end if;
+    end if;
+    if v_check and (btrim(new.seller_name) = '' or new.seller_ico = ''
+                    or btrim(new.seller_address) = '' or btrim(new.seller_email) = '') then
+        raise exception 'seller_missing' using errcode = 'P0001';
+    end if;
+    -- Den prvního spuštění si pamatujeme, od něj platí obchodní podmínky.
+    -- Jednou zapsaný se nemění (ani vypnutím a zapnutím); obnova zálohy
+    -- do prázdné databáze ho převezme ze zálohy.
+    if tg_op = 'UPDATE' then
+        new.sales_opened_at := coalesce(old.sales_opened_at, new.sales_opened_at);
+    end if;
+    if new.sales_open and new.sales_opened_at is null then
+        new.sales_opened_at := now();
+    end if;
+    return new;
+end;
+$$;
+drop trigger if exists settings_check_sales_open on public.settings;
+create trigger settings_check_sales_open
+    before insert or update on public.settings
+    for each row execute function public.check_sales_open();
+revoke all on function public.check_sales_open() from public, anon, authenticated;
 do $$
 begin
     if not exists (select 1 from pg_constraint where conname = 'settings_recipe_sum') then
@@ -380,6 +426,11 @@ declare
     v_id         bigint;
     v_num        text;
 begin
+    -- Před spuštěním prodeje nic nepřijímáme, ani když někdo obejde web.
+    if not coalesce((select sales_open from public.settings where id = 1), false) then
+        raise exception 'sales_closed' using errcode = 'P0001';
+    end if;
+
     -- Zákazník: stejná pravidla jako formulář na webu. Při doručení na
     -- výdejní místo Zásilkovny adresu nepotřebujeme, tak ji nechceme
     -- (minimalizace údajů). Když ji někdo vyplní, musí být celá a platná.
@@ -1096,10 +1147,13 @@ select v.title, v.who, v.due
   ) as v(title, who, due)
  where not exists (select 1 from public.purchase_tasks where title like 'Ohlásit živnost:%');
 
--- Přibylo v listopadu 2026 s noční zálohou, vloží se jednou.
+-- Přibylo v listopadu 2026 s noční zálohou a režimem před spuštěním, vloží se jednou.
 insert into public.purchase_tasks (title, who, due)
 select 'Nastavit noční zálohu na GitHubu: heslo role, dva secrets a jedno ruční spuštění (supabase/README.md)', 'Václav', null
  where not exists (select 1 from public.purchase_tasks where title like 'Nastavit noční zálohu%');
+insert into public.purchase_tasks (title, who, due)
+select 'Spustit prodej (Ceny a doprava → Prodej), až bude živnost, oznámení SZPI, funkční e-mail a zkontrolované podmínky', 'Václav', null
+ where not exists (select 1 from public.purchase_tasks where title like 'Spustit prodej%');
 
 
 -- ═══ OCHRANA PŘED ZTRÁTOU DAT ══════════════════════════════════════
@@ -1361,7 +1415,8 @@ security definer
 set search_path = public
 as $$
 declare
-    r record; v_row jsonb; n integer; v_cols text; v_sql text;
+    r record; v_row jsonb; n integer; v_cols text; v_list text; v_sql text;
+    v_keys text[]; v_prev_keys text[]; v_prev_table text;
     v_report jsonb := '{}'::jsonb; v_ins integer; v_upd integer; v_same integer; v_err integer;
     v_insert_only text[] := array['orders', 'withdrawals', 'privacy_requests', 'craft_waitlist'];
     v_exists boolean;
@@ -1394,12 +1449,22 @@ begin
         end if;
         for r in select * from public.backup_tables() order by public.restore_order(t) loop
             v_ins := 0; v_upd := 0; v_same := 0; v_err := 0;
-            select string_agg(format('%I = excluded.%I', column_name, column_name), ', ')
-              into v_cols
-              from information_schema.columns
-             where table_schema = 'public' and table_name = r.t and column_name <> r.k;
             for v_row in select * from jsonb_array_elements(coalesce(p -> 'tables' -> r.t, '[]'::jsonb)) loop
                 begin
+                    -- Jen sloupce, které záloha má. Co přibylo později (třeba
+                    -- sales_open), zůstane, jak je, nebo dostane výchozí hodnotu.
+                    -- Řádky jedné tabulky mají stejné klíče, počítá se jednou.
+                    v_keys := array(select jsonb_object_keys(v_row) order by 1);
+                    if v_keys is distinct from v_prev_keys or v_prev_table is distinct from r.t then
+                        select string_agg(format('%I', column_name), ', ' order by ordinal_position),
+                               string_agg(format('%I = excluded.%I', column_name, column_name), ', ' order by ordinal_position)
+                                   filter (where column_name <> r.k)
+                          into v_list, v_cols
+                          from information_schema.columns
+                         where table_schema = 'public' and table_name = r.t and column_name = any (v_keys);
+                        v_prev_keys := v_keys;
+                        v_prev_table := r.t;
+                    end if;
                     execute format('select exists (select 1 from public.%I where %I::text = $1)', r.t, r.k)
                         into v_exists using v_row ->> r.k;
                     if v_exists and (not p_overwrite or r.t = any (v_insert_only)) then
@@ -1408,7 +1473,8 @@ begin
                     end if;
                     if v_exists then
                         -- Stejný řádek (kromě času úpravy) nepočítáme jako přepsaný.
-                        execute format('select (to_jsonb(x) - ''updated_at'' - ''last_backup_at'') = ($2 - ''updated_at'' - ''last_backup_at'')
+                        execute format('select ((select jsonb_object_agg(e.key, e.value) from jsonb_each(to_jsonb(x)) e where $2 ? e.key)
+                                                 - ''updated_at'' - ''last_backup_at'') = ($2 - ''updated_at'' - ''last_backup_at'')
                                           from public.%I x where %I::text = $1', r.t, r.k)
                             into v_same_row using v_row ->> r.k, v_row;
                         if v_same_row then
@@ -1416,9 +1482,9 @@ begin
                             continue;
                         end if;
                     end if;
-                    v_sql := format('insert into public.%I overriding system value
-                                     select * from jsonb_populate_record(null::public.%I, $1) ', r.t, r.t)
-                          || case when v_exists then format('on conflict (%I) do update set %s', r.k, v_cols)
+                    v_sql := format('insert into public.%I (%s) overriding system value
+                                     select %s from jsonb_populate_record(null::public.%I, $1) ', r.t, v_list, v_list, r.t)
+                          || case when v_exists and v_cols is not null then format('on conflict (%I) do update set %s', r.k, v_cols)
                                   else 'on conflict do nothing' end;
                     execute v_sql using v_row;
                     get diagnostics n = row_count;

@@ -79,6 +79,11 @@
     </defs>
 </svg>
 
+<!-- PŘED SPUŠTĚNÍM PRODEJE (zapíná se v administraci) -->
+<div id="launch-bar" class="launch-bar" role="status" hidden>
+    <span data-i18n="launch_bar">Připravujeme spuštění. Objednávky zatím nepřijímáme, směs si ale můžeš namíchat a uložit.</span>
+</div>
+
 <!-- PROMO BAR -->
 <div id="promo-bar" class="promo-bar">
     <span data-i18n="promo_text">🍵 Free shipping on orders over 500 Kč · Use code FIRSTBLEND for 10% off your first order</span>
@@ -445,7 +450,8 @@
                     <div class="sum-line sum-line-total"><dt data-i18n="order_total">Celkem</dt><dd id="cart-final-total">0 Kč</dd></div>
                 </dl>
                 <p id="cart-shipping-line" class="sum-note"></p>
-                <button class="btn btn-primary btn-lg btn-block" onclick="showPage('checkout-page')" data-i18n="btn_checkout">Přejít k pokladně</button>
+                <p id="cart-closed-note" class="sales-closed-note" hidden data-i18n="sales_closed_note">Objednávky zatím nepřijímáme, prodej teprve chystáme. Košík ti tu zůstane.</p>
+                <button class="btn btn-primary btn-lg btn-block" id="cart-checkout-btn" onclick="showPage('checkout-page')" data-i18n="btn_checkout">Přejít k pokladně</button>
                 <button class="btn btn-link cart-continue" onclick="goToShelf()" data-i18n="btn_continue">Pokračovat v nákupu</button>
             </aside>
         </div>
@@ -475,6 +481,7 @@
                 </div>
             </aside>
             <form id="checkout-form" class="checkout-form" onsubmit="submitOrder(event)" novalidate>
+                <p id="checkout-closed-note" class="sales-closed-note" hidden data-i18n="sales_closed_note">Objednávky zatím nepřijímáme, prodej teprve chystáme. Košík ti tu zůstane.</p>
                 <fieldset class="form-step">
                     <legend class="form-step-title"><span class="form-step-num">1</span><span data-i18n="checkout_contact">Kontakt</span></legend>
                     <div class="form-row">
