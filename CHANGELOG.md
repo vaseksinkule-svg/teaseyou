@@ -6,6 +6,12 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Změněno (náhled pro sdílení)
+- Nový `og-image.jpg` podle současného designu: zelený pás, nadpis v Unbounded
+  a dva sáčky přímo z webu. Starý `og-image.svg` (patkové písmo) pryč.
+- Doplněné `og:image:width/height/alt`, `og:site_name`, `og:locale` a `twitter:image`;
+  adresa obrázku má `?v=2`, ať sociální sítě nenechají v mezipaměti ten starý.
+
 ### Změněno (ikonky)
 - Nové ikonky podle současného designu: „T“ z písma Unbounded. E-shop má zelený
   čtverec se světlým T, administrace kraft se tmavým T, aby šly odlišit v panelech.

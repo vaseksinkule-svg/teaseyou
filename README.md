@@ -94,7 +94,8 @@ robots.txt  sitemap.xml    Pro vyhledávače.
 humans.txt                 Pro lidi.
 .well-known/security.txt   Kam nahlásit bezpečnostní chybu.
 CNAME  .nojekyll           Konfigurace GitHub Pages.
-og-image.*  icon-*.svg     Náhledy pro sociální sítě a ikony.
+og-image.jpg favicon.*      Náhled pro sdílení (1200×630) a ikonky; admin/ má vlastní.
+                            icon-*.png, apple-touch-icon.png: ikonky pro plochu telefonu.
 ClimateCrisis-1979.woff2   Displejové písmo (SIL OFL 1.1).
 ```
 
