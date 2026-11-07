@@ -23,7 +23,7 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 | 03 | Souhlas s podmínkami u tlačítka | ✅ | § 1826a OZ (tlačítko musí říkat, že objednávka zavazuje k platbě) | Věta o podmínkách a ochraně údajů je těsně nad tlačítkem **Objednat a zaplatit**. Zaškrtávací políčko česká pravidla nevyžadují. Ochranu údajů jen potvrzuje, že ji zákazník četl, nejde o souhlas. |
 | 04 | Záznam o odsouhlasení podmínek | ✅ | GDPR čl. 7 odst. 1 (doložitelnost); obecně důkaz o obsahu smlouvy | Každá objednávka si ukládá `terms_version` (datum znění) a čas. Administrace je u objednávky ukazuje. Stará znění jsou v historii gitu. **Při každé změně podmínek přepiš `TERMS_VERSION` ve `script.js` a datum na stránkách.** |
 | 05 | Vracení peněz a odstoupení | ✅ ⏳ | § 1829–1837 OZ; § 1830a OZ podle zákona č. 159/2026 Sb. (tlačítko „Odstoupit od smlouvy“, platí od 1. 1. 2027) | Hotové směsi 14 dní, pokud je sáček neotevřený (§ 1837 písm. g)), směsi na míru ne (§ 1837 písm. d)). **Tlačítko „Odstoupit od smlouvy“** na stránce Odstoupení i u každé objednávky v *Moje objednávky*, druhý krok **„Potvrdit odstoupení od smlouvy“**, hned potvrzení s datem a časem, záznam v databázi. Vzorový formulář e-mailem nebo k tisku. ⏳ Potvrzení e-mailem zatím posílá admin ručně (Odstoupení → Napsat potvrzení), dokud nebude automatický e-mail. |
-| 06 | Kontaktní údaje prodávajícího | ✅ ⏳ | § 435 OZ; zákon č. 480/2004 Sb. § 5 | Jméno, IČO, sídlo, e-mail a telefon z administrace v patičce, podmínkách, zásadách a u potraviny. ⏳ Vyplnit v Nastavení po ohlášení živnosti. ⏳ **Ověřit, že doména teaseyou.cz a e-mail hello@teaseyou.cz patří nám a fungují** (zkušební zpráva). |
+| 06 | Kontaktní údaje prodávajícího | ✅ ⏳ | § 435 OZ; zákon č. 480/2004 Sb. § 5 | Jméno, IČO, sídlo, e-mail a telefon z administrace v patičce, podmínkách, zásadách a u potraviny. Dokud nejsou vyplněné jméno, IČO a adresa, nejde v administraci spustit prodej (hlídá to databáze) a web ukazuje „Připravujeme spuštění“. ⏳ Vyplnit v Nastavení po ohlášení živnosti. ⏳ **Ověřit, že doména teaseyou.cz a e-mail hello@teaseyou.cz patří nám a fungují** (zkušební zpráva). |
 
 ## Část 2: Souhlasy, cookies, marketing
 
@@ -49,7 +49,7 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 | # | Bod | Stav | Podle čeho v ČR | Co je na webu / co zbývá |
 |---|---|---|---|---|
 | 16 | Kontrola služeb třetích stran | ✅ | GDPR čl. 13 a 28 | Seznam: GitHub Pages (hosting), Supabase (databáze, fotky, přihlášení admina), Zásilkovna (mapa, až po kliknutí), dopravci. Žádné SDK ani pixely. Formspree je v kódu vypnuté; kdyby se zapnulo, patří do zásad. |
-| 17 | Smlouvy o zpracování (DPA) | ✅ ⏳ | GDPR čl. 28 odst. 3 | Supabase: DPA je součástí jejích podmínek včetně standardních smluvních doložek. Dopravci jsou samostatní správci. ⏳ Projít podmínky GitHubu pro Pages (jejich záznamy o návštěvách). |
+| 17 | Smlouvy o zpracování (DPA) | ✅ ⏳ | GDPR čl. 28 odst. 3 | Supabase: DPA je součástí jejích podmínek včetně standardních smluvních doložek. Dopravci jsou samostatní správci. ⏳ Projít podmínky GitHubu pro Pages (jejich záznamy o návštěvách) a pro Actions, kde jsou noční zálohy. Zálohy jsou zašifrované a GitHub k nim nemá heslo, v zásadách je GitHub uvedený i jako jejich úložiště. |
 | 18 | Seznam subdodavatelů | ➖ | GDPR čl. 28 odst. 2 | Jsme správce, ne zpracovatel pro jiné firmy. Příjemce uvádíme v zásadách. |
 
 ## Část 5: Přístupnost

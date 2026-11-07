@@ -1038,6 +1038,7 @@ function showPage(pageId) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (pageId === 'cart-page')         renderCart();
     if (pageId === 'checkout-page')     renderCheckoutSummary();
+    if (pageId === 'cart-page' || pageId === 'checkout-page') applySalesState();
     if (pageId === 'saved-page')        renderSavedBlends();
     if (pageId === 'orders-page')       renderOrders();
     if (pageId === 'home-page')         setTimeout(initReveal, 50);
@@ -1914,6 +1915,7 @@ function validateCheckout(form) {
 function submitOrder(e) {
     e.preventDefault();
     const form = e.target;
+    if (!salesOpen()) { showToast(t('sales_closed_toast'), '🌱'); applySalesState(); return; }
     if (cart.length === 0) { showToast(t('toast_cart_empty'), '🛒'); return; }
     if (!validateCheckout(form)) { showToast(t('toast_check_fields'), '⚠️'); return; }
 
@@ -2328,6 +2330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const bar = document.getElementById('promo-bar');
         if (bar) bar.style.display = 'none';
     }
+    applySalesState();
     document.querySelectorAll('.ingredient-btn').forEach(btn => {
         const c = btn.getAttribute('data-color');
         if (c) btn.style.setProperty('--dot-color', c);
@@ -2756,6 +2759,9 @@ Object.assign(TRANSLATIONS.cs, {
     stock_note_blend:         'Některá ingredience téhle směsi je teď vyprodaná.',
     err_weight_unavailable:   'Tuhle gramáž už neprodáváme. Odeber prosím položku z košíku a vyber jinou.',
     err_invalid_customer:     'Zkontroluj prosím kontaktní údaje a adresu.',
+    launch_bar:               'Připravujeme spuštění. Objednávky zatím nepřijímáme, směs si ale můžeš namíchat a uložit.',
+    sales_closed_note:        'Objednávky zatím nepřijímáme, prodej teprve chystáme. Košík ti tu zůstane.',
+    sales_closed_toast:       'Objednávky zatím nepřijímáme. Prodej brzy spustíme.',
     err_too_many_orders:      'Z tohohle e-mailu přišlo moc objednávek najednou. Zkus to prosím za hodinu.',
     err_pickup_point:         'Vyber prosím výdejní místo Zásilkovny.',
     err_shipping_unavailable: 'Tenhle způsob dopravy teď nenabízíme. Vyber prosím jiný.',
@@ -2771,6 +2777,9 @@ Object.assign(TRANSLATIONS.en, {
     stock_note_blend:         'One of the ingredients in this blend is sold out right now.',
     err_weight_unavailable:   'We no longer sell this size. Please remove the item and pick another one.',
     err_invalid_customer:     'Please check your contact details and address.',
+    launch_bar:               'We are getting ready to launch. We are not taking orders yet, but you can already mix and save your blend.',
+    sales_closed_note:        'We are not taking orders yet, the shop is still being set up. Your cart will stay here.',
+    sales_closed_toast:       'We are not taking orders yet. The shop opens soon.',
     err_too_many_orders:      'Too many orders from this e-mail at once. Please try again in an hour.',
     err_pickup_point:         'Please choose a Zásilkovna pickup point.',
     err_shipping_unavailable: 'This shipping method is not available right now. Please choose another one.',
@@ -2814,6 +2823,11 @@ const SELLER = { name: '', ico: '', address: '', email: 'hello@teaseyou.cz', pho
 let COD_FEE = 39;                                  // Kč, příplatek za dobírku
 const RECIPE = { base: 70, flavor: 20, extra: 10 }; // podíl základu, příchutě a doplňku v %
 let DURABILITY_MONTHS = 12;
+// Prodej je zapnutý, až to admin přepne (Ceny a doprava → Prodej). Do té doby
+// web ukazuje „Připravujeme spuštění“ a pokladna je zavřená. Databáze to hlídá taky.
+let SALES_OPEN = false;
+let SALES_KNOWN = false;   // nastavení už přišlo (z mezipaměti nebo z databáze)
+let SALES_OPENED_AT = null;
 
 function applyShopSettings(st) {
     const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -2831,6 +2845,10 @@ function applyShopSettings(st) {
     if (Number.isInteger(st.durability_months) && st.durability_months >= 1 && st.durability_months <= 36) {
         DURABILITY_MONTHS = st.durability_months;
     }
+    SALES_OPEN = st.sales_open === true;
+    SALES_KNOWN = true;
+    const opened = st.sales_opened_at ? new Date(st.sales_opened_at) : null;
+    SALES_OPENED_AT = opened && !isNaN(opened) ? opened : null;
     const codText = COD_FEE ? ` (+${COD_FEE} Kč)` : '';
     TRANSLATIONS.cs.pay_cod_desc = 'Platíš při převzetí' + codText;
     TRANSLATIONS.en.pay_cod_desc = 'Pay when you collect it' + codText;
@@ -2853,9 +2871,11 @@ function applySeller() {
         free_ship: fmt(FREE_SHIP_THRESHOLD),
         url:       (location.host + location.pathname).replace(/\/(index\.html)?$/, ''),
     };
+    if (SALES_OPENED_AT) shop.terms_date = SALES_OPENED_AT.toLocaleDateString('cs-CZ');
     document.querySelectorAll('[data-shop]').forEach(el => {
-        if (shop[el.dataset.shop] !== undefined) el.textContent = shop[el.dataset.shop];
-        else el.classList.add('is-missing');
+        const known = shop[el.dataset.shop] !== undefined;
+        if (known) el.textContent = shop[el.dataset.shop];
+        el.classList.toggle('is-missing', !known);
     });
     const mail = document.getElementById('withdrawal-mail');
     if (mail) {
@@ -3131,6 +3151,31 @@ function renderCatalogDom() {
     renderShippingOptions();
     const bar = document.getElementById('promo-bar');
     if (bar && !promoBarEnabled) bar.style.display = 'none';
+    applySalesState();
+}
+
+/* Před spuštěním prodeje: lišta nahoře místo akční, zavřená pokladna.
+   Bez databáze (zkušební režim bez config.js) se nic nezavírá. */
+function salesOpen() {
+    return SALES_OPEN || !(window.TeaDB && TeaDB.configured);
+}
+function applySalesState() {
+    // Dokud nastavení nepřišlo, lištu neukazujeme (ať po spuštění neproblikne),
+    // ale objednat taky nejde.
+    const closed = SALES_KNOWN && !salesOpen();
+    const launch = document.getElementById('launch-bar');
+    if (launch) launch.hidden = !closed;
+    const promo = document.getElementById('promo-bar');
+    if (promo && closed) promo.style.display = 'none';
+    document.body.classList.toggle('sales-closed', closed);
+    ['cart-closed-note', 'checkout-closed-note'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.hidden = !closed;
+    });
+    const cartBtn = document.getElementById('cart-checkout-btn');
+    if (cartBtn) cartBtn.disabled = closed;
+    const submit = document.querySelector('#checkout-form .checkout-submit');
+    if (submit) submit.disabled = !salesOpen();
 }
 
 function renderIngredientButtons() {
@@ -3422,13 +3467,18 @@ function buildOrderPayload(form) {
     };
 }
 
-const ORDER_ERROR_CODES = new Set(['out_of_stock', 'promo_invalid', 'invalid_customer', 'too_many_orders',
+const ORDER_ERROR_CODES = new Set(['sales_closed', 'out_of_stock', 'promo_invalid', 'invalid_customer', 'too_many_orders',
     'pickup_point_required', 'invalid_shipping', 'invalid_weight', 'unknown_ingredient']);
 
 function handleOrderError(err) {
     const code = err && err.message;
     const refresh = () => refreshCatalog();
     switch (code) {
+        case 'sales_closed':
+            SALES_OPEN = false;
+            applySalesState();
+            showToast(t('sales_closed_toast'), '🌱');
+            break;
         case 'out_of_stock': {
             const names = String(err.details || '').split(',').map(s => s.trim()).filter(Boolean).map(tIng);
             showToast(`${t('err_sold_out_named')} ${escHtml(names.join(', '))}`, '🫙');

@@ -56,6 +56,7 @@
         if (err.code === '42P01' || err.code === 'PGRST205' || /could not find the table/i.test(m)) {
             return 'V databázi chybí tabulka. Spusť znovu celý supabase/setup.sql v SQL Editoru (nic se tím nepřepíše).';
         }
+        if (m === 'seller_missing') return 'Prodej nejde spustit bez údajů prodávajícího. Vyplň jméno, IČO, adresu sídla a e-mail v Prodávající a etiketa.';
         if (m === 'bulk_delete_blocked') return `Tolik položek najednou smazat nejde. ${err.details || ''} Mazej po menších kouscích.`.trim();
         if (err.code === '23505') return 'Tohle už existuje. Zvol jiný název nebo kód.';
         if (err.code === '23514') return 'Databáze hodnotu nepřijala. Zkontroluj formát (barva, délka textu, rozsah čísla).';
@@ -321,6 +322,7 @@
         ]);
         Object.assign(state, { ingredients, blends, prices, shipping, settings: settings[0] || null, catalogLoaded: true });
         renderBackupAlert();
+        renderSales();
     }
 
     async function loadTab(name, force) {
@@ -1840,20 +1842,25 @@
     };
     let restoreData = null;
 
+    let previewSeq = 0;
     async function previewRestore() {
         const out = $('#restore-preview');
         const run = $('#restore-run');
+        const data = restoreData;
+        const seq = ++previewSeq;
         run.disabled = true;
-        if (!restoreData) { out.innerHTML = ''; return; }
+        if (!data) { out.innerHTML = ''; return; }
         out.innerHTML = '<p class="loading">Počítám, co by se stalo…</p>';
         try {
             const overwrite = $('#restore-overwrite').checked;
-            const res = await db.rpc('restore_backup', { p: restoreData, p_overwrite: overwrite, p_dry_run: true });
+            const res = await db.rpc('restore_backup', { p: data, p_overwrite: overwrite, p_dry_run: true });
+            // Mezitím vybral jiný soubor nebo přepnul volbu: tenhle náhled už neplatí.
+            if (seq !== previewSeq || data !== restoreData) return;
             const rows = Object.entries(res.tables || {}).sort((a, b) => (TABLE_LABEL[a[0]] || a[0]).localeCompare(TABLE_LABEL[b[0]] || b[0], 'cs'));
             const changes = rows.reduce((n, [, v]) => n + v.added + v.overwritten + v.removed, 0);
-            const photos = Object.keys(restoreData.photos || {}).length;
+            const photos = Object.keys(data.photos || {}).length;
             out.innerHTML = `
-                <p class="help">Záloha z ${esc(formatDate(restoreData.created_at))}. Zatím se nic nezměnilo, tohle je jen náhled.</p>
+                <p class="help">Záloha z ${esc(formatDate(data.created_at))}. Zatím se nic nezměnilo, tohle je jen náhled.</p>
                 <table class="restore-table">
                     <thead><tr><th>Co</th><th>V záloze</th><th>Přibude</th><th>Přepíše se</th><th>Do koše</th><th>Beze změny</th><th>Nejde</th></tr></thead>
                     <tbody>${rows.map(([t, v]) => `<tr><td>${esc(TABLE_LABEL[t] || t)}</td><td>${v.in_backup}</td><td>${v.added}</td><td>${v.overwritten}</td>
@@ -1863,24 +1870,111 @@
             run.disabled = !changes && !photos;
             run.dataset.changes = String(changes);
         } catch (err) {
+            if (seq !== previewSeq) return;
             out.innerHTML = '';
             fail(err);
         }
     }
 
+    // GitHub dává noční zálohu jako .zip s jedním souborem. Vytáhneme z něj
+    // první .json (uložený bez komprese, nebo deflate).
+    async function jsonFromZip(buf) {
+        const v = new DataView(buf);
+        let eocd = -1;
+        for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 65557); i--) {
+            if (v.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+        }
+        if (eocd < 0) throw new Error('zip');
+        let p = v.getUint32(eocd + 16, true);
+        const count = v.getUint16(eocd + 10, true);
+        for (let n = 0; n < count; n++) {
+            if (v.getUint32(p, true) !== 0x02014b50) throw new Error('zip');
+            const method = v.getUint16(p + 10, true);
+            const size = v.getUint32(p + 20, true);
+            const nameLen = v.getUint16(p + 28, true), extraLen = v.getUint16(p + 30, true), commentLen = v.getUint16(p + 32, true);
+            const local = v.getUint32(p + 42, true);
+            const name = new TextDecoder().decode(new Uint8Array(buf, p + 46, nameLen));
+            p += 46 + nameLen + extraLen + commentLen;
+            if (!/\.json$/i.test(name)) continue;
+            if (v.getUint32(local, true) !== 0x04034b50) throw new Error('zip');
+            const start = local + 30 + v.getUint16(local + 26, true) + v.getUint16(local + 28, true);
+            const data = new Uint8Array(buf, start, size);
+            if (method === 0) return new TextDecoder().decode(data);
+            if (method === 8) return new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+            throw new Error('zip');
+        }
+        throw new Error('zip');
+    }
+
+    // Noční záloha: gzip a AES-GCM, klíč z hesla přes PBKDF2 (.github/scripts/zaloha.py).
+    async function decryptBackup(env, password) {
+        const k = env.kdf || {}, c = env.cipher || {};
+        if (k.name !== 'PBKDF2' || k.hash !== 'SHA-256' || !Number.isInteger(k.iterations) || k.iterations < 100000 || k.iterations > 10000000
+            || c.name !== 'AES-GCM' || env.compression !== 'gzip') throw new Error('format');
+        const bytes = async b64 => new Uint8Array(await (await fetch('data:application/octet-stream;base64,' + b64)).arrayBuffer());
+        const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+        const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt: await bytes(k.salt), iterations: k.iterations },
+            base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+        let plain;
+        try {
+            plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: await bytes(c.iv) }, key, await bytes(env.data));
+        } catch (_) { throw new Error('password'); }
+        const text = await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+        return JSON.parse(text);
+    }
+
+    let encryptedBackup = null;
+    function acceptBackup(data) {
+        if (!data || data.format !== 'teaseyou-backup' || !data.tables) throw new Error('format');
+        restoreData = data;
+    }
+
     $('#restore-file').addEventListener('change', async e => {
         const file = e.target.files && e.target.files[0];
         restoreData = null;
+        encryptedBackup = null;
+        $('#restore-unlock').hidden = true;
+        $('#restore-unlock-status').textContent = '';
         if (file) {
             try {
-                const data = JSON.parse(await file.text());
-                if (data.format !== 'teaseyou-backup' || !data.tables) throw new Error('format');
-                restoreData = data;
+                const buf = await file.arrayBuffer();
+                const isZip = buf.byteLength > 4 && new DataView(buf).getUint32(0, true) === 0x04034b50;
+                const data = JSON.parse(isZip ? await jsonFromZip(buf) : new TextDecoder().decode(buf));
+                if (data && data.format === 'teaseyou-backup-encrypted') {
+                    encryptedBackup = data;
+                    $('#restore-password').value = '';
+                    $('#restore-unlock').hidden = false;
+                    $('#restore-password').focus();
+                } else {
+                    acceptBackup(data);
+                }
             } catch (_) {
                 toast('Tohle není záloha z administrace Tease you.', true);
             }
         }
         previewRestore();
+    });
+
+    $('#restore-unlock').addEventListener('submit', async e => {
+        e.preventDefault();
+        if (!encryptedBackup) return;
+        const btn = $('#restore-unlock-btn');
+        const status = $('#restore-unlock-status');
+        btn.disabled = true;
+        status.textContent = 'Odemykám…';
+        try {
+            acceptBackup(await decryptBackup(encryptedBackup, $('#restore-password').value));
+            $('#restore-password').value = '';
+            $('#restore-unlock').hidden = true;
+            status.textContent = '';
+            encryptedBackup = null;
+            previewRestore();
+        } catch (err) {
+            status.textContent = '';
+            toast(err.message === 'password' ? 'Heslo nesedí.' : 'Zálohu se nepodařilo otevřít, soubor je asi poškozený.', true);
+        } finally {
+            btn.disabled = false;
+        }
     });
     $('#restore-overwrite').addEventListener('change', previewRestore);
 
@@ -2374,7 +2468,62 @@
         free_ship_threshold: 500, cod_fee_czk: 39, promo_bar_enabled: true, promo_bar_cs: '', promo_bar_en: '',
         seller_name: '', seller_ico: '', seller_address: '', seller_email: 'hello@teaseyou.cz', seller_phone: '',
         recipe_base_pct: 70, recipe_flavor_pct: 20, recipe_extra_pct: 10, durability_months: 12,
+        sales_open: false, sales_opened_at: null,
     };
+
+    /* ─── Spuštění prodeje ─────────────────────────────────────────── */
+    function sellerMissing(st) {
+        const miss = [];
+        if (!String(st.seller_name || '').trim()) miss.push('jméno');
+        if (!/^[0-9]{8}$/.test(st.seller_ico || '')) miss.push('IČO');
+        if (!String(st.seller_address || '').trim()) miss.push('adresa sídla');
+        if (!String(st.seller_email || '').trim()) miss.push('e-mail');
+        return miss;
+    }
+    function renderSales() {
+        const st = state.settings || {};
+        const known = 'sales_open' in st;
+        const open = st.sales_open === true;
+        const badge = $('#sales-badge');
+        const status = $('#sales-status');
+        const btn = $('#sales-toggle');
+        if (!known) {
+            badge.hidden = true;
+            status.textContent = 'Databáze přepínač prodeje ještě nezná. Spusť znovu supabase/setup.sql v Supabase → SQL Editor.';
+            btn.disabled = true;
+            return;
+        }
+        badge.hidden = false;
+        badge.textContent = open ? 'Prodej běží' : 'Prodej vypnutý';
+        badge.className = 'env-badge ' + (open ? 'sales-open' : 'sales-closed');
+        badge.title = open ? 'Web přijímá objednávky.' : 'Web ukazuje „Připravujeme spuštění“ a objednávky nepřijímá.';
+        const since = st.sales_opened_at ? ` Poprvé spuštěno ${formatDate(st.sales_opened_at)}.` : '';
+        status.textContent = open
+            ? 'Prodej běží: web přijímá objednávky.' + since
+            : 'Prodej je vypnutý: web ukazuje „Připravujeme spuštění“ a objednávky nepřijímá, ani přímo přes databázi.' + since;
+        btn.disabled = false;
+        btn.textContent = open ? 'Zastavit prodej' : 'Spustit prodej';
+        btn.className = 'btn ' + (open ? 'btn-danger' : 'btn-primary');
+    }
+    $('#sales-toggle').addEventListener('click', async e => {
+        const btn = e.currentTarget;
+        const st = state.settings || {};
+        const open = st.sales_open === true;
+        if (!open) {
+            const miss = sellerMissing(st);
+            if (miss.length) {
+                toast(`Nejdřív vyplň v Prodávající a etiketa: ${miss.join(', ')}. Pak ulož a spusť prodej.`, true);
+                $('#seller-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+            const ok = await confirmDialog('Web začne přijímat skutečné objednávky. Máš ohlášenou živnost, oznámení SZPI, funkční e-mail a zkontrolované podmínky?', 'Spustit prodej', 'SPUSTIT');
+            if (!ok) return;
+        } else if (!(await confirmDialog('Web přestane přijímat objednávky a ukáže „Připravujeme spuštění“. Objednávky, které už přišly, zůstanou.', 'Zastavit prodej'))) {
+            return;
+        }
+        await saveSettings({ sales_open: !open }, btn, open ? 'Prodej je zastavený.' : 'Prodej běží. Web přijímá objednávky.');
+        renderSales();
+    });
 
     async function saveSettings(row, btn, okMsg) {
         btn.disabled = true;

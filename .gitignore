@@ -25,3 +25,5 @@ dist/
 .env.local
 *.local
 TODO.local.md
+__pycache__/
+*.pyc

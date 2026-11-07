@@ -6,6 +6,32 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (režim před spuštěním prodeje)
+- Dokud prodej neběží, web ukazuje lištu **„Připravujeme spuštění“**, košík a pokladna
+  objednat nedovolí a databáze (`place_order`) objednávku odmítne (`sales_closed`).
+  Míchat a ukládat směsi jde dál.
+- Administrace: v *Ceny a doprava* panel **Prodej** se spuštěním (opsat SPUSTIT)
+  a zastavením, nahoře štítek *Prodej vypnutý* / *Prodej běží*.
+- Databáze: `settings.sales_open` (výchozí vypnuto) a `sales_opened_at`. Zapnout jde
+  jen s vyplněným jménem, IČO, adresou a e-mailem prodávajícího. Den prvního spuštění
+  je v podmínkách jako „platné od“.
+- Úkol v administraci: spustit prodej, až bude živnost, SZPI, e-mail a kontrola podmínek.
+
+### Opraveno
+- Obnova zálohy ze starší verze (bez nově přidaných sloupců) selhala na řádku
+  nastavení. Teď se obnoví jen sloupce, které záloha má.
+
+### Přidáno (noční záloha)
+- **Noční záloha na GitHubu** (`.github/workflows/zaloha.yml`): každou noc databáze
+  i fotky, zašifrované heslem (AES-256-GCM), uložené na 30 dní. Když selže, přijde e-mail.
+- Databáze: `backup_snapshot()`, role `teaseyou_backup`, která umí jen zálohovat,
+  a `reset_backup_password()` na nové náhodné heslo pro ni.
+- Administrace otevře i noční zálohu: rovnou .zip z GitHubu, po zadání hesla.
+- Zásady ochrany osobních údajů zmiňují noční zálohy u GitHubu (znění ze 7. 11. 2026).
+
+### Opraveno
+- Náhled obnovy spadl, když se během načítání vybral jiný soubor.
+
 ### Přidáno (ochrana před ztrátou dat)
 - **Zálohy a koš** v administraci: stažení zálohy jedním kliknutím (databáze i fotky
   v jednom souboru), obnova se zkušebním náhledem a opsáním OBNOVIT, koš na 30 dní
