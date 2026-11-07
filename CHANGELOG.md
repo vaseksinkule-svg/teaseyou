@@ -6,6 +6,13 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Změněno (ikonky)
+- Nové ikonky podle současného designu: „T“ z písma Unbounded. E-shop má zelený
+  čtverec se světlým T, administrace kraft se tmavým T, aby šly odlišit v panelech.
+- favicon.ico (16/32/48) pro Safari a starší prohlížeče, favicon.svg, ikonka pro
+  iPhone (180 px), pro Android 192/512 px a maskovatelnou 512 px; staré SVG pryč.
+- Stránka 404 bere styly a ikonky z kořene webu, ať funguje na jakékoli adrese.
+
 ### Změněno
 - Zásady ochrany osobních údajů: databáze Supabase běží v Irsku (region eu-west-1).
 
