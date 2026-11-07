@@ -6,6 +6,9 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Změněno
+- Zásady ochrany osobních údajů: databáze Supabase běží v Irsku (region eu-west-1).
+
 ### Přidáno (režim před spuštěním prodeje)
 - Dokud prodej neběží, web ukazuje lištu **„Připravujeme spuštění“**, košík a pokladna
   objednat nedovolí a databáze (`place_order`) objednávku odmítne (`sales_closed`).
