@@ -49,7 +49,7 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 | # | Bod | Stav | Podle čeho v ČR | Co je na webu / co zbývá |
 |---|---|---|---|---|
 | 16 | Kontrola služeb třetích stran | ✅ | GDPR čl. 13 a 28 | Seznam: GitHub Pages (hosting), Supabase (databáze, fotky, přihlášení admina), Zásilkovna (mapa, až po kliknutí), dopravci. Žádné SDK ani pixely. Formspree je v kódu vypnuté; kdyby se zapnulo, patří do zásad. |
-| 17 | Smlouvy o zpracování (DPA) | ✅ ⏳ | GDPR čl. 28 odst. 3 | Supabase: DPA je součástí jejích podmínek včetně standardních smluvních doložek. Dopravci jsou samostatní správci. ⏳ Projít podmínky GitHubu pro Pages (jejich záznamy o návštěvách). |
+| 17 | Smlouvy o zpracování (DPA) | ✅ ⏳ | GDPR čl. 28 odst. 3 | Supabase: DPA je součástí jejích podmínek včetně standardních smluvních doložek. Dopravci jsou samostatní správci. ⏳ Projít podmínky GitHubu pro Pages (jejich záznamy o návštěvách) a pro Actions, kde jsou noční zálohy. Zálohy jsou zašifrované a GitHub k nim nemá heslo, v zásadách je GitHub uvedený i jako jejich úložiště. |
 | 18 | Seznam subdodavatelů | ➖ | GDPR čl. 28 odst. 2 | Jsme správce, ne zpracovatel pro jiné firmy. Příjemce uvádíme v zásadách. |
 
 ## Část 5: Přístupnost

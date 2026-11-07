@@ -185,3 +185,44 @@ Dalším spuštěním `setup.sql` přibude:
 
 **Před každým spuštěním `setup.sql` si v administraci stáhni zálohu.** Postup obnovy je
 v `ZALOHY-A-OBNOVA.md`.
+
+## Noční záloha na GitHubu (listopad 2026)
+
+Každou noc kolem 3:17 spustí GitHub úlohu `.github/workflows/zaloha.yml`. Ta stáhne celou
+databázi i fotky (stejný soubor jako *Stáhnout zálohu* v administraci), zašifruje ho a uloží
+na 30 dní jako artifact. Do databáze se přihlašuje rolí `teaseyou_backup`, která umí jen
+spustit `backup_snapshot()`. Nevidí do tabulek, nic nesmaže ani nezmění.
+
+**Nastavení (jednou, asi 5 minut, až bude `zaloha.yml` v main):**
+
+1. V SQL Editoru spusť `setup.sql` (založí roli bez hesla) a pak:
+   ```sql
+   select public.reset_backup_password();
+   ```
+   Výsledek je náhodné heslo pro roli. Zkopíruj si ho, ukáže se jen teď.
+2. V dashboardu nahoře klikni na **Connect** a vyber **Session pooler**. Adresa vypadá takhle:
+   `postgresql://postgres.afyrschnjxgtlzjkmfjb:[YOUR-PASSWORD]@aws-0-XX.pooler.supabase.com:5432/postgres`.
+   Uprav v ní dvě věci:
+   - `postgres.afyrschnjxgtlzjkmfjb` přepiš na `teaseyou_backup.afyrschnjxgtlzjkmfjb`,
+   - `[YOUR-PASSWORD]` nahraď heslem z bodu 1 (i hranaté závorky pryč).
+3. Vymysli **heslo k zálohám**, aspoň 16 znaků, a ulož ho do správce hesel. Bez něj
+   žádnou noční zálohu neotevřeš a nikdo ho nedokáže obnovit.
+4. GitHub → repozitář → Settings → Secrets and variables → Actions → **New repository secret**:
+   - `ZALOHA_DB_URL` = upravená adresa z bodu 2,
+   - `ZALOHA_HESLO` = heslo k zálohám z bodu 3.
+5. Actions → **Noční záloha** → **Run workflow**. Za minutu by měl být zelený. Dole
+   v *Artifacts* je soubor, zkus ho v administraci otevřít (Obnova ze zálohy, zadat heslo).
+   Stačí náhled, obnovu nespouštěj.
+
+**Když:**
+- běh selže: přijde e-mail od GitHubu. V běhu je napsané proč (počty záznamů, nikdy
+  obsah). Když selže kvůli chybějícím fotkám nebo prázdnému ceníku, záloha se i tak uloží.
+- heslo k roli unikne: znovu `select public.reset_backup_password();` a nové heslo dej
+  do `ZALOHA_DB_URL`.
+- 60 dní se v repozitáři nic nezmění: GitHub může noční zálohu vypnout. Úloha se zkouší
+  udržet zapnutá sama. Kdyby to nevyšlo, administrace do 7 dní ukáže žlutou lištu
+  o staré záloze; pak Actions → Noční záloha → **Enable workflow**.
+
+Výpis běhů je u veřejného repozitáře vidět všem, proto skript vypisuje jen počty.
+Soubor zálohy bez hesla nikdo neotevře (AES-256-GCM, klíč z hesla přes PBKDF2-SHA256,
+600 000 opakování).

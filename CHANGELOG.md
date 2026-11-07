@@ -6,6 +6,17 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (noční záloha)
+- **Noční záloha na GitHubu** (`.github/workflows/zaloha.yml`): každou noc databáze
+  i fotky, zašifrované heslem (AES-256-GCM), uložené na 30 dní. Když selže, přijde e-mail.
+- Databáze: `backup_snapshot()`, role `teaseyou_backup`, která umí jen zálohovat,
+  a `reset_backup_password()` na nové náhodné heslo pro ni.
+- Administrace otevře i noční zálohu: rovnou .zip z GitHubu, po zadání hesla.
+- Zásady ochrany osobních údajů zmiňují noční zálohy u GitHubu (znění ze 7. 11. 2026).
+
+### Opraveno
+- Náhled obnovy spadl, když se během načítání vybral jiný soubor.
+
 ### Přidáno (ochrana před ztrátou dat)
 - **Zálohy a koš** v administraci: stažení zálohy jedním kliknutím (databáze i fotky
   v jednom souboru), obnova se zkušebním náhledem a opsáním OBNOVIT, koš na 30 dní

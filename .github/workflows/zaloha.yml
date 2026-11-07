@@ -1,0 +1,60 @@
+# Noční záloha databáze a fotek. Výsledek je zašifrovaný soubor, který
+# GitHub drží 30 dní (Actions → Noční záloha → běh → Artifacts).
+# Nastavení: supabase/README.md, sekce „Noční záloha na GitHubu“.
+name: Noční záloha
+
+on:
+  schedule:
+    - cron: '17 2 * * *'   # každou noc 3:17 v zimě, 4:17 v létě (GitHub může začít o pár minut později)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write   # jen kvůli udržení noční zálohy zapnuté (poslední krok)
+
+concurrency:
+  group: nocni-zaloha
+  cancel-in-progress: false
+
+jobs:
+  zaloha:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Nainstalovat knihovny
+        run: pip install --disable-pip-version-check -q -r .github/scripts/requirements.txt
+
+      - name: Stáhnout a zašifrovat zálohu
+        id: zaloha
+        env:
+          ZALOHA_DB_URL: ${{ secrets.ZALOHA_DB_URL }}
+          ZALOHA_HESLO: ${{ secrets.ZALOHA_HESLO }}
+        run: python .github/scripts/zaloha.py --out "zaloha/tease-you-zaloha-$(date -u +%F).json"
+
+      - name: Uložit zálohu na 30 dní
+        if: ${{ always() && steps.zaloha.outputs.file != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.zaloha.outputs.name }}
+          path: ${{ steps.zaloha.outputs.file }}
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error
+
+      # GitHub vypíná naplánované úlohy ve veřejném repozitáři po 60 dnech bez
+      # změn. Tohle je pokus ji udržet zapnutou. Kdyby to nestačilo, administrace
+      # do 7 dnů ukáže žlutou lištu o staré záloze.
+      - name: Udržet noční zálohu zapnutou
+        if: ${{ always() && github.event_name == 'schedule' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow enable zaloha.yml --repo "$GITHUB_REPOSITORY" || true

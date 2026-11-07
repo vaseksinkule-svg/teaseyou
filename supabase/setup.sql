@@ -1096,6 +1096,11 @@ select v.title, v.who, v.due
   ) as v(title, who, due)
  where not exists (select 1 from public.purchase_tasks where title like 'Ohlásit živnost:%');
 
+-- Přibylo v listopadu 2026 s noční zálohou, vloží se jednou.
+insert into public.purchase_tasks (title, who, due)
+select 'Nastavit noční zálohu na GitHubu: heslo role, dva secrets a jedno ruční spuštění (supabase/README.md)', 'Václav', null
+ where not exists (select 1 from public.purchase_tasks where title like 'Nastavit noční zálohu%');
+
 
 -- ═══ OCHRANA PŘED ZTRÁTOU DAT ══════════════════════════════════════
 -- Free plán Supabase nemá automatické zálohy a zálohy databáze nikdy
@@ -1275,7 +1280,9 @@ as $$
 $$;
 
 -- Celá databáze obchodu jako jeden JSON (jeden konzistentní snímek).
-create or replace function public.export_backup()
+-- Sama nic nekontroluje, proto ji nesmí spustit nikdo z webu. Volá ji
+-- export_backup() pro admina a noční záloha přes roli teaseyou_backup.
+create or replace function public.backup_snapshot()
 returns jsonb
 language plpgsql
 security definer
@@ -1284,9 +1291,6 @@ as $$
 declare
     r record; v_tables jsonb := '{}'::jsonb; v_rows jsonb;
 begin
-    if not public.is_admin() then
-        raise exception 'not_admin' using errcode = '42501';
-    end if;
     -- Čas zálohy zapíšeme dřív, než se data přečtou, ať ho záloha obsahuje.
     update public.settings set last_backup_at = now() where id = 1;
     for r in select * from public.backup_tables() loop
@@ -1296,6 +1300,51 @@ begin
     end loop;
     return jsonb_build_object('format', 'teaseyou-backup', 'version', 1,
                               'created_at', now(), 'tables', v_tables);
+end;
+$$;
+-- Hned po vytvoření pryč z dosahu webu (Supabase ji anon a authenticated dává sám).
+revoke all on function public.backup_snapshot() from public, anon, authenticated, service_role;
+
+create or replace function public.export_backup()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    if not public.is_admin() then
+        raise exception 'not_admin' using errcode = '42501';
+    end if;
+    return public.backup_snapshot();
+end;
+$$;
+
+-- Role pro noční zálohu na GitHubu. Umí jen jedno: spustit backup_snapshot().
+-- Nevidí do tabulek, nic nesmaže ani nezmění. Vzniká bez hesla, takže se za ni
+-- nikdo nepřihlásí, dokud majitel nespustí reset_backup_password() (supabase/README.md).
+do $$
+begin
+    if not exists (select 1 from pg_roles where rolname = 'teaseyou_backup') then
+        create role teaseyou_backup login noinherit;
+    end if;
+end $$;
+alter role teaseyou_backup set statement_timeout = '60s';
+grant usage on schema public to teaseyou_backup;
+
+-- Nové náhodné heslo pro teaseyou_backup. Spouští se v SQL Editoru:
+--   select public.reset_backup_password();
+-- Heslo se ukáže jednou ve výsledku. V textu dotazu ani v historii není.
+-- Staré heslo tím přestane platit (třeba když unikne).
+create or replace function public.reset_backup_password()
+returns text
+language plpgsql
+set search_path = public
+as $$
+declare
+    v text := replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
+begin
+    execute format('alter role teaseyou_backup with login password %L', v);
+    return v;
 end;
 $$;
 
@@ -1411,6 +1460,10 @@ revoke all on function public.restore_deleted(bigint) from public;
 revoke all on function public.erase_waitlist_email(text) from public;
 revoke all on function public.export_backup() from public;
 revoke all on function public.restore_backup(jsonb, boolean, boolean) from public;
+-- Supabase dává nové funkce automaticky anon i authenticated, tady to nesmí.
+revoke all on function public.backup_snapshot() from public, anon, authenticated, service_role;
+revoke all on function public.reset_backup_password() from public, anon, authenticated, service_role;
+grant execute on function public.backup_snapshot() to teaseyou_backup;
 grant execute on function public.restore_deleted(bigint) to authenticated;
 grant execute on function public.erase_waitlist_email(text) to authenticated;
 grant execute on function public.export_backup() to authenticated;

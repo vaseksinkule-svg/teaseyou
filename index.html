@@ -753,7 +753,7 @@
             <ul>
                 <li><strong>Dopravce, kterého si vybereš</strong> (Zásilkovna s.r.o., Česká pošta, s.p., nebo DPD CZ s.r.o.): jméno, adresa nebo výdejní místo, telefon a e-mail, aby ti mohl zásilku doručit.</li>
                 <li><strong>Supabase, Inc.</strong>: provozuje databázi s objednávkami, odstoupeními a seznamem zájemců a ukládá fotky produktů. Je náš zpracovatel, smlouvu o zpracování osobních údajů máme jako součást jejích podmínek.</li>
-                <li><strong>GitHub, Inc.</strong>: hostuje web. Jako každý server si krátce ukládá technické záznamy o návštěvách, například IP adresu.</li>
+                <li><strong>GitHub, Inc.</strong>: hostuje web. Jako každý server si krátce ukládá technické záznamy o návštěvách, například IP adresu. U GitHubu jsou taky noční zálohy databáze, zašifrované heslem, které GitHub nezná. Po 30 dnech se samy mažou.</li>
                 <li><strong>Zásilkovna</strong>: když v pokladně otevřeš výběr výdejního místa, načte se mapa z jejích serverů.</li>
                 <li>Účetní nebo daňový poradce, pokud ho budeme mít, a úřady, když nám to ukládá zákon.</li>
             </ul>
@@ -770,11 +770,11 @@
 
             <h2>6. Jak údaje chráníme</h2>
             <p>K databázi má přístup jen přihlášený správce. Web s ní mluví šifrovaně a zákazníci se k cizím objednávkám nedostanou. Staré údaje se mažou samy podle lhůt výš.</p>
-            <p>Aby o data nepřišel, stahuje si správce zálohu databáze k sobě, do úložiště chráněného heslem. Zálohy starší než 3 měsíce maže. Co se v administraci smaže omylem, je 30 dní v koši, odkud to jde vrátit. Když požádáš o výmaz, tvůj e-mail do koše nejde a při případné obnově ze zálohy ho znovu smažeme.</p>
+            <p>Aby o data nepřišel, zálohuje se databáze každou noc. Záloha je zašifrovaná, otevřít ji umí jen správce a po 30 dnech se sama smaže. Občas si správce stáhne zálohu i k sobě, do úložiště chráněného heslem, a zálohy starší než 3 měsíce maže. Co se v administraci smaže omylem, je 30 dní v koši, odkud to jde vrátit. Když požádáš o výmaz, tvůj e-mail do koše nejde a při případné obnově ze zálohy ho znovu smažeme.</p>
 
             <h2>7. Změny</h2>
             <p>Když zásady podstatně změníme, upozorníme na to tady na webu. Předchozí znění ti na požádání pošleme.</p>
-            <p class="legal-updated">Znění ze dne 5. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
+            <p class="legal-updated">Znění ze dne 7. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
         </div>
         <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
     </div>
