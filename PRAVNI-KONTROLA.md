@@ -18,7 +18,7 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 
 | # | Bod | Stav | Podle čeho v ČR | Co je na webu / co zbývá |
 |---|---|---|---|---|
-| 01 | Zásady ochrany osobních údajů | ✅ | GDPR čl. 13; zákon č. 110/2019 Sb. | Stránka *Ochrana osobních údajů*: správce, účely, právní základy, doby uložení, příjemci, předávání mimo EU, práva, stížnost u ÚOOÚ, pověřenec (nemáme, není povinný), změny a datum znění. Psáno podle skutečných toků dat v kódu. ⏳ Doplnit region Supabase. |
+| 01 | Zásady ochrany osobních údajů | ✅ | GDPR čl. 13; zákon č. 110/2019 Sb. | Stránka *Ochrana osobních údajů*: správce, účely, právní základy, doby uložení, příjemci, předávání mimo EU, práva, stížnost u ÚOOÚ, pověřenec (nemáme, není povinný), změny a datum znění. Psáno podle skutečných toků dat v kódu. Supabase běží v regionu eu-west-1 (Irsko), ověřeno 7. 11. 2026. |
 | 02 | Obchodní podmínky | ✅ ⏳ | Občanský zákoník (č. 89/2012 Sb.) § 1811, 1820, 1826; zákon o ochraně spotřebitele (č. 634/1992 Sb.) | Stránka *Obchodní podmínky*. ⏳ Kontrola advokátem a datum platnosti při spuštění. |
 | 03 | Souhlas s podmínkami u tlačítka | ✅ | § 1826a OZ (tlačítko musí říkat, že objednávka zavazuje k platbě) | Věta o podmínkách a ochraně údajů je těsně nad tlačítkem **Objednat a zaplatit**. Zaškrtávací políčko česká pravidla nevyžadují. Ochranu údajů jen potvrzuje, že ji zákazník četl, nejde o souhlas. |
 | 04 | Záznam o odsouhlasení podmínek | ✅ | GDPR čl. 7 odst. 1 (doložitelnost); obecně důkaz o obsahu smlouvy | Každá objednávka si ukládá `terms_version` (datum znění) a čas. Administrace je u objednávky ukazuje. Stará znění jsou v historii gitu. **Při každé změně podmínek přepiš `TERMS_VERSION` ve `script.js` a datum na stránkách.** |
