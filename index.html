@@ -330,25 +330,26 @@
     <div class="mixer-layout">
         <div class="options-column">
             <div class="selection-group" data-step="1">
-                <h1 class="step-question" data-i18n="q_1">Jaký čaj bude základ?</h1>
-                <p class="step-hint" data-i18n="q_1_hint">Určuje chuť i to, kolik bude mít kofeinu.</p>
+                <h1 class="step-question" tabindex="-1" data-i18n="q_1">Na čem ji postavíš?</h1>
+                <p class="step-hint" data-i18n="q_1_hint">Vyber základ, klidně dva. Určuje chuť i to, kolik bude mít kofeinu.</p>
+                <div class="preset-chips" id="preset-chips" hidden></div>
                 <div class="btn-grid" data-group="bases" role="group" aria-label="Základ"></div>
             </div>
 
             <div class="selection-group" data-step="2">
-                <h2 class="step-question" data-i18n="q_2">Jakou chceš příchuť?</h2>
-                <p class="step-hint" data-i18n="q_2_hint">Ovoce, květy nebo něco sladšího.</p>
+                <h2 class="step-question" tabindex="-1" data-i18n="q_2">Jakou chceš příchuť?</h2>
+                <p class="step-hint" data-i18n="q_2_hint">Vyber, kolik chceš, nebo krok přeskoč.</p>
                 <div class="btn-grid" data-group="flavors" role="group" aria-label="Příchuť"></div>
             </div>
 
             <div class="selection-group" data-step="3">
-                <h2 class="step-question" data-i18n="q_3">Čím ji dolaďíme?</h2>
-                <p class="step-hint" data-i18n="q_3_hint">Med, citrus nebo koření.</p>
+                <h2 class="step-question" tabindex="-1" data-i18n="q_3">Doladíme ji?</h2>
+                <p class="step-hint" data-i18n="q_3_hint">Citrusová kůra, koření nebo špetka květů. Nepovinné.</p>
                 <div class="btn-grid" data-group="extras" role="group" aria-label="Doplněk"></div>
             </div>
 
             <div class="selection-group step-final" data-step="4">
-                <h2 class="step-question" data-i18n="q_4">Hotovo. Pojmenuj ji.</h2>
+                <h2 class="step-question" tabindex="-1" data-i18n="q_4">Hotovo. Pojmenuj ji.</h2>
                 <div class="final-pouch" id="mixer-pouch-final" aria-hidden="true"></div>
                 <label class="field-label" for="mix-name" data-i18n="name_label">Jméno na sáček</label>
                 <div class="name-row">
@@ -364,6 +365,18 @@
                 </div>
             </div>
 
+            <section class="mix-recipe" id="mix-recipe" aria-labelledby="mix-recipe-title" hidden>
+                <div class="mix-recipe-head">
+                    <h2 class="mix-recipe-title" id="mix-recipe-title" tabindex="-1"><span data-i18n="mix_title">Tvoje směs</span> <span class="mix-recipe-count" id="mix-recipe-count"></span></h2>
+                    <div class="seg" id="mix-recipe-sizes" role="group" aria-label="Spočítat pro velikost" data-i18n-aria="mix_size_label"></div>
+                </div>
+                <div class="mix-strip" id="mix-strip" aria-hidden="true"></div>
+                <ul class="mix-rows" id="mix-rows"></ul>
+                <p class="mix-hint" data-i18n="mix_hint">Poměr nastavíš díly: 2 díly jsou dvakrát víc než 1.</p>
+                <p class="mix-verdict" id="mix-verdict" role="status"></p>
+            </section>
+            <p class="visually-hidden" id="mix-live" aria-live="polite"></p>
+
             <div class="mixer-bar" id="mixer-bar">
                 <div class="mixer-bar-summary" id="mixer-bar-summary"></div>
                 <button type="button" class="btn btn-primary" id="mixer-next"></button>
@@ -376,16 +389,6 @@
         </aside>
     </div>
 
-    <!-- Zbytky starého mixéru, do kterých script.js ještě píše; nejsou vidět -->
-    <div hidden>
-        <div id="preset-chips"></div>
-        <div id="base-info"><div id="info-default-state"><h4 id="info-title"></h4><p id="info-text"></p></div>
-            <div id="info-rich" style="display:none"><span id="info-rich-emoji"></span><h4 id="info-rich-name"></h4><p id="info-rich-desc"></p>
-            <div id="info-rich-caffeine"></div><div id="info-rich-tags"></div><div id="info-rich-health"></div><div id="info-rich-pairs"></div></div></div>
-        <button id="save-mix-btn" disabled></button>
-        <span id="completion-label"></span><span id="completion-fill"></span>
-        <span id="glass-mix-name-display"></span>
-    </div>
 </section>
 
 
@@ -855,7 +858,7 @@
             <p class="page-lede" data-i18n="ing_page_sub">Ze všeho tady se dá míchat.</p>
         </header>
         <section class="ing-section" aria-labelledby="ing-h-bases">
-            <h2 class="section-title ing-cat-title" id="ing-h-bases" data-i18n="ing_cat_bases">Čajové základy</h2>
+            <h2 class="section-title ing-cat-title" id="ing-h-bases" data-i18n="ing_cat_bases">Základy</h2>
             <div class="ing-grid" id="ing-grid-bases"></div>
         </section>
         <section class="ing-section" aria-labelledby="ing-h-flavors">
@@ -891,19 +894,6 @@
 </section>
 
 </main>
-
-<div id="order-modal" class="modal">
-    <div class="modal-content">
-        <h2 class="modal-title" data-i18n="modal_qty_title">Select Quantity</h2>
-        <div class="qty-options qty-options--center">
-            <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">49 Kč</span></button>
-            <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">89 Kč</span></button>
-            <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">199 Kč</span></button>
-        </div>
-        <button id="final-order-btn" class="btn btn-primary btn-lg disabled" onclick="confirmOrder()" disabled data-i18n="btn_confirm">Confirm</button>
-        <button onclick="closeOrderModal()" class="btn btn-link modal-cancel" data-i18n="btn_cancel">Cancel</button>
-    </div>
-</div>
 
 <footer class="site-footer">
     <div class="footer-inner">
@@ -984,6 +974,7 @@
 </nav>
 <script src="config.js"></script>
 <script src="db.js"></script>
+<script src="recipe.js"></script>
 <script src="script.js"></script>
 <script>
 if ('serviceWorker' in navigator) {

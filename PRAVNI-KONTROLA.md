@@ -93,7 +93,7 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 
 | Bod | Stav | Podle čeho | Co je hotové / co zbývá |
 |---|---|---|---|
-| Informace o potravině před nákupem | ✅ ⏳ | nařízení (EU) 1169/2011 čl. 9 a 14; vyhláška č. 187/2023 Sb. | Název podle složení, složení s procenty, alergeny, hmotnost, trvanlivost, skladování, výrobce. ⏳ Doplnit alergeny podle specifikací dodavatelů, ověřit receptury a suroviny mimo přílohu 1 (skořice, zázvor, vanilka, kokos, med) u SZPI. |
+| Informace o potravině před nákupem | ✅ ⏳ | nařízení (EU) 1169/2011 čl. 9 a 14; vyhláška č. 187/2023 Sb. | Název podle složení, složení s procenty (seřazené od největšího), alergeny, hmotnost, trvanlivost, skladování, výrobce. Druh podle § 2 vyhlášky: pravý čaj aspoň 50 % = (ochucený) čaj, byliny nad 50 % = bylinný, sušené ovoce nad 50 % = ovocný; jinak web i databáze směs odmítnou. Limity z přílohy 1 (tabulka 2: 30 %, tabulka 3: 5 %) hlídá mixér i databáze. ⏳ Doplnit alergeny podle specifikací dodavatelů; u SZPI ověřit zařazení skořice, zázvoru a sušeného jablka (v příloze 1 nejsou jmenovitě, počítáme je jako „ostatní koření“ do 30 % a „ostatní sušené ovoce“ bez limitu) a rooibosu. |
 | Registrace u SZPI | ⏳ | zákon č. 110/1997 Sb. o potravinách | Oznámit zahájení činnosti nejpozději v den zahájení prodeje. |
 | Živnost | ⏳ | zákon č. 455/1991 Sb. | Obory Velkoobchod a maloobchod + Výroba potravinářských výrobků. |
 | HACCP a šarže | ⏳ | nařízení (ES) 852/2004 a 178/2002 čl. 18 | Sepsat postupy, vést šarže a dodávky. |

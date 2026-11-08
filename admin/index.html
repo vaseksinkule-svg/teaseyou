@@ -189,13 +189,6 @@
                 </div>
                 <label class="field"><span>Adresa sídla</span><input type="text" name="seller_address" maxlength="200" placeholder="Ulice 1, 360 01 Karlovy Vary"><small>Adresa ze živnostenského rejstříku.</small></label>
                 <label class="field"><span>E-mail pro zákazníky</span><input type="email" name="seller_email" maxlength="120"></label>
-                <h3>Receptura směsi</h3>
-                <p class="help">Jak velký díl sáčku tvoří základ, příchuť a doplněk. Podle toho web spočítá procenta ve složení a pozná, jestli je to ochucený, bylinný, nebo ovocný čaj. Dohromady 100 %.</p>
-                <div class="field-row field-row-3">
-                    <label class="field"><span>Základ %</span><input type="number" name="recipe_base_pct" min="1" max="100" step="1" inputmode="numeric"></label>
-                    <label class="field"><span>Příchuť %</span><input type="number" name="recipe_flavor_pct" min="0" max="99" step="1" inputmode="numeric"></label>
-                    <label class="field"><span>Doplněk %</span><input type="number" name="recipe_extra_pct" min="0" max="99" step="1" inputmode="numeric"></label>
-                </div>
                 <label class="field field-inline">
                     <span>Minimální trvanlivost</span>
                     <input type="number" name="durability_months" min="1" max="36" step="1" inputmode="numeric"><em>měsíců od namíchání</em>
@@ -330,6 +323,7 @@
 
 <script src="../config.js"></script>
 <script src="../db.js"></script>
+<script src="../recipe.js"></script>
 <script src="admin.js"></script>
 </body>
 </html>

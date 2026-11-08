@@ -389,7 +389,17 @@ button.row:hover, .row[role="button"]:hover { border-color: var(--faint); }
 .photo-actions input[type="file"] { display: none; }
 
 /* Výběr ingrediencí do směsi */
-.blend-preview { display: flex; align-items: center; gap: 14px; margin: 0 0 18px; }
+.blend-preview { display: flex; align-items: center; gap: 14px; margin: 14px 0 4px; }
+.blend-rows, .calc-rows { display: grid; gap: 4px; margin-bottom: 10px; }
+.blend-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px 40px; gap: 10px; align-items: end; }
+.blend-row .field { margin-bottom: 8px; }
+.blend-row .icon-btn { margin-bottom: 10px; font-size: 22px; line-height: 1; }
+.blend-check { margin: 0; font-size: 14px; line-height: 1.45; }
+.blend-check.is-error { color: var(--rust); }
+.order-recipe { display: grid; gap: 2px; margin: 4px 0; font-size: 14px; }
+.order-recipe li { display: grid; grid-template-columns: minmax(0, 1fr) auto 60px; gap: 10px; }
+.order-recipe li span:nth-child(2) { color: var(--muted); }
+.order-recipe strong { text-align: right; }
 .blend-preview .glass { width: 34px; height: 56px; border-width: 3px; border-radius: 6px 6px 14px 14px; }
 
 /* Detail objednávky */

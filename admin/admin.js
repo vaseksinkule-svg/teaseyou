@@ -117,6 +117,26 @@
     }
     const ingByCode = code => state.ingredients.find(i => i.code === code);
     const ingName = code => (ingByCode(code) || {}).name_cs || code;
+    /* Receptura stejně jako na webu a v databázi (../recipe.js). Skryté
+       suroviny se počítají taky, ať jde staré směsi aspoň zobrazit. */
+    const recipeInfo = code => {
+        const i = ingByCode(code);
+        return i ? { kind: i.kind || (i.category === 'base' ? 'tea' : 'herb'), maxPct: i.max_pct, surcharge: i.surcharge_czk || 0 } : null;
+    };
+    const recipeOf = (codes, parts, weight) => Recipe.evaluate(codes, parts, recipeInfo, weight || 100);
+    const RECIPE_ERRORS = {
+        empty: 'Vyber aspoň jednu surovinu.',
+        too_many: 'Nejvýš 5 surovin.',
+        duplicate: 'Každá surovina jen jednou.',
+        unknown: 'Některá surovina už v katalogu není.',
+        too_many_pinch: 'Špetka (limit do 5 %) může být nejvýš ze dvou surovin.',
+        no_main: 'Samotná špetka nestačí, přidej hlavní surovinu.',
+        no_category: 'Žádná skupina nemá přes polovinu: čaj aspoň 50 %, nebo byliny či ovoce víc než 50 % (vyhláška 187/2023 Sb., § 2).',
+    };
+    const recipeError = r => r.error === 'over_limit'
+        ? `${ingName(r.errorCode)} smí tvořit nejvýš ${(ingByCode(r.errorCode) || {}).max_pct} % (příloha 1 vyhlášky).`
+        : (RECIPE_ERRORS[r.error] || 'Směs takhle nejde.');
+    const CATEGORY_NAME = { tea: 'ochucený nebo čistý čaj', herb: 'bylinný čaj', fruit: 'ovocný čaj' };
     const ingColor = code => (ingByCode(code) || {}).color || '#dddddd';
     const splitList = s => String(s || '').split(',').map(x => x.trim()).filter(Boolean).slice(0, 12);
     const slugify = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -139,7 +159,7 @@
             : { day: 'numeric', month: 'numeric', year: 'numeric' });
     }
     function glassHtml(codes) {
-        const layers = (codes || []).slice(0, 3);
+        const layers = (codes || []).slice(0, 5);
         return `<span class="glass" aria-hidden="true">${layers.map(c =>
             `<span style="background:${esc(ingColor(c))}"></span>`).join('')}</span>`;
     }
@@ -573,8 +593,10 @@
                         ${glassHtml(i.ingredients)}
                         <div>
                             <div><strong>${esc(i.name)}</strong></div>
-                            <div class="order-item-sub">${esc((i.ingredient_names || i.ingredients || []).join(', '))}</div>
-                            <div class="order-item-sub">${esc(i.weight_g)} g × ${esc(i.qty)}</div>
+                            ${Array.isArray(i.recipe) && i.recipe.length
+                                ? `<ul class="order-recipe">${i.recipe.map(x => `<li><span>${esc(x.name || ingName(x.code))}</span><span>${esc(x.pct)} %</span><strong>${esc(String(x.grams).replace('.', ','))} g</strong></li>`).join('')}</ul>`
+                                : `<div class="order-item-sub">${esc((i.ingredient_names || i.ingredients || []).join(', '))}</div>`}
+                            <div class="order-item-sub">${esc(i.weight_g)} g × ${esc(i.qty)}${i.surcharge_czk ? `, z toho příplatek ${kc(i.surcharge_czk)} za kus` : ''}</div>
                         </div>
                         <strong>${kc(i.line_czk)}</strong>
                     </div>`).join('')}
@@ -679,6 +701,8 @@
                             <span class="row-sub">${!i.active ? 'Skrytá, na webu není vidět' : esc(i.desc_cs || i.name_en)}</span>
                         </span>
                         <span class="row-side">
+                            ${i.surcharge_czk ? `<span class="pill">+${esc(i.surcharge_czk)} Kč/100 g</span>` : ''}
+                            ${i.max_pct ? `<span class="pill">max ${esc(i.max_pct)} %</span>` : ''}
                             ${i.in_stock ? '' : '<span class="pill pill-out">Vyprodáno</span>'}
                             <label class="stock-toggle" title="Skladem">
                                 <span class="stock-label">Skladem</span>
@@ -772,10 +796,13 @@
                         </label>
                     </div>
                     <div class="field-row">
-                        <label class="field"><span>Nejvýš ve směsi</span><input type="number" name="max_pct" min="1" max="100" step="1" inputmode="numeric" placeholder="bez limitu" value="${esc(i.max_pct || '')}"><small>V % podle přílohy 1 vyhlášky 187/2023 Sb. Třeba levandule, kurkuma a kardamom nejvýš 5.</small></label>
+                        <label class="field"><span>Nejvýš ve směsi</span><input type="number" name="max_pct" min="1" max="100" step="1" inputmode="numeric" placeholder="bez limitu" value="${esc(i.max_pct || '')}"><small>V % podle přílohy 1 vyhlášky 187/2023 Sb. Třeba citronová kůra 30, levandule a kardamom 5. Do 5 % je surovina „špetka“: ve směsi má pevně 4 %.</small></label>
                         <label class="field"><span>Alergeny</span><input type="text" name="allergens" maxlength="200" placeholder="žádné" value="${esc(i.allergens || '')}"><small>Podle specifikace od dodavatele, např. oxid siřičitý u sušeného ovoce.</small></label>
                     </div>
                 </fieldset>
+                <label class="field field-inline"><span>Příplatek za prémiovou surovinu</span>
+                    <input type="number" name="surcharge_czk" min="0" max="1000" step="1" inputmode="numeric" placeholder="0" value="${esc(i.surcharge_czk || '')}"><em>Kč za 100 g</em></label>
+                <p class="help">Připočte se k ceně sáčku podle toho, kolik suroviny v něm je. Třeba 50 Kč za 100 g u bílého čaje: když je ho ve 100g sáčku 60 %, sáček stojí o 30 Kč víc.</p>
                 <label class="field"><span>Poznámky o účincích česky</span><input type="text" name="health_cs" value="${esc((i.health_cs || []).join(', '))}">
                     <small>Jen pro tebe, na webu se neukazují. U potravin smí web uvádět jen zdravotní tvrzení schválená EU (nařízení 1924/2006).</small></label>
                 <label class="field"><span>Poznámky o účincích anglicky</span><input type="text" name="health_en" value="${esc((i.health_en || []).join(', '))}"></label>
@@ -834,6 +861,7 @@
                     label_cs: v('label_cs') || null,
                     kind: form.kind.value,
                     max_pct: form.max_pct.value === '' ? null : parseInt(form.max_pct.value, 10),
+                    surcharge_czk: form.surcharge_czk.value === '' ? 0 : parseInt(form.surcharge_czk.value, 10),
                     allergens: v('allergens'),
                     pairs: $$('#pairs .chip[aria-pressed="true"]', body).map(c => c.dataset.pair),
                     photo_url: photo.url,
@@ -842,6 +870,9 @@
                     sort: parseInt(v('sort'), 10) || 0,
                 };
                 if (!row.name_cs || !row.name_en) { formError('#ing-error', 'Vyplň český i anglický název.'); return; }
+                if (!(Number.isInteger(row.surcharge_czk) && row.surcharge_czk >= 0 && row.surcharge_czk <= 1000)) {
+                    formError('#ing-error', 'Příplatek zadej v celých korunách za 100 g, 0 až 1000.'); return;
+                }
                 if (row.max_pct !== null && !(row.max_pct >= 1 && row.max_pct <= 100)) {
                     formError('#ing-error', 'Nejvyšší podíl ve směsi musí být 1 až 100 %, nebo nech pole prázdné.'); return;
                 }
@@ -912,17 +943,19 @@
             const photo = safePhoto(b.photo_url);
             const soldOut = b.ingredients.some(c => ingByCode(c) && !ingByCode(c).in_stock);
             const missing = b.ingredients.some(c => !ingByCode(c) || !ingByCode(c).active);
+            const invalid = !missing && !recipeOf(b.ingredients, b.parts).ok;
             return `<button type="button" class="row${b.active ? '' : ' is-muted'}" data-blend="${esc(b.id)}">
                 ${photo ? `<img class="thumb" src="${esc(photo)}" alt="" loading="lazy">` : glassHtml(b.ingredients)}
                 <span class="row-main">
                     <span class="row-title">${esc(b.name)}</span>
-                    <span class="row-sub">${esc(b.ingredients.map(ingName).join(', '))}</span>
+                    <span class="row-sub">${esc(blendLine(b))}</span>
                 </span>
                 <span class="row-side">
                     ${b.is_preset ? '<span class="pill">Rychlá volba</span>' : ''}
                     ${!b.active ? '<span class="pill">Skrytá</span>' : ''}
                     ${soldOut ? '<span class="pill pill-out">Něco vyprodáno</span>' : ''}
                     ${missing ? '<span class="pill pill-out">Ingredience není na webu</span>' : ''}
+                    ${invalid ? '<span class="pill pill-out">Složení neprojde, na webu není</span>' : ''}
                 </span>
             </button>`;
         }).join('');
@@ -931,28 +964,39 @@
         }));
     }
 
+    /* „Zelený čaj 60 %, Máta peprná 20 %, …“ */
+    function blendLine(b) {
+        const r = recipeOf(b.ingredients, b.parts);
+        return r.rows.length ? r.rows.map(x => `${ingName(x.code)} ${x.pct} %`).join(', ') : b.ingredients.map(ingName).join(', ');
+    }
+
     function openBlend(blend) {
         const isNew = !blend;
         const b = blend || {
-            name: '', desc_cs: '', desc_en: '', ingredients: [], emoji: '🍵', is_preset: false,
+            name: '', desc_cs: '', desc_en: '', ingredients: [], parts: null, emoji: '🍵', is_preset: false,
             photo_url: null, active: true, sort: Math.max(0, ...state.blends.map(x => x.sort || 0)) + 10,
         };
-        const byCat = cat => state.ingredients.filter(i => i.category === cat);
-        const pickFor = cat => b.ingredients.find(c => (ingByCode(c) || {}).category === cat) || '';
-        const select = (name, cat, required) => `
-            <label class="field"><span>${CATEGORY[cat]}</span>
-                <select name="${name}">${required ? '' : '<option value="">— nic —</option>'}
-                    ${byCat(cat).map(i => `<option value="${esc(i.code)}"${pickFor(cat) === i.code ? ' selected' : ''}>${esc(i.name_cs)}${i.in_stock ? '' : ' (vyprodáno)'}${i.active ? '' : ' (skrytá)'}</option>`).join('')}
-                </select>
-            </label>`;
+        // Suroviny a díly (1–3). Starší směsi bez dílů: 3 + 1 + 1.
+        let rows = (() => {
+            const n = Recipe.normalize(b.ingredients, b.parts);
+            return n.codes.map((code, i) => ({ code, parts: n.parts[i] }));
+        })();
+        if (!rows.length) rows = [{ code: '', parts: 3 }];
+        const options = sel => ['base', 'flavor', 'extra'].map(cat => `<optgroup label="${CATEGORY_GROUP[cat]}">${state.ingredients
+            .filter(i => i.category === cat).map(i => `<option value="${esc(i.code)}"${sel === i.code ? ' selected' : ''}>`
+                + `${esc(i.name_cs)}${i.in_stock ? '' : ' (vyprodáno)'}${i.active ? '' : ' (skrytá)'}</option>`).join('')}</optgroup>`).join('');
         const html = `
             <form id="blend-form" novalidate>
                 <p class="form-error" id="blend-error" role="alert" hidden></p>
                 ${photoFieldHtml}
                 <label class="field"><span>Název</span><input type="text" name="name" maxlength="60" required value="${esc(b.name)}"><small>Stejný v češtině i angličtině, jako ostatní směsi.</small></label>
-                <div class="blend-preview"><span id="blend-glass"></span><span class="help" style="margin:0">Takhle bude vypadat sklenička na webu.</span></div>
-                <div class="field-row">${select('base', 'base', true)}${select('flavor', 'flavor')}</div>
-                ${select('extra', 'extra')}
+                <fieldset class="field-group">
+                    <legend>Složení</legend>
+                    <p class="help">Až 5 surovin. Díly určují poměr: 2 díly jsou dvakrát víc než 1. Suroviny s limitem do 5 % (levandule, kardamom) jsou špetka a mají pevně 4 %.</p>
+                    <div class="blend-rows" id="blend-rows"></div>
+                    <button type="button" class="btn btn-secondary btn-small" id="blend-add-row">Přidat surovinu</button>
+                    <div class="blend-preview"><span id="blend-glass"></span><p class="blend-check" id="blend-check" aria-live="polite"></p></div>
+                </fieldset>
                 <label class="field"><span>Popis česky</span><textarea name="desc_cs" rows="3" maxlength="500">${esc(b.desc_cs)}</textarea></label>
                 <label class="field"><span>Popis anglicky</span><textarea name="desc_en" rows="3" maxlength="500">${esc(b.desc_en)}</textarea></label>
                 <label class="field field-inline"><span>Emoji</span><input type="text" name="emoji" maxlength="8" value="${esc(b.emoji)}"></label>
@@ -970,19 +1014,75 @@
         openSheet(isNew ? 'Nová směs' : b.name, html, body => {
             const form = $('#blend-form', body);
             const photo = photoControl(body, b.photo_url, 'blends', () => form.name.value || b.id, b.emoji);
-            const chosen = () => [form.base.value, form.flavor.value, form.extra.value].filter(Boolean);
-            const paintGlass = () => { $('#blend-glass', body).innerHTML = glassHtml(chosen()); };
-            paintGlass();
-            ['base', 'flavor', 'extra'].forEach(n => form[n].addEventListener('change', paintGlass));
+            const chosen = () => rows.filter(r => r.code);
+            const paintRows = () => {
+                $('#blend-rows', body).innerHTML = rows.map((r, i) => {
+                    const ing = ingByCode(r.code);
+                    const pinch = ing && Recipe.isPinch(ing.max_pct);
+                    return `<div class="blend-row" data-row="${i}">
+                        <label class="field"><span>Surovina ${i + 1}</span>
+                            <select data-field="code"><option value="">— vyber —</option>${options(r.code)}</select></label>
+                        <label class="field"><span>Díly</span>
+                            <select data-field="parts"${pinch ? ' disabled' : ''}>${[1, 2, 3].map(n =>
+                                `<option value="${n}"${r.parts === n ? ' selected' : ''}>${pinch ? 'špetka' : n}</option>`).join('')}</select></label>
+                        <button type="button" class="icon-btn" data-field="remove" aria-label="Odebrat surovinu ${i + 1}"${rows.length < 2 ? ' disabled' : ''}>×</button>
+                    </div>`;
+                }).join('');
+                $('#blend-add-row', body).disabled = rows.length >= Recipe.MAX_ITEMS;
+                paintCheck();
+            };
+            const paintCheck = () => {
+                const c = chosen();
+                $('#blend-glass', body).innerHTML = glassHtml(c.map(r => r.code));
+                const r = recipeOf(c.map(x => x.code), c.map(x => x.parts), 100);
+                const el = $('#blend-check', body);
+                el.classList.toggle('is-error', !r.ok);
+                el.textContent = !c.length ? 'Vyber aspoň jednu surovinu.'
+                    : r.ok ? `${r.rows.map(x => `${ingName(x.code)} ${x.pct} %`).join(', ')}. Je to ${CATEGORY_NAME[r.category]}.`
+                        + (r.surcharge ? ` Příplatek za 100 g: ${kc(r.surcharge)}.` : '')
+                    : recipeError(r);
+            };
+            paintRows();
+            $('#blend-rows', body).addEventListener('change', e => {
+                const row = e.target.closest('[data-row]');
+                if (!row) return;
+                const r = rows[Number(row.dataset.row)];
+                if (e.target.dataset.field === 'code') {
+                    r.code = e.target.value;
+                    const ing = ingByCode(r.code);
+                    if (ing && !r.touched) r.parts = ing.category === 'base' ? 3 : 1;
+                    paintRows();
+                } else if (e.target.dataset.field === 'parts') {
+                    r.parts = Number(e.target.value);
+                    r.touched = true;
+                    paintCheck();
+                }
+                sheetDirty = true;
+            });
+            $('#blend-rows', body).addEventListener('click', e => {
+                const btn = e.target.closest('[data-field="remove"]');
+                if (!btn) return;
+                rows.splice(Number(btn.closest('[data-row]').dataset.row), 1);
+                paintRows();
+                sheetDirty = true;
+            });
+            $('#blend-add-row', body).addEventListener('click', () => {
+                if (rows.length >= Recipe.MAX_ITEMS) return;
+                rows.push({ code: '', parts: 1 });
+                paintRows();
+                $$('#blend-rows select[data-field="code"]', body).pop()?.focus();
+            });
 
             form.addEventListener('submit', async e => {
                 e.preventDefault();
                 formError('#blend-error', '');
+                const c = chosen();
                 const row = {
                     name: form.name.value.trim(),
                     desc_cs: form.desc_cs.value.trim(),
                     desc_en: form.desc_en.value.trim(),
-                    ingredients: chosen(),
+                    ingredients: c.map(x => x.code),
+                    parts: c.map(x => x.parts),
                     emoji: form.emoji.value.trim() || '🍵',
                     is_preset: form.is_preset.checked,
                     active: form.active.checked,
@@ -990,7 +1090,9 @@
                     sort: parseInt(form.sort.value, 10) || 0,
                 };
                 if (!row.name) { formError('#blend-error', 'Vyplň název směsi.'); return; }
-                if (!row.ingredients.length) { formError('#blend-error', 'Vyber aspoň základ.'); return; }
+                if (!row.ingredients.length) { formError('#blend-error', 'Vyber aspoň jednu surovinu.'); return; }
+                const check = recipeOf(row.ingredients, row.parts);
+                if (!check.ok) { formError('#blend-error', recipeError(check)); return; }
                 if (state.blends.some(x => x.id !== b.id && x.name.toLowerCase() === row.name.toLowerCase())) {
                     formError('#blend-error', `Směs „${row.name}“ už existuje.`); return;
                 }
@@ -1590,31 +1692,28 @@
         });
     }
 
-    /* Kalkulačka: kolik stojí suroviny na jeden sáček a kolik zbyde */
+    /* Kalkulačka: kolik stojí suroviny na jeden sáček a kolik zbyde.
+       Stejná receptura jako na webu: až 5 surovin, díly 1–3, špetka 4 %. */
     function renderCalc(el) {
         let saved = {};
         try { saved = JSON.parse(localStorage.getItem(CALC_KEY) || '{}') || {}; } catch (_) {}
-        const byCat = cat => state.materials.filter(m => m.ingredient_code && (ingByCode(m.ingredient_code) || {}).category === cat);
-        const pick = (name, cat) => {
-            const list = byCat(cat);
-            const sel = saved[name] && list.some(m => m.id === saved[name]) ? saved[name] : (list[0] || {}).id;
-            return `<label class="field"><span>${CATEGORY[cat]}</span><select name="${name}">${list.map(m =>
-                `<option value="${esc(m.id)}"${m.id === sel ? ' selected' : ''}>${esc(m.name)}${bestOffer(m.id) ? '' : ' (bez ceny)'}</option>`).join('')}</select></label>`;
-        };
+        const mats = state.materials.filter(m => m.ingredient_code && ingByCode(m.ingredient_code));
+        const catOf = m => (ingByCode(m.ingredient_code) || {}).category;
+        let rows = Array.isArray(saved.rows) ? saved.rows.filter(r => mats.some(m => m.id === r.m)).slice(0, Recipe.MAX_ITEMS) : [];
+        if (!rows.length) {
+            rows = ['base', 'flavor', 'extra'].map((cat, i) => ({ m: (mats.find(m => catOf(m) === cat) || {}).id, parts: i ? 1 : 3 }))
+                .filter(r => r.m);
+        }
         const tiers = state.prices.filter(p => p.active);
         const weight = tiers.some(p => p.weight_g === saved.weight) ? saved.weight : ((tiers.find(p => p.weight_g === 100) || tiers[0] || {}).weight_g);
+        const options = sel => ['base', 'flavor', 'extra'].map(cat => `<optgroup label="${CATEGORY_GROUP[cat]}">${mats.filter(m => catOf(m) === cat)
+            .map(m => `<option value="${esc(m.id)}"${m.id === sel ? ' selected' : ''}>${esc(m.name)}${bestOffer(m.id) ? '' : ' (bez ceny)'}</option>`).join('')}</optgroup>`).join('');
         el.innerHTML = `
             <form class="panel calc" id="calc-form" novalidate>
                 <h3>Kolik stojí jeden sáček</h3>
-                <p class="panel-note">Počítá s nejlevnější nabídkou u každé suroviny (bez zamítnutých dodavatelů).</p>
-                <div class="calc-grid">
-                    ${pick('base', 'base')}
-                    <label class="field field-inline"><span>Podíl</span><input type="number" name="r_base" min="0" max="100" step="1" value="${saved.r_base ?? 70}"><em>%</em></label>
-                    ${pick('flavor', 'flavor')}
-                    <label class="field field-inline"><span>Podíl</span><input type="number" name="r_flavor" min="0" max="100" step="1" value="${saved.r_flavor ?? 20}"><em>%</em></label>
-                    ${pick('extra', 'extra')}
-                    <label class="field field-inline"><span>Podíl</span><input type="number" name="r_extra" min="0" max="100" step="1" value="${saved.r_extra ?? 10}"><em>%</em></label>
-                </div>
+                <p class="panel-note">Počítá s nejlevnější nabídkou u každé suroviny (bez zamítnutých dodavatelů). Podíly jako na webu: díly 1–3, špetka 4 %.</p>
+                <div class="calc-rows" id="calc-rows"></div>
+                <button type="button" class="btn btn-secondary btn-small" id="calc-add">Přidat surovinu</button>
                 <div class="field-row">
                     <label class="field"><span>Velikost</span><select name="weight">${tiers.map(p => `<option value="${p.weight_g}"${p.weight_g === weight ? ' selected' : ''}>${p.weight_g} g (prodej ${kc(p.price_czk)})</option>`).join('')}</select></label>
                     <label class="field field-inline"><span>Sáček a etiketa</span><input type="number" name="pack" min="0" step="0.1" inputmode="decimal" value="${saved.pack ?? ''}" placeholder="0"><em>Kč</em></label>
@@ -1622,34 +1721,40 @@
                 <div id="calc-out" aria-live="polite"></div>
             </form>`;
         const form = $('#calc-form', el);
+        const paintRows = () => {
+            $('#calc-rows', el).innerHTML = rows.map((r, i) => `
+                <div class="blend-row" data-row="${i}">
+                    <label class="field"><span>Surovina ${i + 1}</span><select data-field="m">${options(r.m)}</select></label>
+                    <label class="field"><span>Díly</span><select data-field="parts">${[1, 2, 3].map(n => `<option value="${n}"${r.parts === n ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
+                    <button type="button" class="icon-btn" data-field="remove" aria-label="Odebrat surovinu ${i + 1}"${rows.length < 2 ? ' disabled' : ''}>×</button>
+                </div>`).join('');
+            $('#calc-add', el).disabled = rows.length >= Recipe.MAX_ITEMS || !mats.length;
+        };
         const paint = () => {
-            const v = {
-                base: form.base.value, flavor: form.flavor.value, extra: form.extra.value,
-                r_base: Number(form.r_base.value) || 0, r_flavor: Number(form.r_flavor.value) || 0, r_extra: Number(form.r_extra.value) || 0,
-                weight: Number(form.weight.value) || 0, pack: form.pack.value === '' ? '' : Number(form.pack.value),
-            };
+            const v = { rows: rows.map(r => ({ m: r.m, parts: r.parts })), weight: Number(form.weight.value) || 0,
+                        pack: form.pack.value === '' ? '' : Number(form.pack.value) };
             try { localStorage.setItem(CALC_KEY, JSON.stringify(v)); } catch (_) {}
-            const sum = v.r_base + v.r_flavor + v.r_extra;
             const tier = state.prices.find(p => p.weight_g === v.weight);
-            const lines = [['base', v.r_base], ['flavor', v.r_flavor], ['extra', v.r_extra]].map(([k, r]) => {
-                const m = matById(v[k]);
-                const grams = v.weight * (sum ? r / sum : 0);
-                const pk = m ? perKg(bestOffer(m.id)) : null;
-                return { name: m ? m.name : '—', grams, pk, cost: pk != null ? grams / 1000 * pk : null };
+            const chosen = rows.map(r => matById(r.m)).filter(Boolean);
+            const recipe = recipeOf(chosen.map(m => m.ingredient_code), rows.filter(r => matById(r.m)).map(r => r.parts), v.weight);
+            const lines = chosen.map((m, i) => {
+                const row = recipe.rows[i] || { pct: 0, grams: 0 };
+                const pk = perKg(bestOffer(m.id));
+                return { name: m.name, pct: row.pct, grams: row.grams, cost: pk != null ? row.grams / 1000 * pk : null };
             });
             const missing = lines.filter(l => l.cost == null).map(l => l.name);
             const ingredients = lines.reduce((a, l) => a + (l.cost || 0), 0);
             const cost = ingredients + (Number(v.pack) || 0);
-            const price = tier ? tier.price_czk : 0;
+            const price = tier ? tier.price_czk + recipe.surcharge : 0;
             const margin = price - cost;
             const r1 = n => (Math.round(n * 10) / 10).toLocaleString('cs-CZ');
             $('#calc-out', el).innerHTML = `
-                ${sum !== 100 ? `<p class="help">Podíly dávají dohromady ${sum} %, počítám je poměrem.</p>` : ''}
+                ${recipe.ok || !lines.length ? '' : `<p class="form-error">${esc(recipeError(recipe))} Na webu by tahle směs nešla objednat.</p>`}
                 <div class="calc-table">
-                    ${lines.map(l => `<div><span>${esc(l.name)}, ${r1(l.grams)} g</span><span>${l.cost == null ? 'chybí cena' : r1(l.cost) + ' Kč'}</span></div>`).join('')}
+                    ${lines.map(l => `<div><span>${esc(l.name)}, ${l.pct} % = ${r1(l.grams)} g</span><span>${l.cost == null ? 'chybí cena' : r1(l.cost) + ' Kč'}</span></div>`).join('')}
                     <div><span>Sáček a etiketa</span><span>${r1(Number(v.pack) || 0)} Kč</span></div>
                     <div class="calc-sum"><span>Náklady celkem</span><span>${missing.length ? 'aspoň ' : ''}${r1(cost)} Kč</span></div>
-                    <div><span>Prodejní cena</span><span>${kc(price)}</span></div>
+                    <div><span>Prodejní cena${recipe.surcharge ? ` (vč. příplatku ${kc(recipe.surcharge)})` : ''}</span><span>${kc(price)}</span></div>
                     ${missing.length
                         ? '<div class="calc-margin is-unknown"><span>Zbyde</span><span>doplň ceny</span></div>'
                         : `<div class="calc-margin${margin < 0 ? ' is-neg' : ''}"><span>Zbyde</span><span>${r1(margin)} Kč${price ? ` (${Math.round(margin / price * 100)} %)` : ''}</span></div>`}
@@ -1657,6 +1762,26 @@
                 ${missing.length ? `<p class="help">Bez ceny: ${esc(missing.join(', '))}. Přidej nabídku v části Suroviny.</p>` : ''}
                 <p class="help">Prodejní cena je s DPH. Jestli budeš plátce DPH, počítej s cenou bez daně. Doprava a poplatky za platbu tu nejsou.</p>`;
         };
+        paintRows();
+        $('#calc-rows', el).addEventListener('change', e => {
+            const row = e.target.closest('[data-row]');
+            if (!row) return;
+            const r = rows[Number(row.dataset.row)];
+            if (e.target.dataset.field === 'm') r.m = e.target.value;
+            if (e.target.dataset.field === 'parts') r.parts = Number(e.target.value);
+        });
+        $('#calc-rows', el).addEventListener('click', e => {
+            const btn = e.target.closest('[data-field="remove"]');
+            if (!btn) return;
+            rows.splice(Number(btn.closest('[data-row]').dataset.row), 1);
+            paintRows(); paint();
+        });
+        $('#calc-add', el).addEventListener('click', () => {
+            if (rows.length >= Recipe.MAX_ITEMS || !mats.length) return;
+            const used = new Set(rows.map(r => r.m));
+            rows.push({ m: (mats.find(m => !used.has(m.id)) || mats[0]).id, parts: 1 });
+            paintRows(); paint();
+        });
         form.addEventListener('input', paint);
         form.addEventListener('change', paint);
         paint();
@@ -2456,8 +2581,7 @@
         form.promo_bar_en.value = st.promo_bar_en || '';
 
         const sf = $('#seller-form');
-        ['seller_name', 'seller_ico', 'seller_address', 'seller_email', 'seller_phone',
-         'recipe_base_pct', 'recipe_flavor_pct', 'recipe_extra_pct', 'durability_months'].forEach(n => {
+        ['seller_name', 'seller_ico', 'seller_address', 'seller_email', 'seller_phone', 'durability_months'].forEach(n => {
             sf[n].value = st[n] ?? '';
         });
     }
@@ -2467,7 +2591,7 @@
     const SETTINGS_DEFAULTS = {
         free_ship_threshold: 500, cod_fee_czk: 39, promo_bar_enabled: true, promo_bar_cs: '', promo_bar_en: '',
         seller_name: '', seller_ico: '', seller_address: '', seller_email: 'hello@teaseyou.cz', seller_phone: '',
-        recipe_base_pct: 70, recipe_flavor_pct: 20, recipe_extra_pct: 10, durability_months: 12,
+        durability_months: 12,
         sales_open: false, sales_opened_at: null,
     };
 
@@ -2585,19 +2709,11 @@
         if (ico && !/^[0-9]{8}$/.test(ico)) { toast('IČO má přesně 8 číslic.', true); return; }
         const email = v('seller_email');
         if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('E-mail nevypadá správně.', true); return; }
-        const base = pct('recipe_base_pct'), flavor = pct('recipe_flavor_pct'), extra = pct('recipe_extra_pct');
-        if (![base, flavor, extra].every(Number.isInteger) || base < 1 || flavor < 0 || extra < 0) {
-            toast('Receptura: vyplň celá čísla, základ aspoň 1 %.', true); return;
-        }
-        if (base + flavor + extra !== 100) {
-            toast(`Receptura musí dát dohromady 100 %, teď je to ${base + flavor + extra} %.`, true); return;
-        }
         const months = pct('durability_months');
         if (!(months >= 1 && months <= 36)) { toast('Trvanlivost zadej v měsících, 1 až 36.', true); return; }
         await saveSettings({
             seller_name: v('seller_name'), seller_ico: ico, seller_address: v('seller_address'),
             seller_email: email, seller_phone: v('seller_phone'),
-            recipe_base_pct: base, recipe_flavor_pct: flavor, recipe_extra_pct: extra,
             durability_months: months,
         }, f.querySelector('[type=submit]'), 'Údaje o prodávajícím uložené.');
     });

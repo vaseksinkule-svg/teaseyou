@@ -158,6 +158,23 @@ Dalším spuštěním `setup.sql` přibude:
 Popis borůvky sliboval antioxidanty; přepíše se jen tehdy, když jsi ho
 mezitím neměnil.
 
+## Mixér s díly a katalog v2 (listopad 2026)
+
+Dalším spuštěním `setup.sql` přibude:
+
+- `ingredients.surcharge_czk`: příplatek za prémiovou surovinu v Kč za 100 g.
+- `blends.parts`: díly 1–3 ke každé surovině, směs má až 5 surovin.
+- `recipe_eval()`: výpočet receptury (podíly, gramy, druh čaje podle vyhlášky,
+  příplatek). Stejný jako `recipe.js` na webu. Volá ji jen `place_order()`, ta
+  podle ní odmítne směs mimo pravidla (`invalid_recipe`) a k ceně z ceníku přičte
+  příplatek. Do objednávky uloží `parts`, `recipe` (gramy na míchání),
+  `category`, `base_czk` a `surcharge_czk`.
+- **Katalog v2**, jednou (`settings.catalog_version`): nové suroviny, nové názvy,
+  skupiny, limity a příplatky, skrytí medu, vanilky, kakaa, kokosu a kurkumy,
+  nové složení hotových směsí, noví dodavatelé v Nákupu. Fotky, vyprodání
+  a objednávky zůstanou. Co potom změníš v administraci, další běh nepřepíše.
+- Sloupce `settings.recipe_*_pct` se už nepoužívají (poměr volí zákazník díly).
+
 ## Odstoupení, osobní údaje a úklid (listopad 2026)
 
 Dalším spuštěním `setup.sql` přibude:

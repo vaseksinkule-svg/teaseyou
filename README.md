@@ -44,11 +44,11 @@ v administraci. Formspree je pak už jen e-mail navíc.
 | Kde | Konstanta | Co to je |
 |---|---|---|
 | `config.js` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Napojení na databázi — viz [`supabase/README.md`](supabase/README.md) |
-| `script.js:869` | `FORMSPREE_ID` | ID formuláře na Formspree, kam chodí objednávky |
-| `script.js:812` | `PACKETA_API_KEY` | Klíč pro widget výdejních míst Zásilkovny |
-| `script.js:872` | `GOPAY_GOID` | ID obchodníka GoPay |
-| `script.js:873` | `COMGATE_MERCHANT` | ID obchodníka Comgate |
-| `script.js:871` | `PAYMENT_GATEWAY` | Přepnout z `'none'` na `'gopay'` nebo `'comgate'` |
+| `script.js:883` | `FORMSPREE_ID` | ID formuláře na Formspree, kam chodí objednávky |
+| `script.js:814` | `PACKETA_API_KEY` | Klíč pro widget výdejních míst Zásilkovny |
+| `script.js:886` | `GOPAY_GOID` | ID obchodníka GoPay |
+| `script.js:887` | `COMGATE_MERCHANT` | ID obchodníka Comgate |
+| `script.js:885` | `PAYMENT_GATEWAY` | Přepnout z `'none'` na `'gopay'` nebo `'comgate'` |
 | `index.html` | `telephone` v JSON-LD | Je tam `+420123456789`, což je zjevně placeholder |
 
 ## Kde se co mění
@@ -80,6 +80,7 @@ angličtina je fallback.
 index.html                 Celý web. Všechny "stránky" jsou sekce, přepíná JS.
 style.css                  Styly včetně tmavého režimu.
 script.js                  Mixér, košík, checkout, kvíz, i18n, data ingrediencí.
+recipe.js                  Výpočet receptury (díly → %, gramy, druh čaje, příplatek). Stejný je v databázi.
 config.js                  Adresa a veřejný klíč Supabase.
 db.js                      Malý klient pro Supabase (tabulky, přihlášení, fotky).
 admin/                     Administrace: objednávky, nabídka, ceny, slevy.

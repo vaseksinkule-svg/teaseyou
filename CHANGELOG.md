@@ -6,6 +6,40 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Změněno (mixér: víc surovin, díly, gramy)
+- V každém kroku jde vybrat víc věcí, dohromady až **5 surovin**. Klik už sám
+  nepřeskočí na další krok; nepovinné kroky (příchuť, doplněk) jdou **přeskočit**.
+- Nový panel **Tvoje směs**: ke každé surovině díly 1–3 (−/+), podíl v %, gramy
+  pro vybranou velikost (50 / 100 / 250 g), pruh s poměrem, kolik šálků to dá
+  a jestli je to podle vyhlášky ochucený, bylinný, nebo ovocný čaj.
+- Hlídá limity z přílohy 1 vyhlášky 187/2023 Sb. (citronová a pomerančová kůra,
+  citronová tráva, zázvor, skořice nejvýš 30 %). Levandule a kardamom jsou
+  „špetka“ s pevnými 4 %. Směs bez druhu (žádná skupina přes polovinu) nejde
+  objednat a mixér poradí, co změnit.
+- **Prémiové suroviny** (bílý čaj, oolong, růže, jahody, maliny, kardamom) mají
+  příplatek za 100 g podle toho, kolik jich v sáčku je. Částky se mění v adminu.
+- Jeden výpočet receptury: `recipe.js` na webu i v adminu a stejný
+  `recipe_eval()` v databázi; `place_order()` ho použije pro kontrolu i cenu
+  a k objednávce uloží díly, procenta a gramy na míchání.
+- Staré košíky, uložené směsi a sdílené odkazy fungují dál (díly 3 + 1 + 1).
+- Rychlý start z hotové směsi v kroku 1 (směsi označené „Rychlá volba v mixéru“).
+- Kvíz bere složení z hotových směsí v katalogu.
+- Opraveno: jméno směsi ze sdíleného odkazu se v hlášce vykreslilo jako HTML.
+
+### Změněno (sortiment, katalog v2)
+- Suroviny podle toho, co jde běžně koupit u dodavatelů (Herbona, Wollenhaupt,
+  Alveus, Zelený Drak) a co povoluje příloha 1 vyhlášky. Nově meduňka, lípa,
+  jablko, ibišek, citronová tráva a fenykl; máta peprná je základ, „Pomeranč“
+  a „Citron“ jsou poctivě kůra. Med, vanilka, kakao, kokos a kurkuma se skryly
+  (zůstávají kvůli starým objednávkám).
+- Hotové směsi mají nové složení s díly (Still Evening je teď bylinná bez
+  kofeinu, Slow Tuesday ovocná).
+- `setup.sql` převede katalog jednou (`settings.catalog_version` = 2), další běhy
+  úpravy z administrace nepřepíšou. V Nákupu přibyli noví dodavatelé a suroviny.
+- Admin: editor směsi s až 5 surovinami a díly a s kontrolou podle vyhlášky,
+  příplatek u ingredience, gramy na míchání u objednávky, kalkulačka nákladů
+  s díly. Pevná receptura 70/20/10 z nastavení zmizela.
+
 ### Změněno (náhled pro sdílení)
 - Nový `og-image.jpg` podle současného designu: zelený pás, nadpis v Unbounded
   a dva sáčky přímo z webu. Starý `og-image.svg` (patkové písmo) pryč.

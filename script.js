@@ -191,6 +191,7 @@ const TRANSLATIONS = {
         toast_link_copied:      'Share link copied!',
         toast_removed:          'Blend removed',
         toast_added_cart:       'added to cart!',
+        toast_in_cart:          '"{name}" is in your cart',
         toast_discount_applied: 'applied!',
         toast_cart_empty:       'Your cart is empty',
         toast_check_fields:     'Please check the highlighted fields',
@@ -326,11 +327,11 @@ const TRANSLATIONS = {
         footer_cookies:       'Cookie Policy',
         btn_clear:          '\u2715 Clear',
         blend_sub_1:        'Green tea, Mint & Lemon',
-        blend_sub_2:        'White tea, Strawberry & Honey',
-        blend_sub_3:        'Black tea, Ginger & Vanilla',
+        blend_sub_2:        'Chamomile, Lemon balm & Lavender',
+        blend_sub_3:        'Black tea, Ginger & Cinnamon',
         blend_sub_4:        'Oolong, Rose & Lavender',
         blend_sub_5:        'Rooibos, Orange & Spearmint',
-        blend_sub_6:        'Chamomile, Turmeric & Cinnamon',
+        blend_sub_6:        'Apple, Hibiscus, Rose hip & Cinnamon',
         social_coming_soon:   'Not on social media yet — coming soon!',
         /* Packeta widget */
         packeta_choose:     'Choose pickup point',
@@ -345,7 +346,7 @@ const TRANSLATIONS = {
         nav_ingredients: 'Ingredients',
         ing_page_title: 'Ingredient Guide',
         ing_page_sub: 'Everything in our palette — and why.',
-        ing_cat_bases: 'Tea Bases',
+        ing_cat_bases: 'Bases',
         ing_cat_flavors: 'Flavors',
         ing_cat_extras: 'Extras',
         ing_health: 'Benefits',
@@ -552,6 +553,7 @@ const TRANSLATIONS = {
         toast_link_copied:      'Odkaz ke sdílení zkopírován!',
         toast_removed:          'Blend odstraněn',
         toast_added_cart:       'přidán do košíku!',
+        toast_in_cart:          '„{name}“ je v košíku',
         toast_discount_applied: 'použit!',
         toast_cart_empty:       'Tvůj košík je prázdný',
         toast_check_fields:     'Zkontroluj zvýrazněná pole',
@@ -687,11 +689,11 @@ const TRANSLATIONS = {
         footer_cookies:       'Cookie Policy',
         btn_clear:          '\u2715 Vymazat',
         blend_sub_1:        'Zelen\u00fd \u010daj, m\u00e1ta a citron',
-        blend_sub_2:        'B\u00edl\u00fd \u010daj, jahoda a med',
-        blend_sub_3:        '\u010cern\u00fd \u010daj, z\u00e1zvor a vanilka',
+        blend_sub_2:        'Heřmánek, meduňka a levandule',
+        blend_sub_3:        'Černý čaj, zázvor a skořice',
         blend_sub_4:        'Oolong, r\u016f\u017ee a levandule',
         blend_sub_5:        'Rooibos, pomeran\u010d a m\u00e1ta',
-        blend_sub_6:        'He\u0159m\u00e1nek, kurkuma a sko\u0159ice',
+        blend_sub_6:        'Jablko, ibišek, šípek a skořice',
         social_coming_soon:   'Na sociálních sítích zatím nejsme — brzy!',
         /* Packeta widget */
         packeta_choose:     'Vybrat výdejní místo',
@@ -706,7 +708,7 @@ const TRANSLATIONS = {
         nav_ingredients: 'Ingredience',
         ing_page_title: 'Průvodce ingrediencemi',
         ing_page_sub: 'Vše co jsme přidali do naší palety — a proč.',
-        ing_cat_bases: 'Čajové základy',
+        ing_cat_bases: 'Základy',
         ing_cat_flavors: 'Příchutě',
         ing_cat_extras: 'Doplňky',
         ing_health: 'Přínosy',
@@ -813,10 +815,13 @@ const PACKETA_API_KEY = 'YOUR_PACKETA_API_KEY';
 let packetaPoint = null;
 
 /* ─── STATE ─────────────────────────────────── */
+/* Směs, se kterou se zrovna pracuje (mixér nebo detail hotové směsi).
+   ingredients jsou kódy surovin, parts jejich díly 1–3 (viz recipe.js). */
 let currentProduct = {
     name: 'Custom Mix',
-    ingredients: ['Empty','Empty','Empty'],
-    colors: ['transparent','transparent','transparent'],
+    ingredients: [],
+    parts: [],
+    colors: [],
     priceBase: 0,
     weight: ''
 };
@@ -855,9 +860,18 @@ function isValidCartItem(i) {
         && Array.isArray(i.colors) && Array.isArray(i.ingredients);
 }
 
-let cart = readStore('teaseyou_cart', []).filter(isValidCartItem);
+/* Starší košíky a uložené směsi mají suroviny ve třech slotech („Empty“
+   tam, kde nic nebylo) a žádné díly. Převedou se na seznam a díly 3 + 1 + 1. */
+function withRecipe(obj) {
+    const { codes, parts } = Recipe.normalize(obj.ingredients, obj.parts);
+    const colors = Array.isArray(obj.colors) ? obj.colors.filter(c => c !== 'transparent') : [];
+    return Object.assign(obj, { ingredients: codes, parts, colors });
+}
+
+let cart = readStore('teaseyou_cart', []).filter(isValidCartItem).map(withRecipe).filter(i => i.ingredients.length);
 let cartIdCounter = cart.reduce((m, i) => Math.max(m, i.id || 0), 0);
-let savedBlends = readStore('teaseyou_saved', []).filter(b => b && typeof b === 'object');
+let savedBlends = readStore('teaseyou_saved', [])
+    .filter(b => b && typeof b === 'object' && Array.isArray(b.ingredients)).map(withRecipe);
 let orders = readStore('teaseyou_orders', []).filter(o => o && typeof o === 'object');
 
 /* ─── PRICING & CURRENCY (CZK) ───────────────── */
@@ -958,9 +972,13 @@ function showSocialComingSoon(e) {
 }
 
 /* ─── TOAST ──────────────────────────────────── */
+/* Text hlášky jde přes textContent: bývá v ní jméno směsi, které může
+   přijít i ze sdíleného odkazu (?n=…), a to se nesmí vykreslit jako HTML. */
 function showToast(msg, icon='🛒') {
     const t = document.getElementById('toast');
-    t.innerHTML = `<span>${icon}</span> ${msg}`;
+    const ic = document.createElement('span');
+    ic.textContent = icon;
+    t.replaceChildren(ic, ' ' + String(msg));
     t.classList.add('show');
     clearTimeout(t._timer);
     t._timer = setTimeout(() => t.classList.remove('show'), 3000);
@@ -1051,8 +1069,6 @@ function showPage(pageId) {
     });
     document.body.dataset.page = pageId;
     if (pageId === 'product-page' && typeof updateMixerUI === 'function') updateMixerUI();
-    // Show/hide the mobile mix-summary drawer (mixer page only)
-    if (typeof updateMixDrawer === 'function') updateMixDrawer();
 }
 
 /* ─── FAQ ACCORDION ──────────────────────────── */
@@ -1070,21 +1086,21 @@ function toggleBrewGuide(btn) {
 }
 
 /* ─── PRODUCT DETAIL ─────────────────────────── */
-function openDetail(name, desc, price, ingredients, colors) {
+function openDetail(name, desc, price, ingredientsIn, colors, partsIn) {
+    const { codes: ingredients, parts } = Recipe.normalize(ingredientsIn, partsIn);
     // Barvy se berou z katalogu — admin je mohl změnit od doby, kdy vznikl
     // kvíz nebo uložený mix.
-    colors = (ingredients || []).map((c, i) => ingColor(c) || (colors && colors[i]) || 'transparent');
-    currentProduct = { name, desc, priceBase: price, ingredients, colors, weight: '' };
+    colors = ingredients.map((c, i) => ingColor(c) || (colors && colors[i]) || 'transparent');
+    currentProduct = { name, desc, priceBase: price, ingredients, parts, colors, weight: '' };
     showDetailPhotoAndStock(name, ingredients);
     document.getElementById('detail-title').innerText = name;
     const localDesc = LANG === 'cs' && BLEND_DESCS_CS[name] ? BLEND_DESCS_CS[name] : desc;
     document.getElementById('detail-desc').innerText = localDesc;
-    renderDetailVisual(name, ingredients);
+    renderDetailVisual(name, ingredients, parts);
     renderDetailCraft(ingredients);
 
-    // Set brew params based on base
-    const base = ingredients[0];
-    const brew = BREW[base] || { temp: '90–95°C', time: '3–4 min' };
+    // Louhování podle hlavní suroviny
+    const brew = brewFor(ingredients, parts);
     const tempEl = document.getElementById('detail-temp');
     const timeEl = document.getElementById('detail-time');
     if (tempEl) tempEl.innerHTML = brew.temp;
@@ -1095,17 +1111,19 @@ function openDetail(name, desc, price, ingredients, colors) {
     showPage('product-detail-page');
 }
 
-/* Sáček a seznam ingrediencí na detailu hotové směsi */
-function renderDetailVisual(name, ingredients) {
-    const weight = parseInt(currentProduct.weight, 10);
+/* Sáček a seznam ingrediencí na detailu hotové směsi: podíl v % a kolik
+   gramů je v sáčku vybrané velikosti. */
+function renderDetailVisual(name, ingredients, parts) {
+    const weight = parseInt(currentProduct.weight, 10) || 0;
     const box = document.getElementById('detail-pouch');
-    if (box) box.innerHTML = pouchHtml({ name, codes: ingredients, size: 'pouch--hero', weight: weight ? weight + ' g' : '' });
+    if (box) box.innerHTML = pouchHtml({ name, codes: ingredients, parts, size: 'pouch--hero', weight: weight ? weight + ' g' : '' });
     const list = document.getElementById('detail-ingredients-list');
-    if (list) list.innerHTML = (ingredients || []).map((c, i) => c && c !== 'Empty'
-        ? `<li><span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>`
-          + `<span><strong>${escHtml(tIng(c))}</strong><span>${escHtml(t(LAYER_LABELS[i]).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en'))}</span></span></li>`
-        : '').join('');
-    renderFoodInfo(document.getElementById('detail-food'), ingredients, currentProduct.weight);
+    const r = recipeOf(ingredients, parts, weight);
+    if (list) list.innerHTML = r.rows.map(row =>
+        `<li><span class="ing-dot" style="--dot-color:${escHtml(ingColor(row.code) || '#ccc')}"></span>`
+        + `<span><strong>${escHtml(tIng(row.code))}</strong><span>${row.pct} %${weight ? ` · ${escHtml(fmtGrams(row.grams))}` : ''}</span></span></li>`
+    ).join('');
+    renderFoodInfo(document.getElementById('detail-food'), ingredients, parts, currentProduct.weight);
 }
 
 /* Na detailu je rovnou vybraná prostřední velikost (100 g), ať jde
@@ -1126,14 +1144,15 @@ function selectQty(amount, e) {
     container.querySelectorAll('.qty-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     currentProduct.weight    = amount + 'g';
-    currentProduct.priceBase = PRICES[amount] || PRICES[100];
-    ['detail-add-btn','final-order-btn','summary-order-btn'].forEach(id => {
+    currentProduct.priceBase = unitPrice(currentProduct.ingredients, currentProduct.parts, amount)
+        || unitPrice(currentProduct.ingredients, currentProduct.parts, 100);
+    ['detail-add-btn'].forEach(id => {
         const b = document.getElementById(id);
         if (b) { b.disabled = false; b.classList.remove('disabled'); }
     });
     const add = document.getElementById('detail-add-btn');
     if (add) add.textContent = t('add_for').replace('{price}', fmt(currentProduct.priceBase));
-    if (btn.closest('#product-detail-page')) renderDetailVisual(currentProduct.name, currentProduct.ingredients);
+    if (btn.closest('#product-detail-page')) renderDetailVisual(currentProduct.name, currentProduct.ingredients, currentProduct.parts);
 }
 
 /* ─── SHIPPING COST ──────────────────────────── */
@@ -1304,280 +1323,47 @@ function renderFreeShip() {
 }
 
 /* ─── CUSTOMIZE FROM READY-MADE ──────────────── */
+/* Z detailu hotové směsi do mixéru: suroviny i díly zůstanou, dají se
+   upravit a přidat další. */
 function modifyReadyMade() {
-    showPage('product-page');
-    document.getElementById('mix-name').value = currentProduct.name;
-    ['part1', 'part2', 'part3'].forEach((id, i) => paintLayer(document.getElementById(id), currentProduct.colors[i]));
-    document.querySelectorAll('.ingredient-btn').forEach(btn => {
-        btn.classList.remove('selected');
-        if (currentProduct.ingredients.includes(btn.getAttribute('data-name')))
-            btn.classList.add('selected');
-    });
-    validateSelection();
-    updateGlassLabels();
-    if (typeof setMixerStep === 'function') setMixerStep(1, { scroll: false });
-}
-
-/* ─── GLASS ANIMATIONS ───────────────────────── */
-function animateGlass(frameId) {
-    const frame = document.getElementById(frameId);
-    if (!frame) return;
-    frame.classList.remove('glass-pop');
-    void frame.offsetWidth;
-    frame.classList.add('glass-pop');
-}
-function fillGlassPart(partId) {
-    const part = document.getElementById(partId);
-    if (!part) return;
-    part.classList.remove('part-fill');
-    void part.offsetWidth;
-    part.classList.add('part-fill');
-}
-
-/* ─── UPDATE GLASS LABELS ────────────────────── */
-function updateGlassLabels() {
-    const defaults = { 1: t('glass_label_base'), 2: t('glass_label_flavor'), 3: t('glass_label_extras') };
-    ['part1','part2','part3'].forEach((partId, i) => {
-        const idx = i + 1;
-        const sel = document.querySelector(`[data-target="${partId}"].selected`);
-        const dot  = document.getElementById(`label-dot-${idx}`);
-        const text = document.getElementById(`label-text-${idx}`);
-        if (!dot || !text) return;
-        if (sel) {
-            dot.style.background = sel.getAttribute('data-color');
-            text.textContent = tIng(sel.getAttribute('data-name'));
-        } else {
-            dot.style.background = 'var(--color-border)';
-            text.textContent = defaults[idx];
-        }
-    });
-    const nameEl  = document.getElementById('glass-mix-name-display');
-    const nameVal = document.getElementById('mix-name')?.value?.trim();
-    if (nameEl) {
-        nameEl.textContent = nameVal || t('glass_name_default');
-        nameEl.classList.toggle('has-name', !!nameVal);
-    }
-}
-
-/* ─── INFO PANEL ─────────────────────────────── */
-function showIngInfo(name) {
-    const allIng = [...ING_DATA.bases, ...ING_DATA.flavors, ...ING_DATA.extras];
-    const keyMap = Object.fromEntries(Object.entries(ING_KEYS).map(([n,k]) => [n, k]));
-    const key = keyMap[name];
-    const data = allIng.find(i => i.key === key);
-    const def = document.getElementById('info-default-state');
-    const rich = document.getElementById('info-rich');
-    if (!data || !rich) return;
-    const caffeineLabelsCs = ['Bez kofeinu','Velmi nízký','Nízký','Střední','Vysoký','Velmi vysoký'];
-    const caffeineLabelsEn = ['Caffeine-free','Very low','Low','Medium','High','Very high'];
-    document.getElementById('info-rich-emoji').innerHTML = ingVisual(data, 'info-rich');
-    document.getElementById('info-rich-name').textContent = t(data.key);
-    document.getElementById('info-rich-desc').textContent = t(data.key + '_desc') || '';
-    if (data.caffeine !== undefined) {
-        const lvl = Math.min(data.caffeine, 4);
-        const label = LANG === 'cs' ? caffeineLabelsCs[data.caffeine] : caffeineLabelsEn[data.caffeine];
-        document.getElementById('info-rich-caffeine').innerHTML =
-            `<span class="ing-caffeine-dots">${'●'.repeat(lvl)}${'○'.repeat(4 - lvl)}</span> ${label}`;
-        document.getElementById('info-rich-caffeine').style.display = '';
-    } else {
-        document.getElementById('info-rich-caffeine').style.display = 'none';
-    }
-    document.getElementById('info-rich-tags').innerHTML = data.flavor.map(f => `<span class="ing-tag">${escHtml(tTag(f))}</span>`).join('');
-    // Účinky se na webu neukazují: u potravin smí být jen zdravotní tvrzení
-    // schválená EU (nařízení 1924/2006).
-    const pairsLabel  = LANG === 'cs' ? 'Hodí se s' : 'Pairs well with';
-    document.getElementById('info-rich-health').innerHTML = '';
-    document.getElementById('info-rich-pairs').innerHTML  = `<strong>${pairsLabel}:</strong> ${escHtml(data.pairs.map(tIng).join(', '))}`;
-    if (def) def.style.display = 'none';
-    rich.style.display = '';
-}
-function resetIngInfo() {
-    const def = document.getElementById('info-default-state');
-    const rich = document.getElementById('info-rich');
-    if (def) def.style.display = '';
-    if (rich) rich.style.display = 'none';
+    openInMixer(currentProduct.ingredients, currentProduct.name, 1, currentProduct.parts);
 }
 
 /* ─── INGREDIENT SELECTION ───────────────────── */
+/* Klik na surovinu ji do směsi přidá, nebo z ní odebere. Nic se samo
+   nepřepíná na další krok: zákazník si vybere, kolik chce, a pokračuje
+   tlačítkem Dál (nebo krok přeskočí). */
 document.addEventListener('click', function(e) {
-    const ingBtn = e.target.closest('.ingredient-btn');
-    if (ingBtn && ingBtn.classList.contains('is-out')) {
+    const btn = e.target.closest('#product-page .ingredient-btn');
+    if (!btn) return;
+    if (btn.classList.contains('is-out')) {
         showToast(t('toast_sold_out'), '🫙');
         return;
     }
-    if (ingBtn) {
-        const targetId = ingBtn.getAttribute('data-target');
-        const color    = ingBtn.getAttribute('data-color');
-        const name     = ingBtn.getAttribute('data-name');
-        const wasEmpty = !ingBtn.parentElement.querySelector('.ingredient-btn.selected');
-        ingBtn.parentElement.querySelectorAll('.ingredient-btn').forEach(b => b.classList.remove('selected'));
-        ingBtn.classList.add('selected');
-        paintLayer(document.getElementById(targetId), color);
-        fillGlassPart(targetId);
-        animateGlass('main-glass-frame');
-        const idx = parseInt(targetId.replace('part','')) - 1;
-        currentProduct.colors[idx]      = color;
-        currentProduct.ingredients[idx] = name;
-        showIngInfo(name);
-        validateSelection();
-        updateGlassLabels();
-        // Na mobilu po prvním výběru v kroku rovnou na další krok. Jen při
-        // skutečném kliknutí — presety a sdílené odkazy klikají programově.
-        if (e.isTrusted && wasEmpty && typeof mixerAutoAdvance === 'function') mixerAutoAdvance(idx + 1);
-    }
-
-    const clearBtn = e.target.closest('.clear-btn[data-target]');
-    if (clearBtn) {
-        const tid = clearBtn.getAttribute('data-target');
-        paintLayer(document.getElementById(tid), 'transparent');
-        fillGlassPart(tid);
-        animateGlass('main-glass-frame');
-        clearBtn.closest('.selection-group').querySelectorAll('.ingredient-btn').forEach(b => b.classList.remove('selected'));
-        const idx = parseInt(tid.replace('part','')) - 1;
-        currentProduct.colors[idx]      = 'transparent';
-        currentProduct.ingredients[idx] = 'Empty';
-        resetIngInfo();
-        validateSelection();
-        updateGlassLabels();
-    }
+    toggleMixItem(btn.getAttribute('data-name'));
 });
-
-/* ─── PROGRESS & COMPLETION ──────────────────── */
-function updateProgress() {
-    const base   = !!document.querySelector('[data-target="part1"].selected');
-    const flavor = !!document.querySelector('[data-target="part2"].selected');
-    const extras = !!document.querySelector('[data-target="part3"].selected');
-    const name   = !!(document.getElementById('mix-name')?.value?.trim());
-    [base, flavor, extras, name].forEach((done, i) => {
-        document.getElementById(`prog-${i+1}`)?.classList.toggle('done', done);
-        document.getElementById(`prog-line-${i+1}`)?.classList.toggle('done', done);
-    });
-}
-function updateCompletion() {
-    const count = ['part1','part2','part3'].filter(p => document.querySelector(`[data-target="${p}"].selected`)).length;
-    const fill  = document.getElementById('completion-fill');
-    const label = document.getElementById('completion-label');
-    if (fill)  fill.style.width = Math.round((count/3)*100) + '%';
-    if (label) label.textContent = `${count} / 3 ${t('completion_selected')}`;
-}
-
-/* ─── VALIDATION ─────────────────────────────── */
-function renderSelectedIngPanel() {
-    const panel = document.getElementById('selected-ing-panel');
-    if (!panel) return;
-    const allIng = [...ING_DATA.bases, ...ING_DATA.flavors, ...ING_DATA.extras];
-    const slots = [
-        { partId: 'part1', label: t('glass_label_base') },
-        { partId: 'part2', label: t('glass_label_flavor') },
-        { partId: 'part3', label: t('glass_label_extras') },
-    ];
-    const cards = slots.map(({ partId, label }) => {
-        const btn = document.querySelector(`.ingredient-btn[data-target="${partId}"].selected`);
-        if (!btn) return '';
-        const name = btn.getAttribute('data-name');
-        const key = ING_KEYS[name];
-        const data = allIng.find(i => i.key === key);
-        if (!data) return '';
-        const caffeineLabels = LANG === 'cs'
-            ? ['Bez kofeinu','Velmi nízký','Nízký','Střední','Vysoký','Velmi vysoký']
-            : ['Caffeine-free','Very low','Low','Medium','High','Very high'];
-        const caffeine = data.caffeine !== undefined
-            ? `<div class="sip-caffeine"><span class="sip-dots">${'●'.repeat(Math.min(data.caffeine,4))}${'○'.repeat(4-Math.min(data.caffeine,4))}</span> ${caffeineLabels[data.caffeine]}</div>`
-            : '';
-        const tags = data.flavor.slice(0,3).map(f => `<span class="ing-tag">${escHtml(tTag(f))}</span>`).join('');
-        const pairsLabel = LANG === 'cs' ? 'Hodí se s' : 'Pairs well with';
-        return `<div class="sip-card">
-            <div class="sip-card-header">
-                <span class="sip-emoji">${ingVisual(data, 'sip')}</span>
-                <div>
-                    <div class="sip-slot-label">${label}</div>
-                    <div class="sip-name">${escHtml(t(data.key))}</div>
-                </div>
-            </div>
-            <p class="sip-desc">${escHtml(t(data.key + '_desc') || '')}</p>
-            ${caffeine}
-            <div class="ing-card-tags">${tags}</div>
-            <div class="sip-pairs">${pairsLabel}: ${escHtml(data.pairs.slice(0,3).map(tIng).join(', '))}</div>
-        </div>`;
-    }).filter(Boolean);
-    const cardsHtml = cards.join('');
-    panel.innerHTML = cards.length
-        ? `<div class="sip-title">${LANG === 'cs' ? 'Tvoje složení' : 'Your selection'}</div>${cardsHtml}`
-        : '';
-    // Mirror the same cards into the mobile drawer
-    const mobileCards = document.getElementById('mix-summary-cards');
-    if (mobileCards) mobileCards.innerHTML = cardsHtml;
-    updateMixDrawer();
-}
-
-/* ─── MOBILE MIX SUMMARY DRAWER ──────────────── */
-function updateMixDrawer() {
-    const drawer = document.getElementById('mix-summary-drawer');
-    if (!drawer) return;
-    const onMixer = document.getElementById('product-page')?.classList.contains('active');
-    const count = ['part1','part2','part3']
-        .filter(p => document.querySelector(`.ingredient-btn[data-target="${p}"].selected`)).length;
-    const countEl = document.getElementById('mix-summary-count');
-    if (countEl) countEl.textContent = `${count}/3`;
-    if (onMixer && count > 0) {
-        drawer.classList.add('show');
-        document.body.classList.add('has-mix-drawer');
-    } else {
-        drawer.classList.remove('show', 'open');
-        document.body.classList.remove('has-mix-drawer');
-        drawer.querySelector('.mix-summary-toggle')?.setAttribute('aria-expanded', 'false');
-    }
-}
-function toggleMixSummary() {
-    const drawer = document.getElementById('mix-summary-drawer');
-    if (!drawer) return;
-    const open = drawer.classList.toggle('open');
-    drawer.querySelector('.mix-summary-toggle')?.setAttribute('aria-expanded', open ? 'true' : 'false');
-}
-
-function validateSelection() {
-    const ok = ['part1','part2','part3'].every(p => document.querySelector(`[data-target="${p}"].selected`));
-    const btn = document.getElementById('save-mix-btn');
-    btn.disabled = !ok;
-    btn.classList.toggle('disabled', !ok);
-    updateProgress();
-    updateCompletion();
-    renderSelectedIngPanel();
-    if (typeof updateMixerUI === 'function') updateMixerUI();
-}
 
 /* ─── LIVE NAME UPDATE ───────────────────────── */
 document.addEventListener('input', function(e) {
-    if (e.target.id === 'mix-name') { updateGlassLabels(); updateProgress(); if (typeof updateMixerUI === 'function') updateMixerUI(); }
+    if (e.target.id === 'mix-name' && typeof updateMixerUI === 'function') updateMixerUI();
 });
 
-/* ─── SUMMARY ────────────────────────────────── */
-function showSummary() {
-    openInMixer(currentProduct.ingredients, document.getElementById('mix-name')?.value.trim() || currentProduct.name, 4);
-}
-
-/* Otevře mixér s danými ingrediencemi a jménem. */
-function openInMixer(ingredients, name, step) {
+/* Otevře mixér s danými surovinami, díly a jménem. */
+function openInMixer(ingredients, name, step, parts) {
     showPage('product-page');
-    const codes = [0, 1, 2].map(i => (ingredients && ingredients[i]) || 'Empty');
-    document.querySelectorAll('.ingredient-btn').forEach(btn => {
-        const on = codes[Number(btn.dataset.target?.replace('part', '')) - 1] === btn.dataset.name;
-        btn.classList.toggle('selected', on && !btn.classList.contains('is-out'));
-    });
+    setMixItems(ingredients, parts);
     const input = document.getElementById('mix-name');
     if (input && name !== undefined) input.value = name || '';
-    validateSelection();
     setMixerStep(step || firstOpenMixerStep(), { scroll: false });
 }
 
-/* Z encyklopedie: vybere jednu ingredienci a pustí tě na první krok, který chybí. */
+/* Z encyklopedie: přidá surovinu do rozdělané směsi a otevře její krok. */
 function mixWith(code) {
-    const btn = document.querySelector(`.ingredient-btn[data-name="${String(code).replace(/["\\]/g, '')}"]`);
-    if (!btn) { showPage('product-page'); return; }
-    const idx = Number(btn.dataset.target.replace('part', '')) - 1;
-    const current = [1, 2, 3].map(n => document.querySelector(`.ingredient-btn[data-target="part${n}"].selected`)?.dataset.name || 'Empty');
-    current[idx] = code;
-    openInMixer(current, undefined);
+    const ing = ingByCode(code);
+    if (!ing) { showPage('product-page'); return; }
+    showPage('product-page');
+    if (!mixItems.some(x => x.code === code)) toggleMixItem(code, { quiet: true });
+    setMixerStep(MIX_STEP_OF[ing.category] || 1, { scroll: false });
 }
 
 /* ─── SAVE BLEND ─────────────────────────────── */
@@ -1586,12 +1372,14 @@ function saveBlend() {
         id:          Date.now(),
         name:        currentProduct.name,
         ingredients: [...currentProduct.ingredients],
+        parts:       [...currentProduct.parts],
         colors:      [...currentProduct.colors],
         savedAt:     new Date().toLocaleDateString('cs-CZ')
     };
-    // Avoid exact duplicates
-    const exists = savedBlends.some(b => b.name === blend.name && b.ingredients.join() === blend.ingredients.join());
-    if (exists) { showToast(t('toast_already_saved'), '📌'); return; }
+    if (!blend.ingredients.length) { showToast(t('bar_empty'), '👆'); return; }
+    const same = b => b.name === blend.name && b.ingredients.join('|') === blend.ingredients.join('|')
+        && (b.parts || []).join() === blend.parts.join();
+    if (savedBlends.some(same)) { showToast(t('toast_already_saved'), '📌'); return; }
     savedBlends.unshift(blend);
     if (savedBlends.length > 20) savedBlends.pop(); // max 20
     localStorage.setItem('teaseyou_saved', JSON.stringify(savedBlends));
@@ -1601,7 +1389,7 @@ function saveBlend() {
 /* ─── SHARE BLEND ────────────────────────────── */
 function shareBlend() {
     const url  = buildBlendUrl();
-    const ings = currentProduct.ingredients.filter(i => i !== 'Empty').map(tIng).join(', ');
+    const ings = currentProduct.ingredients.map(tIng).join(', ');
     const text = LANG === 'cs'
         ? `Mrkni na můj čaj „${currentProduct.name}" — ${ings} — namíchaný na Tease you 🍵`
         : `Check out my tea blend "${currentProduct.name}" — ${ings} — made on Tease you 🍵`;
@@ -1628,12 +1416,11 @@ function renderSavedBlends() {
     savedBlends.forEach(blend => {
         const card = document.createElement('article');
         card.className = 'saved-item';
-        const codes = blend.ingredients.filter(i => i !== 'Empty');
         card.innerHTML = `
-            <div class="saved-pouch" aria-hidden="true">${pouchHtml({ name: blend.name, codes: blend.ingredients, size: 'pouch--xs' })}</div>
+            <div class="saved-pouch" aria-hidden="true">${pouchHtml({ name: blend.name, codes: blend.ingredients, parts: blend.parts, size: 'pouch--xs' })}</div>
             <div class="saved-text">
                 <h2 class="saved-name">${escHtml(blend.name)}</h2>
-                <p class="saved-mix">${escHtml(blendSubtitle(codes))}</p>
+                <p class="saved-mix">${escHtml(blendSubtitle(blend.ingredients))}</p>
                 <p class="saved-date">${escHtml(t('saved_date_prefix'))} ${escHtml(blend.savedAt)}</p>
             </div>
             <div class="saved-actions">
@@ -1647,8 +1434,11 @@ function renderSavedBlends() {
 function loadSavedBlend(id) {
     const blend = savedBlends.find(b => b.id === id);
     if (!blend) return;
-    currentProduct = { name: blend.name, ingredients: [...blend.ingredients], colors: [...blend.colors], priceBase: 0, weight: '' };
-    openInMixer(blend.ingredients, blend.name, 4);
+    // Suroviny, které už neprodáváme, se vynechají.
+    const keep = blend.ingredients.map((c, i) => [c, blend.parts[i]]).filter(([c]) => ingByCode(c));
+    const codes = keep.map(x => x[0]);
+    const parts = keep.length === blend.ingredients.length ? keep.map(x => x[1]) : null;
+    openInMixer(codes, blend.name, recipeOf(codes, parts, 100).ok ? 4 : 1, parts);
 }
 
 function deleteSavedBlend(id) {
@@ -1657,21 +1447,6 @@ function deleteSavedBlend(id) {
     renderSavedBlends();
     showToast(t('toast_removed'), '🗑️');
 }
-
-/* ─── ORDER MODAL ────────────────────────────── */
-function openOrderModal() {
-    const modal = document.getElementById('order-modal');
-    modal.style.display = 'flex';
-    document.getElementById('final-order-btn').disabled = true;
-    document.getElementById('final-order-btn').classList.add('disabled');
-    modal.querySelectorAll('.qty-btn').forEach(b => b.classList.remove('selected'));
-}
-function closeOrderModal() {
-    document.getElementById('order-modal').style.display = 'none';
-}
-document.getElementById('order-modal').addEventListener('click', function(e) {
-    if (e.target === this) closeOrderModal();
-});
 
 /* ─── CONFIRM ORDER → CART ───────────────────── */
 function confirmOrder() {
@@ -1684,13 +1459,19 @@ function confirmOrder() {
     }
     const soldOut = outOfStockIn(currentProduct.ingredients);
     if (soldOut.length) {
-        showToast(`${t('err_sold_out_named')} ${escHtml(soldOut.map(tIng).join(', '))}`, '🫙');
+        showToast(`${t('err_sold_out_named')} ${soldOut.map(tIng).join(', ')}`, '🫙');
         return;
     }
-    closeOrderModal();
-    // Merge with an identical line if one already exists
-    const sig = JSON.stringify([currentProduct.name, currentProduct.ingredients, currentProduct.weight, currentProduct.priceBase]);
-    const existing = cart.find(i => JSON.stringify([i.name, i.ingredients, i.weight, i.priceBase]) === sig);
+    // Stejná kontrola jako v databázi: limity z vyhlášky a druh čaje.
+    const recipe = recipeOf(currentProduct.ingredients, currentProduct.parts, parseInt(currentProduct.weight, 10));
+    if (!recipe.ok) {
+        showToast(mixErrorText(recipe), '⚠️');
+        return;
+    }
+    // Stejná směs ve stejné velikosti = jen víc kusů
+    const sigOf = i => JSON.stringify([i.name, i.ingredients, i.parts, i.weight, i.priceBase]);
+    const sig = sigOf(currentProduct);
+    const existing = cart.find(i => sigOf(i) === sig);
     if (existing) {
         existing.qty += 1;
     } else {
@@ -1698,6 +1479,7 @@ function confirmOrder() {
             id:          ++cartIdCounter,
             name:        currentProduct.name,
             ingredients: [...currentProduct.ingredients],
+            parts:       [...currentProduct.parts],
             colors:      [...currentProduct.colors],
             weight:      currentProduct.weight,
             priceBase:   currentProduct.priceBase,
@@ -1707,7 +1489,7 @@ function confirmOrder() {
     saveCart();
     updateCartBadge();
     renderCart();
-    showToast(`${currentProduct.name} ${t('toast_added_cart')}`, '🍵');
+    showToast(t('toast_in_cart').replace('{name}', currentProduct.name), '🍵');
 
     // Pulse the cart icon to confirm add
     const cartIcon = document.querySelector('.nav-cart-icon');
@@ -1757,12 +1539,11 @@ function renderCart() {
         const row = document.createElement('li');
         row.className = 'cart-item';
         const id = Number(item.id);
-        const codes = item.ingredients.filter(c => c !== 'Empty');
         row.innerHTML = `
-            <div class="cart-pouch" aria-hidden="true">${pouchHtml({ name: item.name, codes: item.ingredients, size: 'pouch--xs' })}</div>
+            <div class="cart-pouch" aria-hidden="true">${pouchHtml({ name: item.name, codes: item.ingredients, parts: item.parts, size: 'pouch--xs' })}</div>
             <div class="cart-text">
                 <h2 class="cart-name">${escHtml(item.name)}</h2>
-                <p class="cart-mix">${escHtml(blendSubtitle(codes))}</p>
+                <p class="cart-mix">${escHtml(blendSubtitle(item.ingredients))}</p>
                 <p class="cart-meta">${escHtml(parseInt(item.weight, 10) + ' g')}, ${escHtml(fmt(item.priceBase))} ${escHtml(t('per_piece'))}</p>
             </div>
             <div class="cart-qty" role="group" aria-label="${escHtml(t('cart_col_qty'))}">
@@ -1774,7 +1555,7 @@ function renderCart() {
             <button type="button" class="cart-remove" onclick="removeCartItem(${id})" aria-label="${escHtml(t('btn_remove'))} ${escHtml(item.name)}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
             </button>
-            <details class="food-info food-info--fold cart-food"><summary>${escHtml(t('food_title'))}</summary>${foodInfoRows(item.ingredients, item.weight)}</details>`;
+            <details class="food-info food-info--fold cart-food"><summary>${escHtml(t('food_title'))}</summary>${foodInfoRows(item.ingredients, item.parts, item.weight)}</details>`;
         list.appendChild(row);
     });
     updateCartTotal();
@@ -1831,7 +1612,7 @@ function renderCheckoutSummary() {
         const row = document.createElement('li');
         row.className = 'checkout-item';
         row.innerHTML = `
-            <span class="checkout-dots" aria-hidden="true">${item.ingredients.filter(c => c !== 'Empty').map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('')}</span>
+            <span class="checkout-dots" aria-hidden="true">${item.ingredients.map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('')}</span>
             <span class="checkout-item-text"><strong>${escHtml(item.name)}</strong><span>${escHtml(parseInt(item.weight, 10) + ' g')}, ${item.qty} ${escHtml(t('pieces'))}</span></span>
             <span class="checkout-item-price">${fmt(item.priceBase * item.qty)}</span>`;
         el.appendChild(row);
@@ -1923,7 +1704,7 @@ function submitOrder(e) {
     // zrušenou gramáž radši zachytíme tady než až odmítnutím z databáze.
     const soldOut = [...new Set(cart.flatMap(i => outOfStockIn(i.ingredients)))];
     if (soldOut.length) {
-        showToast(`${t('err_sold_out_named')} ${escHtml(soldOut.map(tIng).join(', '))}`, '🫙');
+        showToast(`${t('err_sold_out_named')} ${soldOut.map(tIng).join(', ')}`, '🫙');
         return;
     }
     if (cart.some(i => !PRICES[parseInt(i.weight, 10)])) {
@@ -1940,7 +1721,7 @@ function submitOrder(e) {
         num:      orderNum,
         date:     new Date().toLocaleDateString('cs-CZ'),
         created:  new Date().toISOString(),
-        items:    cart.map(i => ({ name: i.name, ingredients: [...i.ingredients], colors: [...i.colors], weight: i.weight, priceBase: i.priceBase, qty: i.qty })),
+        items:    cart.map(i => ({ name: i.name, ingredients: [...i.ingredients], parts: [...i.parts], colors: [...i.colors], weight: i.weight, priceBase: i.priceBase, qty: i.qty })),
         goods:       totals.goods,
         discount:    totals.discount,
         promo:       appliedPromo ? appliedPromo.code : null,
@@ -1997,7 +1778,7 @@ function submitOrder(e) {
         if (el) el.textContent = t('order_num_prefix') + order.num;
         const pouch = document.getElementById('success-pouch');
         const first = order.items[0];
-        if (pouch && first) pouch.innerHTML = pouchHtml({ name: first.name, codes: first.ingredients, size: 'pouch--sm' });
+        if (pouch && first) pouch.innerHTML = pouchHtml({ name: first.name, codes: first.ingredients, parts: first.parts, size: 'pouch--sm' });
 
         cart = [];
         appliedPromo = null;
@@ -2252,39 +2033,10 @@ document.addEventListener('input', e => {
     }
 });
 
-/* ─── INGREDIENT ENCYCLOPEDIA DATA ──────────────── */
-const ING_DATA = {
-    bases: [
-        { key: 'ing_green_tea',  emoji: '🍃', caffeine: 2, flavor: ['earthy','fresh','grassy'],    health: ['Antioxidants','Focus','Metabolism'], pairs: ['Mint','Lemon','Ginger'] },
-        { key: 'ing_black_tea',  emoji: '🖤', caffeine: 4, flavor: ['bold','malty','robust'],       health: ['Energy','Heart health','Gut health'], pairs: ['Vanilla','Ginger','Cinnamon'] },
-        { key: 'ing_white_tea',  emoji: '🤍', caffeine: 1, flavor: ['delicate','sweet','floral'],   health: ['Antioxidants','Skin','Anti-aging'], pairs: ['Rose','Strawberry','Honey'] },
-        { key: 'ing_oolong',     emoji: '🍵', caffeine: 3, flavor: ['complex','floral','toasty'],   health: ['Weight mgmt','Digestion','Focus'], pairs: ['Rose','Lavender','Honey'] },
-        { key: 'ing_rooibos',    emoji: '🌿', caffeine: 0, flavor: ['earthy','sweet','nutty'],      health: ['Caffeine-free','Iron-rich','Relaxing'], pairs: ['Orange','Cinnamon','Vanilla'] },
-        { key: 'ing_chamomile',  emoji: '🌼', caffeine: 0, flavor: ['floral','apple','soothing'],   health: ['Sleep','Anxiety relief','Digestion'], pairs: ['Lavender','Lemon','Honey'] },
-    ],
-    flavors: [
-        { key: 'ing_strawberry', emoji: '🍓', flavor: ['sweet','fruity','summery'],  health: ['Vitamin C','Antioxidants'], pairs: ['White Tea','Vanilla','Lemon'] },
-        { key: 'ing_mint',       emoji: '🌱', flavor: ['cooling','fresh','bright'],  health: ['Digestion','Focus','Refresh'], pairs: ['Green Tea','Lemon','Honey'] },
-        { key: 'ing_vanilla',    emoji: '🌸', flavor: ['sweet','creamy','warm'],     health: ['Mood lift','Antioxidants'], pairs: ['Black Tea','Rooibos','Cinnamon'] },
-        { key: 'ing_rose',       emoji: '🌹', flavor: ['floral','romantic','light'], health: ['Antioxidants','Mood','Skin'], pairs: ['White Tea','Oolong','Lavender'] },
-        { key: 'ing_orange',     emoji: '🍊', flavor: ['citrusy','bright','zesty'],  health: ['Vitamin C','Immunity','Energy'], pairs: ['Rooibos','Black Tea','Ginger'] },
-        { key: 'ing_blueberry',  emoji: '🫐', flavor: ['sweet','fruity','tart'],     health: ['Antioxidants','Brain health','Anti-aging'], pairs: ['Green Tea','Lemon','Mint'] },
-        { key: 'ing_raspberry',  emoji: '🍇', flavor: ['tart','fruity','vibrant'],   health: ['Vitamin C','Antioxidants','Fiber'], pairs: ['Green Tea','Mint','Lemon'] },
-        { key: 'ing_cocoa',      emoji: '🍫', flavor: ['rich','chocolatey','earthy'],health: ['Mood','Antioxidants','Energy'], pairs: ['Black Tea','Rooibos','Cinnamon'] },
-        { key: 'ing_coconut',    emoji: '🥥', flavor: ['tropical','sweet','creamy'], health: ['MCTs','Energy','Hydration'], pairs: ['Rooibos','Oolong','Vanilla'] },
-    ],
-    extras: [
-        { key: 'ing_honey',      emoji: '🍯', flavor: ['sweet','floral','warm'],     health: ['Antimicrobial','Soothing','Energy'], pairs: ['Chamomile','Green Tea','Lemon'] },
-        { key: 'ing_lemon',      emoji: '🍋', flavor: ['bright','citrusy','tart'],   health: ['Vitamin C','Detox','Immunity'], pairs: ['Green Tea','Chamomile','Ginger'] },
-        { key: 'ing_ginger',     emoji: '🫚', flavor: ['spicy','warm','zesty'],      health: ['Digestion','Anti-nausea','Anti-inflammatory'], pairs: ['Black Tea','Lemon','Honey'] },
-        { key: 'ing_lavender',   emoji: '💜', flavor: ['floral','calming','herby'],  health: ['Sleep','Stress relief','Mood'], pairs: ['Chamomile','White Tea','Honey'] },
-        { key: 'ing_turmeric',   emoji: '🌕', flavor: ['earthy','peppery','warm'],   health: ['Anti-inflammatory','Immunity','Joints'], pairs: ['Chamomile','Black Tea','Ginger'] },
-        { key: 'ing_cinnamon',   emoji: '🪵', flavor: ['warm','spicy','sweet'],      health: ['Blood sugar','Anti-inflammatory','Energy'], pairs: ['Black Tea','Rooibos','Vanilla'] },
-        { key: 'ing_spearmint',  emoji: '🌿', flavor: ['cool','sweet','mild'],       health: ['Digestion','Focus','Breath'], pairs: ['Rooibos','Green Tea','Lemon'] },
-        { key: 'ing_rose_hip',   emoji: '🔴', flavor: ['tart','fruity','tangy'],     health: ['Vitamin C','Skin','Immunity'], pairs: ['Chamomile','Rooibos','Honey'] },
-        { key: 'ing_cardamom',   emoji: '🫛', flavor: ['exotic','spicy','floral'],   health: ['Digestion','Breath','Antioxidants'], pairs: ['Black Tea','Oolong','Vanilla'] },
-    ]
-};
+/* ─── INGREDIENT DATA ──────────────── */
+/* Suroviny po skupinách. Plní je applyIngredientRows: nejdřív vestavěná
+   nabídka (BUILTIN_INGREDIENTS), pak katalog z databáze. */
+const ING_DATA = { bases: [], flavors: [], extras: [] };
 
 function renderIngredientEncyclopedia() {
     const caffeineCs = ['Bez kofeinu', 'Velmi málo kofeinu', 'Málo kofeinu', 'Středně kofeinu', 'Hodně kofeinu'];
@@ -2318,9 +2070,12 @@ function renderIngredientEncyclopedia() {
 
 /* ─── INIT ───────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-    // Katalog z minulé návštěvy hned, ať se nové ceny a nabídka ukážou bez
-    // probliknutí. Čerstvý se dotáhne na konci (refreshCatalog).
+    // Nejdřív vestavěná nabídka, pak katalog z minulé návštěvy, ať se nové
+    // ceny a nabídka ukážou bez probliknutí. Čerstvý se dotáhne na konci
+    // (refreshCatalog).
+    applyBuiltinCatalog();
     applyCachedCatalog();
+    repriceCart();
     renderIngredientButtons();
     renderBlendCards();
     applyTranslations();
@@ -2335,9 +2090,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const c = btn.getAttribute('data-color');
         if (c) btn.style.setProperty('--dot-color', c);
     });
-    // Initialize completion label with correct language
-    const completionLabel = document.getElementById('completion-label');
-    if (completionLabel) completionLabel.textContent = `0 / 3 ${t('completion_selected')}`;
     initReveal();
     applySeller();
     initBackToTop();
@@ -2424,65 +2176,30 @@ function tQuizTag(tag) {
     return l ? l[LANG === 'cs' ? 'cs' : 'en'] : tag;
 }
 
+/* Výsledky kvízu. Složení se bere z hotových směsí v katalogu (podle id),
+   tady jsou jen štítky, podle kterých se vybírá. */
 const QUIZ_BLENDS = [
-    {
-        tags:["bold","caffeine"],
-        name:"Deep Winter",
-        desc:"Black tea with warming ginger and smooth vanilla. Full-bodied and rich — best on a cold morning.",
-        desc_cs:'Černý čaj se zázvorem a vanilkou. Plný a hřejivý — nejlepší na chladné ráno.',
-        ingredients:["Black Tea","Ginger","Vanilla"],
-        colors:["#4a3b32","#ff9800","#f3e5ab"]
-    },
-    {
-        tags:["fresh","mild"],
-        name:"Morning Window",
-        desc:"Green tea with mint and lemon. Clean and bright — the kind of cup that gets the day started right.",
-        desc_cs:'Zelený čaj s mátou a citronem. Čistý a svěží — pohár co správně nastartuje den.',
-        ingredients:["Green Tea","Mint","Lemon"],
-        colors:["#8da676","#4caf50","#ffe066"]
-    },
-    {
-        tags:["herbal","calm"],
-        name:"Slow Tuesday",
-        desc:"Chamomile with turmeric and cinnamon. Earthy and warm — for when you have nowhere to be.",
-        desc_cs:'Heřmánek s kurkumou a skořicí. Zemitý a teplý — na chvíle, kdy nikam nespěcháš.',
-        ingredients:["Chamomile","Turmeric","Cinnamon"],
-        colors:["#f5d78e","#d4a017","#c8824a"]
-    },
-    {
-        tags:["citrus","fresh"],
-        name:"Open Air",
-        desc:"Rooibos with orange and spearmint. Naturally sweet and caffeine-free — good any time.",
-        desc_cs:'Rooibos s pomerančem a mátou. Přirozeně sladký a bez kofeinu — kdykoli je správný čas.',
-        ingredients:["Rooibos","Orange","Spearmint"],
-        colors:["#e8720c","#ffb347","#a8d8a8"]
-    },
-    {
-        tags:["floral","mild"],
-        name:"Late Light",
-        desc:"Oolong with rose and lavender. Soft and a little floral — for the quiet part of the afternoon.",
-        desc_cs:'Oolong s růží a levandulí. Měkký a květinový — na tichý kout odpoledne.',
-        ingredients:["Oolong Tea","Rose","Lavender"],
-        colors:["#c8a0b4","#e8607a","#b8a0cc"]
-    },
-    {
-        tags:["fruit","mild"],
-        name:"Still Evening",
-        desc:"White tea with strawberry and honey. Gently sweet and unhurried — a soft end to the day.",
-        desc_cs:'Bílý čaj s jahodou a medem. Jemně sladký a klidný — měkký závěr dne.',
-        ingredients:["White Tea","Strawberry","Honey"],
-        colors:["#f5e6d3","#cc4747","#ffc107"]
-    },
+    { id: 'deep_winter',    tags: ['bold', 'caffeine'] },
+    { id: 'morning_window', tags: ['fresh', 'mild'] },
+    { id: 'still_evening',  tags: ['herbal', 'calm'] },
+    { id: 'open_air',       tags: ['citrus', 'fresh'] },
+    { id: 'late_light',     tags: ['floral', 'mild'] },
+    { id: 'slow_tuesday',   tags: ['fruit', 'spice'] },
 ];
+function quizBlends() {
+    const all = catalogBlends.length ? catalogBlends : BUILTIN_BLENDS;
+    const list = QUIZ_BLENDS.map(q => {
+        const b = all.find(x => x.id === q.id);
+        return b && { ...b, tags: q.tags };
+    }).filter(Boolean);
+    // Hotové směsi, které kvíz nezná (přidané v administraci), kvíz ukáže
+    // jen jako „univerzální“.
+    all.filter(b => !QUIZ_BLENDS.some(q => q.id === b.id)).forEach(b => list.push({ ...b, tags: ['versatile'] }));
+    return list.filter(b => recipeOf(b.ingredients, b.parts, 100).ok);
+}
 
-const BLEND_DESCS_CS = {
-    'Morning Window': 'Zelený čaj s mátou a citronem. Čistý a svěží — pohár, který rozjede den správným způsobem.',
-    'Still Evening':  'Bílý čaj s jahodou a medem. Jemně sladký a klidný — měkký závěr dne.',
-    'Deep Winter':    'Černý čaj se zázvorem a vanilkou. Plný a hřejivý — nejlepší s oběma rukama kolem hrnku.',
-    'Late Light':     'Oolong s růží a levandulí. Měkký a trochu květinový — na ten tichý kus odpoledne.',
-    'Open Air':       'Rooibos s pomerančem a mátou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.',
-    'Slow Tuesday':   'Heřmánek s kurkumou a skořicí. Zemitý a teplý — čajový ekvivalent nicnedělání.',
-};
+/* Český popis hotové směsi podle jména (doplní se z katalogu). */
+const BLEND_DESCS_CS = {};
 
 let quizAnswerTags = [];
 let quizStep = 0;
@@ -2539,13 +2256,14 @@ function quizBack() {
 
 function renderQuizResult() {
     const body = document.getElementById('quiz-body');
-    const scored = QUIZ_BLENDS.map(blend => ({ ...blend, score: blend.tags.filter(tg => quizAnswerTags.includes(tg)).length }))
+    const scored = quizBlends().map(blend => ({ ...blend, score: blend.tags.filter(tg => quizAnswerTags.includes(tg)).length }))
         .sort((a, b) => b.score - a.score);
     const best = scored[0];
+    if (!best) { body.innerHTML = ''; return; }
     const runnerUp = scored.find(b => b.name !== best.name && b.score > 0);
     let matched = best.tags.filter(tg => quizAnswerTags.includes(tg));
     if (!matched.length) matched = best.tags.slice();
-    const descOf = b => (LANG === 'cs' && b.desc_cs ? b.desc_cs : b.desc);
+    const descOf = b => (LANG === 'cs' ? (b.desc_cs || b.desc_en) : (b.desc_en || b.desc_cs)) || '';
 
     body.innerHTML = `
         <div class="quiz-result">
@@ -2559,7 +2277,7 @@ function renderQuizResult() {
                     <button type="button" class="btn btn-link" onclick="startQuiz()">${escHtml(t('btn_try_again'))}</button>
                 </div>
             </div>
-            <figure class="quiz-stage" aria-hidden="true">${pouchHtml({ name: best.name, codes: best.ingredients, size: 'pouch--hero', weight: '100 g' })}</figure>
+            <figure class="quiz-stage" aria-hidden="true">${pouchHtml({ name: best.name, codes: best.ingredients, parts: best.parts, size: 'pouch--hero', weight: '100 g' })}</figure>
             ${runnerUp ? `
             <div class="quiz-runnerup">
                 <p>${escHtml(t('quiz_also'))}</p>
@@ -2569,105 +2287,61 @@ function renderQuizResult() {
                 </button>
             </div>` : ''}
         </div>`;
-    const price = PRICES[100] || Object.values(PRICES)[0] || 0;
-    document.getElementById('quiz-order-btn').addEventListener('click', () => openDetail(best.name, descOf(best), price, best.ingredients, best.colors));
-    document.getElementById('quiz-runnerup-btn')?.addEventListener('click', () => openDetail(runnerUp.name, descOf(runnerUp), price, runnerUp.ingredients, runnerUp.colors));
+    const priceOf = b => unitPrice(b.ingredients, b.parts, 100) || unitPrice(b.ingredients, b.parts, sortedWeights()[0]);
+    document.getElementById('quiz-order-btn').addEventListener('click', () => openDetail(best.name, descOf(best), priceOf(best), best.ingredients, null, best.parts));
+    document.getElementById('quiz-runnerup-btn')?.addEventListener('click', () => openDetail(runnerUp.name, descOf(runnerUp), priceOf(runnerUp), runnerUp.ingredients, null, runnerUp.parts));
 }
 
 /* ─── RANDOM BLEND ───────────────────────────── */
-const RANDOM_BASES    = [['part1','Green Tea','#8da676'],['part1','Black Tea','#4a3b32'],['part1','White Tea','#f5e6d3'],['part1','Oolong Tea','#c8a0b4'],['part1','Rooibos','#e8720c'],['part1','Chamomile','#f5d78e']];
-const RANDOM_FLAVORS  = [['part2','Strawberry','#cc4747'],['part2','Mint','#4caf50'],['part2','Vanilla','#f3e5ab'],['part2','Rose','#e8607a'],['part2','Orange','#ffb347'],['part2','Blueberry','#9b59b6'],['part2','Raspberry','#e91e8c'],['part2','Cocoa','#795548'],['part2','Coconut','#4fc3f7']];
-const RANDOM_EXTRAS   = [['part3','Honey','#ffc107'],['part3','Lemon','#ffe066'],['part3','Ginger','#ff9800'],['part3','Lavender','#b8a0cc'],['part3','Turmeric','#d4a017'],['part3','Cinnamon','#c8824a'],['part3','Spearmint','#a8d8a8'],['part3','Rose Hip','#f8bbd0'],['part3','Cardamom','#80cbc4']];
-
+/* Překvap mě: jeden základ, jedna nebo dvě příchutě a někdy doplněk. Jen ze
+   surovin skladem a jen směs, která projde pravidly (limity, druh čaje). */
 function randomBlend() {
     const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-    if (!RANDOM_BASES.length || !RANDOM_FLAVORS.length || !RANDOM_EXTRAS.length) {
-        showToast(t('toast_sold_out'), '🫙');
+    const avail = list => list.filter(i => i.inStock !== false);
+    const bases = avail(ING_DATA.bases), flavors = avail(ING_DATA.flavors), extras = avail(ING_DATA.extras);
+    for (let tries = 0; tries < 40 && bases.length; tries++) {
+        const chosen = [pick(bases)];
+        const nFlavors = Math.random() < 0.5 ? 1 : 2;
+        for (let i = 0; i < nFlavors && flavors.length; i++) chosen.push(pick(flavors));
+        if (extras.length && Math.random() < 0.6) chosen.push(pick(extras));
+        const codes = [...new Set(chosen.map(i => i.code))];
+        const parts = codes.map(c => defaultParts(ingByCode(c)));
+        if (!recipeOf(codes, parts, 100).ok) continue;
+        const randomName = pick(mixNameIdeas());
+        openInMixer(codes, randomName, 4, parts);
+        showToast(`${t('toast_random')} ${randomName}`, '🎲');
         return;
     }
-    const [,baseName,baseColor]     = pick(RANDOM_BASES);
-    const [,flavorName,flavorColor] = pick(RANDOM_FLAVORS);
-    const [,extraName,extraColor]   = pick(RANDOM_EXTRAS);
-
-    // Clear all
-    document.querySelectorAll('.ingredient-btn').forEach(b => b.classList.remove('selected'));
-
-    // Apply each
-    [[baseName,'part1',baseColor],[flavorName,'part2',flavorColor],[extraName,'part3',extraColor]].forEach(([name,partId,color]) => {
-        const btn = document.querySelector(`.ingredient-btn[data-name="${name}"]`);
-        if (btn) btn.classList.add('selected');
-        const part = document.getElementById(partId);
-        if (part) { paintLayer(part, color); fillGlassPart(partId); }
-        const idx = parseInt(partId.replace('part','')) - 1;
-        currentProduct.colors[idx]      = color;
-        currentProduct.ingredients[idx] = name;
-    });
-
-    // Random name
-    const randomName = pick(mixNameIdeas());
-    const nameInput  = document.getElementById('mix-name');
-    if (nameInput) nameInput.value = randomName;
-
-    // Update info box with base description
-    const baseBtn = document.querySelector(`[data-target="part1"][data-name="${baseName}"]`);
-    if (baseBtn) {
-        document.getElementById('info-title').innerText = baseName;
-        document.getElementById('info-text').innerText  = baseBtn.getAttribute('data-desc') || '';
-    }
-
-    animateGlass('main-glass-frame');
-    validateSelection();
-    updateGlassLabels();
-    if (typeof setMixerStep === 'function') setMixerStep(4, { scroll: false });
-    showToast(`${t('toast_random')} ${escHtml(randomName)}`, '🎲');
+    showToast(t('toast_sold_out'), '🫙');
 }
 
-/* ─── APPLY A BLEND TO THE CONFIGURATOR ──────── */
-/* Selects the matching ingredient buttons (by data-name) so the glass fills,
-   cards render and validation runs — reused by presets and shared links. */
-function applyBlendToConfigurator(ingredients, name) {
-    (ingredients || []).forEach(ing => {
-        if (!ing || ing === 'Empty') return;
-        const safe = String(ing).replace(/["\\]/g, '');
-        const btn = document.querySelector(`.ingredient-btn[data-name="${safe}"]`);
-        if (btn) btn.click();
-    });
-    if (name) {
-        const inp = document.getElementById('mix-name');
-        if (inp) { inp.value = name; inp.dispatchEvent(new Event('input', { bubbles: true })); }
-    }
-    if (typeof setMixerStep === 'function') setMixerStep(firstOpenMixerStep(), { scroll: false });
-}
-
-/* ─── QUICK-START PRESETS (mixer) ────────────── */
-const MIX_PRESETS = [
-    { emoji:'☀️', name:'Morning Window', ingredients:['Green Tea','Mint','Lemon'] },
-    { emoji:'❄️', name:'Deep Winter',    ingredients:['Black Tea','Ginger','Vanilla'] },
-    { emoji:'🌙', name:'Slow Tuesday',   ingredients:['Chamomile','Turmeric','Cinnamon'] },
-    { emoji:'🍓', name:'Still Evening',  ingredients:['White Tea','Strawberry','Honey'] },
-];
+/* ─── RYCHLÝ START Z HOTOVÉ SMĚSI (mixér, krok 1) ─── */
+/* Směsi označené v administraci jako „Rychlá volba v mixéru“. Načtou se
+   do mixéru i s díly a dají se upravit. */
+const MIX_PRESETS = [];
 function renderPresets() {
     const el = document.getElementById('preset-chips');
     if (!el) return;
-    el.innerHTML = MIX_PRESETS.map((p, i) =>
-        `<button class="preset-chip" data-preset="${i}">${p.emoji} ${escHtml(p.name)}</button>`
-    ).join('') +
-        `<button class="preset-chip preset-chip-random" data-preset="random">🎲 ${LANG === 'cs' ? 'Náhodný' : 'Random'}</button>`;
+    const list = MIX_PRESETS.filter(p => !outOfStockIn(p.ingredients).length);
+    el.hidden = !list.length;
+    el.innerHTML = list.length
+        ? `<span class="preset-label">${escHtml(t('preset_label'))}</span>`
+          + list.map((p, i) => `<button type="button" class="preset-chip" data-preset="${i}">${escHtml(p.name)}</button>`).join('')
+        : '';
     el.querySelectorAll('.preset-chip').forEach(btn => {
         btn.addEventListener('click', () => {
-            const v = btn.getAttribute('data-preset');
-            if (v === 'random') { randomBlend(); return; }
-            const p = MIX_PRESETS[+v];
-            applyBlendToConfigurator(p.ingredients, p.name);
+            const p = list[+btn.getAttribute('data-preset')];
+            openInMixer(p.ingredients, p.name, 1, p.parts);
         });
     });
 }
 
 /* ─── SHAREABLE BLEND LINK ───────────────────── */
+/* ?b=Green Tea|Mint|Lemon&p=311&n=Jméno. Starší odkazy bez p mají díly 3 + 1 + 1. */
 function buildBlendUrl() {
-    const ings = currentProduct.ingredients.filter(i => i && i !== 'Empty');
     const params = new URLSearchParams();
-    params.set('b', ings.join('|'));
+    params.set('b', currentProduct.ingredients.join('|'));
+    params.set('p', currentProduct.parts.join(''));
     const nameInput = document.getElementById('mix-name');
     const name = (nameInput && nameInput.value.trim()) ||
                  (currentProduct.name && currentProduct.name !== 'Custom Mix' ? currentProduct.name : '');
@@ -2678,11 +2352,13 @@ function loadBlendFromUrl() {
     const params = new URLSearchParams(location.search);
     const b = params.get('b');
     if (!b) return;
-    const valid = new Set([...document.querySelectorAll('.ingredient-btn')].map(x => x.getAttribute('data-name')));
-    const ings = b.split('|').map(s => s.trim()).filter(x => valid.has(x));
-    if (!ings.length) return;
-    showPage('product-page');
-    applyBlendToConfigurator(ings, params.get('n') || '');
+    const all = b.split('|').map(s => s.trim());
+    const p = (params.get('p') || '').split('').map(Number);
+    const keep = all.map((c, i) => [c, p[i]]).filter(([c]) => ingByCode(c)).slice(0, Recipe.MAX_ITEMS);
+    if (!keep.length) return;
+    const codes = keep.map(x => x[0]);
+    const parts = keep.length === all.length && p.length === all.length ? keep.map(x => x[1]) : null;
+    openInMixer(codes, params.get('n') || '', recipeOf(codes, parts, 100).ok ? 4 : 1, parts);
     setTimeout(() => showToast(LANG === 'cs' ? 'Načetli jsme sdílený blend ✨' : 'Loaded a shared blend ✨', '🔗'), 700);
     // Clean the URL so a refresh doesn't re-trigger
     history.replaceState(null, '', location.origin + location.pathname);
@@ -2702,32 +2378,50 @@ function loadBlendFromUrl() {
    Když databáze neodpoví, zůstane to, co bylo. Obchod kvůli tomu nespadne.
 */
 
-/* Hotové směsi, když databáze není napojená nebo neodpoví. Stejné jako
-   výchozí data v supabase/setup.sql. */
+/* Suroviny a hotové směsi, když databáze není napojená nebo neodpoví.
+   Stejné jako výchozí data v supabase/setup.sql (katalog v2). Mají tvar
+   řádků z databáze a projdou stejným převodem jako katalog ze Supabase. */
+const BUILTIN_INGREDIENTS = [
+    {"id": "green_tea", "code": "Green Tea", "category": "base", "name_cs": "Zelený čaj", "name_en": "Green Tea", "desc_cs": "Svěží a zemitý, nízký kofein.", "desc_en": "Fresh and earthy, light caffeine.", "emoji": "🍃", "color": "#8da676", "caffeine": 2, "flavor_cs": ["zemitá", "svěží", "travnatá"], "flavor_en": ["earthy", "fresh", "grassy"], "pairs": ["Mint", "Lemon", "Ginger", "Lemongrass"], "brew_temp": "75–80°C", "brew_time": "2–3 min", "sort": 10, "kind": "tea", "label_cs": "zelený čaj", "surcharge_czk": 0},
+    {"id": "black_tea", "code": "Black Tea", "category": "base", "name_cs": "Černý čaj", "name_en": "Black Tea", "desc_cs": "Silný a výrazný, vysoký kofein.", "desc_en": "Strong and bold, high caffeine.", "emoji": "🖤", "color": "#4a3b32", "caffeine": 4, "flavor_cs": ["výrazná", "sladová", "silná"], "flavor_en": ["bold", "malty", "robust"], "pairs": ["Orange", "Ginger", "Cinnamon", "Cardamom"], "brew_temp": "90–95°C", "brew_time": "3–4 min", "sort": 20, "kind": "tea", "label_cs": "černý čaj", "surcharge_czk": 0},
+    {"id": "white_tea", "code": "White Tea", "category": "base", "name_cs": "Bílý čaj", "name_en": "White Tea", "desc_cs": "Jemný a sladký, nízký kofein.", "desc_en": "Delicate and sweet, low caffeine.", "emoji": "🤍", "color": "#f5e6d3", "caffeine": 1, "flavor_cs": ["jemná", "sladká", "květinová"], "flavor_en": ["delicate", "sweet", "floral"], "pairs": ["Rose", "Strawberry", "Raspberry", "Lemon Balm"], "brew_temp": "75–80°C", "brew_time": "2–3 min", "sort": 30, "kind": "tea", "label_cs": "bílý čaj", "surcharge_czk": 50},
+    {"id": "oolong", "code": "Oolong Tea", "category": "base", "name_cs": "Oolong", "name_en": "Oolong Tea", "desc_cs": "Komplexní a květinový, střední kofein.", "desc_en": "Complex and floral, medium caffeine.", "emoji": "🍵", "color": "#c8a0b4", "caffeine": 3, "flavor_cs": ["komplexní", "květinová", "pražená"], "flavor_en": ["complex", "floral", "toasty"], "pairs": ["Rose", "Lavender", "Orange"], "brew_temp": "85–90°C", "brew_time": "3–4 min", "sort": 40, "kind": "tea", "label_cs": "čaj oolong", "surcharge_czk": 40},
+    {"id": "rooibos", "code": "Rooibos", "category": "base", "name_cs": "Rooibos", "name_en": "Rooibos", "desc_cs": "Zemitý a sladký, bez kofeinu.", "desc_en": "Earthy and sweet, caffeine-free.", "emoji": "🌿", "color": "#e8720c", "caffeine": 0, "flavor_cs": ["zemitá", "sladká", "oříšková"], "flavor_en": ["earthy", "sweet", "nutty"], "pairs": ["Orange", "Cinnamon", "Rose Hip"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 50, "kind": "herb", "label_cs": "rooibos", "surcharge_czk": 0},
+    {"id": "chamomile", "code": "Chamomile", "category": "base", "name_cs": "Heřmánek", "name_en": "Chamomile", "desc_cs": "Jemný, květinový, trochu jablečný. Bez kofeinu.", "desc_en": "Gentle, floral, a little like apple. Caffeine-free.", "emoji": "🌼", "color": "#f5d78e", "caffeine": 0, "flavor_cs": ["květinová", "jablečná", "jemná"], "flavor_en": ["floral", "apple", "mild"], "pairs": ["Lavender", "Lemon Balm", "Apple"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 60, "kind": "herb", "label_cs": "heřmánek (květ)", "surcharge_czk": 0},
+    {"id": "lemon_balm", "code": "Lemon Balm", "category": "base", "name_cs": "Meduňka", "name_en": "Lemon Balm", "desc_cs": "Jemně citronová a svěží, bez kofeinu.", "desc_en": "Softly lemony and fresh, caffeine-free.", "emoji": "🍀", "color": "#9cc26a", "caffeine": 0, "flavor_cs": ["citronová", "svěží", "bylinková"], "flavor_en": ["citrusy", "fresh", "herby"], "pairs": ["Chamomile", "Linden", "Mint", "Lemon"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 70, "kind": "herb", "label_cs": "meduňka (list)", "surcharge_czk": 0},
+    {"id": "linden", "code": "Linden", "category": "base", "name_cs": "Lípa", "name_en": "Linden", "desc_cs": "Medově sladký květ, bez kofeinu.", "desc_en": "Honey-sweet blossom, caffeine-free.", "emoji": "🌸", "color": "#e6d58a", "caffeine": 0, "flavor_cs": ["sladká", "květinová", "jemná"], "flavor_en": ["sweet", "floral", "delicate"], "pairs": ["Chamomile", "Lemon Balm", "Lemon"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 80, "kind": "herb", "label_cs": "lipový květ", "surcharge_czk": 0},
+    {"id": "mint", "code": "Mint", "category": "base", "name_cs": "Máta peprná", "name_en": "Peppermint", "desc_cs": "Chladivá a svěží, výrazná. Bez kofeinu.", "desc_en": "Cooling and fresh, bright. Caffeine-free.", "emoji": "🌱", "color": "#4caf50", "caffeine": 0, "flavor_cs": ["chladivá", "svěží", "jiskřivá"], "flavor_en": ["cooling", "fresh", "bright"], "pairs": ["Green Tea", "Lemon", "Lemon Balm"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 90, "kind": "herb", "label_cs": "máta peprná (list)", "surcharge_czk": 0},
+    {"id": "apple", "code": "Apple", "category": "base", "name_cs": "Jablko", "name_en": "Apple", "desc_cs": "Sladké a šťavnaté, základ ovocných čajů.", "desc_en": "Sweet and juicy, the base of fruit teas.", "emoji": "🍎", "color": "#d9a35b", "caffeine": 0, "flavor_cs": ["sladká", "ovocná", "hřejivá"], "flavor_en": ["sweet", "fruity", "warm"], "pairs": ["Cinnamon", "Hibiscus", "Rose Hip", "Strawberry"], "brew_temp": "100°C", "brew_time": "8–10 min", "sort": 100, "kind": "fruit", "label_cs": "sušená jablka", "surcharge_czk": 0},
+    {"id": "strawberry", "code": "Strawberry", "category": "flavor", "name_cs": "Jahoda", "name_en": "Strawberry", "desc_cs": "Sladká a ovocná, letní.", "desc_en": "Sweet and fruity, summery.", "emoji": "🍓", "color": "#cc4747", "flavor_cs": ["sladká", "ovocná", "letní"], "flavor_en": ["sweet", "fruity", "summery"], "pairs": ["White Tea", "Rooibos", "Mint"], "sort": 110, "kind": "fruit", "label_cs": "sušené jahody", "surcharge_czk": 25},
+    {"id": "raspberry", "code": "Raspberry", "category": "flavor", "name_cs": "Malina", "name_en": "Raspberry", "desc_cs": "Nakyslá, ovocná a živá.", "desc_en": "Tart, fruity and vibrant.", "emoji": "🍇", "color": "#e91e8c", "flavor_cs": ["nakyslá", "ovocná", "živá"], "flavor_en": ["tart", "fruity", "vibrant"], "pairs": ["Green Tea", "Hibiscus", "Mint"], "sort": 120, "kind": "fruit", "label_cs": "sušené maliny", "surcharge_czk": 25},
+    {"id": "blueberry", "code": "Blueberry", "category": "flavor", "name_cs": "Borůvka", "name_en": "Blueberry", "desc_cs": "Sladká a nakyslá, chutná jako léto.", "desc_en": "Sweet and tart, tastes like summer.", "emoji": "🫐", "color": "#9b59b6", "flavor_cs": ["sladká", "ovocná", "nakyslá"], "flavor_en": ["sweet", "fruity", "tart"], "pairs": ["Black Tea", "Apple", "Lemon"], "sort": 130, "kind": "fruit", "label_cs": "sušené borůvky", "surcharge_czk": 0},
+    {"id": "rose_hip", "code": "Rose Hip", "category": "flavor", "name_cs": "Šípek", "name_en": "Rose Hip", "desc_cs": "Nakyslý, ovocný a svěží.", "desc_en": "Tart, fruity and tangy.", "emoji": "🔴", "color": "#f8bbd0", "flavor_cs": ["nakyslá", "ovocná", "svěží"], "flavor_en": ["tart", "fruity", "tangy"], "pairs": ["Hibiscus", "Apple", "Rooibos"], "sort": 140, "kind": "fruit", "label_cs": "šípek", "surcharge_czk": 0},
+    {"id": "hibiscus", "code": "Hibiscus", "category": "flavor", "name_cs": "Ibišek", "name_en": "Hibiscus", "desc_cs": "Rubínová barva a příjemná kyselost.", "desc_en": "Ruby colour and a pleasant tartness.", "emoji": "🌺", "color": "#b0234a", "flavor_cs": ["nakyslá", "ovocná", "živá"], "flavor_en": ["tart", "fruity", "vibrant"], "pairs": ["Rose Hip", "Apple", "Strawberry"], "sort": 150, "kind": "herb", "label_cs": "ibišek (květ)", "surcharge_czk": 0},
+    {"id": "rose", "code": "Rose", "category": "flavor", "name_cs": "Růže", "name_en": "Rose", "desc_cs": "Květinová a jemná.", "desc_en": "Floral and delicate.", "emoji": "🌹", "color": "#e8607a", "flavor_cs": ["květinová", "romantická", "lehká"], "flavor_en": ["floral", "romantic", "light"], "pairs": ["White Tea", "Oolong Tea", "Lavender"], "sort": 160, "kind": "herb", "label_cs": "růže (okvětní lístky)", "surcharge_czk": 30},
+    {"id": "spearmint", "code": "Spearmint", "category": "flavor", "name_cs": "Máta klasnatá", "name_en": "Spearmint", "desc_cs": "Sladší a jemnější než peprná.", "desc_en": "Sweeter and softer than peppermint.", "emoji": "🌿", "color": "#a8d8a8", "flavor_cs": ["chladivá", "sladká", "jemná"], "flavor_en": ["cool", "sweet", "mild"], "pairs": ["Rooibos", "Green Tea", "Lemon"], "sort": 170, "kind": "herb", "label_cs": "máta klasnatá (list)", "surcharge_czk": 0},
+    {"id": "lemongrass", "code": "Lemongrass", "category": "flavor", "name_cs": "Citronová tráva", "name_en": "Lemongrass", "desc_cs": "Vůně citronu bez kyselosti.", "desc_en": "Lemon scent without the sourness.", "emoji": "🌾", "color": "#c9d77b", "flavor_cs": ["citrusová", "svěží", "travnatá"], "flavor_en": ["citrusy", "fresh", "grassy"], "pairs": ["Green Tea", "Ginger", "Lemon Balm"], "sort": 180, "kind": "herb", "label_cs": "citronová tráva (list)", "max_pct": 30, "surcharge_czk": 0},
+    {"id": "fennel", "code": "Fennel", "category": "flavor", "name_cs": "Fenykl", "name_en": "Fennel", "desc_cs": "Nasládlý, s tónem anýzu.", "desc_en": "Sweetish, with a hint of anise.", "emoji": "✳️", "color": "#a4b36b", "flavor_cs": ["sladká", "kořeněná", "jemná"], "flavor_en": ["sweet", "spicy", "mild"], "pairs": ["Chamomile", "Mint", "Lemon Balm"], "sort": 190, "kind": "herb", "label_cs": "fenykl (plod)", "surcharge_czk": 0},
+    {"id": "orange", "code": "Orange", "category": "extra", "name_cs": "Pomerančová kůra", "name_en": "Orange Peel", "desc_cs": "Citrusová, svěží a šťavnatá.", "desc_en": "Citrusy, bright and zesty.", "emoji": "🍊", "color": "#ffb347", "flavor_cs": ["citrusová", "jiskřivá", "osvěžující"], "flavor_en": ["citrusy", "bright", "zesty"], "pairs": ["Rooibos", "Black Tea", "Cinnamon"], "sort": 200, "kind": "fruit", "label_cs": "pomerančová kůra", "max_pct": 30, "surcharge_czk": 0},
+    {"id": "lemon", "code": "Lemon", "category": "extra", "name_cs": "Citronová kůra", "name_en": "Lemon Peel", "desc_cs": "Svěží, citrusová a nakyslá.", "desc_en": "Bright, citrusy and tart.", "emoji": "🍋", "color": "#ffe066", "flavor_cs": ["jiskřivá", "citrusová", "nakyslá"], "flavor_en": ["bright", "citrusy", "tart"], "pairs": ["Green Tea", "Chamomile", "Ginger"], "sort": 210, "kind": "fruit", "label_cs": "citronová kůra", "max_pct": 30, "surcharge_czk": 0},
+    {"id": "ginger", "code": "Ginger", "category": "extra", "name_cs": "Zázvor", "name_en": "Ginger", "desc_cs": "Pikantní, hřejivý a svěží.", "desc_en": "Spicy, warm and zesty.", "emoji": "🫚", "color": "#ff9800", "flavor_cs": ["kořeněná", "hřejivá", "osvěžující"], "flavor_en": ["spicy", "warm", "zesty"], "pairs": ["Black Tea", "Lemon", "Lemongrass"], "sort": 220, "kind": "herb", "label_cs": "zázvor (kořen)", "max_pct": 30, "surcharge_czk": 0},
+    {"id": "cinnamon", "code": "Cinnamon", "category": "extra", "name_cs": "Skořice", "name_en": "Cinnamon", "desc_cs": "Hřejivá, kořeněná a sladká.", "desc_en": "Warm, spicy and sweet.", "emoji": "🪵", "color": "#c8824a", "flavor_cs": ["hřejivá", "kořeněná", "sladká"], "flavor_en": ["warm", "spicy", "sweet"], "pairs": ["Black Tea", "Apple", "Rooibos"], "sort": 230, "kind": "herb", "label_cs": "skořice", "max_pct": 30, "surcharge_czk": 0},
+    {"id": "lavender", "code": "Lavender", "category": "extra", "name_cs": "Levandule", "name_en": "Lavender", "desc_cs": "Výrazně květinová, stačí špetka.", "desc_en": "Strongly floral, a pinch is enough.", "emoji": "💜", "color": "#b8a0cc", "flavor_cs": ["květinová", "bylinková", "výrazná"], "flavor_en": ["floral", "herby", "bold"], "pairs": ["Chamomile", "White Tea", "Lemon Balm"], "sort": 240, "kind": "herb", "label_cs": "levandule (květ)", "max_pct": 5, "surcharge_czk": 0},
+    {"id": "cardamom", "code": "Cardamom", "category": "extra", "name_cs": "Kardamom", "name_en": "Cardamom", "desc_cs": "Exotický, kořeněný a květinový. Stačí špetka.", "desc_en": "Exotic, spicy and floral. A pinch is enough.", "emoji": "🫛", "color": "#80cbc4", "flavor_cs": ["exotická", "kořeněná", "květinová"], "flavor_en": ["exotic", "spicy", "floral"], "pairs": ["Black Tea", "Oolong Tea", "Cinnamon"], "sort": 250, "kind": "herb", "label_cs": "kardamom (semeno)", "max_pct": 5, "surcharge_czk": 80},
+];
 const BUILTIN_BLENDS = [
-    { id: 'morning_window', name: 'Morning Window', emoji: '☀️', is_preset: true,  ingredients: ['Green Tea', 'Mint', 'Lemon'],
-      desc_cs: 'Zelený čaj s mátou a citronem. Čistý a svěží — pohár, který rozjede den správným způsobem.',
-      desc_en: 'Green tea with mint and lemon. Clean and bright — the kind of cup that gets the day started right.' },
-    { id: 'still_evening',  name: 'Still Evening',  emoji: '🍓', is_preset: true,  ingredients: ['White Tea', 'Strawberry', 'Honey'],
-      desc_cs: 'Bílý čaj s jahodou a medem. Jemně sladký a klidný — měkký závěr dne.',
-      desc_en: 'White tea with strawberry and honey. Gently sweet and unhurried — a soft end to the day.' },
-    { id: 'deep_winter',    name: 'Deep Winter',    emoji: '❄️', is_preset: true,  ingredients: ['Black Tea', 'Ginger', 'Vanilla'],
-      desc_cs: 'Černý čaj se zázvorem a vanilkou. Plný a hřejivý — nejlepší s oběma rukama kolem hrnku.',
-      desc_en: 'Black tea with ginger and vanilla. Full and warming — best with both hands around the mug.' },
-    { id: 'late_light',     name: 'Late Light',     emoji: '🌅', is_preset: false, ingredients: ['Oolong Tea', 'Rose', 'Lavender'],
-      desc_cs: 'Oolong s růží a levandulí. Měkký a trochu květinový — na ten tichý kus odpoledne.',
-      desc_en: 'Oolong with rose and lavender. Soft and a little floral — for the quiet part of the afternoon.' },
-    { id: 'open_air',       name: 'Open Air',       emoji: '🌿', is_preset: false, ingredients: ['Rooibos', 'Orange', 'Spearmint'],
-      desc_cs: 'Rooibos s pomerančem a mátou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.',
-      desc_en: 'Rooibos with orange and spearmint. Naturally sweet and caffeine-free — good any time.' },
-    { id: 'slow_tuesday',   name: 'Slow Tuesday',   emoji: '🌙', is_preset: true,  ingredients: ['Chamomile', 'Turmeric', 'Cinnamon'],
-      desc_cs: 'Heřmánek s kurkumou a skořicí. Zemitý a teplý — čajový ekvivalent nicnedělání.',
-      desc_en: 'Chamomile with turmeric and cinnamon. Earthy and warm — the tea equivalent of doing nothing.' },
+    {"id": "morning_window", "name": "Morning Window", "emoji": "☀️", "is_preset": true, "sort": 10, "ingredients": ["Green Tea", "Mint", "Lemon"], "parts": [3, 1, 1], "desc_cs": "Zelený čaj s mátou peprnou a citronovou kůrou. Čistý a svěží — pohár, který rozjede den.", "desc_en": "Green tea with peppermint and lemon peel. Clean and bright — the cup that gets the day going."},
+    {"id": "still_evening", "name": "Still Evening", "emoji": "🌙", "is_preset": true, "sort": 20, "ingredients": ["Chamomile", "Lemon Balm", "Lavender"], "parts": [2, 2, 1], "desc_cs": "Heřmánek a meduňka se špetkou levandule. Jemný, květinový a bez kofeinu — na konec dne.", "desc_en": "Chamomile and lemon balm with a pinch of lavender. Gentle, floral and caffeine-free — for the end of the day."},
+    {"id": "deep_winter", "name": "Deep Winter", "emoji": "❄️", "is_preset": true, "sort": 30, "ingredients": ["Black Tea", "Ginger", "Cinnamon"], "parts": [3, 1, 1], "desc_cs": "Černý čaj se zázvorem a skořicí. Plný a hřejivý — nejlepší s oběma rukama kolem hrnku.", "desc_en": "Black tea with ginger and cinnamon. Full and warming — best with both hands around the mug."},
+    {"id": "late_light", "name": "Late Light", "emoji": "🌅", "is_preset": false, "sort": 40, "ingredients": ["Oolong Tea", "Rose", "Lavender"], "parts": [3, 1, 1], "desc_cs": "Oolong s růží a špetkou levandule. Měkký a trochu květinový — na ten tichý kus odpoledne.", "desc_en": "Oolong with rose and a pinch of lavender. Soft and a little floral — for the quiet part of the afternoon."},
+    {"id": "open_air", "name": "Open Air", "emoji": "🌿", "is_preset": false, "sort": 50, "ingredients": ["Rooibos", "Orange", "Spearmint"], "parts": [3, 1, 1], "desc_cs": "Rooibos s pomerančovou kůrou a mátou klasnatou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.", "desc_en": "Rooibos with orange peel and spearmint. Naturally sweet and caffeine-free — good any time."},
+    {"id": "slow_tuesday", "name": "Slow Tuesday", "emoji": "🍎", "is_preset": true, "sort": 60, "ingredients": ["Apple", "Hibiscus", "Rose Hip", "Cinnamon"], "parts": [3, 1, 1, 1], "desc_cs": "Jablko s ibiškem, šípkem a skořicí. Ovocný a hřejivý — čajový ekvivalent nicnedělání.", "desc_en": "Apple with hibiscus, rose hip and cinnamon. Fruity and warming — the tea equivalent of doing nothing."},
 ];
 
 const CATALOG_CACHE_KEY  = 'teaseyou_catalog_v1';
 const CATALOG_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;   // starší cache už nebereme
-const ING_GROUPS = { bases: 'part1', flavors: 'part2', extras: 'part3' };
+/* Skupina suroviny → krok mixéru, ve kterém se vybírá. */
+const MIX_STEP_OF = { base: 1, flavor: 2, extra: 3 };
+const MIX_GROUP_OF_STEP = { 1: 'bases', 2: 'flavors', 3: 'extras' };
 const ING_CATEGORY_GROUP = { base: 'bases', flavor: 'flavors', extra: 'extras' };
 
 let catalogLoaded   = false;   // true = nabídka pochází z databáze (živě nebo z cache)
@@ -2766,6 +2460,7 @@ Object.assign(TRANSLATIONS.cs, {
     err_pickup_point:         'Vyber prosím výdejní místo Zásilkovny.',
     err_shipping_unavailable: 'Tenhle způsob dopravy teď nenabízíme. Vyber prosím jiný.',
     err_unknown_ingredient:   'Některá ingredience v košíku už není v nabídce. Odeber prosím tu položku.',
+    err_invalid_recipe:       'Složení jedné směsi v košíku už neprojde pravidly (nejvyšší podíly surovin). Otevři ji v mixéru a uprav, nebo ji odeber.',
     promo_checking:           'Ověřuji kód…',
     promo_check_failed:       'Kód se teď nepodařilo ověřit. Zkus to prosím za chvíli.',
     promo_expired:            'Slevový kód z minula už neplatí, odebrali jsme ho.',
@@ -2784,6 +2479,7 @@ Object.assign(TRANSLATIONS.en, {
     err_pickup_point:         'Please choose a Zásilkovna pickup point.',
     err_shipping_unavailable: 'This shipping method is not available right now. Please choose another one.',
     err_unknown_ingredient:   'An ingredient in your cart is no longer available. Please remove that item.',
+    err_invalid_recipe:       'One blend in your cart no longer passes the recipe rules. Open it in the mixer and adjust it, or remove it.',
     promo_checking:           'Checking the code…',
     promo_check_failed:       'We could not verify the code right now. Please try again shortly.',
     promo_expired:            'Your discount code from last time is no longer valid, so we removed it.',
@@ -2795,13 +2491,60 @@ function safePhoto(url) {
     return typeof url === 'string' && /^https:\/\/[^\s"'()<>\\]+$/.test(url) ? url : '';
 }
 function allIngredients() { return [...ING_DATA.bases, ...ING_DATA.flavors, ...ING_DATA.extras]; }
+/* Jen suroviny, které jsou teď v nabídce. Vyřazené (třeba med) vrací null. */
 function ingByCode(code) {
-    const key = ING_KEYS[code];
-    return key ? allIngredients().find(i => i.key === key) || null : null;
+    return allIngredients().find(i => i.code === code) || null;
 }
 function ingColor(code) { const i = ingByCode(code); return i && i.color ? i.color : null; }
-function isOutOfStock(code) { const i = ingByCode(code); return !!i && i.inStock === false; }
+/* Vyprodaná, nebo už vůbec není v nabídce: obojí se teď nedá koupit. */
+function isOutOfStock(code) { const i = ingByCode(code); return !i || i.inStock === false; }
 function outOfStockIn(codes) { return (codes || []).filter(c => c && c !== 'Empty' && isOutOfStock(c)); }
+
+/* ─── Receptura (výpočet je v recipe.js, stejný jako v databázi) ─── */
+function recipeInfo(code) {
+    const ing = ingByCode(code);
+    if (!ing) return null;
+    return { kind: ing.kind || (ing.category === 'base' ? 'tea' : 'herb'), maxPct: ing.maxPct, surcharge: ing.surcharge || 0 };
+}
+function recipeOf(codes, parts, weight) {
+    return Recipe.evaluate(codes, parts, recipeInfo, parseInt(weight, 10) || 0);
+}
+/* Cena sáčku: ceník podle gramáže + příplatek za prémiové suroviny. */
+function unitPrice(codes, parts, weight) {
+    const w = parseInt(weight, 10);
+    if (!PRICES[w]) return 0;
+    return PRICES[w] + recipeOf(codes, parts, w).surcharge;
+}
+function isPinchIng(ing) { return !!ing && Recipe.isPinch(ing.maxPct); }
+function defaultParts(ing) { return ing && ing.category === 'base' ? 3 : 1; }
+/* 16.5 g → „16,5 g“ */
+function fmtGrams(g) {
+    const n = Math.round(g * 10) / 10;
+    return (LANG === 'cs' ? String(n).replace('.', ',') : String(n)) + ' g';
+}
+/* Louhování podle hlavní suroviny, která má vlastní teplotu a čas. */
+function brewFor(codes, parts) {
+    const r = recipeOf(codes, parts, 100);
+    const main = r.rows.slice().sort((a, b) => b.pct - a.pct).map(x => x.code).find(c => BREW[c])
+        || (codes || []).find(c => BREW[c]);
+    return BREW[main] || { temp: '90–95°C', time: '3–4 min' };
+}
+/* Proč směs nejde objednat, lidsky. */
+function mixErrorText(r) {
+    switch (r && r.error) {
+        case 'over_limit': {
+            const ing = ingByCode(r.errorCode);
+            return t('mix_over_limit').replace('{name}', tIng(r.errorCode)).replace('{max}', ing && ing.maxPct ? ing.maxPct : '');
+        }
+        case 'no_category':    return t('mix_no_category');
+        case 'no_main':        return t('mix_no_main');
+        case 'too_many':       return t('mix_full');
+        case 'too_many_pinch': return t('mix_pinch_full');
+        case 'empty':          return t('bar_empty');
+        case 'unknown':        return t('err_unknown_ingredient');
+        default:               return t('toast_order_failed');
+    }
+}
 function ingVisual(ing, cls) {
     const photo = safePhoto(ing && ing.photo);
     if (photo) return `<img class="${cls}-photo" src="${escHtml(photo)}" alt="" loading="lazy" decoding="async">`;
@@ -2821,7 +2564,6 @@ function blendSubtitle(codes) {
    a web je dosadí do podmínek, patičky a informací o potravině. */
 const SELLER = { name: '', ico: '', address: '', email: 'hello@teaseyou.cz', phone: '' };
 let COD_FEE = 39;                                  // Kč, příplatek za dobírku
-const RECIPE = { base: 70, flavor: 20, extra: 10 }; // podíl základu, příchutě a doplňku v %
 let DURABILITY_MONTHS = 12;
 // Prodej je zapnutý, až to admin přepne (Ceny a doprava → Prodej). Do té doby
 // web ukazuje „Připravujeme spuštění“ a pokladna je zavřená. Databáze to hlídá taky.
@@ -2838,10 +2580,6 @@ function applyShopSettings(st) {
     const mail = str(st.seller_email, 120);
     SELLER.email   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail) ? mail : 'hello@teaseyou.cz';
     if (Number.isInteger(st.cod_fee_czk) && st.cod_fee_czk >= 0) COD_FEE = st.cod_fee_czk;
-    const b = st.recipe_base_pct, f = st.recipe_flavor_pct, e = st.recipe_extra_pct;
-    if ([b, f, e].every(Number.isInteger) && b >= 1 && f >= 0 && e >= 0 && b + f + e === 100) {
-        Object.assign(RECIPE, { base: b, flavor: f, extra: e });
-    }
     if (Number.isInteger(st.durability_months) && st.durability_months >= 1 && st.durability_months <= 36) {
         DURABILITY_MONTHS = st.durability_months;
     }
@@ -2893,75 +2631,45 @@ function applySeller() {
    EU 1169/2011, vyhláška 187/2023 Sb.): název podle složení, složení
    s procenty, alergeny, hmotnost, trvanlivost, skladování a kdo směs vyrobil.
 
-   Vestavěné hodnoty platí, dokud je nepřepíše administrace:
-   [druh, název ve složení, nejvyšší podíl v %]. */
-const LABEL_DEFAULTS = {
-    'Green Tea':  ['tea', 'zelený čaj'],          'Black Tea':  ['tea', 'černý čaj'],
-    'White Tea':  ['tea', 'bílý čaj'],            'Oolong Tea': ['tea', 'čaj oolong'],
-    'Rooibos':    ['herb', 'rooibos'],            'Chamomile':  ['herb', 'heřmánek (květ)'],
-    'Strawberry': ['fruit', 'sušené jahody'],     'Mint':       ['herb', 'máta (list)'],
-    'Vanilla':    ['herb', 'vanilka'],            'Rose':       ['herb', 'růže (okvětní lístky)'],
-    'Orange':     ['fruit', 'pomerančová kůra', 30], 'Blueberry': ['fruit', 'sušené borůvky'],
-    'Raspberry':  ['fruit', 'sušené maliny'],     'Cocoa':      ['herb', 'kakaové slupky'],
-    'Coconut':    ['fruit', 'sušený kokos'],      'Honey':      ['other', 'med'],
-    'Lemon':      ['fruit', 'citronová kůra', 30], 'Ginger':    ['herb', 'zázvor'],
-    'Lavender':   ['herb', 'levandule (květ)', 5], 'Turmeric':  ['herb', 'kurkuma', 5],
-    'Cinnamon':   ['herb', 'skořice'],            'Spearmint':  ['herb', 'máta klasnatá (list)'],
-    'Rose Hip':   ['fruit', 'šípek'],             'Cardamom':   ['herb', 'kardamom', 5],
-};
-
+   Druh, název ve složení a limit každé suroviny jsou v katalogu (admin,
+   Ingredience → Na etiketu). Podíly počítá recipe.js. */
 function ingLabelInfo(code) {
     const ing = ingByCode(code) || {};
-    const d = LABEL_DEFAULTS[code] || [];
     return {
-        kind:      ing.kind || d[0] || (ing.category === 'base' ? 'tea' : 'herb'),
-        label:     ing.label || d[1] || tIng(code).toLocaleLowerCase('cs'),
-        maxPct:    ing.maxPct || d[2] || null,
+        kind:      ing.kind || (ing.category === 'base' ? 'tea' : 'herb'),
+        label:     ing.label || tIng(code).toLocaleLowerCase('cs'),
+        maxPct:    ing.maxPct || null,
         allergens: ing.allergens || '',
     };
 }
 
-/* Podíly surovin podle receptury. Pozice 0 je základ, 1 příchuť, 2 doplněk.
-   Chybějící díl připadne základu, stejně jako to, co je nad limit
-   z vyhlášky (levandule nejvýš 5 % a podobně). Seřazené od největšího. */
-function blendComposition(codes) {
-    const slots = [0, 1, 2].map(i => (codes && codes[i] && codes[i] !== 'Empty' ? codes[i] : null));
-    if (!slots[0]) return [];
-    const share = [RECIPE.base, RECIPE.flavor, RECIPE.extra];
-    const pct = [0, 0, 0];
-    slots.forEach((c, i) => { if (c) pct[i] += share[i]; else pct[0] += share[i]; });
-    for (let i = 1; i < 3; i++) {
-        const max = slots[i] && ingLabelInfo(slots[i]).maxPct;
-        if (max && pct[i] > max) { pct[0] += pct[i] - max; pct[i] = max; }
-    }
-    const merged = new Map();
-    slots.forEach((c, i) => { if (c) merged.set(c, (merged.get(c) || 0) + pct[i]); });
-    return [...merged].map(([code, p]) => Object.assign({ code, pct: p }, ingLabelInfo(code)))
-        .sort((a, b) => b.pct - a.pct);
+/* Složení seřazené od největšího podílu (nařízení 1169/2011, čl. 18).
+   K poli jsou přilepené výsledky kontroly: ok, error, category. */
+function blendComposition(codes, parts) {
+    const r = recipeOf(codes, parts, 100);
+    if (!r.rows.length || ['empty', 'unknown', 'too_many', 'duplicate'].includes(r.error)) return [];
+    const comp = r.rows.map(row => Object.assign({ code: row.code, pct: row.pct, pinch: row.pinch }, ingLabelInfo(row.code)))
+        .sort((x, y) => y.pct - x.pct);
+    return Object.assign(comp, { ok: r.ok, error: r.error, errorCode: r.errorCode, category: r.category, teaOnly: r.teaOnly });
 }
 
-/* Název podle vyhlášky 187/2023 Sb., § 2: pravý čaj s přísadami do 50 % je
-   „ochucený čaj“, víc než polovina bylin „bylinný čaj“, víc než polovina
-   sušeného ovoce „ovocný čaj“. */
+/* Název podle vyhlášky 187/2023 Sb., § 2: pravý čaj aspoň z poloviny je
+   (ochucený) čaj, víc než polovina bylin bylinný čaj, víc než polovina
+   sušeného ovoce ovocný čaj. Jinak směs nemá druh a neprodává se (null). */
 function legalBlendName(comp) {
-    const sum = kind => comp.filter(c => c.kind === kind).reduce((s, c) => s + c.pct, 0);
-    const teas = comp.filter(c => c.kind === 'tea');
-    const tea = sum('tea');
+    if (!comp || !comp.length || !comp.category) return null;
     const cap = str => str.charAt(0).toLocaleUpperCase('cs') + str.slice(1);
-    if (tea >= 50) {
+    if (comp.category === 'tea') {
+        const teas = comp.filter(c => c.kind === 'tea');
         const group = teas.length === 1 ? teas[0].label : 'čaj';
-        return tea === 100 ? cap(group) : 'Ochucený ' + group;
+        return comp.teaOnly ? cap(group) : 'Ochucený ' + group;
     }
-    const herb = sum('herb'), fruit = sum('fruit');
-    if (herb > 50) return 'Bylinný čaj';
-    if (fruit > 50) return 'Ovocný čaj';
-    // Nic nepřesahuje polovinu (jen při neobvyklé receptuře): podle většiny.
-    return fruit > herb ? 'Ovocný čaj' : 'Bylinný čaj';
+    return comp.category === 'herb' ? 'Bylinný čaj' : 'Ovocný čaj';
 }
 
-function foodInfo(codes) {
-    const comp = blendComposition(codes);
-    if (!comp.length) return null;
+function foodInfo(codes, parts) {
+    const comp = blendComposition(codes, parts);
+    if (!comp.length || !comp.ok) return null;
     const name = legalBlendName(comp);
     const allergens = [...new Set(comp.flatMap(c => c.allergens.split(/[,;]/).map(a => a.trim()).filter(Boolean)
         .filter(a => !/^(žádné|zadne|none|-)$/i.test(a))))];
@@ -2973,12 +2681,11 @@ function foodInfo(codes) {
     };
 }
 
-function foodInfoRows(codes, weight) {
-    const info = foodInfo(codes);
+function foodInfoRows(codes, parts, weight) {
+    const info = foodInfo(codes, parts);
     if (!info) return '';
     const g = parseInt(weight, 10);
-    const base = codes && codes[0];
-    const brew = BREW[base] || { temp: '90–95°C', time: '3–4 min' };
+    const brew = brewFor(codes, parts);
     const maker = [SELLER.name, SELLER.address].filter(Boolean).join(', ');
     const herbalWithTea = info.comp.some(c => c.kind === 'tea') && /^(Bylinný|Ovocný)/.test(info.name);
     const rows = [
@@ -2996,9 +2703,9 @@ function foodInfoRows(codes, weight) {
 }
 
 /* Vyplní blok s informacemi. U <details> zůstane shrnutí nahoře. */
-function renderFoodInfo(el, codes, weight) {
+function renderFoodInfo(el, codes, parts, weight) {
     if (!el) return;
-    const rows = foodInfoRows(codes, weight);
+    const rows = foodInfoRows(codes, parts, weight);
     el.hidden = !rows;
     if (!rows) { el.innerHTML = ''; return; }
     if (el.tagName === 'DETAILS') {
@@ -3010,23 +2717,6 @@ function renderFoodInfo(el, codes, weight) {
     }
 }
 
-/* Vestavěná data doplníme o to, co bylo dřív jen v HTML (barva, skupina,
-   vnitřní název), ať se s nimi pracuje stejně jako s daty z databáze. */
-(function enrichBuiltinIngredients() {
-    const colorByCode = {};
-    [...RANDOM_BASES, ...RANDOM_FLAVORS, ...RANDOM_EXTRAS].forEach(([, code, color]) => { colorByCode[code] = color; });
-    const codeByKey = Object.fromEntries(Object.entries(ING_KEYS).map(([code, key]) => [key, code]));
-    [['bases', 'base'], ['flavors', 'flavor'], ['extras', 'extra']].forEach(([group, category]) => {
-        ING_DATA[group].forEach(ing => {
-            ing.code = codeByKey[ing.key];
-            ing.category = category;
-            ing.color = colorByCode[ing.code] || '#cccccc';
-            ing.inStock = true;
-            ing.photo = '';
-        });
-    });
-})();
-
 /* ─── Převzetí dat z databáze ──────────────── */
 function validCatalog(c) {
     return !!c && typeof c === 'object'
@@ -3034,21 +2724,14 @@ function validCatalog(c) {
         && Array.isArray(c.prices) && Array.isArray(c.shipping);
 }
 
-/* Přepíše data webu podle katalogu. Nic nevykresluje (to dělá
-   renderCatalogDom). Vrací false, když katalog nedává smysl — třeba když
-   v databázi zrovna chybí ceník — a pak web jede dál s tím, co měl. */
-function applyCatalog(c) {
-    if (!validCatalog(c)) return false;
-    const rows = c.ingredients
+/* Suroviny z katalogu: překlady, barvy, druh, limity a příplatky. Vrací
+   false, když v některé skupině nic není (mixér by neměl z čeho míchat). */
+function applyIngredientRows(list) {
+    const rows = (list || [])
         .filter(r => r && r.active !== false && ING_CATEGORY_GROUP[r.category]
             && typeof r.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9 ]{0,39}$/.test(r.code || ''))
         .sort(bySort);
-    const prices = c.prices
-        .filter(p => p && p.active !== false && Number.isInteger(p.weight_g) && p.weight_g > 0
-            && Number.isFinite(p.price_czk) && p.price_czk > 0)
-        .sort((a, b) => a.weight_g - b.weight_g);
-    const hasEachGroup = ['base', 'flavor', 'extra'].every(cat => rows.some(r => r.category === cat));
-    if (!hasEachGroup || !prices.length) return false;
+    if (!['base', 'flavor', 'extra'].every(cat => rows.some(r => r.category === cat))) return false;
 
     const groups = { bases: [], flavors: [], extras: [] };
     rows.forEach(r => {
@@ -3073,6 +2756,7 @@ function applyCatalog(c) {
             label:     typeof r.label_cs === 'string' ? r.label_cs.trim() : '',
             maxPct:    Number.isInteger(r.max_pct) && r.max_pct > 0 && r.max_pct <= 100 ? r.max_pct : null,
             allergens: typeof r.allergens === 'string' ? r.allergens.trim() : '',
+            surcharge: Number.isInteger(r.surcharge_czk) && r.surcharge_czk > 0 ? r.surcharge_czk : 0,
         };
         if (r.category === 'base') {
             if (Number.isInteger(r.caffeine)) ing.caffeine = Math.max(0, Math.min(5, r.caffeine));
@@ -3085,15 +2769,46 @@ function applyCatalog(c) {
     ING_DATA.bases   = groups.bases;
     ING_DATA.flavors = groups.flavors;
     ING_DATA.extras  = groups.extras;
+    return true;
+}
 
-    // Náhodný mix vybírá jen z toho, co je skladem.
-    const refill = (arr, list, part) => {
-        arr.length = 0;
-        list.filter(i => i.inStock).forEach(i => arr.push([part, i.code, i.color]));
-    };
-    refill(RANDOM_BASES,   groups.bases,   'part1');
-    refill(RANDOM_FLAVORS, groups.flavors, 'part2');
-    refill(RANDOM_EXTRAS,  groups.extras,  'part3');
+/* Hotové směsi: jen ty, které se dají namíchat z dnešní nabídky a projdou
+   pravidly receptury. Díly chybí u starších řádků, pak platí 3 + 1 + 1. */
+function applyBlendRows(list) {
+    catalogBlends = (list || [])
+        .filter(b => b && b.active !== false && typeof b.id === 'string' && typeof b.name === 'string'
+            && Array.isArray(b.ingredients) && b.ingredients.length && b.ingredients.every(code => ingByCode(code)))
+        .map(b => {
+            const n = Recipe.normalize(b.ingredients, b.parts);
+            return Object.assign({}, b, { ingredients: n.codes, parts: n.parts });
+        })
+        .filter(b => recipeOf(b.ingredients, b.parts, 100).ok)
+        .sort(bySort);
+    catalogBlends.forEach(b => { if (b.desc_cs) BLEND_DESCS_CS[b.name] = b.desc_cs; });
+    MIX_PRESETS.length = 0;
+    catalogBlends.filter(b => b.is_preset).forEach(b => {
+        MIX_PRESETS.push({ name: b.name, ingredients: b.ingredients.slice(), parts: b.parts.slice() });
+    });
+}
+
+/* Vestavěná nabídka, dokud nepřijde katalog (nebo když databáze není). */
+function applyBuiltinCatalog() {
+    applyIngredientRows(BUILTIN_INGREDIENTS);
+    applyBlendRows(BUILTIN_BLENDS);
+}
+
+/* Přepíše data webu podle katalogu. Nic nevykresluje (to dělá
+   renderCatalogDom). Vrací false, když katalog nedává smysl — třeba když
+   v databázi zrovna chybí ceník — a pak web jede dál s tím, co měl. */
+function applyCatalog(c) {
+    if (!validCatalog(c)) return false;
+    const prices = c.prices
+        .filter(p => p && p.active !== false && Number.isInteger(p.weight_g) && p.weight_g > 0
+            && Number.isFinite(p.price_czk) && p.price_czk > 0)
+        .sort((a, b) => a.weight_g - b.weight_g);
+    if (!prices.length) return false;
+    const before = { bases: ING_DATA.bases, flavors: ING_DATA.flavors, extras: ING_DATA.extras };
+    if (!applyIngredientRows(c.ingredients)) { Object.assign(ING_DATA, before); return false; }
 
     Object.keys(PRICES).forEach(k => delete PRICES[k]);
     prices.forEach(p => { PRICES[p.weight_g] = p.price_czk; });
@@ -3118,15 +2833,7 @@ function applyCatalog(c) {
     if (st.promo_bar_en) TRANSLATIONS.en.promo_text = st.promo_bar_en;
     else if (st.promo_bar_cs) TRANSLATIONS.en.promo_text = st.promo_bar_cs;
 
-    catalogBlends = c.blends
-        .filter(b => b && b.active !== false && typeof b.id === 'string' && typeof b.name === 'string'
-            && Array.isArray(b.ingredients) && b.ingredients.length && b.ingredients.every(code => ING_KEYS[code]))
-        .sort(bySort);
-    catalogBlends.forEach(b => { if (b.desc_cs) BLEND_DESCS_CS[b.name] = b.desc_cs; });
-    MIX_PRESETS.length = 0;
-    catalogBlends.filter(b => b.is_preset).forEach(b => {
-        MIX_PRESETS.push({ emoji: b.emoji || '🍵', name: b.name, ingredients: b.ingredients.slice() });
-    });
+    applyBlendRows(c.blends);
 
     if (Array.isArray(c.craft)) {
         catalogCraft = c.craft
@@ -3178,47 +2885,40 @@ function applySalesState() {
     if (submit) submit.disabled = !salesOpen();
 }
 
+/* Tlačítka surovin v mixéru. Vybrané podle mixItems; co mezitím zmizelo
+   z nabídky nebo se vyprodalo, ze směsi vypadne. */
 function renderIngredientButtons() {
-    let selectionChanged = false;
-    Object.entries(ING_GROUPS).forEach(([group, part]) => {
+    const before = mixItems.length;
+    mixItems = mixItems.filter(x => { const ing = ingByCode(x.code); return ing && ing.inStock !== false; });
+    Object.values(MIX_GROUP_OF_STEP).forEach(group => {
         const grid = document.querySelector(`.btn-grid[data-group="${group}"]`);
         if (!grid) return;
-        const idx = Number(part.slice(4)) - 1;
-        const chosen = currentProduct.ingredients[idx];
         grid.innerHTML = ING_DATA[group].map(ing => {
             const photo = safePhoto(ing.photo);
             const out = ing.inStock === false;
-            const selected = chosen === ing.code && !out;
+            const selected = !out && mixItems.some(x => x.code === ing.code);
             const style = `--dot-color:${ing.color};` + (photo ? `--dot-photo:url("${photo}");` : '');
             const cls = ['ingredient-btn', photo && 'has-photo', out && 'is-out', selected && 'selected'].filter(Boolean).join(' ');
-            return `<button type="button" class="${cls}" data-target="${part}" data-color="${ing.color}"`
+            const tags = [
+                ing.surcharge ? `<span class="ing-tag ing-tag--premium">${escHtml(t('mix_premium_tag'))}</span>` : '',
+                isPinchIng(ing) ? `<span class="ing-tag">${escHtml(t('mix_pinch'))}</span>` : '',
+            ].join('');
+            return `<button type="button" class="${cls}" data-color="${ing.color}"`
                 + ` data-name="${escHtml(ing.code)}" style="${escHtml(style)}" aria-pressed="${selected}"${out ? ' aria-disabled="true"' : ''}>`
                 + `<span class="ing-dot" aria-hidden="true"></span>`
-                + `<span class="ing-text"><span class="ing-name">${escHtml(t(ing.key))}</span>`
+                + `<span class="ing-text"><span class="ing-name">${escHtml(t(ing.key))}${tags}</span>`
                 + `<span class="ing-note">${escHtml(t(ing.key + '_desc') || '')}</span></span>`
                 + (out ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : '')
                 + `</button>`;
         }).join('');
-
-        // Vybraná ingredience mohla zmizet z nabídky nebo se vyprodat.
-        if (chosen && chosen !== 'Empty') {
-            const ing = ING_DATA[group].find(i => i.code === chosen);
-            const glassPart = document.getElementById(part);
-            if (!ing || ing.inStock === false) {
-                currentProduct.ingredients[idx] = 'Empty';
-                currentProduct.colors[idx] = 'transparent';
-                paintLayer(glassPart, 'transparent');
-                selectionChanged = true;
-            } else if (currentProduct.colors[idx] !== ing.color) {
-                currentProduct.colors[idx] = ing.color;
-                paintLayer(glassPart, ing.color);
-            }
-        }
     });
-    if (selectionChanged && document.getElementById('save-mix-btn')) {
-        validateSelection();
-        updateGlassLabels();
-    }
+    if (before !== mixItems.length && typeof updateMixerUI === 'function') updateMixerUI();
+}
+
+/* Nejnižší cena hotové směsi (nejmenší balení i s příplatkem). */
+function blendPriceFrom(b) {
+    const prices = sortedWeights().map(w => unitPrice(b.ingredients, b.parts, w)).filter(Boolean);
+    return prices.length ? Math.min(...prices) : 0;
 }
 
 function renderBlendCards() {
@@ -3230,15 +2930,16 @@ function renderBlendCards() {
         const photo = safePhoto(b.photo_url);
         const visual = photo
             ? `<div class="ready-photo"><img src="${escHtml(photo)}" alt="" loading="lazy" decoding="async"></div>`
-            : jarHtml(b.ingredients, 'jar--sm', b.name);
+            : pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--sm' });
         const soldOut = outOfStockIn(b.ingredients).length
             ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : '';
         const tint = ingColor(b.ingredients[1]) || ingColor(b.ingredients[0]) || '';
+        const from = blendPriceFrom(b);
         return `<article class="ready-card" role="button" tabindex="0" data-blend="${escHtml(b.id)}" aria-label="${escHtml(b.name)}">
                 <div class="ready-visual"${tint ? ` style="--tint:${escHtml(tint)}"` : ''}>${visual}</div>
                 <h3 class="ready-name">${escHtml(b.name)}</h3>
                 <p class="ready-mix">${escHtml(blendSubtitle(b.ingredients))}</p>
-                <p class="ready-foot"><span class="ready-price" data-i18n="price_from">${escHtml(t('price_from'))}</span>${soldOut}</p>
+                <p class="ready-foot"><span class="ready-price">${escHtml(from ? t('price_from_n').replace('{price}', fmt(from)) : t('price_from'))}</span>${soldOut}</p>
             </article>`;
     }).join('');
     grid.querySelectorAll('.ready-card[data-blend]').forEach(card => {
@@ -3254,8 +2955,8 @@ function openBlend(id) {
     const b = catalogBlends.find(x => x.id === id);
     if (!b) return;
     const desc = LANG === 'cs' ? (b.desc_cs || b.desc_en) : (b.desc_en || b.desc_cs);
-    const colors = b.ingredients.map(c => ingColor(c) || '#dddddd');
-    openDetail(b.name, desc || '', PRICES[100] || Object.values(PRICES)[0] || 0, b.ingredients.slice(), colors);
+    const price = unitPrice(b.ingredients, b.parts, 100) || blendPriceFrom(b);
+    openDetail(b.name, desc || '', price, b.ingredients.slice(), null, b.parts.slice());
 }
 
 /* Volá openDetail: fotka směsi místo skleničky (když ji admin nahrál)
@@ -3281,20 +2982,23 @@ function showDetailPhotoAndStock(name, ingredients) {
 function renderPriceOptions() {
     const weights = Object.keys(PRICES).map(Number).sort((a, b) => a - b);
     const current = parseInt(currentProduct.weight, 10) || 0;
+    const price = w => unitPrice(currentProduct.ingredients, currentProduct.parts, w) || PRICES[w];
     document.querySelectorAll('.qty-options:not(#mixer-sizes)').forEach(box => {
         const selectedHere = box.querySelector('.qty-btn.selected');
         box.innerHTML = weights.map(w =>
             `<button type="button" class="qty-btn${selectedHere && w === current ? ' selected' : ''}" onclick="selectQty(${w}, event)">`
-            + `${w} g<span class="qty-price">${fmt(PRICES[w])}</span></button>`
+            + `${w} g<span class="qty-price">${fmt(price(w))}</span></button>`
         ).join('');
     });
     if (current && PRICES[current]) {
-        currentProduct.priceBase = PRICES[current];
+        currentProduct.priceBase = price(current);
+        const add = document.getElementById('detail-add-btn');
+        if (add) add.textContent = t('add_for').replace('{price}', fmt(currentProduct.priceBase));
     } else if (current) {
         // Vybraná gramáž zmizela z ceníku — výběr zrušit.
         currentProduct.weight = '';
         currentProduct.priceBase = 0;
-        ['detail-add-btn', 'final-order-btn', 'summary-order-btn'].forEach(id => {
+        ['detail-add-btn'].forEach(id => {
             const b = document.getElementById(id);
             if (b) { b.disabled = true; b.classList.add('disabled'); }
         });
@@ -3330,7 +3034,7 @@ function renderShippingOptions() {
 function repriceCart() {
     let changed = false;
     cart.forEach(item => {
-        const price = PRICES[parseInt(item.weight, 10)];
+        const price = unitPrice(item.ingredients, item.parts, item.weight);
         if (price && price !== item.priceBase) { item.priceBase = price; changed = true; }
         item.colors = item.ingredients.map((c, i) => ingColor(c) || item.colors[i] || 'transparent');
     });
@@ -3343,7 +3047,7 @@ function rerenderAfterCatalog() {
     applyTranslations();
     applySeller();
     if (document.getElementById('product-detail-page')?.classList.contains('active') && currentProduct) {
-        renderFoodInfo(document.getElementById('detail-food'), currentProduct.ingredients, currentProduct.weight);
+        renderDetailVisual(currentProduct.name, currentProduct.ingredients, currentProduct.parts);
     }
     renderIngredientEncyclopedia();
     renderPresets();
@@ -3353,7 +3057,6 @@ function rerenderAfterCatalog() {
     if (document.getElementById('checkout-page')?.classList.contains('active')) renderCheckoutSummary();
     const checkedShip = document.querySelector('input[name="shipping"]:checked');
     if (checkedShip) updateShippingCost(checkedShip);
-    if (document.getElementById('save-mix-btn')) { updateGlassLabels(); renderSelectedIngPanel(); }
 }
 
 /* ─── Načítání ─────────────────────────────── */
@@ -3451,7 +3154,8 @@ function buildOrderPayload(form) {
         },
         items: cart.map(i => ({
             name:        i.name,
-            ingredients: i.ingredients.filter(x => x && x !== 'Empty'),
+            ingredients: i.ingredients.slice(),
+            parts:       i.parts.slice(),
             weight_g:    parseInt(i.weight, 10),
             qty:         i.qty,
         })),
@@ -3481,7 +3185,7 @@ function handleOrderError(err) {
             break;
         case 'out_of_stock': {
             const names = String(err.details || '').split(',').map(s => s.trim()).filter(Boolean).map(tIng);
-            showToast(`${t('err_sold_out_named')} ${escHtml(names.join(', '))}`, '🫙');
+            showToast(`${t('err_sold_out_named')} ${names.join(', ')}`, '🫙');
             refresh();
             break;
         }
@@ -3495,6 +3199,7 @@ function handleOrderError(err) {
         case 'invalid_shipping':      showToast(t('err_shipping_unavailable'), '🚚'); refresh(); break;
         case 'invalid_weight':        showToast(t('err_weight_unavailable'), '⚖️'); refresh(); break;
         case 'unknown_ingredient':    showToast(t('err_unknown_ingredient'), '⚠️'); refresh(); break;
+        case 'invalid_recipe':        showToast(t('err_invalid_recipe'), '⚠️'); refresh(); break;
         default:                      showToast(t('toast_order_failed'), '⚠️');
     }
 }
@@ -3531,11 +3236,11 @@ Object.assign(TRANSLATIONS.cs, {
     hero_note_price:   'Balení od {price}.',
     hero_note_ship:    'Nad {limit} doprava zdarma.',
     how_1_title:       'Vyber základ',
-    howx_1:            'Šest čajů od výrazného černého po heřmánek bez kofeinu. Základ určuje charakter směsi.',
+    howx_1:            'Pravé čaje, byliny bez kofeinu nebo jablko. Základ určuje charakter směsi.',
     howx_2_title:      'Přidej příchuť',
-    howx_2:            'Ovoce, květy, kakao nebo kokos. Tady začne být směs tvoje.',
+    howx_2:            'Ovoce, květy nebo byliny. Tady začne být směs tvoje.',
     howx_3_title:      'Dolaď doplňkem',
-    howx_3:            'Med, citron, zázvor nebo koření. Malá věc, která chuť dotáhne.',
+    howx_3:            'Citrusová kůra, zázvor, skořice nebo špetka levandule. Malá věc, která chuť dotáhne.',
     howx_4_title:      'Pojmenuj ji',
     howx_4:            'Směs zabalíme pod tvým jménem a obvykle do 24 hodin odešleme.',
     how_cta:           'Začít míchat',
@@ -3545,7 +3250,7 @@ Object.assign(TRANSLATIONS.cs, {
     quizband_text:     'Odpověz na pět krátkých otázek a doporučíme ti směs, která sedí tvé náladě i denní době.',
     quizband_btn:      'Spustit kvíz',
     pantry_title:      'Z čeho mícháme',
-    pantry_lede:       'Z {bases} základů, {flavors} příchutí a {extras} doplňků poskládáš {combos} různých směsí.',
+    pantry_lede:       'Na výběr je {bases} základů, {flavors} příchutí a {extras} doplňků. Do jedné směsi jich dáš až {max} v poměru, jaký chceš.',
     pantry_bases:      'Základy',
     pantry_flavors:    'Příchutě',
     pantry_extras:     'Doplňky',
@@ -3558,7 +3263,7 @@ Object.assign(TRANSLATIONS.cs, {
     step_2_title:      'Přidej příchuť',
     step_2_hint:       'Ovoce, květy nebo něco sladšího.',
     step_3_title:      'Dolaď doplňkem',
-    step_3_hint:       'Med, citrus nebo koření na dotažení chuti.',
+    step_3_hint:       'Citrus, koření nebo špetka květů na dotažení chuti.',
     step_4_title:      'Pojmenuj ji',
     step_4_hint:       'Pod tímhle jménem ji zabalíme. Nech prázdné a bude to Moje směs.',
     prog_extra:        'Doplněk',
@@ -3607,11 +3312,11 @@ Object.assign(TRANSLATIONS.en, {
     hero_note_price:   'Packs from {price}.',
     hero_note_ship:    'Free shipping over {limit}.',
     how_1_title:       'Pick a base',
-    howx_1:            'Six teas, from bold black to caffeine-free chamomile. The base sets the character.',
+    howx_1:            'True teas, caffeine-free herbs or apple. The base sets the character.',
     howx_2_title:      'Add a flavour',
-    howx_2:            'Fruit, flowers, cocoa or coconut. This is where it becomes yours.',
+    howx_2:            'Fruit, flowers or herbs. This is where it becomes yours.',
     howx_3_title:      'Finish with an extra',
-    howx_3:            'Honey, lemon, ginger or spice. A small thing that rounds it off.',
+    howx_3:            'Citrus peel, ginger, cinnamon or a pinch of lavender. A small thing that rounds it off.',
     howx_4_title:      'Name it',
     howx_4:            'We pack it under your name and usually ship within 24 hours.',
     how_cta:           'Start mixing',
@@ -3621,7 +3326,7 @@ Object.assign(TRANSLATIONS.en, {
     quizband_text:     'Answer five quick questions and we will suggest a blend for your mood and time of day.',
     quizband_btn:      'Take the quiz',
     pantry_title:      'What we blend with',
-    pantry_lede:       '{bases} bases, {flavors} flavours and {extras} extras make {combos} different blends.',
+    pantry_lede:       'Pick from {bases} bases, {flavors} flavours and {extras} extras. Put up to {max} in one blend, in any ratio you like.',
     pantry_bases:      'Bases',
     pantry_flavors:    'Flavours',
     pantry_extras:     'Extras',
@@ -3634,7 +3339,7 @@ Object.assign(TRANSLATIONS.en, {
     step_2_title:      'Add a flavour',
     step_2_hint:       'Fruit, flowers or something sweeter.',
     step_3_title:      'Finish with an extra',
-    step_3_hint:       'Honey, citrus or spice to round it off.',
+    step_3_hint:       'Citrus, spice or a pinch of flowers to round it off.',
     step_4_title:      'Name it',
     step_4_hint:       'We pack it under this name. Leave it empty and it will be My blend.',
     prog_extra:        'Extra',
@@ -3674,12 +3379,12 @@ Object.assign(TRANSLATIONS.en, {
 });
 
 Object.assign(TRANSLATIONS.cs, {
-    q_1:               'Jaký čaj bude základ?',
-    q_1_hint:          'Určuje chuť i to, kolik bude mít kofeinu.',
+    q_1:               'Na čem ji postavíš?',
+    q_1_hint:          'Vyber základ, klidně dva. Určuje chuť i to, kolik bude mít kofeinu.',
     q_2:               'Jakou chceš příchuť?',
-    q_2_hint:          'Ovoce, květy nebo něco sladšího.',
-    q_3:               'Čím ji dolaďíme?',
-    q_3_hint:          'Med, citrus nebo koření.',
+    q_2_hint:          'Vyber, kolik chceš, nebo krok přeskoč.',
+    q_3:               'Doladíme ji?',
+    q_3_hint:          'Citrusová kůra, koření nebo špetka květů. Nepovinné.',
     q_4:               'Hotovo. Pojmenuj ji.',
     name_label:        'Jméno na sáček',
     name_placeholder2: 'Např. Tichý večer',
@@ -3691,7 +3396,46 @@ Object.assign(TRANSLATIONS.cs, {
     mixer_next:        'Dál',
     mixer_add:         'Do košíku',
     mixer_pick_first:  'Vyber jednu možnost',
+    mixer_pick_base:   'Vyber aspoň jeden základ',
+    mixer_skip:        'Přeskočit',
     bar_empty:         'Zatím nic nevybráno',
+    bar_price:         '{price} za {weight} g',
+    mixer_price_now:   '{price} za {weight} g',
+    preset_label:      'Nebo začni od hotové:',
+    mix_title:         'Tvoje směs',
+    mix_count:         '{n} z {max}',
+    mix_size_label:    'Spočítat pro',
+    mix_hint:          'Poměr nastavíš díly: 2 díly jsou dvakrát víc než 1.',
+    mix_part_1:        '1 díl',
+    mix_parts_n:       '{n} díly',
+    mix_parts_of:      'Díly: {name}',
+    mix_less:          'Méně: {name}',
+    mix_more:          'Víc: {name}',
+    mix_remove:        'Odebrat: {name}',
+    mix_added:         'Přidáno: {name}',
+    mix_removed:       'Odebráno: {name}',
+    mix_pinch:         'špetka',
+    mix_premium_tag:   'prémiová',
+    mix_premium_row:   '+{price}/100 g',
+    mix_max:           'nejvýš {max} %',
+    mix_full:          'Do jedné směsi dáme nejvýš 5 surovin. Nejdřív nějakou odeber.',
+    mix_pinch_full:    'Špetku dáme nejvýš ze dvou surovin.',
+    mix_over_limit:    '{name} smí tvořit nejvýš {max} % směsi.',
+    mix_no_category:   'Takhle to podle vyhlášky není ochucený, bylinný ani ovocný čaj: čaj musí tvořit aspoň polovinu, byliny nebo ovoce víc než polovinu.',
+    mix_fix_more:      'Zkus přidat díl: {name}.',
+    mix_fix_more2:     'Zkus přidat dva díly: {name}.',
+    mix_fix_less:      'Zkus ubrat díl: {name}.',
+    mix_fix_remove:    'Zkus odebrat: {name}.',
+    mix_fix_none:      'Uprav díly, nebo něco odeber.',
+    mix_fix_becomes:   'Bude z toho {kind}.',
+    mix_kind_tea:      'ochucený čaj',
+    mix_kind_herb:     'bylinný čaj',
+    mix_kind_fruit:    'ovocný čaj',
+    bar_show_recipe:   'Ukázat složení směsi',
+    mix_no_main:       'Samotná špetka nestačí. Přidej základ.',
+    mix_cups:          '{weight} g vystačí zhruba na {cups} šálků.',
+    mix_surcharge_note:'V ceně je příplatek {price} za prémiové suroviny.',
+    price_from_n:      'od {price}',
     pairs_tag:         'Hodí se',
     how_pouch_name:    'Tvoje jméno',
     glass_label_base:  'Základ',
@@ -3812,12 +3556,12 @@ Object.assign(TRANSLATIONS.cs, {
     nav_quiz:          'Kvíz',
 });
 Object.assign(TRANSLATIONS.en, {
-    q_1:               'Which tea for the base?',
-    q_1_hint:          'It sets the taste and how much caffeine it has.',
-    q_2:               'Which flavour?',
-    q_2_hint:          'Fruit, flowers or something sweeter.',
-    q_3:               'How do we finish it?',
-    q_3_hint:          'Honey, citrus or spice.',
+    q_1:               'What do we build it on?',
+    q_1_hint:          'Pick a base, or two. It sets the taste and how much caffeine it has.',
+    q_2:               'Which flavours?',
+    q_2_hint:          'Pick as many as you like, or skip this step.',
+    q_3:               'Finish it off?',
+    q_3_hint:          'Citrus peel, spice or a pinch of flowers. Optional.',
     q_4:               'Done. Give it a name.',
     name_label:        'Name on the pouch',
     name_placeholder2: 'e.g. Still Evening',
@@ -3829,7 +3573,46 @@ Object.assign(TRANSLATIONS.en, {
     mixer_next:        'Next',
     mixer_add:         'Add to cart',
     mixer_pick_first:  'Pick one option',
+    mixer_pick_base:   'Pick at least one base',
+    mixer_skip:        'Skip',
     bar_empty:         'Nothing picked yet',
+    bar_price:         '{price} for {weight} g',
+    mixer_price_now:   '{price} for {weight} g',
+    preset_label:      'Or start from a ready blend:',
+    mix_title:         'Your blend',
+    mix_count:         '{n} of {max}',
+    mix_size_label:    'Show for',
+    mix_hint:          'Set the ratio in parts: 2 parts is twice as much as 1.',
+    mix_part_1:        '1 part',
+    mix_parts_n:       '{n} parts',
+    mix_parts_of:      'Parts: {name}',
+    mix_less:          'Less: {name}',
+    mix_more:          'More: {name}',
+    mix_remove:        'Remove: {name}',
+    mix_added:         'Added: {name}',
+    mix_removed:       'Removed: {name}',
+    mix_pinch:         'a pinch',
+    mix_premium_tag:   'premium',
+    mix_premium_row:   '+{price}/100 g',
+    mix_max:           'max {max} %',
+    mix_full:          'One blend takes 5 ingredients at most. Remove one first.',
+    mix_pinch_full:    'We add a pinch of two ingredients at most.',
+    mix_over_limit:    '{name} can be at most {max} % of the blend.',
+    mix_no_category:   'By the rules this is neither a flavoured, herbal nor fruit tea: tea must make up at least half, herbs or fruit more than half.',
+    mix_fix_more:      'Try adding a part: {name}.',
+    mix_fix_more2:     'Try adding two parts: {name}.',
+    mix_fix_less:      'Try taking a part away: {name}.',
+    mix_fix_remove:    'Try removing: {name}.',
+    mix_fix_none:      'Adjust the parts, or take something out.',
+    mix_fix_becomes:   'It becomes a {kind}.',
+    mix_kind_tea:      'flavoured tea',
+    mix_kind_herb:     'herbal tea',
+    mix_kind_fruit:    'fruit tea',
+    bar_show_recipe:   'Show the blend',
+    mix_no_main:       'A pinch alone is not enough. Add a base.',
+    mix_cups:          '{weight} g makes roughly {cups} cups.',
+    mix_surcharge_note:'Includes a {price} surcharge for premium ingredients.',
+    price_from_n:      'from {price}',
     pairs_tag:         'Goes well',
     how_pouch_name:    'Your name',
     glass_label_base:  'Base',
@@ -3971,32 +3754,25 @@ const POUCH_SVG = `<svg class="pouch-bag" viewBox="0 0 200 270" preserveAspectRa
 </svg>`;
 const LAYER_LABELS = ['glass_label_base', 'glass_label_flavor', 'glass_label_extras'];
 
-function pouchHtml({ name = '', codes = [], size = '', placeholders = false, weight = '' } = {}) {
-    const real = [0, 1, 2].map(i => (codes[i] && codes[i] !== 'Empty' ? codes[i] : null));
-    const rows = real.map((code, i) => {
-        if (code) return `<li><i style="--c:${escHtml(ingColor(code) || '#cccccc')}"></i>${escHtml(tIng(code))}</li>`;
-        return placeholders ? `<li class="is-empty"><i></i>${escHtml(t(LAYER_LABELS[i]))}</li>` : '';
-    }).join('');
-    const dots = real.filter(Boolean).map(c => `<i style="--c:${escHtml(ingColor(c) || '#cccccc')}"></i>`).join('');
-    return `<div class="pouch ${size}">${POUCH_SVG}<div class="pouch-label">`
+/* Sáček s etiketou: jméno, suroviny s podílem (od největšího) a gramáž. */
+function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholders = false, weight = '' } = {}) {
+    const comp = blendComposition(codes, parts);
+    const real = Recipe.normalize(codes, parts).codes;
+    const li = (code, pct) => `<li><i style="--c:${escHtml(ingColor(code) || '#cccccc')}"></i>`
+        + `<span class="pouch-ing">${escHtml(tIng(code))}</span>${pct !== undefined ? `<b>${pct} %</b>` : ''}</li>`;
+    let rows;
+    if (comp.length) rows = comp.map(c => li(c.code, c.pct)).join('');
+    else if (real.length) rows = real.map(c => li(c)).join('');
+    else rows = placeholders ? LAYER_LABELS.map(k => `<li class="is-empty"><i></i>${escHtml(t(k))}</li>`).join('') : '';
+    const dotCodes = comp.length ? comp.map(c => c.code) : real;
+    const dots = dotCodes.map(c => `<i style="--c:${escHtml(ingColor(c) || '#cccccc')}"></i>`).join('');
+    return `<div class="pouch ${size}">${POUCH_SVG}<div class="pouch-label${dotCodes.length > 3 ? ' is-long' : ''}">`
         + `<span class="pouch-brand">Tease you</span>`
         + `<span class="pouch-name${name ? '' : ' is-empty'}">${escHtml(name || t('glass_name_default'))}</span>`
-        + `<ul class="pouch-ings">${rows}</ul>`
+        + `<ul class="pouch-ings${dotCodes.length > 3 ? ' is-long' : ''}">${rows}</ul>`
         + `<span class="pouch-dots">${dots}</span>`
         + (weight ? `<span class="pouch-weight">${escHtml(weight)}</span>` : '')
         + `</div></div>`;
-}
-
-/* Starý kód (detail, souhrn) pořád barví vrstvy sklenice. */
-function paintLayer(el, color) {
-    if (!el) return;
-    const empty = !color || color === 'transparent';
-    el.style.backgroundColor = empty ? 'transparent' : color;
-    el.classList.toggle('is-empty', empty);
-}
-/* Police s hotovými směsmi ukazuje malé sáčky. */
-function jarHtml(codes, cls, label) {
-    return pouchHtml({ name: label || '', codes, size: 'pouch--sm' });
 }
 
 function mixNameIdeas() {
@@ -4025,7 +3801,7 @@ function renderHero(id, animate) {
     heroBlendId = b.id;
     const weights = sortedWeights();
     const weight = weights.includes(100) ? '100 g' : (weights[0] ? weights[0] + ' g' : '');
-    box.innerHTML = pouchHtml({ name: b.name, codes: b.ingredients, size: 'pouch--hero', weight });
+    box.innerHTML = pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--hero', weight });
     if (animate && !reduceMotion()) {
         box.classList.remove('is-swapping');
         void box.offsetWidth;
@@ -4053,19 +3829,20 @@ function renderHow() {
     if (lede) {
         const n = { bases: ING_DATA.bases.length, flavors: ING_DATA.flavors.length, extras: ING_DATA.extras.length };
         lede.textContent = t('pantry_lede').replace('{bases}', n.bases).replace('{flavors}', n.flavors)
-            .replace('{extras}', n.extras).replace('{combos}', (n.bases * n.flavors * n.extras).toLocaleString(LANG === 'cs' ? 'cs-CZ' : 'en'));
+            .replace('{extras}', n.extras).replace('{max}', Recipe.MAX_ITEMS);
     }
     const list = document.getElementById('how-formula');
     if (!list) return;
-    const codes = ['Green Tea', 'Mint', 'Lemon'];
+    const codes = ['Green Tea', 'Mint', 'Lemon'].filter(c => ingByCode(c));
+    const parts = codes.map(c => defaultParts(ingByCode(c)));
     const roles = LAYER_LABELS.map(k => t(k).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en'));
     list.innerHTML = codes.map((c, i) =>
         `<li class="formula-item">${i ? '<span class="formula-op" aria-hidden="true">+</span>' : ''}`
         + `<span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>`
-        + `<span class="formula-text"><strong>${escHtml(tIng(c))}</strong><span>${escHtml(roles[i])}</span></span></li>`
+        + `<span class="formula-text"><strong>${escHtml(tIng(c))}</strong><span>${escHtml(roles[i] + ', ' + partsLabel(parts[i]))}</span></span></li>`
     ).join('')
         + `<li class="formula-item formula-result"><span class="formula-op" aria-hidden="true">=</span>`
-        + `<span class="formula-pouch">${pouchHtml({ name: t('how_pouch_name'), codes, size: 'pouch--xs' })}</span>`
+        + `<span class="formula-pouch">${pouchHtml({ name: t('how_pouch_name'), codes, parts, size: 'pouch--xs' })}</span>`
         + `<span class="formula-text"><strong>${escHtml(t('how_pouch_name'))}</strong><span>${escHtml(t('how_result_note'))}</span></span></li>`;
 }
 function goToShelf() {
@@ -4075,30 +3852,103 @@ function goToShelf() {
 }
 
 /* ─── Mixér: jedna otázka na obrazovku ──────── */
+/* Krok 1 základ (povinný), 2 příchuť a 3 doplněk (obojí nepovinné, dá se
+   vybrat víc věcí nebo nic), 4 jméno a velikost. V každém kroku jde vybrat
+   víc surovin, dohromady nejvýš 5. Poměr se nastavuje díly v panelu
+   „Tvoje směs“, kde jsou hned vidět procenta a gramy. */
+let mixItems = [];   // [{ code, parts }] seřazené podle skupiny, pak podle výběru
 let mixerStep = 1;
 let mixerWeight = 0;
 
-function mixerStepDone(n) {
-    if (n <= 3) return !!document.querySelector(`.ingredient-btn[data-target="part${n}"].selected`);
-    return true;
+const MIX_CATEGORY_RANK = { base: 0, flavor: 1, extra: 2 };
+function sortMixItems() {
+    const rank = x => MIX_CATEGORY_RANK[(ingByCode(x.code) || {}).category] ?? 3;
+    mixItems = mixItems.map((x, i) => [x, i]).sort((a, b) => (rank(a[0]) - rank(b[0])) || (a[1] - b[1])).map(x => x[0]);
 }
-function firstOpenMixerStep() {
-    for (let n = 1; n <= 3; n++) if (!mixerStepDone(n)) return n;
-    return 4;
+function mixCodes() { return mixItems.map(x => x.code); }
+function mixParts() { return mixItems.map(x => x.parts); }
+function mixRecipe(weight) { return recipeOf(mixCodes(), mixParts(), weight || mixerWeight || 100); }
+function partsLabel(n) { return n === 1 ? t('mix_part_1') : t('mix_parts_n').replace('{n}', n); }
+
+/* Nastaví směs v mixéru (z hotové směsi, uloženého mixu, odkazu…). */
+function setMixItems(codes, parts) {
+    const n = Recipe.normalize(codes, parts);
+    mixItems = n.codes.map((code, i) => ({ code, parts: n.parts[i] }))
+        .filter(x => { const ing = ingByCode(x.code); return ing && ing.inStock !== false; })
+        .slice(0, Recipe.MAX_ITEMS);
+    sortMixItems();
+    syncIngredientButtons();
 }
-function mixerComplete() { return [1, 2, 3].every(mixerStepDone); }
+
+function syncIngredientButtons() {
+    document.querySelectorAll('#product-page .ingredient-btn').forEach(btn => {
+        const on = mixItems.some(x => x.code === btn.dataset.name);
+        btn.classList.toggle('selected', on);
+        btn.setAttribute('aria-pressed', String(on));
+    });
+}
+
+function toggleMixItem(code, opts = {}) {
+    const at = mixItems.findIndex(x => x.code === code);
+    if (at >= 0) {
+        mixItems.splice(at, 1);
+        if (!opts.quiet) announceMix(t('mix_removed').replace('{name}', tIng(code)));
+    } else {
+        const ing = ingByCode(code);
+        if (!ing || ing.inStock === false) return;
+        if (mixItems.length >= Recipe.MAX_ITEMS) { showToast(t('mix_full'), '✋'); return; }
+        if (isPinchIng(ing) && mixItems.filter(x => isPinchIng(ingByCode(x.code))).length >= Recipe.MAX_PINCH) {
+            showToast(t('mix_pinch_full'), '✋'); return;
+        }
+        mixItems.push({ code, parts: defaultParts(ing) });
+        sortMixItems();
+        if (!opts.quiet) announceMix(t('mix_added').replace('{name}', tIng(code)));
+    }
+    syncIngredientButtons();
+    updateMixerUI();
+}
+
+function changeMixPart(code, delta) {
+    const i = mixItems.findIndex(x => x.code === code);
+    if (i < 0) return;
+    if (!Recipe.partChangeAllowed(mixCodes(), mixParts(), i, delta, recipeInfo)) return;
+    mixItems[i].parts += delta;
+    updateMixerUI();
+    // Fokus zůstane na stejném tlačítku i po překreslení panelu.
+    document.querySelector(`#mix-rows [data-part-step="${delta}"][data-code="${CSS.escape(code)}"]`)?.focus();
+}
+
+/* Krátké oznámení pro čtečky obrazovky (přidáno/odebráno). */
+function announceMix(text) {
+    const el = document.getElementById('mix-live');
+    if (el) { el.textContent = ''; setTimeout(() => { el.textContent = text; }, 30); }
+}
+
+function hasBase() { return mixItems.some(x => (ingByCode(x.code) || {}).category === 'base'); }
+function stepHasPick(n) {
+    const group = MIX_GROUP_OF_STEP[n];
+    return !!group && mixItems.some(x => ING_DATA[group].some(i => i.code === x.code));
+}
+function mixerStepDone(n) { return n === 1 ? hasBase() : true; }
+function firstOpenMixerStep() { return hasBase() ? 4 : 1; }
+function mixerComplete() { return hasBase() && mixRecipe().ok; }
 
 /* currentProduct sdílí mixér i detail hotové směsi, takže se ze stavu
-   tlačítek pokaždé znovu sestaví — jinak by do košíku šla jiná směs. */
+   mixéru pokaždé znovu sestaví — jinak by do košíku šla jiná směs. */
 function mixerSyncProduct() {
-    const codes = [1, 2, 3].map(n => document.querySelector(`.ingredient-btn[data-target="part${n}"].selected`)?.dataset.name || 'Empty');
-    currentProduct.ingredients = codes;
-    currentProduct.colors = codes.map(c => (c === 'Empty' ? 'transparent' : ingColor(c) || 'transparent'));
+    currentProduct.ingredients = mixCodes();
+    currentProduct.parts = mixParts();
+    currentProduct.colors = currentProduct.ingredients.map(c => ingColor(c) || 'transparent');
     currentProduct.name = document.getElementById('mix-name')?.value.trim() || t('default_mix_name');
     if (mixerWeight && PRICES[mixerWeight]) {
         currentProduct.weight = mixerWeight + 'g';
-        currentProduct.priceBase = PRICES[mixerWeight];
+        currentProduct.priceBase = unitPrice(currentProduct.ingredients, currentProduct.parts, mixerWeight);
     }
+}
+
+function defaultMixerWeight() {
+    const w = sortedWeights();
+    return w.includes(100) ? 100 : (w[Math.floor(w.length / 2)] || 0);
 }
 
 function setMixerStep(n, opts = {}) {
@@ -4106,10 +3956,7 @@ function setMixerStep(n, opts = {}) {
     if (!page) return;
     mixerStep = Math.min(4, Math.max(1, n));
     page.dataset.step = String(mixerStep);
-    if (mixerStep === 4 && !PRICES[mixerWeight]) {
-        const w = sortedWeights();
-        mixerWeight = w.includes(100) ? 100 : (w[Math.floor(w.length / 2)] || 0);
-    }
+    if (!PRICES[mixerWeight]) mixerWeight = defaultMixerWeight();
     if (opts.scroll !== false && page.classList.contains('active')) {
         const top = page.getBoundingClientRect().top + window.scrollY;
         if (window.scrollY > top) window.scrollTo({ top, behavior: reduceMotion() ? 'auto' : 'smooth' });
@@ -4118,108 +3965,209 @@ function setMixerStep(n, opts = {}) {
     if (opts.focus) page.querySelector(`.selection-group[data-step="${mixerStep}"] .step-question`)?.focus?.();
 }
 
-function mixerAutoAdvance(fromStep) {
-    if (fromStep !== mixerStep || fromStep > 3) return;
-    clearTimeout(mixerAutoAdvance.timer);
-    mixerAutoAdvance.timer = setTimeout(() => {
-        if (mixerStep === fromStep) setMixerStep(fromStep + 1);
-    }, 380);
-}
-
 function mixerNext() {
-    if (mixerStep < 4) {
-        if (!mixerStepDone(mixerStep)) { showToast(t('mixer_pick_first'), '👆'); return; }
-        setMixerStep(mixerStep + 1);
+    if (mixerStep === 1 && !hasBase()) { showToast(t('mixer_pick_base'), '👆'); return; }
+    if (mixerStep < 4) { setMixerStep(mixerStep + 1, { focus: true }); return; }
+    if (!hasBase()) { setMixerStep(1); return; }
+    const r = mixRecipe();
+    if (!r.ok) {
+        showToast([mixErrorText(r), mixFixHint()].join(' '), '⚠️');
+        document.getElementById('mix-recipe')?.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
         return;
     }
-    if (!mixerComplete()) { setMixerStep(firstOpenMixerStep()); return; }
     mixerSyncProduct();
     confirmOrder();
 }
 function mixerBack() {
     if (mixerStep === 1) { showPage('home-page'); return; }
-    setMixerStep(mixerStep - 1);
+    setMixerStep(mixerStep - 1, { focus: true });
 }
 
 function renderMixerSizes() {
     const box = document.getElementById('mixer-sizes');
     if (!box) return;
+    const codes = mixCodes(), parts = mixParts();
     box.innerHTML = sortedWeights().map(w =>
         `<button type="button" class="qty-btn${w === mixerWeight ? ' selected' : ''}" data-weight="${w}" aria-pressed="${w === mixerWeight}">`
-        + `${w} g<span class="qty-price">${fmt(PRICES[w])}</span></button>`
+        + `${w} g<span class="qty-price">${fmt(unitPrice(codes, parts, w) || PRICES[w])}</span></button>`
     ).join('');
+}
+
+/* Panel „Tvoje směs“: každá surovina s díly, procenty a gramy pro vybranou
+   velikost, pruh s poměrem a co z toho podle vyhlášky je. */
+function renderMixRecipe() {
+    const box = document.getElementById('mix-recipe');
+    if (!box) return;
+    box.hidden = !mixItems.length;
+    if (!mixItems.length) return;
+    const r = mixRecipe();
+    const codes = mixCodes(), parts = mixParts();
+    const sizes = document.getElementById('mix-recipe-sizes');
+    if (sizes) sizes.innerHTML = sortedWeights().map(w =>
+        `<button type="button" class="seg-btn" data-size="${w}" aria-pressed="${w === mixerWeight}">${w} g</button>`).join('');
+    const count = document.getElementById('mix-recipe-count');
+    if (count) count.textContent = t('mix_count').replace('{n}', mixItems.length).replace('{max}', Recipe.MAX_ITEMS);
+
+    const byCode = Object.fromEntries(r.rows.map(row => [row.code, row]));
+    const strip = document.getElementById('mix-strip');
+    if (strip) strip.innerHTML = mixItems.map(x => {
+        const row = byCode[x.code];
+        return row ? `<span style="--c:${escHtml(ingColor(x.code) || '#ccc')};flex-grow:${row.pct}" title="${escHtml(tIng(x.code))} ${row.pct} %"></span>` : '';
+    }).join('');
+
+    const list = document.getElementById('mix-rows');
+    if (list) list.innerHTML = mixItems.map((x, i) => {
+        const ing = ingByCode(x.code);
+        const row = byCode[x.code] || { pct: 0, grams: 0 };
+        const name = tIng(x.code);
+        const over = r.error === 'over_limit' && r.errorCode === x.code;
+        const canLess = Recipe.partChangeAllowed(codes, parts, i, -1, recipeInfo);
+        const canMore = Recipe.partChangeAllowed(codes, parts, i, +1, recipeInfo);
+        const control = isPinchIng(ing)
+            ? `<span class="mix-pinch">${escHtml(t('mix_pinch'))}</span>`
+            : `<span class="stepper" role="group" aria-label="${escHtml(t('mix_parts_of').replace('{name}', name))}">`
+              + `<button type="button" class="stepper-btn" data-part-step="-1" data-code="${escHtml(x.code)}" aria-label="${escHtml(t('mix_less').replace('{name}', name))}"${canLess ? '' : ' disabled'}>−</button>`
+              + `<span class="stepper-val" aria-live="polite">${escHtml(partsLabel(x.parts))}</span>`
+              + `<button type="button" class="stepper-btn" data-part-step="1" data-code="${escHtml(x.code)}" aria-label="${escHtml(t('mix_more').replace('{name}', name))}"${canMore ? '' : ' disabled'}>+</button>`
+              + `</span>`;
+        const notes = [fmtGrams(row.grams)];
+        if (ing && ing.surcharge) notes.push(t('mix_premium_row').replace('{price}', fmt(ing.surcharge)));
+        if (ing && ing.maxPct && !isPinchIng(ing)) notes.push(t('mix_max').replace('{max}', ing.maxPct));
+        return `<li class="mix-row${over ? ' is-over' : ''}">`
+            + `<span class="ing-dot" style="--dot-color:${escHtml(ingColor(x.code) || '#ccc')}" aria-hidden="true"></span>`
+            + `<strong class="mix-row-title">${escHtml(name)}</strong>`
+            + `<small class="mix-row-meta">${escHtml(notes.join(' · '))}</small>`
+            + control
+            + `<span class="mix-row-pct">${row.pct} %</span>`
+            + `<button type="button" class="mix-row-remove" data-remove="${escHtml(x.code)}" aria-label="${escHtml(t('mix_remove').replace('{name}', name))}">`
+            + `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`
+            + `</li>`;
+    }).join('');
+
+    const verdict = document.getElementById('mix-verdict');
+    if (verdict) {
+        verdict.classList.toggle('is-error', !r.ok);
+        if (r.ok) {
+            const legal = legalBlendName(blendComposition(codes, parts));
+            const extra = r.surcharge ? ' ' + t('mix_surcharge_note').replace('{price}', fmt(r.surcharge)) : '';
+            verdict.innerHTML = `<strong>${escHtml(legal)}.</strong> `
+                + escHtml(t('mix_cups').replace('{weight}', mixerWeight).replace('{cups}', Recipe.cups(mixerWeight)) + extra);
+        } else {
+            verdict.textContent = [mixErrorText(r), mixFixHint()].filter(Boolean).join(' ');
+        }
+    }
+}
+
+/* Nejmenší změna, po které směs projde. Zkouší napřed to, co zachová
+   povahu směsi: přidat díl hlavní suroviny (té skupiny, které je ve směsi
+   nejvíc), ubrat díl nebo odebrat něco z ostatních. Až potom cokoli jiného. */
+function mixFixHint() {
+    const codes = mixCodes(), parts = mixParts();
+    const r = recipeOf(codes, parts, 100);
+    const kindOf = i => (r.rows[i] || {}).kind;
+    const share = { tea: 0, herb: 0, fruit: 0 };
+    r.rows.forEach(x => { if (x.kind in share) share[x.kind] += x.pct; });
+    // Cíl je druh základu (zákazník ho vybral první), jinak co je ve směsi nejvíc.
+    const first = kindOf(0);
+    const baseKind = codes.map((c, i) => ((ingByCode(c) || {}).category === 'base' ? kindOf(i) : null)).find(k => k in share);
+    const target = baseKind || Object.keys(share).sort((x, y) => (share[y] - share[x]) || ((y === first) - (x === first)))[0];
+    const adjustable = i => !isPinchIng(ingByCode(codes[i]));
+    const passes = (c, p) => recipeOf(c, p, 100).ok;
+    const idx = codes.map((_, i) => i);
+    const back = idx.slice().reverse();
+    const tries = [];
+    const more = (list, d) => list.forEach(i => {
+        if (!adjustable(i) || parts[i] + d > Recipe.MAX_PARTS) return;
+        const p = parts.slice(); p[i] += d;
+        tries.push([codes, p, t(d === 1 ? 'mix_fix_more' : 'mix_fix_more2').replace('{name}', tIng(codes[i]))]);
+    });
+    const less = list => list.forEach(i => {
+        if (!adjustable(i) || parts[i] <= Recipe.MIN_PARTS) return;
+        const p = parts.slice(); p[i] -= 1;
+        tries.push([codes, p, t('mix_fix_less').replace('{name}', tIng(codes[i]))]);
+    });
+    const drop = list => list.forEach(i => {
+        if (codes.length < 2) return;
+        tries.push([codes.filter((_, j) => j !== i), parts.filter((_, j) => j !== i), t('mix_fix_remove').replace('{name}', tIng(codes[i]))]);
+    });
+    const main = idx.filter(i => kindOf(i) === target), rest = back.filter(i => kindOf(i) !== target);
+    more(main, 1); less(rest); more(main, 2); drop(rest);
+    more(idx.filter(i => kindOf(i) !== target), 1); less(back.filter(i => kindOf(i) === target)); drop(back.filter(i => kindOf(i) === target));
+    const hit = tries.find(([c, p]) => passes(c, p));
+    if (!hit) return t('mix_fix_none');
+    // Když se tím změní druh čaje (třeba ze zeleného na ovocný), řekneme to.
+    const after = recipeOf(hit[0], hit[1], 100).category;
+    return after !== target ? `${hit[2]} ${t('mix_fix_becomes').replace('{kind}', t('mix_kind_' + after))}` : hit[2];
 }
 
 function updateMixerUI() {
     const page = document.getElementById('product-page');
     if (!page) return;
+    if (!PRICES[mixerWeight]) mixerWeight = defaultMixerWeight();
     mixerSyncProduct();
-    const codes = currentProduct.ingredients;
+    const codes = mixCodes(), parts = mixParts();
     const name = document.getElementById('mix-name')?.value.trim() || '';
+    const r = mixRecipe();
 
     const progressText = document.getElementById('mixer-progress-text');
     if (progressText) progressText.textContent = t('mixer_step_of').replace('{n}', mixerStep);
     const fill = document.getElementById('mixer-progress-fill');
     if (fill) fill.style.width = (mixerStep / 4 * 100) + '%';
 
-    page.querySelectorAll('.ingredient-btn').forEach(btn => btn.setAttribute('aria-pressed', String(btn.classList.contains('selected'))));
+    // Doporučení podle všeho, co už ve směsi je
+    const pairs = new Set(mixItems.flatMap(x => (ingByCode(x.code) || {}).pairs || []));
+    page.querySelectorAll('.btn-grid .ingredient-btn').forEach(btn => {
+        const paired = pairs.has(btn.dataset.name) && !btn.classList.contains('is-out') && !btn.classList.contains('selected');
+        btn.classList.toggle('is-paired', paired);
+        let tag = btn.querySelector('.ing-tag--pair');
+        if (paired && !tag) {
+            tag = document.createElement('span');
+            tag.className = 'ing-tag ing-tag--pair';
+            tag.textContent = t('pairs_tag');
+            btn.querySelector('.ing-name')?.appendChild(tag);
+        } else if (!paired && tag) {
+            tag.remove();
+        }
+    });
 
-    // doporučení podle základu
-    const base = ingByCode(codes[0]);
-    const pairs = new Set(base ? base.pairs : []);
-    page.querySelectorAll('.btn-grid[data-group="flavors"] .ingredient-btn, .btn-grid[data-group="extras"] .ingredient-btn')
-        .forEach(btn => {
-            const paired = pairs.has(btn.dataset.name) && !btn.classList.contains('is-out');
-            btn.classList.toggle('is-paired', paired);
-            let tag = btn.querySelector('.ing-tag');
-            if (paired && !tag) {
-                tag = document.createElement('span');
-                tag.className = 'ing-tag';
-                tag.textContent = t('pairs_tag');
-                btn.querySelector('.ing-name')?.appendChild(tag);
-            } else if (!paired && tag) {
-                tag.remove();
-            }
-        });
-
-    const pouch = pouchHtml({ name, codes, size: 'pouch--mixer', placeholders: true, weight: mixerStep === 4 && mixerWeight ? mixerWeight + ' g' : '' });
+    const weightLabel = mixerWeight ? mixerWeight + ' g' : '';
+    const pouch = pouchHtml({ name, codes, parts, size: 'pouch--mixer', placeholders: true, weight: weightLabel });
     const aside = document.getElementById('mixer-pouch');
     if (aside) aside.innerHTML = pouch;
     const final = document.getElementById('mixer-pouch-final');
     if (final && mixerStep === 4) final.innerHTML = pouch.replace('pouch--mixer', 'pouch--final');
 
+    renderMixRecipe();
     renderMixerSizes();
-    if (mixerStep === 4) renderFoodInfo(document.getElementById('mixer-food'), codes, mixerWeight);
+    if (mixerStep === 4) renderFoodInfo(document.getElementById('mixer-food'), codes, parts, mixerWeight);
 
+    const price = unitPrice(codes, parts, mixerWeight);
     const summary = document.getElementById('mixer-bar-summary');
     const next = document.getElementById('mixer-next');
-    if (mixerStep < 4) {
-        const picked = codes.filter(c => c !== 'Empty');
-        if (summary) summary.innerHTML = picked.length
-            ? `<span class="bar-dots">${picked.map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('')}</span>`
-              + `<span class="bar-text">${escHtml(picked.map(tIng).join(' + '))}</span>`
-            : `<span class="bar-text is-muted">${escHtml(t('bar_empty'))}</span>`;
-        if (next) {
-            next.textContent = t('mixer_next');
-            const ready = mixerStepDone(mixerStep);
-            next.classList.toggle('is-waiting', !ready);
-            next.setAttribute('aria-disabled', String(!ready));
-        }
-    } else {
-        if (summary) summary.innerHTML = mixerWeight
-            ? `<span class="bar-price">${fmt(PRICES[mixerWeight] || 0)}</span><span class="bar-text">${mixerWeight} g</span>` : '';
-        if (next) {
-            next.textContent = t('mixer_add');
-            const ready = mixerComplete() && !!PRICES[mixerWeight];
-            next.classList.toggle('is-waiting', !ready);
-            next.setAttribute('aria-disabled', String(!ready));
-        }
+    // Na mobilu je panel se směsí pod seznamem: klik na shrnutí v liště k němu sjede.
+    if (summary) summary.innerHTML = codes.length
+        ? `<button type="button" class="bar-summary-btn" data-show-recipe aria-label="${escHtml(t('bar_show_recipe'))}">`
+          + (mixerStep === 4 ? '' : `<span class="bar-dots">${codes.map(c => `<i style="--c:${escHtml(ingColor(c) || '#ccc')}"></i>`).join('')}</span>`)
+          + (mixerStep === 4
+              ? `<span class="bar-price">${fmt(price)}</span><span class="bar-text">${mixerWeight} g</span>`
+              : `<span class="bar-text">${escHtml(t('bar_price').replace('{price}', fmt(price)).replace('{weight}', mixerWeight))}</span>`)
+          + `</button>`
+        : `<span class="bar-text is-muted">${escHtml(t('bar_empty'))}</span>`;
+    if (next) {
+        let label, ready;
+        if (mixerStep === 1) { label = t('mixer_next'); ready = hasBase(); }
+        else if (mixerStep < 4) { label = stepHasPick(mixerStep) ? t('mixer_next') : t('mixer_skip'); ready = true; }
+        else { label = t('mixer_add'); ready = hasBase() && r.ok && !!PRICES[mixerWeight]; }
+        next.textContent = label;
+        next.classList.toggle('is-skip', mixerStep > 1 && mixerStep < 4 && !stepHasPick(mixerStep));
+        next.classList.toggle('is-waiting', !ready);
+        next.setAttribute('aria-disabled', String(!ready));
     }
 
     const note = document.getElementById('mixer-price');
-    const tier = minPriceTier();
-    if (note) note.textContent = mixerStep < 4 && tier
-        ? t('mixer_price').replace('{price}', fmt(tier.price)).replace('{weight}', tier.weight) : '';
+    if (note) note.textContent = codes.length && price
+        ? t('mixer_price_now').replace('{price}', fmt(price)).replace('{weight}', mixerWeight)
+        : (minPriceTier() ? t('mixer_price').replace('{price}', fmt(minPriceTier().price)).replace('{weight}', minPriceTier().weight) : '');
 }
 
 /* ─── Start ─────────────────────────────────── */
@@ -4244,6 +4192,33 @@ function initRedesign() {
         if (!btn) return;
         mixerWeight = Number(btn.dataset.weight);
         updateMixerUI();
+    });
+    document.getElementById('mixer-bar-summary')?.addEventListener('click', e => {
+        if (!e.target.closest('[data-show-recipe]')) return;
+        const panel = document.getElementById('mix-recipe');
+        if (!panel || panel.hidden) return;
+        panel.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
+        panel.querySelector('.mix-recipe-title')?.focus({ preventScroll: true });
+    });
+    document.getElementById('mix-recipe')?.addEventListener('click', e => {
+        const step = e.target.closest('[data-part-step]');
+        if (step && !step.disabled) { changeMixPart(step.dataset.code, Number(step.dataset.partStep)); return; }
+        const rm = e.target.closest('[data-remove]');
+        if (rm) {
+            const code = rm.dataset.remove;
+            const idx = mixItems.findIndex(x => x.code === code);
+            toggleMixItem(code);
+            // Fokus na další řádek, nebo zpátky na seznam surovin.
+            const rows = document.querySelectorAll('#mix-rows .mix-row-remove');
+            (rows[Math.min(idx, rows.length - 1)] || document.querySelector('#product-page .selection-group[data-step="' + mixerStep + '"] .step-question'))?.focus?.();
+            return;
+        }
+        const size = e.target.closest('[data-size]');
+        if (size) {
+            mixerWeight = Number(size.dataset.size);
+            updateMixerUI();
+            document.querySelector(`#mix-recipe-sizes [data-size="${mixerWeight}"]`)?.focus();
+        }
     });
     document.getElementById('name-suggest')?.addEventListener('click', () => {
         const input = document.getElementById('mix-name');
@@ -4366,7 +4341,7 @@ function craftVisualHtml(p, size) {
 }
 
 function craftIngsHtml(codes) {
-    return (codes || []).filter(c => ING_KEYS[c]).map(c =>
+    return (codes || []).filter(c => ingByCode(c)).map(c =>
         `<li><span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>${escHtml(tIng(c))}</li>`).join('');
 }
 
