@@ -6,6 +6,15 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Změněno (ikonky surovin)
+- Místo barevných koleček s tečkami má každá surovina jednoduchou kreslenou
+  ikonku (`icons.js`) na světlém podkladu v barvě suroviny: v mixéru, v panelu
+  směsi, na etiketě sáčku, v encyklopedii, na detailu směsi i v adminu.
+- Admin, Ingredience → **Ikonka**: nahraješ vlastní (PNG nebo SVG s průhledným
+  pozadím). Uloží se jako PNG 512 px, nic se neořezává, SVG se převede na PNG.
+  „Vrátit vestavěnou“ ji zase odebere. Nový sloupec `ingredients.icon_url`.
+- Všechno kreslí jedna funkce (`ingIconHtml`), takže výměna platí všude najednou.
+
 ### Změněno (mixér: víc surovin, díly, gramy)
 - V každém kroku jde vybrat víc věcí, dohromady až **5 surovin**. Klik už sám
   nepřeskočí na další krok; nepovinné kroky (příchuť, doplněk) jdou **přeskočit**.

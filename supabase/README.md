@@ -163,6 +163,7 @@ mezitím neměnil.
 Dalším spuštěním `setup.sql` přibude:
 
 - `ingredients.surcharge_czk`: příplatek za prémiovou surovinu v Kč za 100 g.
+- `ingredients.icon_url`: vlastní ikonka suroviny (PNG v úložišti `photos/icons/`). Bez ní web kreslí vestavěnou.
 - `blends.parts`: díly 1–3 ke každé surovině, směs má až 5 surovin.
 - `recipe_eval()`: výpočet receptury (podíly, gramy, druh čaje podle vyhlášky,
   příplatek). Stejný jako `recipe.js` na webu. Volá ji jen `place_order()`, ta

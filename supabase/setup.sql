@@ -97,6 +97,10 @@ alter table public.ingredients add column if not exists allergens text not null 
 -- K ceně sáčku se připočte podle toho, kolik suroviny v něm je.
 alter table public.ingredients add column if not exists surcharge_czk integer not null default 0 check (surcharge_czk between 0 and 1000);
 
+-- Vlastní ikonka suroviny (PNG s průhledným pozadím z administrace). Bez ní
+-- web nakreslí vestavěnou (icons.js).
+alter table public.ingredients add column if not exists icon_url text check (icon_url ~ '^https://');
+
 -- Hotové směsi (Signature Blends na úvodní stránce).
 create table if not exists public.blends (
     id          text primary key check (id ~ '^[a-z0-9_]{2,40}$'),

@@ -1120,7 +1120,7 @@ function renderDetailVisual(name, ingredients, parts) {
     const list = document.getElementById('detail-ingredients-list');
     const r = recipeOf(ingredients, parts, weight);
     if (list) list.innerHTML = r.rows.map(row =>
-        `<li><span class="ing-dot" style="--dot-color:${escHtml(ingColor(row.code) || '#ccc')}"></span>`
+        `<li>${ingIconHtml(row.code)}`
         + `<span><strong>${escHtml(tIng(row.code))}</strong><span>${row.pct} %${weight ? ` · ${escHtml(fmtGrams(row.grams))}` : ''}</span></span></li>`
     ).join('');
     renderFoodInfo(document.getElementById('detail-food'), ingredients, parts, currentProduct.weight);
@@ -2048,10 +2048,7 @@ function renderIngredientEncyclopedia() {
             const name = t(ing.key);
             const desc = t(ing.key + '_desc') || '';
             const out = ing.inStock === false;
-            const photo = safePhoto(ing.photo);
-            const dot = photo
-                ? `<span class="ing-dot" style="--dot-photo:url('${escHtml(photo)}')"></span>`
-                : `<span class="ing-dot" style="--dot-color:${escHtml(ing.color || '#ccc')}"></span>`;
+            const dot = ingIconHtml(ing.code);
             const lvl = Math.max(0, Math.min(4, ing.caffeine || 0));
             const caffeine = ing.caffeine !== undefined
                 ? `<p class="ing-caffeine"><span class="ing-meter" aria-hidden="true">${[1,2,3,4].map(n => `<i${n <= lvl ? ' class="on"' : ''}></i>`).join('')}</span>${escHtml((LANG === 'cs' ? caffeineCs : caffeineEn)[lvl])}</p>` : '';
@@ -2086,10 +2083,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bar) bar.style.display = 'none';
     }
     applySalesState();
-    document.querySelectorAll('.ingredient-btn').forEach(btn => {
-        const c = btn.getAttribute('data-color');
-        if (c) btn.style.setProperty('--dot-color', c);
-    });
     initReveal();
     applySeller();
     initBackToTop();
@@ -2545,10 +2538,24 @@ function mixErrorText(r) {
         default:               return t('toast_order_failed');
     }
 }
-function ingVisual(ing, cls) {
-    const photo = safePhoto(ing && ing.photo);
-    if (photo) return `<img class="${cls}-photo" src="${escHtml(photo)}" alt="" loading="lazy" decoding="async">`;
-    return escHtml(ing ? ing.emoji : '');
+/* Ikonka suroviny. Jediné místo, které ji kreslí, ať se dá vyměnit všude
+   najednou. Pořadí: vlastní ikonka z administrace (PNG s průhledným
+   pozadím), fotka suroviny (oříznutá do kruhu), jinak vestavěná kresba
+   z icons.js. Podklad je světlý odstín barvy suroviny.
+   cls: velikost (ing-ico--sm, --xs) nebo jiná třída podle místa. */
+function ingIconHtml(code, cls = '') {
+    const ing = ingByCode(code) || {};
+    const color = /^#[0-9a-f]{6}$/i.test(ing.color || '') ? ing.color : '#cccccc';
+    const klass = 'ing-ico' + (cls ? ' ' + cls : '');
+    const icon = safePhoto(ing.icon);
+    if (icon) {
+        return `<span class="${klass} has-img" style="--c:${color}" aria-hidden="true">`
+            + `<img src="${escHtml(icon)}" alt="" loading="lazy" decoding="async"></span>`;
+    }
+    const photo = safePhoto(ing.photo);
+    if (photo) return `<span class="${klass} has-photo" style="--c:${color};background-image:url('${escHtml(photo)}')" aria-hidden="true"></span>`;
+    const kind = ing.kind || (ing.category === 'base' ? 'tea' : '');
+    return `<span class="${klass}" style="--c:${color}" aria-hidden="true">${IngIcons.svg(IngIcons.keyFor(code, kind))}</span>`;
 }
 function bySort(a, b) { return (a.sort || 0) - (b.sort || 0); }
 function blendSubtitle(codes) {
@@ -2751,6 +2758,7 @@ function applyIngredientRows(list) {
             health:   (LANG === 'cs' ? r.health_cs : r.health_en) || [],
             pairs:    (r.pairs || []).filter(p => typeof p === 'string'),
             photo:    safePhoto(r.photo_url),
+            icon:     safePhoto(r.icon_url),
             inStock:  r.in_stock !== false,
             kind:      ['tea', 'herb', 'fruit', 'other'].includes(r.kind) ? r.kind : '',
             label:     typeof r.label_cs === 'string' ? r.label_cs.trim() : '',
@@ -2894,18 +2902,16 @@ function renderIngredientButtons() {
         const grid = document.querySelector(`.btn-grid[data-group="${group}"]`);
         if (!grid) return;
         grid.innerHTML = ING_DATA[group].map(ing => {
-            const photo = safePhoto(ing.photo);
             const out = ing.inStock === false;
             const selected = !out && mixItems.some(x => x.code === ing.code);
-            const style = `--dot-color:${ing.color};` + (photo ? `--dot-photo:url("${photo}");` : '');
-            const cls = ['ingredient-btn', photo && 'has-photo', out && 'is-out', selected && 'selected'].filter(Boolean).join(' ');
+            const cls = ['ingredient-btn', out && 'is-out', selected && 'selected'].filter(Boolean).join(' ');
             const tags = [
                 ing.surcharge ? `<span class="ing-tag ing-tag--premium">${escHtml(t('mix_premium_tag'))}</span>` : '',
                 isPinchIng(ing) ? `<span class="ing-tag">${escHtml(t('mix_pinch'))}</span>` : '',
             ].join('');
             return `<button type="button" class="${cls}" data-color="${ing.color}"`
-                + ` data-name="${escHtml(ing.code)}" style="${escHtml(style)}" aria-pressed="${selected}"${out ? ' aria-disabled="true"' : ''}>`
-                + `<span class="ing-dot" aria-hidden="true"></span>`
+                + ` data-name="${escHtml(ing.code)}" aria-pressed="${selected}"${out ? ' aria-disabled="true"' : ''}>`
+                + ingIconHtml(ing.code)
                 + `<span class="ing-text"><span class="ing-name">${escHtml(t(ing.key))}${tags}</span>`
                 + `<span class="ing-note">${escHtml(t(ing.key + '_desc') || '')}</span></span>`
                 + (out ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : '')
@@ -3758,7 +3764,7 @@ const LAYER_LABELS = ['glass_label_base', 'glass_label_flavor', 'glass_label_ext
 function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholders = false, weight = '' } = {}) {
     const comp = blendComposition(codes, parts);
     const real = Recipe.normalize(codes, parts).codes;
-    const li = (code, pct) => `<li><i style="--c:${escHtml(ingColor(code) || '#cccccc')}"></i>`
+    const li = (code, pct) => `<li>${ingIconHtml(code, 'pouch-ico')}`
         + `<span class="pouch-ing">${escHtml(tIng(code))}</span>${pct !== undefined ? `<b>${pct} %</b>` : ''}</li>`;
     let rows;
     if (comp.length) rows = comp.map(c => li(c.code, c.pct)).join('');
@@ -3833,12 +3839,14 @@ function renderHow() {
     }
     const list = document.getElementById('how-formula');
     if (!list) return;
-    const codes = ['Green Tea', 'Mint', 'Lemon'].filter(c => ingByCode(c));
+    const codes = ['Green Tea', 'Strawberry', 'Lemon'].filter(c => ingByCode(c));
     const parts = codes.map(c => defaultParts(ingByCode(c)));
-    const roles = LAYER_LABELS.map(k => t(k).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en'));
+    // Role podle skupiny suroviny (základ / příchuť / doplněk), ne podle pořadí.
+    const roleOf = c => t(LAYER_LABELS[(MIX_STEP_OF[(ingByCode(c) || {}).category] || 1) - 1]);
+    const roles = codes.map(c => roleOf(c).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en'));
     list.innerHTML = codes.map((c, i) =>
         `<li class="formula-item">${i ? '<span class="formula-op" aria-hidden="true">+</span>' : ''}`
-        + `<span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>`
+        + ingIconHtml(c, 'ing-ico--lg')
         + `<span class="formula-text"><strong>${escHtml(tIng(c))}</strong><span>${escHtml(roles[i] + ', ' + partsLabel(parts[i]))}</span></span></li>`
     ).join('')
         + `<li class="formula-item formula-result"><span class="formula-op" aria-hidden="true">=</span>`
@@ -4034,7 +4042,7 @@ function renderMixRecipe() {
         if (ing && ing.surcharge) notes.push(t('mix_premium_row').replace('{price}', fmt(ing.surcharge)));
         if (ing && ing.maxPct && !isPinchIng(ing)) notes.push(t('mix_max').replace('{max}', ing.maxPct));
         return `<li class="mix-row${over ? ' is-over' : ''}">`
-            + `<span class="ing-dot" style="--dot-color:${escHtml(ingColor(x.code) || '#ccc')}" aria-hidden="true"></span>`
+            + ingIconHtml(x.code, 'ing-ico--sm')
             + `<strong class="mix-row-title">${escHtml(name)}</strong>`
             + `<small class="mix-row-meta">${escHtml(notes.join(' · '))}</small>`
             + control
@@ -4342,7 +4350,7 @@ function craftVisualHtml(p, size) {
 
 function craftIngsHtml(codes) {
     return (codes || []).filter(c => ingByCode(c)).map(c =>
-        `<li><span class="ing-dot" style="--dot-color:${escHtml(ingColor(c) || '#ccc')}"></span>${escHtml(tIng(c))}</li>`).join('');
+        `<li>${ingIconHtml(c, 'ing-ico--xs')}${escHtml(tIng(c))}</li>`).join('');
 }
 
 function craftCardHtml(p, done) {

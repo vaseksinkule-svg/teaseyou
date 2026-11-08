@@ -81,6 +81,7 @@ index.html                 Celý web. Všechny "stránky" jsou sekce, přepíná
 style.css                  Styly včetně tmavého režimu.
 script.js                  Mixér, košík, checkout, kvíz, i18n, data ingrediencí.
 recipe.js                  Výpočet receptury (díly → %, gramy, druh čaje, příplatek). Stejný je v databázi.
+icons.js                   Vestavěné ikonky surovin, dokud v adminu nenahraješ vlastní.
 config.js                  Adresa a veřejný klíč Supabase.
 db.js                      Malý klient pro Supabase (tabulky, přihlášení, fotky).
 admin/                     Administrace: objednávky, nabídka, ceny, slevy.

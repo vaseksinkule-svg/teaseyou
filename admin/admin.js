@@ -163,10 +163,15 @@
         return `<span class="glass" aria-hidden="true">${layers.map(c =>
             `<span style="background:${esc(ingColor(c))}"></span>`).join('')}</span>`;
     }
+    /* Stejná ikonka jako na webu: vlastní (Ikonka), fotka, nebo vestavěná kresba. */
     function swatchHtml(ing) {
+        const color = /^#[0-9a-f]{6}$/i.test(ing.color || '') ? ing.color : '#cccccc';
+        const icon = safePhoto(ing.icon_url);
+        if (icon) return `<span class="ing-ico has-img" style="--c:${esc(color)}" aria-hidden="true"><img src="${esc(icon)}" alt="" loading="lazy"></span>`;
         const photo = safePhoto(ing.photo_url);
-        if (photo) return `<span class="swatch" style="background-image:url('${esc(photo)}')" aria-hidden="true"></span>`;
-        return `<span class="swatch" style="background:${esc(ing.color)}" aria-hidden="true">${esc(ing.emoji)}</span>`;
+        if (photo) return `<span class="ing-ico has-photo" style="--c:${esc(color)};background-image:url('${esc(photo)}')" aria-hidden="true"></span>`;
+        const kind = ing.kind || (ing.category === 'base' ? 'tea' : '');
+        return `<span class="ing-ico" style="--c:${esc(color)}" aria-hidden="true">${IngIcons.svg(IngIcons.keyFor(ing.code, kind))}</span>`;
     }
     function safePhoto(url) {
         return typeof url === 'string' && /^https:\/\/[^\s"'()<>\\]+$/.test(url) ? url : '';
@@ -453,6 +458,73 @@
         if (!blob) throw new Error('Fotku se nepodařilo zpracovat.');
         return blob;
     }
+    /* Ikonka: PNG s průhledným pozadím, nejvýš 512 px. SVG se tady převede
+       na PNG, ať se do úložiště nedostane nic, co by šlo spustit. */
+    async function prepareIcon(file) {
+        if (file.size > 2 * 1024 * 1024) throw new Error('Ikonka je moc velká, nahraj soubor do 2 MB.');
+        const isSvg = file.type === 'image/svg+xml' || /\.svg$/i.test(file.name || '');
+        const img = await loadImage(isSvg ? new Blob([await file.text()], { type: 'image/svg+xml' }) : file);
+        const w = img.naturalWidth || 512, h = img.naturalHeight || 512;
+        // SVG bez rozměrů nakreslíme rovnou na 512 px, bitmapu jen zmenšíme.
+        const scale = isSvg ? 512 / Math.max(w, h) : Math.min(1, 512 / Math.max(w, h));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(w * scale));
+        canvas.height = Math.max(1, Math.round(h * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        const blob = await canvasBlob(canvas, 'image/png');
+        if (!blob) throw new Error('Ikonku se nepodařilo zpracovat.');
+        return blob;
+    }
+
+    /* Ovládání ikonky v panelu ingredience. Stejně jako u fotky: nahraje
+       hned, do ingredience se zapíše až uložením, nepoužité se smažou. */
+    function iconControl(body, initialUrl, idHint, previewOf) {
+        const ctl = { url: initialUrl || null, uploaded: [] };
+        const box = $('#icon-field', body);
+        const input = $('input[type=file]', box);
+        const removeBtn = $('[data-icon=remove]', box);
+        const paint = () => {
+            $('.icon-preview', box).innerHTML = previewOf(safePhoto(ctl.url));
+            removeBtn.hidden = !safePhoto(ctl.url);
+        };
+        ctl.paint = paint;
+        paint();
+        $('[data-icon=pick]', box).addEventListener('click', () => input.click());
+        removeBtn.addEventListener('click', () => { ctl.url = null; sheetDirty = true; paint(); });
+        input.addEventListener('change', async () => {
+            const file = input.files && input.files[0];
+            input.value = '';
+            if (!file) return;
+            const btn = $('[data-icon=pick]', box);
+            btn.disabled = true;
+            btn.textContent = 'Nahrávám…';
+            try {
+                const blob = await prepareIcon(file);
+                const path = `icons/${slugify(idHint() || 'ikonka') || 'ikonka'}-${Date.now().toString(36)}.png`;
+                const url = await db.upload(PHOTO_BUCKET, path, blob, 'image/png');
+                ctl.uploaded.push(url);
+                ctl.url = url;
+                sheetDirty = true;
+                paint();
+                toast('Ikonka nahraná. Nezapomeň uložit.');
+            } catch (err) {
+                fail(err);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Nahrát ikonku';
+            }
+        });
+        ctl.commit = () => {
+            const unused = ctl.uploaded.filter(u => u !== ctl.url);
+            if (initialUrl && initialUrl !== ctl.url) unused.push(initialUrl);
+            removePhotos(unused);
+            ctl.uploaded = [];
+            initialUrl = ctl.url;
+        };
+        ctl.discard = () => { removePhotos(ctl.uploaded.filter(u => u !== initialUrl)); ctl.uploaded = []; };
+        return ctl;
+    }
+
     function storagePath(url) {
         const prefix = db.publicUrl(PHOTO_BUCKET, '');
         return typeof url === 'string' && url.startsWith(prefix) ? decodeURIComponent(url.slice(prefix.length)) : null;
@@ -765,8 +837,20 @@
                 <label class="field"><span>Popis česky</span><textarea name="desc_cs" rows="2" maxlength="500">${esc(i.desc_cs)}</textarea></label>
                 <label class="field"><span>Popis anglicky</span><textarea name="desc_en" rows="2" maxlength="500">${esc(i.desc_en)}</textarea></label>
                 <div class="field-row">
-                    <label class="field"><span>Barva ve skleničce</span><input type="color" name="color" value="${esc(i.color)}"></label>
-                    <label class="field"><span>Emoji (když není fotka)</span><input type="text" name="emoji" maxlength="8" value="${esc(i.emoji)}"></label>
+                    <label class="field"><span>Barva</span><input type="color" name="color" value="${esc(i.color)}"><small>Podklad ikonky a tečky v košíku.</small></label>
+                    <label class="field"><span>Emoji (jen v administraci)</span><input type="text" name="emoji" maxlength="8" value="${esc(i.emoji)}"></label>
+                </div>
+                <div class="field" id="icon-field">
+                    <span>Ikonka</span>
+                    <div class="icon-row">
+                        <span class="icon-preview"></span>
+                        <span class="photo-actions">
+                            <input type="file" accept="image/png,image/webp,image/svg+xml,.svg">
+                            <button type="button" class="btn btn-secondary btn-small" data-icon="pick">Nahrát ikonku</button>
+                            <button type="button" class="btn-link" data-icon="remove">Vrátit vestavěnou</button>
+                        </span>
+                    </div>
+                    <small>PNG nebo SVG s průhledným pozadím, ideálně čtverec 512 × 512 px. Web ji ukáže v kolečku v barvě suroviny: v mixéru, na sáčku, v encyklopedii. Bez ní je tu jednoduchá kresba.</small>
                 </div>
                 <div class="base-only">
                     <div class="field-row">
@@ -825,6 +909,13 @@
         openSheet(isNew ? 'Nová ingredience' : i.name_cs, html, body => {
             const form = $('#ing-form', body);
             const photo = photoControl(body, i.photo_url, 'ingredients', () => form.name_en.value || i.code, i.emoji);
+            const iconPreview = url => swatchHtml({
+                code: i.code || codeFromName(form.name_en.value), kind: form.kind.value, category: form.category.value,
+                color: form.color.value, icon_url: url, photo_url: url ? null : photo.url,
+            });
+            const icon = iconControl(body, i.icon_url, () => form.name_en.value || i.code, iconPreview);
+            ['color', 'kind', 'category'].forEach(n => form[n].addEventListener('input', () => icon.paint()));
+            ['kind', 'category'].forEach(n => form[n].addEventListener('change', () => icon.paint()));
             const syncBase = () => { $('.base-only', body).hidden = form.category.value !== 'base'; };
             syncBase();
             form.category.addEventListener('change', syncBase);
@@ -865,6 +956,7 @@
                     allergens: v('allergens'),
                     pairs: $$('#pairs .chip[aria-pressed="true"]', body).map(c => c.dataset.pair),
                     photo_url: photo.url,
+                    icon_url: icon.url,
                     in_stock: form.in_stock.checked,
                     active: form.active.checked,
                     sort: parseInt(v('sort'), 10) || 0,
@@ -901,6 +993,7 @@
                     }
                     state.ingredients.sort((a, b) => (a.sort - b.sort) || a.name_cs.localeCompare(b.name_cs, 'cs'));
                     photo.commit();
+                    icon.commit();
                     toast(isNew ? `Přidáno: ${row.name_cs}` : `Uloženo: ${row.name_cs}`);
                     closeSheet(true);
                     renderIngredients();
@@ -922,13 +1015,13 @@
                     const rows = await db.remove('ingredients', { id: 'eq.' + i.id });
                     if (!rows.length) throw new db.DbError('no_rows', 0);
                     state.ingredients = state.ingredients.filter(x => x.id !== i.id);
-                    removePhotos([i.photo_url]);
+                    removePhotos([i.photo_url, i.icon_url].filter(Boolean));
                     toast(`Smazáno: ${i.name_cs}`);
                     closeSheet(true);
                     renderIngredients();
                 } catch (err) { formError('#ing-error', friendly(err)); }
             });
-            return () => photo.discard();
+            return () => { photo.discard(); icon.discard(); };
         });
     }
 

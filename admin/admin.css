@@ -294,6 +294,28 @@ button.row:hover, .row[role="button"]:hover { border-color: var(--faint); }
     width: 44px; height: 44px; border-radius: 12px; object-fit: cover; display: block;
     background: var(--line); flex-shrink: 0;
 }
+/* Ikonka suroviny, stejně jako na webu (style.css → .ing-ico) */
+.ing-ico {
+    --c: #cccccc;
+    display: grid; place-items: center; flex-shrink: 0;
+    width: 40px; height: 40px; border-radius: 50%;
+    background-color: color-mix(in srgb, var(--c) 30%, #fffdf8);
+    color: color-mix(in oklab, var(--c) 52%, #231f1a);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c) 45%, #231f1a 15%);
+}
+.ing-ico svg { display: block; width: 62%; height: 62%; }
+.ing-ico.has-img img { display: block; width: 80%; height: 80%; object-fit: contain; }
+.ing-ico.has-photo { background-size: cover; background-position: center; }
+@media (prefers-color-scheme: dark) {
+    .ing-ico {
+        background-color: color-mix(in srgb, var(--c) 32%, #1f1f1c);
+        color: color-mix(in oklab, var(--c) 62%, #fff);
+        box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c) 50%, transparent);
+    }
+}
+.row.is-muted .ing-ico { opacity: .55; }
+.icon-row { display: flex; align-items: center; gap: 16px; margin: 4px 0 6px; }
+.icon-preview .ing-ico { width: 72px; height: 72px; }
 .swatch {
     width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
     display: grid; place-items: center; font-size: 19px; line-height: 1;
