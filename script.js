@@ -2,8 +2,28 @@
    TEASE YOU — script.js  v2.0
    ============================================= */
 
-/* ─── LANGUAGE DETECTION ─────────────────────── */
-const LANG = navigator.language.startsWith('cs') ? 'cs' : 'en';
+/* ─── JAZYK ─────────────────────────────────── */
+/* Čeština, slovenština, nebo angličtina. Přednost má volba z přepínače
+   v hlavičce (uložená v prohlížeči), jinak jazyk prohlížeče. Kdo nemá
+   češtinu ani slovenštinu, dostane angličtinu. */
+const LANGS = ['cs', 'sk', 'en'];
+const LANG_KEY = 'teaseyou_lang';
+const LANG = (() => {
+    try {
+        const saved = localStorage.getItem(LANG_KEY);
+        if (LANGS.includes(saved)) return saved;
+    } catch (_) { /* soukromé okno */ }
+    const prefs = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''])
+        .map(l => String(l).toLowerCase());
+    for (const l of prefs) {
+        const code = l.slice(0, 2);
+        if (LANGS.includes(code)) return code;
+    }
+    return 'en';
+})();
+const LOCALE = { cs: 'cs-CZ', sk: 'sk-SK', en: 'en-GB' }[LANG];
+/* Čeština a slovenština píšou desetinnou čárku a „a“ mezi slovy. */
+const SLAVIC = LANG !== 'en';
 
 /* ─── TRANSLATIONS ───────────────────────────── */
 const TRANSLATIONS = {
@@ -18,24 +38,10 @@ const TRANSLATIONS = {
         nav_quiz:           'Find my blend ✨',
         /* Hero buttons */
         btn_create_own:     'Create your own',
-        btn_how_works:      'How it works ↓',
         /* Quiz strip */
-        quiz_strip_text:    'Not sure where to start?',
-        btn_quiz:           'Take the Tea Finder Quiz →',
         /* Stats */
-        stat_bases:         'Tea bases',
-        stat_flavors:       'Flavors',
-        stat_extras:        'Extras',
-        stat_blends:        'Unique blends',
-        stat_recipe:        'Dispatch',
         /* How it works */
         how_title:          'How it works',
-        how_1_title:        'Pick your base',
-        how_1_desc:         'Choose from six tea bases — green, black, white, oolong, rooibos or chamomile. Each has a different character.',
-        how_2_title:        'Add flavors',
-        how_2_desc:         'Pick a fruit, flower or spice that sounds good to you. This is the part where it gets personal.',
-        how_3_title:        'We ship it fresh',
-        how_3_desc:         'We mix your blend the day you order it and send it straight to you. No warehouse, no shelf time.',
         /* FAQ */
         faq_title:          'Frequently asked',
         faq_q1:             'How long does delivery take?',
@@ -44,54 +50,24 @@ const TRANSLATIONS = {
         faq_a2:             'Every blend lists its allergens under Ingredients and food information, based on our suppliers\' specifications. If you have a severe allergy, write to us before ordering.',
         faq_q3:             'Can I return or exchange an order?',
         faq_a3:             'A blend mixed to your choice is made to order, so it cannot be returned without a reason. A ready-made blend can be returned within 14 days if the pouch is unopened. If anything arrives damaged or wrong, write to us and we will send a new one. Details are in our terms.',
-        faq_q4:             'How do I brew my blend?',
+        faq_q4:             'How do I brew a blend?',
         faq_a4:             'Use 2–3 grams per 200ml of water. Green and white teas: 75–80°C for 2–3 minutes. Black and oolong: 90–95°C for 3–4 minutes. Herbal (rooibos, chamomile): 100°C for 5–7 minutes. Each package includes a brewing guide card.',
         faq_q5:             'Can I send a blend as a gift?',
         faq_a5:             'Absolutely — it\'s one of our most popular uses! During checkout, add a personal message in the note field and we\'ll include a handwritten card. We also offer gift wrapping on request.',
         faq_q6:             'How long does the tea stay fresh?',
         faq_a6:             'We pack into resealable food-grade pouches. Each one shows a best-before date, usually a year from blending. Keep it dry and dark at room temperature and reseal after opening.',
         /* CTA banner */
-        cta_title:          'Start with what sounds good.',
-        cta_desc:           'Pick a base, add what you like, name it.',
         btn_start_creating: 'Start creating →',
         /* Product detail page */
-        btn_add_cart:       'Add to Cart',
-        btn_customize:      'Customize Recipe',
-        back_to_blends:     '← Back to blends',
-        lbl_select_weight:  'Select weight',
         /* Configurator */
-        back_btn:           '← Back',
-        config_title:       'Build your blend',
-        config_subtitle:    'Pick one from each category',
-        prog_base:          'Base',
-        prog_flavor:        'Flavor',
-        prog_extras:        'Extras',
-        prog_name:          'Name',
-        section_base:       '1. Base',
-        section_flavor:     '2. Flavor',
-        section_extras:     '3. Extras',
-        section_name:       '4. Name your mix',
-        info_default_title: 'Select a base',
-        info_default_text:  'Choose your preferred tea base to start.',
-        name_placeholder:   'e.g. Slow Tuesday',
-        name_hint:          'Give it a name you\'ll remember ✨',
-        btn_preview:        'Preview my blend →',
         btn_surprise:       'Surprise me',
         /* Glass panel */
-        glass_title:        'Your blend',
         glass_label_base:   'Base',
         glass_label_flavor: 'Flavor',
         glass_label_extras: 'Extras',
         glass_name_default: 'Name your mix',
-        mix_summary_title:  'Your selection',
         preset_label:       'Quick start:',
         /* Summary page */
-        summary_badge:      'Your blend',
-        summary_inside:     'What\'s inside',
-        summary_weight:     'Choose weight to order',
-        btn_edit_recipe:    'Edit Recipe',
-        btn_save:           'Save',
-        btn_share:          'Share',
         /* Saved blends */
         saved_title:        'My Blends',
         saved_empty:        'No saved blends yet.',
@@ -103,19 +79,14 @@ const TRANSLATIONS = {
         orders_title:       'My Orders',
         orders_empty:       'No orders yet.',
         order_num_prefix:   'Order #',
-        order_status:       'Confirmed',
         order_discount:     'Discount',
         order_shipping:     'Shipping',
         order_total:        'Total',
         /* Cart */
         cart_title:         'Your Cart',
-        cart_col_product:   'Product',
-        cart_col_price:     'Price',
         cart_col_qty:       'Quantity',
-        cart_col_subtotal:  'Subtotal',
         cart_empty_title:   'Your cart is empty',
         cart_empty:         'Your cart is empty.',
-        btn_start_shopping: 'Start shopping',
         btn_browse_blends:  'Browse blends',
         btn_continue:       '← Continue shopping',
         lbl_promo:          'Discount code',
@@ -149,7 +120,6 @@ const TRANSLATIONS = {
         ship_dpd_desc:      'Next business day delivery',
         checkout_note:      'Note',
         checkout_note_opt:  '(optional)',
-        note_placeholder:   'Any special requests or gift messages...',
         btn_complete_order: 'Order and pay',
         /* Success page */
         success_title:      'Order placed!',
@@ -159,38 +129,19 @@ const TRANSLATIONS = {
         success_step3:      'Shipped to you',
         btn_create_another: 'Create another blend',
         /* Modal */
-        modal_qty_title:    'Select Quantity',
-        btn_confirm:        'Confirm',
-        btn_cancel:         'Cancel',
         /* Cookie */
-        cookie_title:       'We use cookies',
-        cookie_text:        'We use cookies to improve your experience and remember your preferences. By continuing you agree to our',
-        cookie_policy_link: 'Cookie Policy',
-        btn_decline:        'Decline',
-        btn_accept:         'Accept all',
         /* Footer */
-        footer_nav:         'Navigation',
-        footer_legal:       'Legal',
         footer_contact:     'Contact',
-        footer_newsletter:  'Newsletter',
-        footer_newsletter_desc: 'New blends, offers and tea stories — straight to your inbox.',
-        footer_subscribe:   'Subscribe',
-        footer_copyright:   '© 2025 Tease you. All rights reserved.',
         /* Promo feedback */
         promo_cart_first:   'Add something to your cart first.',
         promo_invalid:      'Invalid code.',
         promo_applied:      'Code applied',
         /* Free shipping bar */
-        freeship_add:       'Add',
-        freeship_more:      'more for free shipping',
-        freeship_unlocked:  'You\'ve unlocked <strong>free shipping</strong>!',
         /* Toast / system messages */
-        toast_already_saved:    'Blend already saved!',
+        toast_already_saved:    'You already saved this blend.',
         toast_saved:            'saved to My Blends!',
-        toast_copied:           'Blend description copied!',
         toast_link_copied:      'Share link copied!',
         toast_removed:          'Blend removed',
-        toast_added_cart:       'added to cart!',
         toast_in_cart:          '"{name}" is in your cart',
         toast_discount_applied: 'applied!',
         toast_cart_empty:       'Your cart is empty',
@@ -218,11 +169,11 @@ const TRANSLATIONS = {
         quiz_q2_o3:     'Warm & spicy',
         quiz_q2_o4:     'Sweet & fruity',
         quiz_q3:        'How do you feel about caffeine?',
-        quiz_q3_o1:     'Give me all of it',
+        quiz_q3_o1:     'The more the better',
         quiz_q3_o2:     'A little is fine',
         quiz_q3_o3:     'None please — herbal only',
         quiz_q3_o4:     'Don\'t mind either way',
-        quiz_q4:        'Pick your brewing mood:',
+        quiz_q4:        'How do you like to brew?',
         quiz_q4_o1:     'Quick — under 3 minutes',
         quiz_q4_o2:     'Slow & mindful — I\'ll wait',
         quiz_q4_o3:     'Strong steep, big flavour',
@@ -232,19 +183,12 @@ const TRANSLATIONS = {
         quiz_q5_o2:     'Soft & floral',
         quiz_q5_o3:     'Bold & spicy',
         quiz_q5_o4:     'Surprise me',
-        quiz_match:     'match',
         quiz_why:       'Why it fits you',
         quiz_also:      'You might also like',
-        quiz_question_of: 'Question',
-        quiz_of:        'of',
-        quiz_result_label: 'Your perfect blend is',
         btn_order_blend: 'Order this blend',
         btn_try_again:   'Try again',
-        btn_back_home:   'Back home',
         /* Completion label */
-        completion_selected: 'selected',
         /* About page */
-        about_tag:           'Our Story',
         about_hero_title:    'Tea is personal.',
         about_hero_subtitle: 'Not some brand\'s version. Yours.',
         about_story_p1:      'Tease you started with a school thesis. The founder spent months studying tea house culture, going from one tea house to the next, and thinking about what makes a good cup worth going back to.',
@@ -253,14 +197,14 @@ const TRANSLATIONS = {
         about_card1_title:   'Fresh every time',
         about_card1_desc:    'We blend after you order. Nothing sits pre-packed on a shelf.',
         about_card2_title:   'Your recipe',
-        about_card2_desc:    'The configurator is the whole point. Pick your base, your flavour, your extra. Name it. That\'s your tea.',
+        about_card2_desc:    'The mixer is the whole point. Pick a base, a flavour and an extra, set the ratio and name it. That\'s your tea.',
         about_card3_title:   'Real ingredients',
-        about_card3_desc:    'Six bases, nine flavours, nine extras. Every blend lists its full ingredients with percentages.',
+        about_card3_desc:    'Teas, herbs, fruit and spices from checked suppliers. Every blend lists its full ingredients with percentages.',
         about_cta:           'Ready to find your blend?',
         btn_start_creating2: 'Start creating',
         /* SEO */
-        page_title:  'Tease you — Build your perfect tea blend',
-        meta_desc:   'Create your own custom tea blend from 6 premium bases, 9 flavors and 9 extras. Named, packed and shipped fresh to your door. Free shipping over 500 Kč.',
+        page_title:  'Tease you — Mix your own tea blend',
+        meta_desc:   'Mix your own loose-leaf tea from up to five ingredients, in any ratio you like. Blended after you order. Free shipping over 500 Kč.',
         /* Ingredients — bases */
         ing_green_tea:      'Green Tea',
         ing_black_tea:      'Black Tea',
@@ -313,31 +257,15 @@ const TRANSLATIONS = {
         ing_rose_hip_desc:  'Tart, fruity and tangy.',
         ing_cardamom_desc:  'Exotic, spicy and floral.',
         /* UI labels */
-        lbl_signature_blends: 'Signature Blends',
-        lbl_signature_blend:  'Signature Blend',
-        lbl_brewing_guide:    'Brewing guide',
-        lbl_per_200ml:        'per 200ml',
-        lbl_water_temp:       'water temp',
-        lbl_steep_time:       'steep time',
-        footer_tagline:       'Handcrafted blends,<br>made just for you.',
-        footer_made_with:     'Made with 🍵 in Czech Republic',
         footer_terms:         'Terms & Conditions',
         footer_privacy:       'Privacy Policy',
-        footer_gdpr:          'GDPR',
         footer_cookies:       'Cookie Policy',
-        btn_clear:          '\u2715 Clear',
-        blend_sub_1:        'Green tea, Mint & Lemon',
-        blend_sub_2:        'Chamomile, Lemon balm & Lavender',
-        blend_sub_3:        'Black tea, Ginger & Cinnamon',
-        blend_sub_4:        'Oolong, Rose & Lavender',
-        blend_sub_5:        'Rooibos, Orange & Spearmint',
-        blend_sub_6:        'Apple, Hibiscus, Rose hip & Cinnamon',
         social_coming_soon:   'Not on social media yet — coming soon!',
         /* Packeta widget */
         packeta_choose:     'Choose pickup point',
         packeta_change:     'Change branch',
         packeta_required:   'Please choose a pickup point',
-        packeta_unavailable:'Widget not available — try again',
+        packeta_unavailable:'The pickup point map did not load. Please try again.',
         /* Promo bar */
         promo_text:  '🍵 Free shipping on orders over 500 Kč · Use code FIRSTBLEND for 10% off your first order',
         /* Bottom nav */
@@ -351,10 +279,8 @@ const TRANSLATIONS = {
         ing_cat_extras: 'Extras',
         ing_health: 'Benefits',
         ing_pairs: 'Pairs well with',
-        back_btn_text: 'Back',
         /* Process page */
         nav_process: 'How we do it',
-        process_tag: 'From order to cup',
         process_title: 'How we do it',
         process_sub: 'Every order is different. We blend only after you order, exactly as you chose.',
         proc_1_title: 'Ingredient sourcing',
@@ -380,24 +306,10 @@ const TRANSLATIONS = {
         nav_quiz:           'Najdi svůj blend ✨',
         /* Hero buttons */
         btn_create_own:     'Namíchej si vlastní',
-        btn_how_works:      'Jak to funguje ↓',
         /* Quiz strip */
-        quiz_strip_text:    'Nevíš, kde začít?',
-        btn_quiz:           'Spusť kvíz pro hledání blendu →',
         /* Stats */
-        stat_bases:         'Základy čaje',
-        stat_flavors:       'Příchutě',
-        stat_extras:        'Doplňky',
-        stat_blends:        'Unikátních blendů',
-        stat_recipe:        'Expedice',
         /* How it works */
         how_title:          'Jak to funguje',
-        how_1_title:        'Vyber základ',
-        how_1_desc:         'Vyber ze šesti základů čaje — zelený, černý, bílý, oolong, rooibos nebo heřmánek. Každý má jiný charakter.',
-        how_2_title:        'Přidej příchutě',
-        how_2_desc:         'Vyber ovoce, květ nebo koření, které ti říká. Tady to začne být osobní.',
-        how_3_title:        'Čerstvě odešleme',
-        how_3_desc:         'Směs namícháme až po objednání a pošleme přímo k tobě. Nic neleží předbalené na polici.',
         /* FAQ */
         faq_title:          'Časté otázky',
         faq_q1:             'Jak dlouho trvá doručení?',
@@ -406,54 +318,24 @@ const TRANSLATIONS = {
         faq_a2:             'Alergeny najdeš u každé směsi v části Složení a informace o potravině, a to podle specifikací od našich dodavatelů. Když máš silnou alergii, napiš nám před objednávkou a probereme to.',
         faq_q3:             'Mohu vrátit nebo vyměnit objednávku?',
         faq_a3:             'Směs namíchanou podle tebe děláme na zakázku, takže ji nejde vrátit bez udání důvodu. Hotovou směs z nabídky vrátit můžeš do 14 dnů, pokud je sáček neotevřený. Když cokoli dorazí poškozené nebo jiné, než jsi objednal, napiš nám a pošleme novou. Podrobnosti jsou v obchodních podmínkách.',
-        faq_q4:             'Jak připravit svůj blend?',
+        faq_q4:             'Jak směs připravit?',
         faq_a4:             'Použij 2–3 gramy na 200 ml vody. Zelené a bílé čaje: 75–80 °C po dobu 2–3 minut. Černý čaj a oolong: 90–95 °C po dobu 3–4 minut. Bylinkové čaje (rooibos, heřmánek): 100 °C po dobu 5–7 minut. Každé balení obsahuje kartičku s návodem na přípravu.',
-        faq_q5:             'Mohu blend poslat jako dárek?',
-        faq_a5:             'Rozhodně — je to jedno z nejoblíbenějších použití! Při objednávce přidej osobní zprávu do pole pro poznámky a my přiložíme ručně psanou kartičku. Na vyžádání nabízíme také dárkové balení.',
+        faq_q5:             'Můžu směs poslat jako dárek?',
+        faq_a5:             'Určitě, je to jedno z nejoblíbenějších použití. Při objednávce napiš osobní vzkaz do poznámky a přiložíme ručně psanou kartičku. Na přání směs i dárkově zabalíme.',
         faq_q6:             'Jak dlouho čaj vydrží čerstvý?',
         faq_a6:             'Balíme do opakovaně uzavíratelných sáčků pro potraviny. Na každém je datum minimální trvanlivosti, obvykle rok od namíchání. Skladuj v suchu a temnu při pokojové teplotě a po otevření sáček dobře zavři.',
         /* CTA banner */
-        cta_title:          'Začni s tím, co ti zní dobře.',
-        cta_desc:           'Vyber základ, přidej co chceš, pojmenuj to.',
         btn_start_creating: 'Začít vytvářet →',
         /* Product detail page */
-        btn_add_cart:       'Přidat do košíku',
-        btn_customize:      'Upravit recept',
-        back_to_blends:     '← Zpět na blendy',
-        lbl_select_weight:  'Vyber gramáž',
         /* Configurator */
-        back_btn:           '← Zpět',
-        config_title:       'Namíchej svůj blend',
-        config_subtitle:    'Zvol po jednom z každé kategorie',
-        prog_base:          'Základ',
-        prog_flavor:        'Příchuť',
-        prog_extras:        'Doplňky',
-        prog_name:          'Název',
-        section_base:       '1. Základ',
-        section_flavor:     '2. Příchuť',
-        section_extras:     '3. Doplňky',
-        section_name:       '4. Pojmenuj svůj mix',
-        info_default_title: 'Zvol základ',
-        info_default_text:  'Vyber svůj oblíbený základ čaje pro začátek.',
-        name_placeholder:   'Např. Pomalé úterý',
-        name_hint:          'Dej mu jméno, které si zapamatuješ ✨',
-        btn_preview:        'Náhled mého blendu →',
         btn_surprise:       'Překvap mě',
         /* Glass panel */
-        glass_title:        'Tvůj blend',
         glass_label_base:   'Základ',
         glass_label_flavor: 'Příchuť',
         glass_label_extras: 'Doplňky',
         glass_name_default: 'Pojmenuj svůj mix',
-        mix_summary_title:  'Tvoje složení',
         preset_label:       'Rychlý start:',
         /* Summary page */
-        summary_badge:      'Tvůj blend',
-        summary_inside:     'Co je uvnitř',
-        summary_weight:     'Zvol gramáž k objednání',
-        btn_edit_recipe:    'Upravit recept',
-        btn_save:           'Uložit',
-        btn_share:          'Sdílet',
         /* Saved blends */
         saved_title:        'Moje blendy',
         saved_empty:        'Zatím žádné uložené blendy.',
@@ -465,19 +347,14 @@ const TRANSLATIONS = {
         orders_title:       'Moje objednávky',
         orders_empty:       'Zatím žádné objednávky.',
         order_num_prefix:   'Objednávka #',
-        order_status:       'Potvrzeno',
         order_discount:     'Sleva',
         order_shipping:     'Doprava',
         order_total:        'Celkem',
         /* Cart */
         cart_title:         'Tvůj košík',
-        cart_col_product:   'Produkt',
-        cart_col_price:     'Cena',
         cart_col_qty:       'Množství',
-        cart_col_subtotal:  'Mezisoučet',
         cart_empty_title:   'Košík je prázdný',
         cart_empty:         'Tvůj košík je prázdný.',
-        btn_start_shopping: 'Začít nakupovat',
         btn_browse_blends:  'Prohlédnout blendy',
         btn_continue:       '← Pokračovat v nákupu',
         lbl_promo:          'Slevový kód',
@@ -511,7 +388,6 @@ const TRANSLATIONS = {
         ship_dpd_desc:      'Doručení následující pracovní den',
         checkout_note:      'Poznámka',
         checkout_note_opt:  '(nepovinné)',
-        note_placeholder:   'Speciální přání nebo dárkové zprávy...',
         btn_complete_order: 'Objednat a zaplatit',
         /* Success page */
         success_title:      'Objednávka odeslána!',
@@ -521,38 +397,19 @@ const TRANSLATIONS = {
         success_step3:      'Odesláno k tobě',
         btn_create_another: 'Vytvořit další blend',
         /* Modal */
-        modal_qty_title:    'Vyber gramáž',
-        btn_confirm:        'Potvrdit',
-        btn_cancel:         'Zrušit',
         /* Cookie */
-        cookie_title:       'Používáme cookies',
-        cookie_text:        'Používáme cookies ke zlepšení vašeho zážitku a zapamatování preferencí. Pokračováním souhlasíte s naší',
-        cookie_policy_link: 'Cookie Policy',
-        btn_decline:        'Odmítnout',
-        btn_accept:         'Přijmout vše',
         /* Footer */
-        footer_nav:         'Navigace',
-        footer_legal:       'Právní info',
         footer_contact:     'Kontakt',
-        footer_newsletter:  'Newsletter',
-        footer_newsletter_desc: 'Nové blendy, nabídky a čajové příběhy — přímo do tvé schránky.',
-        footer_subscribe:   'Odebírat',
-        footer_copyright:   '© 2025 Tease you. Všechna práva vyhrazena.',
         /* Promo feedback */
         promo_cart_first:   'Nejdřív přidej něco do košíku.',
         promo_invalid:      'Neplatný kód.',
         promo_applied:      'Kód použit',
         /* Free shipping bar */
-        freeship_add:       'Přidej',
-        freeship_more:      'ještě pro dopravu zdarma',
-        freeship_unlocked:  'Odemkl/a jsi <strong>dopravu zdarma</strong>! 🎉',
         /* Toast / system messages */
-        toast_already_saved:    'Blend je již uložen!',
+        toast_already_saved:    'Tuhle směs už máš uloženou.',
         toast_saved:            'uložen do Moje blendy!',
-        toast_copied:           'Popis blendu zkopírován!',
         toast_link_copied:      'Odkaz ke sdílení zkopírován!',
-        toast_removed:          'Blend odstraněn',
-        toast_added_cart:       'přidán do košíku!',
+        toast_removed:          'Směs odebrána',
         toast_in_cart:          '„{name}“ je v košíku',
         toast_discount_applied: 'použit!',
         toast_cart_empty:       'Tvůj košík je prázdný',
@@ -575,16 +432,16 @@ const TRANSLATIONS = {
         quiz_q1_o3:     'Večer — rituál pro zklidnění',
         quiz_q1_o4:     'Kdykoli, jakoukoli náladu',
         quiz_q2:        'Jaká příchuť tě láká nejvíc?',
-        quiz_q2_o1:     'Svěží & citrusová',
-        quiz_q2_o2:     'Květinová & jemná',
-        quiz_q2_o3:     'Teplá & kořeněná',
-        quiz_q2_o4:     'Sladká & ovocná',
+        quiz_q2_o1:     'Svěží a citrusová',
+        quiz_q2_o2:     'Květinová a jemná',
+        quiz_q2_o3:     'Hřejivá a kořeněná',
+        quiz_q2_o4:     'Sladká a ovocná',
         quiz_q3:        'Jak se stavíš ke kofeinu?',
-        quiz_q3_o1:     'Dejte mi všechen',
+        quiz_q3_o1:     'Klidně hodně',
         quiz_q3_o2:     'Trochu nevadí',
         quiz_q3_o3:     'Žádný prosím — jen bylinky',
         quiz_q3_o4:     'Je mi to jedno',
-        quiz_q4:        'Vyber svoji náladou při přípravě:',
+        quiz_q4:        'Jak čaj nejradši připravuješ?',
         quiz_q4_o1:     'Rychle — do 3 minut',
         quiz_q4_o2:     'Pomalu & vědomě — počkám',
         quiz_q4_o3:     'Silný louh, velká chuť',
@@ -594,19 +451,12 @@ const TRANSLATIONS = {
         quiz_q5_o2:     'Jemnou a květinovou',
         quiz_q5_o3:     'Výraznou a kořeněnou',
         quiz_q5_o4:     'Překvap mě',
-        quiz_match:     'shoda',
         quiz_why:       'Proč ti sedí',
         quiz_also:      'Mohlo by ti chutnat i',
-        quiz_question_of: 'Otázka',
-        quiz_of:        'z',
-        quiz_result_label: 'Tvůj ideální blend je',
         btn_order_blend: 'Objednat tento blend',
         btn_try_again:   'Zkusit znovu',
-        btn_back_home:   'Zpět domů',
         /* Completion label */
-        completion_selected: 'vybráno',
         /* About page */
-        about_tag:           'Náš příběh',
         about_hero_title:    'Čaj je osobní.',
         about_hero_subtitle: 'Ne to, co si o čaji myslí někdo jiný. Ten tvůj.',
         about_story_p1:      'Tease you vzniklo kvůli maturitní práci. Zakladatel strávil měsíce studováním kultury čajoven, přecházel z jedné do druhé a přemýšlel, co dělá dobrý šálek takovým, ke kterému se vrátíš.',
@@ -615,14 +465,14 @@ const TRANSLATIONS = {
         about_card1_title:   'Vždy čerstvé',
         about_card1_desc:    'Mícháme až po objednání. Nic neleží předbalené na polici.',
         about_card2_title:   'Tvůj recept',
-        about_card2_desc:    'Konfigurátor je celý smysl. Vyber základ, příchuť, doplněk. Pojmenuj to. To je tvůj čaj.',
+        about_card2_desc:    'Mixér je celý smysl. Vyber základ, příchuť a doplněk, nastav poměr a pojmenuj to. To je tvůj čaj.',
         about_card3_title:   'Skutečné ingredience',
-        about_card3_desc:    'Šest základů, devět příchutí, devět doplňků. U každé směsi uvádíme celé složení i s procenty.',
+        about_card3_desc:    'Čaje, byliny, ovoce a koření od ověřených dodavatelů. U každé směsi uvádíme celé složení i s procenty.',
         about_cta:           'Připraven/a najít svůj blend?',
         btn_start_creating2: 'Začít vytvářet',
         /* SEO */
-        page_title:  'Tease you — Namíchej si vlastní čajový blend',
-        meta_desc:   'Namíchej si vlastní čaj ze 6 základů, 9 příchutí a 9 doplňků. Pojmenuj ho, my ho čerstvě zabalíme a doručíme. Doprava zdarma nad 500 Kč.',
+        page_title:  'Tease you — Namíchej si vlastní čaj',
+        meta_desc:   'Namíchej si vlastní sypaný čaj až z pěti surovin v poměru, jaký chceš. Mícháme až po objednání. Doprava zdarma nad 500 Kč.',
         /* Ingredience — základy */
         ing_green_tea:      'Zelený čaj',
         ing_black_tea:      'Černý čaj',
@@ -675,31 +525,15 @@ const TRANSLATIONS = {
         ing_rose_hip_desc:  'Nakyslý, ovocný a svěží.',
         ing_cardamom_desc:  'Exotický, kořeněný a květinový.',
         /* UI popisky */
-        lbl_signature_blends: 'Signature Blendy',
-        lbl_signature_blend:  'Signature Blend',
-        lbl_brewing_guide:    'Jak připravit',
-        lbl_per_200ml:        'na 200ml',
-        lbl_water_temp:       'teplota vody',
-        lbl_steep_time:       'doba louhování',
-        footer_tagline:       'Čaje na míru,<br>jen pro tebe.',
-        footer_made_with:     'Vyrobeno s 🍵 v České republice',
         footer_terms:         'Obchodní podmínky',
         footer_privacy:       'Ochrana osobních údajů',
-        footer_gdpr:          'GDPR',
         footer_cookies:       'Cookie Policy',
-        btn_clear:          '\u2715 Vymazat',
-        blend_sub_1:        'Zelen\u00fd \u010daj, m\u00e1ta a citron',
-        blend_sub_2:        'Heřmánek, meduňka a levandule',
-        blend_sub_3:        'Černý čaj, zázvor a skořice',
-        blend_sub_4:        'Oolong, r\u016f\u017ee a levandule',
-        blend_sub_5:        'Rooibos, pomeran\u010d a m\u00e1ta',
-        blend_sub_6:        'Jablko, ibišek, šípek a skořice',
         social_coming_soon:   'Na sociálních sítích zatím nejsme — brzy!',
         /* Packeta widget */
         packeta_choose:     'Vybrat výdejní místo',
         packeta_change:     'Změnit pobočku',
-        packeta_required:   'Prosím vyberte výdejní místo',
-        packeta_unavailable:'Widget není dostupný — zkuste to znovu',
+        packeta_required:   'Vyber prosím výdejní místo',
+        packeta_unavailable:'Výběr výdejních míst se nenačetl. Zkus to prosím znovu.',
         /* Promo bar */
         promo_text:  '🍵 Doprava zdarma při objednávce nad 500 Kč · Použij kód FIRSTBLEND a získej 10 % slevy na první nákup',
         /* Bottom nav */
@@ -713,10 +547,8 @@ const TRANSLATIONS = {
         ing_cat_extras: 'Doplňky',
         ing_health: 'Přínosy',
         ing_pairs: 'Hodí se s',
-        back_btn_text: 'Zpět',
         /* Process page */
         nav_process: 'Jak to děláme',
-        process_tag: 'Od objednávky do šálku',
         process_title: 'Jak to děláme',
         process_sub: 'Každá objednávka je jiná. Mícháme až po objednání, přesně podle tvého výběru.',
         proc_1_title: 'Výběr surovin',
@@ -733,11 +565,28 @@ const TRANSLATIONS = {
     }
 };
 
+/* Slovenština je v i18n-sk.js. Co v ní chybí, ukáže se česky. */
+TRANSLATIONS.sk = Object.assign({}, (typeof self !== 'undefined' && self.TEASEYOU_I18N_SK) || {});
+
 /* ─── TRANSLATION HELPER ─────────────────────── */
 function t(key) {
-    return LANG === 'cs'
-        ? (TRANSLATIONS.cs[key] !== undefined ? TRANSLATIONS.cs[key] : key)
-        : (TRANSLATIONS.en[key] !== undefined ? TRANSLATIONS.en[key] : key);
+    const own = TRANSLATIONS[LANG] && TRANSLATIONS[LANG][key];
+    if (own !== undefined) return own;
+    if (LANG === 'sk' && TRANSLATIONS.cs[key] !== undefined) return TRANSLATIONS.cs[key];
+    if (TRANSLATIONS.en[key] !== undefined) return TRANSLATIONS.en[key];
+    return key;
+}
+
+/* Text z databáze v jazyce webu: pole name → name_sk, name_cs, name_en.
+   Slovenština bez překladu spadne na češtinu, angličtina na češtinu. */
+function pickLang(row, field) {
+    if (!row) return '';
+    const order = LANG === 'en' ? ['en', 'cs'] : LANG === 'sk' ? ['sk', 'cs', 'en'] : ['cs', 'en'];
+    for (const l of order) {
+        const v = row[field + '_' + l];
+        if (Array.isArray(v) ? v.length : (typeof v === 'string' && v.trim())) return v;
+    }
+    return Array.isArray(row[field + '_cs']) ? [] : '';
 }
 
 /* Ingredient names are stored in English internally (data-name keys);
@@ -753,35 +602,6 @@ const ING_KEYS = {
     'Rose Hip':'ing_rose_hip','Cardamom':'ing_cardamom'
 };
 function tIng(name) { return ING_KEYS[name] ? t(ING_KEYS[name]) : name; }
-
-/* Flavor-tag dictionary (EN descriptor → CS) used in ingredient cards. */
-const TAG_CS = {
-    earthy:'zemitá', fresh:'svěží', grassy:'travnatá', bold:'výrazná', malty:'sladová',
-    robust:'silná', delicate:'jemná', sweet:'sladká', floral:'květinová', complex:'komplexní',
-    toasty:'pražená', nutty:'oříšková', apple:'jablečná', soothing:'uklidňující', fruity:'ovocná',
-    summery:'letní', cooling:'chladivá', bright:'jiskřivá', creamy:'krémová', warm:'hřejivá',
-    romantic:'romantická', light:'lehká', citrusy:'citrusová', zesty:'osvěžující', tart:'nakyslá',
-    vibrant:'živá', rich:'bohatá', chocolatey:'čokoládová', tropical:'tropická', spicy:'kořeněná',
-    calming:'uklidňující', herby:'bylinková', peppery:'pepřová', cool:'chladivá', mild:'jemná',
-    exotic:'exotická'
-};
-function tTag(tag) { return LANG === 'cs' && TAG_CS[tag] ? TAG_CS[tag] : tag; }
-
-/* Health-benefit dictionary (EN → CS) used in the ingredient encyclopedia. */
-const HEALTH_CS = {
-    'Antioxidants':'Antioxidanty', 'Focus':'Soustředění', 'Metabolism':'Metabolismus',
-    'Energy':'Energie', 'Heart health':'Zdraví srdce', 'Gut health':'Zdravá střeva',
-    'Skin':'Pokožka', 'Anti-aging':'Proti stárnutí', 'Weight mgmt':'Hubnutí',
-    'Digestion':'Trávení', 'Caffeine-free':'Bez kofeinu', 'Iron-rich':'Bohaté na železo',
-    'Relaxing':'Relaxace', 'Sleep':'Spánek', 'Anxiety relief':'Úleva od úzkosti',
-    'Vitamin C':'Vitamín C', 'Refresh':'Osvěžení', 'Mood lift':'Nálada', 'Mood':'Nálada',
-    'Immunity':'Imunita', 'Brain health':'Zdraví mozku', 'Fiber':'Vláknina', 'MCTs':'MCT tuky',
-    'Hydration':'Hydratace', 'Antimicrobial':'Antimikrobiální', 'Soothing':'Zklidnění',
-    'Detox':'Detox', 'Anti-nausea':'Proti nevolnosti', 'Anti-inflammatory':'Protizánětlivé',
-    'Stress relief':'Proti stresu', 'Joints':'Klouby', 'Blood sugar':'Krevní cukr',
-    'Breath':'Svěží dech'
-};
-function tHealth(h) { return LANG === 'cs' && HEALTH_CS[h] ? HEALTH_CS[h] : h; }
 
 /* ─── APPLY TRANSLATIONS ─────────────────────── */
 function applyTranslations() {
@@ -801,12 +621,67 @@ function applyTranslations() {
     document.querySelectorAll('[data-i18n-desc]').forEach(el => {
         el.setAttribute('data-desc', t(el.getAttribute('data-i18n-desc')));
     });
+    // Právní stránky jsou česky (jazyk smlouvy); v jiném jazyce to řekneme.
+    document.querySelectorAll('[data-legal-note]').forEach(el => {
+        el.hidden = LANG === 'cs';
+        el.textContent = LANG === 'cs' ? '' : t('legal_lang_note');
+    });
+    const langSel = document.getElementById('lang-select');
+    if (langSel) langSel.value = LANG;
+    document.querySelectorAll('.footer-lang').forEach(b => {
+        if (b.dataset.lang === LANG) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+    });
     // Sync <html lang> with the detected language
     document.documentElement.lang = LANG;
     // Update <title> and <meta name="description"> based on detected language
     document.title = t('page_title');
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.setAttribute('content', t('meta_desc'));
+}
+
+/* ─── PŘEPNUTÍ JAZYKA ───────────────────────── */
+/* Uloží volbu a načte stránku znovu, protože jazyk se propisuje do
+   katalogu, cen i textů z databáze. Kde zákazník byl (stránka, rozdělaná
+   směs v mixéru, otevřená hotová směs), se po načtení obnoví. */
+const VIEW_RESTORE_KEY = 'teaseyou_restore';
+function setLanguage(code) {
+    if (!LANGS.includes(code) || code === LANG) return;
+    try { localStorage.setItem(LANG_KEY, code); } catch (_) { /* soukromé okno */ }
+    try { sessionStorage.setItem(VIEW_RESTORE_KEY, JSON.stringify(captureViewState())); } catch (_) {}
+    location.reload();
+}
+function captureViewState() {
+    const page = document.querySelector('.page.active')?.id || 'home-page';
+    const st = { page, y: Math.round(window.scrollY) };
+    if (page === 'product-page') {
+        st.mix = { items: mixItems.map(x => ({ code: x.code, parts: x.parts })), step: mixerStep, weight: mixerWeight,
+                   name: document.getElementById('mix-name')?.value || '' };
+    }
+    if (page === 'product-detail-page') {
+        const b = catalogBlends.find(x => x.name === currentProduct.name);
+        if (b) st.blend = b.id; else st.page = 'home-page';
+    }
+    return st;
+}
+function restoreViewState() {
+    let st = null;
+    try {
+        st = JSON.parse(sessionStorage.getItem(VIEW_RESTORE_KEY) || 'null');
+        sessionStorage.removeItem(VIEW_RESTORE_KEY);
+    } catch (_) { return false; }
+    if (!st || typeof st !== 'object' || typeof st.page !== 'string' || !/^[a-z-]+-page$/.test(st.page)) return false;
+    if (st.page === 'product-page' && st.mix && Array.isArray(st.mix.items)) {
+        if (Number.isInteger(st.mix.weight)) mixerWeight = st.mix.weight;
+        openInMixer(st.mix.items.map(x => x && x.code), String(st.mix.name || ''), Number(st.mix.step) || 1, st.mix.items.map(x => x && x.parts));
+    } else if (st.page === 'product-detail-page' && typeof st.blend === 'string') {
+        openBlend(st.blend);
+    } else if (document.getElementById(st.page)) {
+        showPage(st.page);
+    } else {
+        return false;
+    }
+    if (st.y > 0) setTimeout(() => window.scrollTo({ top: st.y, behavior: 'auto' }), 80);
+    return true;
 }
 
 /* ─── ZÁSILKOVNA / PACKETA ───────────────────── */
@@ -1094,7 +969,7 @@ function openDetail(name, desc, price, ingredientsIn, colors, partsIn) {
     currentProduct = { name, desc, priceBase: price, ingredients, parts, colors, weight: '' };
     showDetailPhotoAndStock(name, ingredients);
     document.getElementById('detail-title').innerText = name;
-    const localDesc = LANG === 'cs' && BLEND_DESCS_CS[name] ? BLEND_DESCS_CS[name] : desc;
+    const localDesc = BLEND_DESCS[name] || desc;
     document.getElementById('detail-desc').innerText = localDesc;
     renderDetailVisual(name, ingredients, parts);
     renderDetailCraft(ingredients);
@@ -1232,9 +1107,11 @@ async function openPacketaWidget() {
         showToast(t('packeta_unavailable'), '⚠️');
         return;
     }
+    // Výdejní místa v zemi z formuláře (bez ní v Česku i na Slovensku)
+    const country = (document.getElementById('f-country')?.value || '').toLowerCase();
     Packeta.Widget.pick(PACKETA_API_KEY, onPacketaSelect, {
-        country: 'cz',
-        language: LANG === 'cs' ? 'cs' : 'en'
+        country: ['cz', 'sk'].includes(country) ? country : 'cz,sk',
+        language: LANG
     });
 }
 
@@ -1374,7 +1251,7 @@ function saveBlend() {
         ingredients: [...currentProduct.ingredients],
         parts:       [...currentProduct.parts],
         colors:      [...currentProduct.colors],
-        savedAt:     new Date().toLocaleDateString('cs-CZ')
+        savedAt:     new Date().toLocaleDateString(LOCALE)
     };
     if (!blend.ingredients.length) { showToast(t('bar_empty'), '👆'); return; }
     const same = b => b.name === blend.name && b.ingredients.join('|') === blend.ingredients.join('|')
@@ -1390,7 +1267,7 @@ function saveBlend() {
 function shareBlend() {
     const url  = buildBlendUrl();
     const ings = currentProduct.ingredients.map(tIng).join(', ');
-    const text = LANG === 'cs'
+    const text = SLAVIC
         ? `Mrkni na můj čaj „${currentProduct.name}" — ${ings} — namíchaný na Tease you 🍵`
         : `Check out my tea blend "${currentProduct.name}" — ${ings} — made on Tease you 🍵`;
     if (navigator.share) {
@@ -1719,7 +1596,7 @@ function submitOrder(e) {
 
     const order = {
         num:      orderNum,
-        date:     new Date().toLocaleDateString('cs-CZ'),
+        date:     new Date().toLocaleDateString(LOCALE),
         created:  new Date().toISOString(),
         items:    cart.map(i => ({ name: i.name, ingredients: [...i.ingredients], parts: [...i.parts], colors: [...i.colors], weight: i.weight, priceBase: i.priceBase, qty: i.qty })),
         goods:       totals.goods,
@@ -2041,6 +1918,7 @@ const ING_DATA = { bases: [], flavors: [], extras: [] };
 function renderIngredientEncyclopedia() {
     const caffeineCs = ['Bez kofeinu', 'Velmi málo kofeinu', 'Málo kofeinu', 'Středně kofeinu', 'Hodně kofeinu'];
     const caffeineEn = ['Caffeine-free', 'Very little caffeine', 'Little caffeine', 'Medium caffeine', 'Lots of caffeine'];
+    const caffeineSk = ['Bez kofeínu', 'Veľmi málo kofeínu', 'Málo kofeínu', 'Stredne veľa kofeínu', 'Veľa kofeínu'];
     ['bases','flavors','extras'].forEach(cat => {
         const el = document.getElementById('ing-grid-' + cat);
         if (!el) return;
@@ -2051,12 +1929,12 @@ function renderIngredientEncyclopedia() {
             const dot = ingIconHtml(ing.code);
             const lvl = Math.max(0, Math.min(4, ing.caffeine || 0));
             const caffeine = ing.caffeine !== undefined
-                ? `<p class="ing-caffeine"><span class="ing-meter" aria-hidden="true">${[1,2,3,4].map(n => `<i${n <= lvl ? ' class="on"' : ''}></i>`).join('')}</span>${escHtml((LANG === 'cs' ? caffeineCs : caffeineEn)[lvl])}</p>` : '';
+                ? `<p class="ing-caffeine"><span class="ing-meter" aria-hidden="true">${[1,2,3,4].map(n => `<i${n <= lvl ? ' class="on"' : ''}></i>`).join('')}</span>${escHtml(({ cs: caffeineCs, sk: caffeineSk, en: caffeineEn }[LANG])[lvl])}</p>` : '';
             return `<article class="ing-card${out ? ' is-out' : ''}">
                 <div class="ing-card-head">${dot}<h3 class="ing-card-name">${escHtml(name)}</h3>${out ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : ''}</div>
                 <p class="ing-card-desc">${escHtml(desc)}</p>
                 ${caffeine}
-                <p class="ing-card-taste">${escHtml(ing.flavor.map(tTag).join(', '))}</p>
+                <p class="ing-card-taste">${escHtml(ing.flavor.join(', '))}</p>
                 <p class="ing-card-pairs">${escHtml(t('ing_pairs'))} ${escHtml(ing.pairs.map(tIng).join(', '))}</p>
                 ${craftUsing(ing.code).length ? `<p class="ing-card-craft">${escHtml(t('craft_also_in'))} ${craftUsing(ing.code).map(p => `<button type="button" class="link-btn" data-craft="${escHtml(p.id)}">${escHtml(craftName(p))}</button>`).join(', ')}</p>` : ''}
                 ${out || !ing.code ? '' : `<button type="button" class="btn btn-quiet btn-small ing-use" data-mix="${escHtml(ing.code)}">${escHtml(t('ing_use'))}</button>`}
@@ -2092,7 +1970,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPresets();
     renderSavedBlends();
     renderCart();
-    loadBlendFromUrl();  // open a shared blend if ?b= is present
+    // sdílený odkaz (?b=…), jinak místo, kde zákazník byl před přepnutím jazyka
+    if (new URLSearchParams(location.search).get('b')) loadBlendFromUrl();
+    else restoreViewState();
     refreshCatalog();    // čerstvá data ze Supabase (když je nastavený)
 
 });
@@ -2152,21 +2032,21 @@ const QUIZ_QUESTIONS = [
 
 /* Human-readable labels for matched quiz traits. */
 const QUIZ_TAG_LABEL = {
-    bold:      { cs:'výrazná chuť',    en:'bold flavour' },
-    caffeine:  { cs:'více kofeinu',     en:'more caffeine' },
-    fresh:     { cs:'svěžest',          en:'freshness' },
-    mild:      { cs:'jemnost',          en:'mildness' },
-    herbal:    { cs:'bylinky',          en:'herbal notes' },
-    calm:      { cs:'klid',             en:'calm' },
-    citrus:    { cs:'citrusy',          en:'citrus' },
-    floral:    { cs:'květinové tóny',   en:'floral notes' },
-    fruit:     { cs:'ovoce',            en:'fruit' },
-    spice:     { cs:'koření',           en:'spice' },
-    versatile: { cs:'univerzálnost',    en:'versatility' },
+    bold:      { cs:'výrazná chuť',    en:'bold flavour', sk:'výrazná chuť' },
+    caffeine:  { cs:'více kofeinu',     en:'more caffeine', sk:'viac kofeínu' },
+    fresh:     { cs:'svěžest',          en:'freshness', sk:'sviežosť' },
+    mild:      { cs:'jemnost',          en:'mildness', sk:'jemnosť' },
+    herbal:    { cs:'bylinky',          en:'herbal notes', sk:'bylinky' },
+    calm:      { cs:'klid',             en:'calm', sk:'pokoj' },
+    citrus:    { cs:'citrusy',          en:'citrus', sk:'citrusy' },
+    floral:    { cs:'květinové tóny',   en:'floral notes', sk:'kvetinové tóny' },
+    fruit:     { cs:'ovoce',            en:'fruit', sk:'ovocie' },
+    spice:     { cs:'koření',           en:'spice', sk:'korenie' },
+    versatile: { cs:'univerzálnost',    en:'versatility', sk:'univerzálnosť' },
 };
 function tQuizTag(tag) {
     const l = QUIZ_TAG_LABEL[tag];
-    return l ? l[LANG === 'cs' ? 'cs' : 'en'] : tag;
+    return l ? (l[LANG] || l.cs) : tag;
 }
 
 /* Výsledky kvízu. Složení se bere z hotových směsí v katalogu (podle id),
@@ -2192,7 +2072,7 @@ function quizBlends() {
 }
 
 /* Český popis hotové směsi podle jména (doplní se z katalogu). */
-const BLEND_DESCS_CS = {};
+const BLEND_DESCS = {};
 
 let quizAnswerTags = [];
 let quizStep = 0;
@@ -2256,7 +2136,7 @@ function renderQuizResult() {
     const runnerUp = scored.find(b => b.name !== best.name && b.score > 0);
     let matched = best.tags.filter(tg => quizAnswerTags.includes(tg));
     if (!matched.length) matched = best.tags.slice();
-    const descOf = b => (LANG === 'cs' ? (b.desc_cs || b.desc_en) : (b.desc_en || b.desc_cs)) || '';
+    const descOf = b => pickLang(b, 'desc');
 
     body.innerHTML = `
         <div class="quiz-result">
@@ -2352,7 +2232,7 @@ function loadBlendFromUrl() {
     const codes = keep.map(x => x[0]);
     const parts = keep.length === all.length && p.length === all.length ? keep.map(x => x[1]) : null;
     openInMixer(codes, params.get('n') || '', recipeOf(codes, parts, 100).ok ? 4 : 1, parts);
-    setTimeout(() => showToast(LANG === 'cs' ? 'Načetli jsme sdílený blend ✨' : 'Loaded a shared blend ✨', '🔗'), 700);
+    setTimeout(() => showToast(t('toast_shared_loaded'), '🔗'), 700);
     // Clean the URL so a refresh doesn't re-trigger
     history.replaceState(null, '', location.origin + location.pathname);
 }
@@ -2375,39 +2255,39 @@ function loadBlendFromUrl() {
    Stejné jako výchozí data v supabase/setup.sql (katalog v2). Mají tvar
    řádků z databáze a projdou stejným převodem jako katalog ze Supabase. */
 const BUILTIN_INGREDIENTS = [
-    {"id": "green_tea", "code": "Green Tea", "category": "base", "name_cs": "Zelený čaj", "name_en": "Green Tea", "desc_cs": "Svěží a zemitý, nízký kofein.", "desc_en": "Fresh and earthy, light caffeine.", "emoji": "🍃", "color": "#8da676", "caffeine": 2, "flavor_cs": ["zemitá", "svěží", "travnatá"], "flavor_en": ["earthy", "fresh", "grassy"], "pairs": ["Mint", "Lemon", "Ginger", "Lemongrass"], "brew_temp": "75–80°C", "brew_time": "2–3 min", "sort": 10, "kind": "tea", "label_cs": "zelený čaj", "surcharge_czk": 0},
-    {"id": "black_tea", "code": "Black Tea", "category": "base", "name_cs": "Černý čaj", "name_en": "Black Tea", "desc_cs": "Silný a výrazný, vysoký kofein.", "desc_en": "Strong and bold, high caffeine.", "emoji": "🖤", "color": "#4a3b32", "caffeine": 4, "flavor_cs": ["výrazná", "sladová", "silná"], "flavor_en": ["bold", "malty", "robust"], "pairs": ["Orange", "Ginger", "Cinnamon", "Cardamom"], "brew_temp": "90–95°C", "brew_time": "3–4 min", "sort": 20, "kind": "tea", "label_cs": "černý čaj", "surcharge_czk": 0},
-    {"id": "white_tea", "code": "White Tea", "category": "base", "name_cs": "Bílý čaj", "name_en": "White Tea", "desc_cs": "Jemný a sladký, nízký kofein.", "desc_en": "Delicate and sweet, low caffeine.", "emoji": "🤍", "color": "#f5e6d3", "caffeine": 1, "flavor_cs": ["jemná", "sladká", "květinová"], "flavor_en": ["delicate", "sweet", "floral"], "pairs": ["Rose", "Strawberry", "Raspberry", "Lemon Balm"], "brew_temp": "75–80°C", "brew_time": "2–3 min", "sort": 30, "kind": "tea", "label_cs": "bílý čaj", "surcharge_czk": 50},
-    {"id": "oolong", "code": "Oolong Tea", "category": "base", "name_cs": "Oolong", "name_en": "Oolong Tea", "desc_cs": "Komplexní a květinový, střední kofein.", "desc_en": "Complex and floral, medium caffeine.", "emoji": "🍵", "color": "#c8a0b4", "caffeine": 3, "flavor_cs": ["komplexní", "květinová", "pražená"], "flavor_en": ["complex", "floral", "toasty"], "pairs": ["Rose", "Lavender", "Orange"], "brew_temp": "85–90°C", "brew_time": "3–4 min", "sort": 40, "kind": "tea", "label_cs": "čaj oolong", "surcharge_czk": 40},
-    {"id": "rooibos", "code": "Rooibos", "category": "base", "name_cs": "Rooibos", "name_en": "Rooibos", "desc_cs": "Zemitý a sladký, bez kofeinu.", "desc_en": "Earthy and sweet, caffeine-free.", "emoji": "🌿", "color": "#e8720c", "caffeine": 0, "flavor_cs": ["zemitá", "sladká", "oříšková"], "flavor_en": ["earthy", "sweet", "nutty"], "pairs": ["Orange", "Cinnamon", "Rose Hip"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 50, "kind": "herb", "label_cs": "rooibos", "surcharge_czk": 0},
-    {"id": "chamomile", "code": "Chamomile", "category": "base", "name_cs": "Heřmánek", "name_en": "Chamomile", "desc_cs": "Jemný, květinový, trochu jablečný. Bez kofeinu.", "desc_en": "Gentle, floral, a little like apple. Caffeine-free.", "emoji": "🌼", "color": "#f5d78e", "caffeine": 0, "flavor_cs": ["květinová", "jablečná", "jemná"], "flavor_en": ["floral", "apple", "mild"], "pairs": ["Lavender", "Lemon Balm", "Apple"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 60, "kind": "herb", "label_cs": "heřmánek (květ)", "surcharge_czk": 0},
-    {"id": "lemon_balm", "code": "Lemon Balm", "category": "base", "name_cs": "Meduňka", "name_en": "Lemon Balm", "desc_cs": "Jemně citronová a svěží, bez kofeinu.", "desc_en": "Softly lemony and fresh, caffeine-free.", "emoji": "🍀", "color": "#9cc26a", "caffeine": 0, "flavor_cs": ["citronová", "svěží", "bylinková"], "flavor_en": ["citrusy", "fresh", "herby"], "pairs": ["Chamomile", "Linden", "Mint", "Lemon"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 70, "kind": "herb", "label_cs": "meduňka (list)", "surcharge_czk": 0},
-    {"id": "linden", "code": "Linden", "category": "base", "name_cs": "Lípa", "name_en": "Linden", "desc_cs": "Medově sladký květ, bez kofeinu.", "desc_en": "Honey-sweet blossom, caffeine-free.", "emoji": "🌸", "color": "#e6d58a", "caffeine": 0, "flavor_cs": ["sladká", "květinová", "jemná"], "flavor_en": ["sweet", "floral", "delicate"], "pairs": ["Chamomile", "Lemon Balm", "Lemon"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 80, "kind": "herb", "label_cs": "lipový květ", "surcharge_czk": 0},
-    {"id": "mint", "code": "Mint", "category": "base", "name_cs": "Máta peprná", "name_en": "Peppermint", "desc_cs": "Chladivá a svěží, výrazná. Bez kofeinu.", "desc_en": "Cooling and fresh, bright. Caffeine-free.", "emoji": "🌱", "color": "#4caf50", "caffeine": 0, "flavor_cs": ["chladivá", "svěží", "jiskřivá"], "flavor_en": ["cooling", "fresh", "bright"], "pairs": ["Green Tea", "Lemon", "Lemon Balm"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 90, "kind": "herb", "label_cs": "máta peprná (list)", "surcharge_czk": 0},
-    {"id": "apple", "code": "Apple", "category": "base", "name_cs": "Jablko", "name_en": "Apple", "desc_cs": "Sladké a šťavnaté, základ ovocných čajů.", "desc_en": "Sweet and juicy, the base of fruit teas.", "emoji": "🍎", "color": "#d9a35b", "caffeine": 0, "flavor_cs": ["sladká", "ovocná", "hřejivá"], "flavor_en": ["sweet", "fruity", "warm"], "pairs": ["Cinnamon", "Hibiscus", "Rose Hip", "Strawberry"], "brew_temp": "100°C", "brew_time": "8–10 min", "sort": 100, "kind": "fruit", "label_cs": "sušená jablka", "surcharge_czk": 0},
-    {"id": "strawberry", "code": "Strawberry", "category": "flavor", "name_cs": "Jahoda", "name_en": "Strawberry", "desc_cs": "Sladká a ovocná, letní.", "desc_en": "Sweet and fruity, summery.", "emoji": "🍓", "color": "#cc4747", "flavor_cs": ["sladká", "ovocná", "letní"], "flavor_en": ["sweet", "fruity", "summery"], "pairs": ["White Tea", "Rooibos", "Mint"], "sort": 110, "kind": "fruit", "label_cs": "sušené jahody", "surcharge_czk": 25},
-    {"id": "raspberry", "code": "Raspberry", "category": "flavor", "name_cs": "Malina", "name_en": "Raspberry", "desc_cs": "Nakyslá, ovocná a živá.", "desc_en": "Tart, fruity and vibrant.", "emoji": "🍇", "color": "#e91e8c", "flavor_cs": ["nakyslá", "ovocná", "živá"], "flavor_en": ["tart", "fruity", "vibrant"], "pairs": ["Green Tea", "Hibiscus", "Mint"], "sort": 120, "kind": "fruit", "label_cs": "sušené maliny", "surcharge_czk": 25},
-    {"id": "blueberry", "code": "Blueberry", "category": "flavor", "name_cs": "Borůvka", "name_en": "Blueberry", "desc_cs": "Sladká a nakyslá, chutná jako léto.", "desc_en": "Sweet and tart, tastes like summer.", "emoji": "🫐", "color": "#9b59b6", "flavor_cs": ["sladká", "ovocná", "nakyslá"], "flavor_en": ["sweet", "fruity", "tart"], "pairs": ["Black Tea", "Apple", "Lemon"], "sort": 130, "kind": "fruit", "label_cs": "sušené borůvky", "surcharge_czk": 0},
-    {"id": "rose_hip", "code": "Rose Hip", "category": "flavor", "name_cs": "Šípek", "name_en": "Rose Hip", "desc_cs": "Nakyslý, ovocný a svěží.", "desc_en": "Tart, fruity and tangy.", "emoji": "🔴", "color": "#f8bbd0", "flavor_cs": ["nakyslá", "ovocná", "svěží"], "flavor_en": ["tart", "fruity", "tangy"], "pairs": ["Hibiscus", "Apple", "Rooibos"], "sort": 140, "kind": "fruit", "label_cs": "šípek", "surcharge_czk": 0},
-    {"id": "hibiscus", "code": "Hibiscus", "category": "flavor", "name_cs": "Ibišek", "name_en": "Hibiscus", "desc_cs": "Rubínová barva a příjemná kyselost.", "desc_en": "Ruby colour and a pleasant tartness.", "emoji": "🌺", "color": "#b0234a", "flavor_cs": ["nakyslá", "ovocná", "živá"], "flavor_en": ["tart", "fruity", "vibrant"], "pairs": ["Rose Hip", "Apple", "Strawberry"], "sort": 150, "kind": "herb", "label_cs": "ibišek (květ)", "surcharge_czk": 0},
-    {"id": "rose", "code": "Rose", "category": "flavor", "name_cs": "Růže", "name_en": "Rose", "desc_cs": "Květinová a jemná.", "desc_en": "Floral and delicate.", "emoji": "🌹", "color": "#e8607a", "flavor_cs": ["květinová", "romantická", "lehká"], "flavor_en": ["floral", "romantic", "light"], "pairs": ["White Tea", "Oolong Tea", "Lavender"], "sort": 160, "kind": "herb", "label_cs": "růže (okvětní lístky)", "surcharge_czk": 30},
-    {"id": "spearmint", "code": "Spearmint", "category": "flavor", "name_cs": "Máta klasnatá", "name_en": "Spearmint", "desc_cs": "Sladší a jemnější než peprná.", "desc_en": "Sweeter and softer than peppermint.", "emoji": "🌿", "color": "#a8d8a8", "flavor_cs": ["chladivá", "sladká", "jemná"], "flavor_en": ["cool", "sweet", "mild"], "pairs": ["Rooibos", "Green Tea", "Lemon"], "sort": 170, "kind": "herb", "label_cs": "máta klasnatá (list)", "surcharge_czk": 0},
-    {"id": "lemongrass", "code": "Lemongrass", "category": "flavor", "name_cs": "Citronová tráva", "name_en": "Lemongrass", "desc_cs": "Vůně citronu bez kyselosti.", "desc_en": "Lemon scent without the sourness.", "emoji": "🌾", "color": "#c9d77b", "flavor_cs": ["citrusová", "svěží", "travnatá"], "flavor_en": ["citrusy", "fresh", "grassy"], "pairs": ["Green Tea", "Ginger", "Lemon Balm"], "sort": 180, "kind": "herb", "label_cs": "citronová tráva (list)", "max_pct": 30, "surcharge_czk": 0},
-    {"id": "fennel", "code": "Fennel", "category": "flavor", "name_cs": "Fenykl", "name_en": "Fennel", "desc_cs": "Nasládlý, s tónem anýzu.", "desc_en": "Sweetish, with a hint of anise.", "emoji": "✳️", "color": "#a4b36b", "flavor_cs": ["sladká", "kořeněná", "jemná"], "flavor_en": ["sweet", "spicy", "mild"], "pairs": ["Chamomile", "Mint", "Lemon Balm"], "sort": 190, "kind": "herb", "label_cs": "fenykl (plod)", "surcharge_czk": 0},
-    {"id": "orange", "code": "Orange", "category": "extra", "name_cs": "Pomerančová kůra", "name_en": "Orange Peel", "desc_cs": "Citrusová, svěží a šťavnatá.", "desc_en": "Citrusy, bright and zesty.", "emoji": "🍊", "color": "#ffb347", "flavor_cs": ["citrusová", "jiskřivá", "osvěžující"], "flavor_en": ["citrusy", "bright", "zesty"], "pairs": ["Rooibos", "Black Tea", "Cinnamon"], "sort": 200, "kind": "fruit", "label_cs": "pomerančová kůra", "max_pct": 30, "surcharge_czk": 0},
-    {"id": "lemon", "code": "Lemon", "category": "extra", "name_cs": "Citronová kůra", "name_en": "Lemon Peel", "desc_cs": "Svěží, citrusová a nakyslá.", "desc_en": "Bright, citrusy and tart.", "emoji": "🍋", "color": "#ffe066", "flavor_cs": ["jiskřivá", "citrusová", "nakyslá"], "flavor_en": ["bright", "citrusy", "tart"], "pairs": ["Green Tea", "Chamomile", "Ginger"], "sort": 210, "kind": "fruit", "label_cs": "citronová kůra", "max_pct": 30, "surcharge_czk": 0},
-    {"id": "ginger", "code": "Ginger", "category": "extra", "name_cs": "Zázvor", "name_en": "Ginger", "desc_cs": "Pikantní, hřejivý a svěží.", "desc_en": "Spicy, warm and zesty.", "emoji": "🫚", "color": "#ff9800", "flavor_cs": ["kořeněná", "hřejivá", "osvěžující"], "flavor_en": ["spicy", "warm", "zesty"], "pairs": ["Black Tea", "Lemon", "Lemongrass"], "sort": 220, "kind": "herb", "label_cs": "zázvor (kořen)", "max_pct": 30, "surcharge_czk": 0},
-    {"id": "cinnamon", "code": "Cinnamon", "category": "extra", "name_cs": "Skořice", "name_en": "Cinnamon", "desc_cs": "Hřejivá, kořeněná a sladká.", "desc_en": "Warm, spicy and sweet.", "emoji": "🪵", "color": "#c8824a", "flavor_cs": ["hřejivá", "kořeněná", "sladká"], "flavor_en": ["warm", "spicy", "sweet"], "pairs": ["Black Tea", "Apple", "Rooibos"], "sort": 230, "kind": "herb", "label_cs": "skořice", "max_pct": 30, "surcharge_czk": 0},
-    {"id": "lavender", "code": "Lavender", "category": "extra", "name_cs": "Levandule", "name_en": "Lavender", "desc_cs": "Výrazně květinová, stačí špetka.", "desc_en": "Strongly floral, a pinch is enough.", "emoji": "💜", "color": "#b8a0cc", "flavor_cs": ["květinová", "bylinková", "výrazná"], "flavor_en": ["floral", "herby", "bold"], "pairs": ["Chamomile", "White Tea", "Lemon Balm"], "sort": 240, "kind": "herb", "label_cs": "levandule (květ)", "max_pct": 5, "surcharge_czk": 0},
-    {"id": "cardamom", "code": "Cardamom", "category": "extra", "name_cs": "Kardamom", "name_en": "Cardamom", "desc_cs": "Exotický, kořeněný a květinový. Stačí špetka.", "desc_en": "Exotic, spicy and floral. A pinch is enough.", "emoji": "🫛", "color": "#80cbc4", "flavor_cs": ["exotická", "kořeněná", "květinová"], "flavor_en": ["exotic", "spicy", "floral"], "pairs": ["Black Tea", "Oolong Tea", "Cinnamon"], "sort": 250, "kind": "herb", "label_cs": "kardamom (semeno)", "max_pct": 5, "surcharge_czk": 80},
+    {"id": "green_tea", "code": "Green Tea", "category": "base", "name_cs": "Zelený čaj", "name_en": "Green Tea", "desc_cs": "Svěží a zemitý, nízký kofein.", "desc_en": "Fresh and earthy, light caffeine.", "emoji": "🍃", "color": "#8da676", "caffeine": 2, "flavor_cs": ["zemitá", "svěží", "travnatá"], "flavor_en": ["earthy", "fresh", "grassy"], "pairs": ["Mint", "Lemon", "Ginger", "Lemongrass"], "brew_temp": "75–80°C", "brew_time": "2–3 min", "sort": 10, "kind": "tea", "label_cs": "zelený čaj", "surcharge_czk": 0, "name_sk": "Zelený čaj", "desc_sk": "Svieži a zemitý, málo kofeínu.", "flavor_sk": ["zemitá", "svieža", "trávová"], "label_sk": "zelený čaj"},
+    {"id": "black_tea", "code": "Black Tea", "category": "base", "name_cs": "Černý čaj", "name_en": "Black Tea", "desc_cs": "Silný a výrazný, vysoký kofein.", "desc_en": "Strong and bold, high caffeine.", "emoji": "🖤", "color": "#4a3b32", "caffeine": 4, "flavor_cs": ["výrazná", "sladová", "silná"], "flavor_en": ["bold", "malty", "robust"], "pairs": ["Orange", "Ginger", "Cinnamon", "Cardamom"], "brew_temp": "90–95°C", "brew_time": "3–4 min", "sort": 20, "kind": "tea", "label_cs": "černý čaj", "surcharge_czk": 0, "name_sk": "Čierny čaj", "desc_sk": "Silný a výrazný, veľa kofeínu.", "flavor_sk": ["výrazná", "sladová", "silná"], "label_sk": "čierny čaj"},
+    {"id": "white_tea", "code": "White Tea", "category": "base", "name_cs": "Bílý čaj", "name_en": "White Tea", "desc_cs": "Jemný a sladký, nízký kofein.", "desc_en": "Delicate and sweet, low caffeine.", "emoji": "🤍", "color": "#f5e6d3", "caffeine": 1, "flavor_cs": ["jemná", "sladká", "květinová"], "flavor_en": ["delicate", "sweet", "floral"], "pairs": ["Rose", "Strawberry", "Raspberry", "Lemon Balm"], "brew_temp": "75–80°C", "brew_time": "2–3 min", "sort": 30, "kind": "tea", "label_cs": "bílý čaj", "surcharge_czk": 50, "name_sk": "Biely čaj", "desc_sk": "Jemný a sladký, málo kofeínu.", "flavor_sk": ["jemná", "sladká", "kvetinová"], "label_sk": "biely čaj"},
+    {"id": "oolong", "code": "Oolong Tea", "category": "base", "name_cs": "Oolong", "name_en": "Oolong Tea", "desc_cs": "Komplexní a květinový, střední kofein.", "desc_en": "Complex and floral, medium caffeine.", "emoji": "🍵", "color": "#c8a0b4", "caffeine": 3, "flavor_cs": ["komplexní", "květinová", "pražená"], "flavor_en": ["complex", "floral", "toasty"], "pairs": ["Rose", "Lavender", "Orange"], "brew_temp": "85–90°C", "brew_time": "3–4 min", "sort": 40, "kind": "tea", "label_cs": "čaj oolong", "surcharge_czk": 40, "name_sk": "Oolong", "desc_sk": "Komplexný a kvetinový, stredne veľa kofeínu.", "flavor_sk": ["komplexná", "kvetinová", "pražená"], "label_sk": "čaj oolong"},
+    {"id": "rooibos", "code": "Rooibos", "category": "base", "name_cs": "Rooibos", "name_en": "Rooibos", "desc_cs": "Zemitý a sladký, bez kofeinu.", "desc_en": "Earthy and sweet, caffeine-free.", "emoji": "🌿", "color": "#e8720c", "caffeine": 0, "flavor_cs": ["zemitá", "sladká", "oříšková"], "flavor_en": ["earthy", "sweet", "nutty"], "pairs": ["Orange", "Cinnamon", "Rose Hip"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 50, "kind": "herb", "label_cs": "rooibos", "surcharge_czk": 0, "name_sk": "Rooibos", "desc_sk": "Zemitý a sladký, bez kofeínu.", "flavor_sk": ["zemitá", "sladká", "oriešková"], "label_sk": "rooibos"},
+    {"id": "chamomile", "code": "Chamomile", "category": "base", "name_cs": "Heřmánek", "name_en": "Chamomile", "desc_cs": "Jemný, květinový, trochu jablečný. Bez kofeinu.", "desc_en": "Gentle, floral, a little like apple. Caffeine-free.", "emoji": "🌼", "color": "#f5d78e", "caffeine": 0, "flavor_cs": ["květinová", "jablečná", "jemná"], "flavor_en": ["floral", "apple", "mild"], "pairs": ["Lavender", "Lemon Balm", "Apple"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 60, "kind": "herb", "label_cs": "heřmánek (květ)", "surcharge_czk": 0, "name_sk": "Harmanček", "desc_sk": "Jemný, kvetinový, trochu jablkový. Bez kofeínu.", "flavor_sk": ["kvetinová", "jablková", "jemná"], "label_sk": "harmanček (kvet)"},
+    {"id": "lemon_balm", "code": "Lemon Balm", "category": "base", "name_cs": "Meduňka", "name_en": "Lemon Balm", "desc_cs": "Jemně citronová a svěží, bez kofeinu.", "desc_en": "Softly lemony and fresh, caffeine-free.", "emoji": "🍀", "color": "#9cc26a", "caffeine": 0, "flavor_cs": ["citronová", "svěží", "bylinková"], "flavor_en": ["citrusy", "fresh", "herby"], "pairs": ["Chamomile", "Linden", "Mint", "Lemon"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 70, "kind": "herb", "label_cs": "meduňka (list)", "surcharge_czk": 0, "name_sk": "Medovka", "desc_sk": "Jemne citrónová a svieža, bez kofeínu.", "flavor_sk": ["citrónová", "svieža", "bylinková"], "label_sk": "medovka (list)"},
+    {"id": "linden", "code": "Linden", "category": "base", "name_cs": "Lípa", "name_en": "Linden", "desc_cs": "Medově sladký květ, bez kofeinu.", "desc_en": "Honey-sweet blossom, caffeine-free.", "emoji": "🌸", "color": "#e6d58a", "caffeine": 0, "flavor_cs": ["sladká", "květinová", "jemná"], "flavor_en": ["sweet", "floral", "delicate"], "pairs": ["Chamomile", "Lemon Balm", "Lemon"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 80, "kind": "herb", "label_cs": "lipový květ", "surcharge_czk": 0, "name_sk": "Lipa", "desc_sk": "Medovo sladký kvet, bez kofeínu.", "flavor_sk": ["sladká", "kvetinová", "jemná"], "label_sk": "lipový kvet"},
+    {"id": "mint", "code": "Mint", "category": "base", "name_cs": "Máta peprná", "name_en": "Peppermint", "desc_cs": "Chladivá a svěží, výrazná. Bez kofeinu.", "desc_en": "Cooling and fresh, bright. Caffeine-free.", "emoji": "🌱", "color": "#4caf50", "caffeine": 0, "flavor_cs": ["chladivá", "svěží", "jiskřivá"], "flavor_en": ["cooling", "fresh", "bright"], "pairs": ["Green Tea", "Lemon", "Lemon Balm"], "brew_temp": "100°C", "brew_time": "5–7 min", "sort": 90, "kind": "herb", "label_cs": "máta peprná (list)", "surcharge_czk": 0, "name_sk": "Mäta pieporná", "desc_sk": "Chladivá a svieža, výrazná. Bez kofeínu.", "flavor_sk": ["chladivá", "svieža", "iskrivá"], "label_sk": "mäta pieporná (list)"},
+    {"id": "apple", "code": "Apple", "category": "base", "name_cs": "Jablko", "name_en": "Apple", "desc_cs": "Sladké a šťavnaté, základ ovocných čajů.", "desc_en": "Sweet and juicy, the base of fruit teas.", "emoji": "🍎", "color": "#d9a35b", "caffeine": 0, "flavor_cs": ["sladká", "ovocná", "hřejivá"], "flavor_en": ["sweet", "fruity", "warm"], "pairs": ["Cinnamon", "Hibiscus", "Rose Hip", "Strawberry"], "brew_temp": "100°C", "brew_time": "8–10 min", "sort": 100, "kind": "fruit", "label_cs": "sušená jablka", "surcharge_czk": 0, "name_sk": "Jablko", "desc_sk": "Sladké a šťavnaté, základ ovocných čajov.", "flavor_sk": ["sladká", "ovocná", "hrejivá"], "label_sk": "sušené jablká"},
+    {"id": "strawberry", "code": "Strawberry", "category": "flavor", "name_cs": "Jahoda", "name_en": "Strawberry", "desc_cs": "Sladká a ovocná, letní.", "desc_en": "Sweet and fruity, summery.", "emoji": "🍓", "color": "#cc4747", "flavor_cs": ["sladká", "ovocná", "letní"], "flavor_en": ["sweet", "fruity", "summery"], "pairs": ["White Tea", "Rooibos", "Mint"], "sort": 110, "kind": "fruit", "label_cs": "sušené jahody", "surcharge_czk": 25, "name_sk": "Jahoda", "desc_sk": "Sladká a ovocná, letná.", "flavor_sk": ["sladká", "ovocná", "letná"], "label_sk": "sušené jahody"},
+    {"id": "raspberry", "code": "Raspberry", "category": "flavor", "name_cs": "Malina", "name_en": "Raspberry", "desc_cs": "Nakyslá, ovocná a živá.", "desc_en": "Tart, fruity and vibrant.", "emoji": "🍇", "color": "#e91e8c", "flavor_cs": ["nakyslá", "ovocná", "živá"], "flavor_en": ["tart", "fruity", "vibrant"], "pairs": ["Green Tea", "Hibiscus", "Mint"], "sort": 120, "kind": "fruit", "label_cs": "sušené maliny", "surcharge_czk": 25, "name_sk": "Malina", "desc_sk": "Kyslastá, ovocná a živá.", "flavor_sk": ["kyslastá", "ovocná", "živá"], "label_sk": "sušené maliny"},
+    {"id": "blueberry", "code": "Blueberry", "category": "flavor", "name_cs": "Borůvka", "name_en": "Blueberry", "desc_cs": "Sladká a nakyslá, chutná jako léto.", "desc_en": "Sweet and tart, tastes like summer.", "emoji": "🫐", "color": "#9b59b6", "flavor_cs": ["sladká", "ovocná", "nakyslá"], "flavor_en": ["sweet", "fruity", "tart"], "pairs": ["Black Tea", "Apple", "Lemon"], "sort": 130, "kind": "fruit", "label_cs": "sušené borůvky", "surcharge_czk": 0, "name_sk": "Čučoriedka", "desc_sk": "Sladká a kyslastá, chutí ako leto.", "flavor_sk": ["sladká", "ovocná", "kyslastá"], "label_sk": "sušené čučoriedky"},
+    {"id": "rose_hip", "code": "Rose Hip", "category": "flavor", "name_cs": "Šípek", "name_en": "Rose Hip", "desc_cs": "Nakyslý, ovocný a svěží.", "desc_en": "Tart, fruity and tangy.", "emoji": "🔴", "color": "#f8bbd0", "flavor_cs": ["nakyslá", "ovocná", "svěží"], "flavor_en": ["tart", "fruity", "tangy"], "pairs": ["Hibiscus", "Apple", "Rooibos"], "sort": 140, "kind": "fruit", "label_cs": "šípek", "surcharge_czk": 0, "name_sk": "Šípka", "desc_sk": "Kyslastá, ovocná a svieža.", "flavor_sk": ["kyslastá", "ovocná", "svieža"], "label_sk": "šípky"},
+    {"id": "hibiscus", "code": "Hibiscus", "category": "flavor", "name_cs": "Ibišek", "name_en": "Hibiscus", "desc_cs": "Rubínová barva a příjemná kyselost.", "desc_en": "Ruby colour and a pleasant tartness.", "emoji": "🌺", "color": "#b0234a", "flavor_cs": ["nakyslá", "ovocná", "živá"], "flavor_en": ["tart", "fruity", "vibrant"], "pairs": ["Rose Hip", "Apple", "Strawberry"], "sort": 150, "kind": "herb", "label_cs": "ibišek (květ)", "surcharge_czk": 0, "name_sk": "Ibištek", "desc_sk": "Rubínová farba a príjemná kyslosť.", "flavor_sk": ["kyslastá", "ovocná", "živá"], "label_sk": "ibištek (kvet)"},
+    {"id": "rose", "code": "Rose", "category": "flavor", "name_cs": "Růže", "name_en": "Rose", "desc_cs": "Květinová a jemná.", "desc_en": "Floral and delicate.", "emoji": "🌹", "color": "#e8607a", "flavor_cs": ["květinová", "romantická", "lehká"], "flavor_en": ["floral", "romantic", "light"], "pairs": ["White Tea", "Oolong Tea", "Lavender"], "sort": 160, "kind": "herb", "label_cs": "růže (okvětní lístky)", "surcharge_czk": 30, "name_sk": "Ruža", "desc_sk": "Kvetinová a jemná.", "flavor_sk": ["kvetinová", "romantická", "ľahká"], "label_sk": "ruža (okvetné lístky)"},
+    {"id": "spearmint", "code": "Spearmint", "category": "flavor", "name_cs": "Máta klasnatá", "name_en": "Spearmint", "desc_cs": "Sladší a jemnější než peprná.", "desc_en": "Sweeter and softer than peppermint.", "emoji": "🌿", "color": "#a8d8a8", "flavor_cs": ["chladivá", "sladká", "jemná"], "flavor_en": ["cool", "sweet", "mild"], "pairs": ["Rooibos", "Green Tea", "Lemon"], "sort": 170, "kind": "herb", "label_cs": "máta klasnatá (list)", "surcharge_czk": 0, "name_sk": "Mäta klasnatá", "desc_sk": "Sladšia a jemnejšia ako pieporná.", "flavor_sk": ["chladivá", "sladká", "jemná"], "label_sk": "mäta klasnatá (list)"},
+    {"id": "lemongrass", "code": "Lemongrass", "category": "flavor", "name_cs": "Citronová tráva", "name_en": "Lemongrass", "desc_cs": "Vůně citronu bez kyselosti.", "desc_en": "Lemon scent without the sourness.", "emoji": "🌾", "color": "#c9d77b", "flavor_cs": ["citrusová", "svěží", "travnatá"], "flavor_en": ["citrusy", "fresh", "grassy"], "pairs": ["Green Tea", "Ginger", "Lemon Balm"], "sort": 180, "kind": "herb", "label_cs": "citronová tráva (list)", "max_pct": 30, "surcharge_czk": 0, "name_sk": "Citrónová tráva", "desc_sk": "Vôňa citróna bez kyslosti.", "flavor_sk": ["citrusová", "svieža", "trávová"], "label_sk": "citrónová tráva (list)"},
+    {"id": "fennel", "code": "Fennel", "category": "flavor", "name_cs": "Fenykl", "name_en": "Fennel", "desc_cs": "Nasládlý, s tónem anýzu.", "desc_en": "Sweetish, with a hint of anise.", "emoji": "✳️", "color": "#a4b36b", "flavor_cs": ["sladká", "kořeněná", "jemná"], "flavor_en": ["sweet", "spicy", "mild"], "pairs": ["Chamomile", "Mint", "Lemon Balm"], "sort": 190, "kind": "herb", "label_cs": "fenykl (plod)", "surcharge_czk": 0, "name_sk": "Fenikel", "desc_sk": "Nasladlý, s tónom anízu.", "flavor_sk": ["sladká", "korenistá", "jemná"], "label_sk": "fenikel (plod)"},
+    {"id": "orange", "code": "Orange", "category": "extra", "name_cs": "Pomerančová kůra", "name_en": "Orange Peel", "desc_cs": "Citrusová, svěží a šťavnatá.", "desc_en": "Citrusy, bright and zesty.", "emoji": "🍊", "color": "#ffb347", "flavor_cs": ["citrusová", "jiskřivá", "osvěžující"], "flavor_en": ["citrusy", "bright", "zesty"], "pairs": ["Rooibos", "Black Tea", "Cinnamon"], "sort": 200, "kind": "fruit", "label_cs": "pomerančová kůra", "max_pct": 30, "surcharge_czk": 0, "name_sk": "Pomarančová kôra", "desc_sk": "Citrusová, svieža a šťavnatá.", "flavor_sk": ["citrusová", "iskrivá", "osviežujúca"], "label_sk": "pomarančová kôra"},
+    {"id": "lemon", "code": "Lemon", "category": "extra", "name_cs": "Citronová kůra", "name_en": "Lemon Peel", "desc_cs": "Svěží, citrusová a nakyslá.", "desc_en": "Bright, citrusy and tart.", "emoji": "🍋", "color": "#ffe066", "flavor_cs": ["jiskřivá", "citrusová", "nakyslá"], "flavor_en": ["bright", "citrusy", "tart"], "pairs": ["Green Tea", "Chamomile", "Ginger"], "sort": 210, "kind": "fruit", "label_cs": "citronová kůra", "max_pct": 30, "surcharge_czk": 0, "name_sk": "Citrónová kôra", "desc_sk": "Svieža, citrusová a kyslastá.", "flavor_sk": ["iskrivá", "citrusová", "kyslastá"], "label_sk": "citrónová kôra"},
+    {"id": "ginger", "code": "Ginger", "category": "extra", "name_cs": "Zázvor", "name_en": "Ginger", "desc_cs": "Pikantní, hřejivý a svěží.", "desc_en": "Spicy, warm and zesty.", "emoji": "🫚", "color": "#ff9800", "flavor_cs": ["kořeněná", "hřejivá", "osvěžující"], "flavor_en": ["spicy", "warm", "zesty"], "pairs": ["Black Tea", "Lemon", "Lemongrass"], "sort": 220, "kind": "herb", "label_cs": "zázvor (kořen)", "max_pct": 30, "surcharge_czk": 0, "name_sk": "Zázvor", "desc_sk": "Pikantný, hrejivý a svieži.", "flavor_sk": ["korenistá", "hrejivá", "osviežujúca"], "label_sk": "zázvor (koreň)"},
+    {"id": "cinnamon", "code": "Cinnamon", "category": "extra", "name_cs": "Skořice", "name_en": "Cinnamon", "desc_cs": "Hřejivá, kořeněná a sladká.", "desc_en": "Warm, spicy and sweet.", "emoji": "🪵", "color": "#c8824a", "flavor_cs": ["hřejivá", "kořeněná", "sladká"], "flavor_en": ["warm", "spicy", "sweet"], "pairs": ["Black Tea", "Apple", "Rooibos"], "sort": 230, "kind": "herb", "label_cs": "skořice", "max_pct": 30, "surcharge_czk": 0, "name_sk": "Škorica", "desc_sk": "Hrejivá, korenistá a sladká.", "flavor_sk": ["hrejivá", "korenistá", "sladká"], "label_sk": "škorica"},
+    {"id": "lavender", "code": "Lavender", "category": "extra", "name_cs": "Levandule", "name_en": "Lavender", "desc_cs": "Výrazně květinová, stačí špetka.", "desc_en": "Strongly floral, a pinch is enough.", "emoji": "💜", "color": "#b8a0cc", "flavor_cs": ["květinová", "bylinková", "výrazná"], "flavor_en": ["floral", "herby", "bold"], "pairs": ["Chamomile", "White Tea", "Lemon Balm"], "sort": 240, "kind": "herb", "label_cs": "levandule (květ)", "max_pct": 5, "surcharge_czk": 0, "name_sk": "Levanduľa", "desc_sk": "Výrazne kvetinová, stačí štipka.", "flavor_sk": ["kvetinová", "bylinková", "výrazná"], "label_sk": "levanduľa (kvet)"},
+    {"id": "cardamom", "code": "Cardamom", "category": "extra", "name_cs": "Kardamom", "name_en": "Cardamom", "desc_cs": "Exotický, kořeněný a květinový. Stačí špetka.", "desc_en": "Exotic, spicy and floral. A pinch is enough.", "emoji": "🫛", "color": "#80cbc4", "flavor_cs": ["exotická", "kořeněná", "květinová"], "flavor_en": ["exotic", "spicy", "floral"], "pairs": ["Black Tea", "Oolong Tea", "Cinnamon"], "sort": 250, "kind": "herb", "label_cs": "kardamom (semeno)", "max_pct": 5, "surcharge_czk": 80, "name_sk": "Kardamón", "desc_sk": "Exotický, korenistý a kvetinový. Stačí štipka.", "flavor_sk": ["exotická", "korenistá", "kvetinová"], "label_sk": "kardamón (semeno)"},
 ];
 const BUILTIN_BLENDS = [
-    {"id": "morning_window", "name": "Morning Window", "emoji": "☀️", "is_preset": true, "sort": 10, "ingredients": ["Green Tea", "Mint", "Lemon"], "parts": [3, 1, 1], "desc_cs": "Zelený čaj s mátou peprnou a citronovou kůrou. Čistý a svěží — pohár, který rozjede den.", "desc_en": "Green tea with peppermint and lemon peel. Clean and bright — the cup that gets the day going."},
-    {"id": "still_evening", "name": "Still Evening", "emoji": "🌙", "is_preset": true, "sort": 20, "ingredients": ["Chamomile", "Lemon Balm", "Lavender"], "parts": [2, 2, 1], "desc_cs": "Heřmánek a meduňka se špetkou levandule. Jemný, květinový a bez kofeinu — na konec dne.", "desc_en": "Chamomile and lemon balm with a pinch of lavender. Gentle, floral and caffeine-free — for the end of the day."},
-    {"id": "deep_winter", "name": "Deep Winter", "emoji": "❄️", "is_preset": true, "sort": 30, "ingredients": ["Black Tea", "Ginger", "Cinnamon"], "parts": [3, 1, 1], "desc_cs": "Černý čaj se zázvorem a skořicí. Plný a hřejivý — nejlepší s oběma rukama kolem hrnku.", "desc_en": "Black tea with ginger and cinnamon. Full and warming — best with both hands around the mug."},
-    {"id": "late_light", "name": "Late Light", "emoji": "🌅", "is_preset": false, "sort": 40, "ingredients": ["Oolong Tea", "Rose", "Lavender"], "parts": [3, 1, 1], "desc_cs": "Oolong s růží a špetkou levandule. Měkký a trochu květinový — na ten tichý kus odpoledne.", "desc_en": "Oolong with rose and a pinch of lavender. Soft and a little floral — for the quiet part of the afternoon."},
-    {"id": "open_air", "name": "Open Air", "emoji": "🌿", "is_preset": false, "sort": 50, "ingredients": ["Rooibos", "Orange", "Spearmint"], "parts": [3, 1, 1], "desc_cs": "Rooibos s pomerančovou kůrou a mátou klasnatou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.", "desc_en": "Rooibos with orange peel and spearmint. Naturally sweet and caffeine-free — good any time."},
-    {"id": "slow_tuesday", "name": "Slow Tuesday", "emoji": "🍎", "is_preset": true, "sort": 60, "ingredients": ["Apple", "Hibiscus", "Rose Hip", "Cinnamon"], "parts": [3, 1, 1, 1], "desc_cs": "Jablko s ibiškem, šípkem a skořicí. Ovocný a hřejivý — čajový ekvivalent nicnedělání.", "desc_en": "Apple with hibiscus, rose hip and cinnamon. Fruity and warming — the tea equivalent of doing nothing."},
+    {"id": "morning_window", "name": "Morning Window", "emoji": "☀️", "is_preset": true, "sort": 10, "ingredients": ["Green Tea", "Mint", "Lemon"], "parts": [3, 1, 1], "desc_cs": "Zelený čaj s mátou peprnou a citronovou kůrou. Čistý a svěží — pohár, který rozjede den.", "desc_en": "Green tea with peppermint and lemon peel. Clean and bright — the cup that gets the day going.", "desc_sk": "Zelený čaj s mätou piepornou a citrónovou kôrou. Čistý a svieži — šálka, ktorá naštartuje deň."},
+    {"id": "still_evening", "name": "Still Evening", "emoji": "🌙", "is_preset": true, "sort": 20, "ingredients": ["Chamomile", "Lemon Balm", "Lavender"], "parts": [2, 2, 1], "desc_cs": "Heřmánek a meduňka se špetkou levandule. Jemný, květinový a bez kofeinu — na konec dne.", "desc_en": "Chamomile and lemon balm with a pinch of lavender. Gentle, floral and caffeine-free — for the end of the day.", "desc_sk": "Harmanček a medovka so štipkou levandule. Jemný, kvetinový a bez kofeínu — na koniec dňa."},
+    {"id": "deep_winter", "name": "Deep Winter", "emoji": "❄️", "is_preset": true, "sort": 30, "ingredients": ["Black Tea", "Ginger", "Cinnamon"], "parts": [3, 1, 1], "desc_cs": "Černý čaj se zázvorem a skořicí. Plný a hřejivý — nejlepší s oběma rukama kolem hrnku.", "desc_en": "Black tea with ginger and cinnamon. Full and warming — best with both hands around the mug.", "desc_sk": "Čierny čaj so zázvorom a škoricou. Plný a hrejivý — najlepší, keď držíš hrnček oboma rukami."},
+    {"id": "late_light", "name": "Late Light", "emoji": "🌅", "is_preset": false, "sort": 40, "ingredients": ["Oolong Tea", "Rose", "Lavender"], "parts": [3, 1, 1], "desc_cs": "Oolong s růží a špetkou levandule. Měkký a trochu květinový — na ten tichý kus odpoledne.", "desc_en": "Oolong with rose and a pinch of lavender. Soft and a little floral — for the quiet part of the afternoon.", "desc_sk": "Oolong s ružou a štipkou levandule. Mäkký a trochu kvetinový — na tichú časť popoludnia."},
+    {"id": "open_air", "name": "Open Air", "emoji": "🌿", "is_preset": false, "sort": 50, "ingredients": ["Rooibos", "Orange", "Spearmint"], "parts": [3, 1, 1], "desc_cs": "Rooibos s pomerančovou kůrou a mátou klasnatou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.", "desc_en": "Rooibos with orange peel and spearmint. Naturally sweet and caffeine-free — good any time.", "desc_sk": "Rooibos s pomarančovou kôrou a mätou klasnatou. Prirodzene sladký a bez kofeínu — dobrý kedykoľvek."},
+    {"id": "slow_tuesday", "name": "Slow Tuesday", "emoji": "🍎", "is_preset": true, "sort": 60, "ingredients": ["Apple", "Hibiscus", "Rose Hip", "Cinnamon"], "parts": [3, 1, 1, 1], "desc_cs": "Jablko s ibiškem, šípkem a skořicí. Ovocný a hřejivý — čajový ekvivalent nicnedělání.", "desc_en": "Apple with hibiscus, rose hip and cinnamon. Fruity and warming — the tea equivalent of doing nothing.", "desc_sk": "Jablko s ibištekom, šípkami a škoricou. Ovocný a hrejivý — čajový ekvivalent ničnerobenia."},
 ];
 
 const CATALOG_CACHE_KEY  = 'teaseyou_catalog_v1';
@@ -2424,17 +2304,23 @@ let catalogShipping = null;    // { post: { price, active }, … }
    tyhle vestavěné ukázky. */
 const BUILTIN_CRAFT = [
     { id: 'levandulovy_vecer', kind: 'soap', name_cs: 'Levandulový večer', name_en: 'Lavender Evening', color: '#b8a0cc', ingredients: ['Lavender', 'Chamomile'],
-      desc_cs: 'Jemné mýdlo s levandulí a heřmánkem. Voní jako večerní šálek.', desc_en: 'A gentle soap with lavender and chamomile. Smells like an evening cup.' },
+      desc_cs: 'Jemné mýdlo s levandulí a heřmánkem. Voní jako večerní šálek.', desc_en: 'A gentle soap with lavender and chamomile. Smells like an evening cup.',
+      name_sk: 'Levanduľový večer', desc_sk: 'Jemné mydlo s levanduľou a harmančekom. Vonia ako večerná šálka.' },
     { id: 'zelene_rano', kind: 'soap', name_cs: 'Zelené ráno', name_en: 'Green Morning', color: '#8da676', ingredients: ['Green Tea', 'Mint'],
-      desc_cs: 'Svěží mýdlo se zeleným čajem a mátou.', desc_en: 'A fresh soap with green tea and mint.' },
+      desc_cs: 'Svěží mýdlo se zeleným čajem a mátou.', desc_en: 'A fresh soap with green tea and mint.',
+      name_sk: 'Zelené ráno', desc_sk: 'Svieže mydlo so zeleným čajom a mätou.' },
     { id: 'rooibos_pomeranc', kind: 'soap', name_cs: 'Rooibos a pomeranč', name_en: 'Rooibos & Orange', color: '#e8720c', ingredients: ['Rooibos', 'Orange'],
-      desc_cs: 'Hřejivé mýdlo s rooibosem a pomerančovou kůrou.', desc_en: 'A warm soap with rooibos and orange peel.' },
+      desc_cs: 'Hřejivé mýdlo s rooibosem a pomerančovou kůrou.', desc_en: 'A warm soap with rooibos and orange peel.',
+      name_sk: 'Rooibos a pomaranč', desc_sk: 'Hrejivé mydlo s rooibosom a pomarančovou kôrou.' },
     { id: 'ruze_bily_caj', kind: 'soap', name_cs: 'Růže a bílý čaj', name_en: 'Rose & White Tea', color: '#e8607a', ingredients: ['Rose', 'White Tea'],
-      desc_cs: 'Květinové mýdlo s růží a bílým čajem.', desc_en: 'A floral soap with rose and white tea.' },
+      desc_cs: 'Květinové mýdlo s růží a bílým čajem.', desc_en: 'A floral soap with rose and white tea.',
+      name_sk: 'Ruža a biely čaj', desc_sk: 'Kvetinové mydlo s ružou a bielym čajom.' },
     { id: 'med_vanilka', kind: 'balm', name_cs: 'Med a vanilka', name_en: 'Honey & Vanilla', color: '#ffc107', ingredients: ['Honey', 'Vanilla'],
-      desc_cs: 'Balzám na rty ze včelího vosku s medem a vanilkou.', desc_en: 'A beeswax lip balm with honey and vanilla.' },
+      desc_cs: 'Balzám na rty ze včelího vosku s medem a vanilkou.', desc_en: 'A beeswax lip balm with honey and vanilla.',
+      name_sk: 'Med a vanilka', desc_sk: 'Balzam na pery zo včelieho vosku s medom a vanilkou.' },
     { id: 'mata', kind: 'balm', name_cs: 'Máta', name_en: 'Mint', color: '#a8d8a8', ingredients: ['Spearmint'],
-      desc_cs: 'Chladivý balzám na rty s mátou peprnou.', desc_en: 'A cooling lip balm with spearmint.' },
+      desc_cs: 'Chladivý balzám na rty s mátou klasnatou.', desc_en: 'A cooling lip balm with spearmint.',
+      name_sk: 'Mäta', desc_sk: 'Chladivý balzam na pery s mätou klasnatou.' },
 ];
 let catalogCraft = BUILTIN_CRAFT.slice();
 let promoBarEnabled = true;
@@ -2513,7 +2399,7 @@ function defaultParts(ing) { return ing && ing.category === 'base' ? 3 : 1; }
 /* 16.5 g → „16,5 g“ */
 function fmtGrams(g) {
     const n = Math.round(g * 10) / 10;
-    return (LANG === 'cs' ? String(n).replace('.', ',') : String(n)) + ' g';
+    return (SLAVIC ? String(n).replace('.', ',') : String(n)) + ' g';
 }
 /* Louhování podle hlavní suroviny, která má vlastní teplotu a čas. */
 function brewFor(codes, parts) {
@@ -2561,9 +2447,9 @@ function bySort(a, b) { return (a.sort || 0) - (b.sort || 0); }
 function blendSubtitle(codes) {
     const names = (codes || []).map(tIng);
     if (names.length < 2) return names[0] || '';
-    const rest = LANG === 'cs' ? names.slice(1).map(n => n.toLocaleLowerCase('cs')) : names.slice(1);
+    const rest = SLAVIC ? names.slice(1).map(n => n.toLocaleLowerCase(LOCALE)) : names.slice(1);
     const last = rest.pop();
-    return [names[0], ...rest].join(', ') + (LANG === 'cs' ? ' a ' : ' & ') + last;
+    return [names[0], ...rest].join(', ') + (SLAVIC ? ' a ' : ' & ') + last;
 }
 
 /* ─── PRODÁVAJÍCÍ A NASTAVENÍ OBCHODU ───────────
@@ -2644,7 +2530,7 @@ function ingLabelInfo(code) {
     const ing = ingByCode(code) || {};
     return {
         kind:      ing.kind || (ing.category === 'base' ? 'tea' : 'herb'),
-        label:     ing.label || tIng(code).toLocaleLowerCase('cs'),
+        label:     ing.label || tIng(code).toLocaleLowerCase(LOCALE),
         maxPct:    ing.maxPct || null,
         allergens: ing.allergens || '',
     };
@@ -2665,13 +2551,18 @@ function blendComposition(codes, parts) {
    sušeného ovoce ovocný čaj. Jinak směs nemá druh a neprodává se (null). */
 function legalBlendName(comp) {
     if (!comp || !comp.length || !comp.category) return null;
-    const cap = str => str.charAt(0).toLocaleUpperCase('cs') + str.slice(1);
+    const cap = str => str.charAt(0).toLocaleUpperCase(LOCALE) + str.slice(1);
+    const N = {
+        cs: { tea: 'čaj', flavoured: 'Ochucený ', herb: 'Bylinný čaj', fruit: 'Ovocný čaj' },
+        sk: { tea: 'čaj', flavoured: 'Ochutený ', herb: 'Bylinný čaj', fruit: 'Ovocný čaj' },
+        en: { tea: 'tea', flavoured: 'Flavoured ', herb: 'Herbal tea', fruit: 'Fruit tea' },
+    }[LANG];
     if (comp.category === 'tea') {
         const teas = comp.filter(c => c.kind === 'tea');
-        const group = teas.length === 1 ? teas[0].label : 'čaj';
-        return comp.teaOnly ? cap(group) : 'Ochucený ' + group;
+        const group = teas.length === 1 ? teas[0].label : N.tea;
+        return comp.teaOnly ? cap(group) : N.flavoured + group;
     }
-    return comp.category === 'herb' ? 'Bylinný čaj' : 'Ovocný čaj';
+    return comp.category === 'herb' ? N.herb : N.fruit;
 }
 
 function foodInfo(codes, parts) {
@@ -2694,7 +2585,8 @@ function foodInfoRows(codes, parts, weight) {
     const g = parseInt(weight, 10);
     const brew = brewFor(codes, parts);
     const maker = [SELLER.name, SELLER.address].filter(Boolean).join(', ');
-    const herbalWithTea = info.comp.some(c => c.kind === 'tea') && /^(Bylinný|Ovocný)/.test(info.name);
+    // bylinný/ovocný čaj s trochou pravého čaje: upozornit na kofein (v každém jazyce)
+    const herbalWithTea = info.comp.some(c => c.kind === 'tea') && info.comp.category !== 'tea';
     const rows = [
         [t('food_name'), info.name + (herbalWithTea ? '. ' + t('food_caffeine') : '')],
         [t('food_ingredients'), info.composition],
@@ -2744,8 +2636,10 @@ function applyIngredientRows(list) {
     rows.forEach(r => {
         const key = 'ing_' + r.id;
         TRANSLATIONS.cs[key] = r.name_cs || r.name_en || r.code;
+        TRANSLATIONS.sk[key] = r.name_sk || r.name_cs || r.name_en || r.code;
         TRANSLATIONS.en[key] = r.name_en || r.name_cs || r.code;
         TRANSLATIONS.cs[key + '_desc'] = r.desc_cs || '';
+        TRANSLATIONS.sk[key + '_desc'] = r.desc_sk || r.desc_cs || '';
         TRANSLATIONS.en[key + '_desc'] = r.desc_en || r.desc_cs || '';
         ING_KEYS[r.code] = key;
         const ing = {
@@ -2754,14 +2648,19 @@ function applyIngredientRows(list) {
             category: r.category,
             emoji:    r.emoji || '🍵',
             color:    /^#[0-9a-f]{6}$/i.test(r.color || '') ? r.color : '#cccccc',
-            flavor:   (LANG === 'cs' ? r.flavor_cs : r.flavor_en) || [],
-            health:   (LANG === 'cs' ? r.health_cs : r.health_en) || [],
+            flavor:   pickLang(r, 'flavor') || [],
             pairs:    (r.pairs || []).filter(p => typeof p === 'string'),
             photo:    safePhoto(r.photo_url),
             icon:     safePhoto(r.icon_url),
             inStock:  r.in_stock !== false,
             kind:      ['tea', 'herb', 'fruit', 'other'].includes(r.kind) ? r.kind : '',
-            label:     typeof r.label_cs === 'string' ? r.label_cs.trim() : '',
+            // název ve složení v jazyce webu (česky podle vyhlášky, slovensky
+            // z administrace, anglicky podle anglického názvu)
+            label:     ({
+                cs: (r.label_cs || '').trim(),
+                sk: (r.label_sk || '').trim() || (r.name_sk ? r.name_sk.toLocaleLowerCase('sk') : (r.label_cs || '').trim()),
+                en: (r.name_en || '').toLocaleLowerCase('en'),
+            })[LANG],
             maxPct:    Number.isInteger(r.max_pct) && r.max_pct > 0 && r.max_pct <= 100 ? r.max_pct : null,
             allergens: typeof r.allergens === 'string' ? r.allergens.trim() : '',
             surcharge: Number.isInteger(r.surcharge_czk) && r.surcharge_czk > 0 ? r.surcharge_czk : 0,
@@ -2792,7 +2691,7 @@ function applyBlendRows(list) {
         })
         .filter(b => recipeOf(b.ingredients, b.parts, 100).ok)
         .sort(bySort);
-    catalogBlends.forEach(b => { if (b.desc_cs) BLEND_DESCS_CS[b.name] = b.desc_cs; });
+    catalogBlends.forEach(b => { const d = pickLang(b, 'desc'); if (d) BLEND_DESCS[b.name] = d; });
     MIX_PRESETS.length = 0;
     catalogBlends.filter(b => b.is_preset).forEach(b => {
         MIX_PRESETS.push({ name: b.name, ingredients: b.ingredients.slice(), parts: b.parts.slice() });
@@ -2838,6 +2737,7 @@ function applyCatalog(c) {
     promoBarEnabled = st.promo_bar_enabled !== false;
     applyShopSettings(st);
     if (st.promo_bar_cs) TRANSLATIONS.cs.promo_text = st.promo_bar_cs;
+    if (st.promo_bar_sk || st.promo_bar_cs) TRANSLATIONS.sk.promo_text = st.promo_bar_sk || st.promo_bar_cs;
     if (st.promo_bar_en) TRANSLATIONS.en.promo_text = st.promo_bar_en;
     else if (st.promo_bar_cs) TRANSLATIONS.en.promo_text = st.promo_bar_cs;
 
@@ -2960,7 +2860,7 @@ function renderBlendCards() {
 function openBlend(id) {
     const b = catalogBlends.find(x => x.id === id);
     if (!b) return;
-    const desc = LANG === 'cs' ? (b.desc_cs || b.desc_en) : (b.desc_en || b.desc_cs);
+    const desc = pickLang(b, 'desc');
     const price = unitPrice(b.ingredients, b.parts, 100) || blendPriceFrom(b);
     openDetail(b.name, desc || '', price, b.ingredients.slice(), null, b.parts.slice());
 }
@@ -3233,60 +3133,26 @@ function notifyFormspree(form, order) {
 
 Object.assign(TRANSLATIONS.cs, {
     hero_title:        'Namíchej si čaj. Pojmenuj ho.',
-    hero_lede:         'Vybereš základ, příchuť a doplněk. Směs čerstvě namícháme a pošleme ti ji v sáčku s tvým jménem.',
-    hero_quiz_btn:     'Poradit kvízem',
+    hero_lede:         'Vybereš až pět surovin a poměr, jaký chceš. Směs čerstvě namícháme a pošleme ti ji v sáčku s tvým jménem.',
     hero_quiz_link:    'Nevíš, co vybrat? Poradí ti kvíz',
     how_result_note:   'Namícháme po objednání, obvykle odešleme do 24 hodin.',
     hero_pick:         'Chci tuhle',
     hero_shuffle:      'Zamíchat jinak',
     hero_note_price:   'Balení od {price}.',
     hero_note_ship:    'Nad {limit} doprava zdarma.',
-    how_1_title:       'Vyber základ',
-    howx_1:            'Pravé čaje, byliny bez kofeinu nebo jablko. Základ určuje charakter směsi.',
-    howx_2_title:      'Přidej příchuť',
-    howx_2:            'Ovoce, květy nebo byliny. Tady začne být směs tvoje.',
-    howx_3_title:      'Dolaď doplňkem',
-    howx_3:            'Citrusová kůra, zázvor, skořice nebo špetka levandule. Malá věc, která chuť dotáhne.',
-    howx_4_title:      'Pojmenuj ji',
-    howx_4:            'Směs zabalíme pod tvým jménem a obvykle do 24 hodin odešleme.',
     how_cta:           'Začít míchat',
     shelf_title:       'Naše směsi',
     shelf_lede:        'Hotové kombinace. Objednej je rovnou, nebo si je v mixéru uprav podle sebe.',
     quizband_title:    'Nevíš, co by ti chutnalo?',
     quizband_text:     'Odpověz na pět krátkých otázek a doporučíme ti směs, která sedí tvé náladě i denní době.',
     quizband_btn:      'Spustit kvíz',
-    pantry_title:      'Z čeho mícháme',
     pantry_lede:       'Na výběr je {bases} základů, {flavors} příchutí a {extras} doplňků. Do jedné směsi jich dáš až {max} v poměru, jaký chceš.',
-    pantry_bases:      'Základy',
-    pantry_flavors:    'Příchutě',
-    pantry_extras:     'Doplňky',
-    pantry_link:       'Prohlédnout všechny ingredience',
     faq_lede:          'Něco tu chybí? Napiš na <a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a>.',
-    mixer_sub:         'Jeden základ, jedna příchuť, jeden doplněk. Jméno je na tobě.',
-    preset_label2:     'Nechceš začínat od nuly?',
-    step_1_title:      'Vyber základ',
-    step_1_hint:       'Určuje charakter směsi a kolik bude mít kofeinu.',
-    step_2_title:      'Přidej příchuť',
-    step_2_hint:       'Ovoce, květy nebo něco sladšího.',
-    step_3_title:      'Dolaď doplňkem',
-    step_3_hint:       'Citrus, koření nebo špetka květů na dotažení chuti.',
-    step_4_title:      'Pojmenuj ji',
-    step_4_hint:       'Pod tímhle jménem ji zabalíme. Nech prázdné a bude to Moje směs.',
-    prog_extra:        'Doplněk',
-    prog_name:         'Jméno',
-    btn_clear2:        'Vymazat',
-    btn_preview:       'Ukázat směs a cenu',
-    mixer_next_2:      'Dál: příchuť',
-    mixer_next_3:      'Dál: doplněk',
-    mixer_next_4:      'Dál: jméno',
     mixer_prev:        'Zpět',
-    mixer_pick_first:  'Nejdřív něco vyber',
-    mixer_missing:     'Ještě chybí',
     mixer_price:       'Od {price} za {weight} g',
     glass_label_extras:'Doplněk',
     glass_name_default:'Tvoje směs',
     default_mix_name:  'Moje směs',
-    name_ideas_label:  'Napadá nás:',
     nav_mix:           'Namíchat',
     nav_shelf:         'Naše směsi',
     nav_quiz:          'Najdi svůj blend',
@@ -3295,74 +3161,42 @@ Object.assign(TRANSLATIONS.cs, {
     footer_shop:       'Obchod',
     footer_info:       'Informace',
     footer_tagline2:   'Čajové směsi na míru, míchané až po objednání.',
-    footer_newsletter_desc: 'Nové směsi a nabídky přímo do schránky.',
     footer_cookies:    'Cookies',
     footer_made_in:    'Mícháme v Česku',
-    lbl_email_short:   'E-mail',
-    newsletter_ok:     'Hotovo, jsi přihlášený.',
     theme_dark:        'Tmavý režim',
     theme_light:       'Světlý režim',
     aria_menu:         'Menu',
     aria_close:        'Zavřít',
     aria_theme:        'Přepnout tmavý režim',
     aria_mobile_nav:   'Mobilní navigace',
+    aria_main_nav:     'Hlavní navigace',
+    ship_zasilkovna_name: 'Zásilkovna',
+    toast_shared_loaded: 'Načetli jsme sdílenou směs ✨',
+    lang_label:        'Jazyk',
+    legal_lang_note:   '',
 });
 Object.assign(TRANSLATIONS.en, {
     hero_title:        'Mix your tea. Name it.',
-    hero_lede:         'Pick a base, a flavour and an extra. We blend it fresh and send it in a pouch with your name on it.',
-    hero_quiz_btn:     'Help me choose',
+    hero_lede:         'Pick up to five ingredients and any ratio you like. We blend it fresh and send it in a pouch with your name on it.',
     hero_quiz_link:    'Not sure what to pick? Take the quiz',
     how_result_note:   'Blended after you order, usually shipped within 24 hours.',
     hero_pick:         'I want this one',
     hero_shuffle:      'Shuffle',
     hero_note_price:   'Packs from {price}.',
     hero_note_ship:    'Free shipping over {limit}.',
-    how_1_title:       'Pick a base',
-    howx_1:            'True teas, caffeine-free herbs or apple. The base sets the character.',
-    howx_2_title:      'Add a flavour',
-    howx_2:            'Fruit, flowers or herbs. This is where it becomes yours.',
-    howx_3_title:      'Finish with an extra',
-    howx_3:            'Citrus peel, ginger, cinnamon or a pinch of lavender. A small thing that rounds it off.',
-    howx_4_title:      'Name it',
-    howx_4:            'We pack it under your name and usually ship within 24 hours.',
     how_cta:           'Start mixing',
     shelf_title:       'Our blends',
     shelf_lede:        'Ready-made combinations. Order one as it is, or tweak it in the mixer.',
     quizband_title:    'Not sure what you would like?',
     quizband_text:     'Answer five quick questions and we will suggest a blend for your mood and time of day.',
     quizband_btn:      'Take the quiz',
-    pantry_title:      'What we blend with',
     pantry_lede:       'Pick from {bases} bases, {flavors} flavours and {extras} extras. Put up to {max} in one blend, in any ratio you like.',
-    pantry_bases:      'Bases',
-    pantry_flavors:    'Flavours',
-    pantry_extras:     'Extras',
-    pantry_link:       'See all ingredients',
     faq_lede:          'Missing something? Write to <a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a>.',
-    mixer_sub:         'One base, one flavour, one extra. The name is up to you.',
-    preset_label2:     'Rather not start from scratch?',
-    step_1_title:      'Pick a base',
-    step_1_hint:       'It sets the character of the blend and how much caffeine it has.',
-    step_2_title:      'Add a flavour',
-    step_2_hint:       'Fruit, flowers or something sweeter.',
-    step_3_title:      'Finish with an extra',
-    step_3_hint:       'Citrus, spice or a pinch of flowers to round it off.',
-    step_4_title:      'Name it',
-    step_4_hint:       'We pack it under this name. Leave it empty and it will be My blend.',
-    prog_extra:        'Extra',
-    prog_name:         'Name',
-    btn_clear2:        'Clear',
-    btn_preview:       'See blend and price',
-    mixer_next_2:      'Next: flavour',
-    mixer_next_3:      'Next: extra',
-    mixer_next_4:      'Next: name',
     mixer_prev:        'Back',
-    mixer_pick_first:  'Pick something first',
-    mixer_missing:     'Still missing',
     mixer_price:       'From {price} for {weight} g',
     glass_label_extras:'Extra',
     glass_name_default:'Your blend',
     default_mix_name:  'My blend',
-    name_ideas_label:  'Ideas:',
     nav_mix:           'Mix',
     nav_shelf:         'Our blends',
     nav_quiz:          'Find my blend',
@@ -3371,17 +3205,19 @@ Object.assign(TRANSLATIONS.en, {
     footer_shop:       'Shop',
     footer_info:       'Information',
     footer_tagline2:   'Custom tea blends, mixed only after you order.',
-    footer_newsletter_desc: 'New blends and offers straight to your inbox.',
     footer_cookies:    'Cookies',
     footer_made_in:    'Blended in Czechia',
-    lbl_email_short:   'E-mail',
-    newsletter_ok:     'Done, you are subscribed.',
     theme_dark:        'Dark mode',
     theme_light:       'Light mode',
     aria_menu:         'Menu',
     aria_close:        'Close',
     aria_theme:        'Toggle dark mode',
     aria_mobile_nav:   'Mobile navigation',
+    aria_main_nav:     'Main navigation',
+    ship_zasilkovna_name: 'Zásilkovna (Packeta)',
+    toast_shared_loaded: 'Loaded a shared blend ✨',
+    lang_label:        'Language',
+    legal_lang_note:   'These documents are in Czech, the language of the contract. If anything is unclear, write to hello@teaseyou.cz and we will explain.',
 });
 
 Object.assign(TRANSLATIONS.cs, {
@@ -3401,7 +3237,6 @@ Object.assign(TRANSLATIONS.cs, {
     mixer_step_of:     'Krok {n} ze 4',
     mixer_next:        'Dál',
     mixer_add:         'Do košíku',
-    mixer_pick_first:  'Vyber jednu možnost',
     mixer_pick_base:   'Vyber aspoň jeden základ',
     mixer_skip:        'Přeskočit',
     bar_empty:         'Zatím nic nevybráno',
@@ -3555,8 +3390,6 @@ Object.assign(TRANSLATIONS.cs, {
     quiz_also:         'Mohla by ti chutnat i',
     btn_order_blend:   'Chci tuhle směs',
     btn_try_again:     'Projít kvíz znovu',
-    modal_qty_title:   'Vyber velikost',
-    btn_confirm:       'Do košíku',
     toast_saved:       'najdeš v Uložených směsích',
     nav_blends:        'Uložené směsi',
     nav_quiz:          'Kvíz',
@@ -3578,7 +3411,6 @@ Object.assign(TRANSLATIONS.en, {
     mixer_step_of:     'Step {n} of 4',
     mixer_next:        'Next',
     mixer_add:         'Add to cart',
-    mixer_pick_first:  'Pick one option',
     mixer_pick_base:   'Pick at least one base',
     mixer_skip:        'Skip',
     bar_empty:         'Nothing picked yet',
@@ -3732,8 +3564,6 @@ Object.assign(TRANSLATIONS.en, {
     quiz_also:         'You might also like',
     btn_order_blend:   'I want this one',
     btn_try_again:     'Take the quiz again',
-    modal_qty_title:   'Choose a size',
-    btn_confirm:       'Add to cart',
     toast_saved:       'is in your saved blends',
     nav_blends:        'Saved blends',
     nav_quiz:          'Quiz',
@@ -3782,11 +3612,14 @@ function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholder
 }
 
 function mixNameIdeas() {
-    return LANG === 'cs'
-        ? ['Ranní okno', 'Pomalé úterý', 'Tichý večer', 'Hluboká zima', 'Pozdní světlo', 'Volný vzduch',
-           'Neděle v posteli', 'Druhý dech', 'Teplý kout', 'Krátká pauza', 'Dlouhá noc', 'Lehká hlava']
-        : ['Morning Window', 'Slow Tuesday', 'Still Evening', 'Deep Winter', 'Late Light', 'Open Air',
-           'Sunday in Bed', 'Second Wind', 'Warm Corner', 'Short Break', 'Long Night', 'Light Head'];
+    return {
+        cs: ['Ranní okno', 'Pomalé úterý', 'Tichý večer', 'Hluboká zima', 'Pozdní světlo', 'Volný vzduch',
+             'Neděle v posteli', 'Druhý dech', 'Teplý kout', 'Krátká pauza', 'Dlouhá noc', 'Lehká hlava'],
+        sk: ['Ranné okno', 'Pomalý utorok', 'Tichý večer', 'Hlboká zima', 'Neskoré svetlo', 'Voľný vzduch',
+             'Nedeľa v posteli', 'Druhý dych', 'Teplý kút', 'Krátka pauza', 'Dlhá noc', 'Ľahká hlava'],
+        en: ['Morning Window', 'Slow Tuesday', 'Still Evening', 'Deep Winter', 'Late Light', 'Open Air',
+             'Sunday in Bed', 'Second Wind', 'Warm Corner', 'Short Break', 'Long Night', 'Light Head'],
+    }[LANG];
 }
 function sortedWeights() {
     return Object.keys(PRICES).map(Number).filter(w => PRICES[w] > 0).sort((a, b) => a - b);
@@ -3843,7 +3676,7 @@ function renderHow() {
     const parts = codes.map(c => defaultParts(ingByCode(c)));
     // Role podle skupiny suroviny (základ / příchuť / doplněk), ne podle pořadí.
     const roleOf = c => t(LAYER_LABELS[(MIX_STEP_OF[(ingByCode(c) || {}).category] || 1) - 1]);
-    const roles = codes.map(c => roleOf(c).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en'));
+    const roles = codes.map(c => roleOf(c).toLocaleLowerCase(LOCALE));
     list.innerHTML = codes.map((c, i) =>
         `<li class="formula-item">${i ? '<span class="formula-op" aria-hidden="true">+</span>' : ''}`
         + ingIconHtml(c, 'ing-ico--lg')
@@ -4278,7 +4111,6 @@ Object.assign(TRANSLATIONS.cs, {
     craft_mail_subject: 'Chci vědět, až bude',
     craft_also_in:      'Najdeš i v:',
     craft_same_title:   'Ze stejných surovin',
-    craft_open:         'Mýdla a balzámy',
 });
 Object.assign(TRANSLATIONS.en, {
     nav_craft:          'Soaps & balms',
@@ -4306,14 +4138,13 @@ Object.assign(TRANSLATIONS.en, {
     craft_mail_subject: 'Let me know when it is ready',
     craft_also_in:      'Also in:',
     craft_same_title:   'Made from the same',
-    craft_open:         'Soaps & balms',
 });
 
 const CRAFT_NOTIFIED_KEY = 'teaseyou_notified';
 const CRAFT_EMAIL_KEY = 'teaseyou_notify_email';
 
-function craftName(p) { return LANG === 'en' ? (p.name_en || p.name_cs) : p.name_cs; }
-function craftDesc(p) { return LANG === 'en' ? (p.desc_en || p.desc_cs || '') : (p.desc_cs || ''); }
+function craftName(p) { return pickLang(p, 'name'); }
+function craftDesc(p) { return pickLang(p, 'desc'); }
 function craftUsing(code) { return code ? catalogCraft.filter(p => (p.ingredients || []).includes(code)) : []; }
 function craftNotified() { const v = readStore(CRAFT_NOTIFIED_KEY, []); return Array.isArray(v) ? v : []; }
 
@@ -4417,7 +4248,7 @@ function renderDetailCraft(ingredients) {
         return `<button type="button" class="detail-craft-item" data-craft="${escHtml(p.id)}">
             <span class="detail-craft-visual" aria-hidden="true">${craftVisualHtml(p, 'craft--xs')}</span>
             <span class="detail-craft-text"><strong>${escHtml(craftName(p))}</strong>
-            <span>${escHtml(t(p.kind === 'balm' ? 'craft_kind_balm' : 'craft_kind_soap'))}, ${escHtml(shared.map(c => tIng(c).toLocaleLowerCase(LANG === 'cs' ? 'cs' : 'en')).join(', '))}</span></span>
+            <span>${escHtml(t(p.kind === 'balm' ? 'craft_kind_balm' : 'craft_kind_soap'))}, ${escHtml(shared.map(c => tIng(c).toLocaleLowerCase(LOCALE)).join(', '))}</span></span>
         </button>`;
     }).join('');
 }
@@ -4459,7 +4290,7 @@ async function joinCraftWaitlist(form) {
     if (!window.TeaDB || !TeaDB.configured) { viaMail(); finish(); return; }
     btn.disabled = true;
     try {
-        await TeaDB.rpc('join_craft_waitlist', { p_product: id, p_email: email, p_lang: LANG === 'en' ? 'en' : 'cs' });
+        await TeaDB.rpc('join_craft_waitlist', { p_product: id, p_email: email, p_lang: LANG });
         finish();
     } catch (e) {
         const code = e && e.message;

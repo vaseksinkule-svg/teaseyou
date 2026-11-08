@@ -6,6 +6,28 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (slovenština a výběr jazyka)
+- Výběr jazyka **CZ / SK / EN** v hlavičce a v patičce. Volba se pamatuje;
+  bez ní web pozná jazyk z prohlížeče (slovenský prohlížeč dřív dostal angličtinu).
+- Po přepnutí se web vrátí tam, kde zákazník byl: rozdělaná směs v mixéru
+  (suroviny, díly, krok, název, velikost) i otevřená hotová směs zůstanou.
+- Celý web slovensky (`i18n-sk.js`), včetně informací o potravině: „Ochutený
+  zelený čaj“, složení „zelený čaj 60 %, mäta pieporná (list) 20 %…“.
+- Slovenské názvy, popisy, chutě a složení surovin, popisy směsí, mýdla a lišta
+  v administraci (prázdné = česky). Objednávka a zájemce si pamatují `sk`.
+- Administrace u objednávky na Slovensko ukáže text na štítek slovensky.
+- Obchodní podmínky, ochrana údajů, odstoupení a cookies zůstávají česky;
+  ve slovenštině a angličtině mají nahoře poznámku, že jsou česky.
+- Mapa Zásilkovny se otevře v jazyce webu a pro zemi z adresy.
+
+### Opraveno (překlady)
+- Anglický web ukazoval české názvy ve složení a druh čaje („Ochucený…“),
+  teď „Flavoured green tea“, „green tea 60 %“. Upozornění na kofein u bylinného
+  čaje s pravým čajem chybělo v angličtině.
+- Popisky pro čtečky obrazovky, data a gramy podle jazyka; opravené anglické
+  věty v úvodu, kvízu a FAQ; odstraněno 128 nepoužívaných překladů.
+- Na nejužších telefonech se logo nedotýká výběru jazyka.
+
 ### Změněno (ikonky surovin)
 - Místo barevných koleček s tečkami má každá surovina jednoduchou kreslenou
   ikonku (`icons.js`) na světlém podkladu v barvě suroviny: v mixéru, v panelu

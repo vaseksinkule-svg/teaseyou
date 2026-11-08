@@ -4,7 +4,7 @@ Kontrola podle checklistu „The App Launch Checklist“ (35 bodů, stav k říj
 přepočítaná na český e-shop se sypaným čajem. U každého bodu je, jestli se nás týká,
 podle čeho v Česku, co je hotové a co zbývá.
 
-- **Stav ke dni:** 5. 11. 2026
+- **Stav ke dni:** 8. 11. 2026
 - **Projít znovu:** nejpozději 5. 11. 2027, a vždycky, když přibude nová funkce, dodavatel,
   druh údajů, způsob placení nebo nová země prodeje. Úkol na to je v administraci
   (Nákup → Úkoly).
@@ -99,6 +99,8 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 | HACCP a šarže | ⏳ | nařízení (ES) 852/2004 a 178/2002 čl. 18 | Sepsat postupy, vést šarže a dodávky. |
 | Obaly | ⏳ | nařízení (EU) 2025/40 (PPWR, od 12. 8. 2026); zákon č. 477/2001 Sb. | Zeptat se EKO-KOM. |
 | Kosmetika (mýdla, balzámy) | ⏳ | nařízení (ES) 1223/2009 | Před prodejem posudek bezpečnosti, CPNP, oznámení hygieně. Zatím jen „Dej mi vědět“. |
+| Prodej na Slovensko: štítek | ✅ ⏳ | slovenský zákon č. 152/1995 Z. z. o potravinách, § 9 ods. 1 (označení v kodifikované podobě státního jazyka); nařízení (EU) 1169/2011 čl. 15 | Web ve slovenštině ukazuje název a složení slovensky („Ochutený zelený čaj“, „zelený čaj 60 %…“). Administrace u objednávky na Slovensko ukáže text na štítek slovensky. ⏳ Na sáčky do SK tisknout slovenský štítek (název, složení, trvanlivost, skladování, výrobce). |
+| Prodej na Slovensko: smlouva a informace | ⏳ | slovenský zákon č. 108/2024 Z. z. o ochraně spotřebitele, § 4 ods. 1 písm. g) (informace a dokumenty slovensky, jinak v jiném srozumitelném jazyce se souhlasem spotřebitele) | Web, košík a pokladna jsou slovensky. Obchodní podmínky, ochrana údajů a odstoupení zůstávají česky (jazyk smlouvy) a ve slovenštině i angličtině mají nahoře poznámku. ⏳ Rozhodnout: přeložit tyto tři stránky do slovenštiny, nebo si v pokladně u adresy na Slovensku vyžádat souhlas s češtinou. Projít s advokátem. |
 | Potvrzení objednávky | ⏳ | § 1824 a 1827 OZ | Do zprovoznění automatického e-mailu potvrzovat ručně a do balíčku dávat doklad a podmínky. |
 
 ## Před spuštěním prodeje

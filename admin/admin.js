@@ -117,6 +117,32 @@
     }
     const ingByCode = code => state.ingredients.find(i => i.code === code);
     const ingName = code => (ingByCode(code) || {}).name_cs || code;
+    /* Text na štítek sáčku. Na Slovensko jde slovensky (nařízení EU 1169/2011,
+       čl. 15: jazyk srozumitelný v zemi prodeje), jinak česky. Druh čaje
+       stejně jako na webu (vyhláška 187/2023 Sb., § 2). */
+    function pouchLabel(item, lang) {
+        if (!Array.isArray(item.recipe) || !item.recipe.length) return '';
+        const loc = lang === 'sk' ? 'sk' : 'cs';
+        const low = s => String(s || '').toLocaleLowerCase(loc);
+        const lbl = x => {
+            const i = ingByCode(x.code) || {};
+            const cs = String(i.label_cs || '').trim() || low(i.name_cs || x.name || x.code);
+            if (loc === 'cs') return cs;
+            return String(i.label_sk || '').trim() || (i.name_sk ? low(i.name_sk) : cs);
+        };
+        const N = loc === 'sk'
+            ? { flavoured: 'Ochutený ', herb: 'Bylinný čaj', fruit: 'Ovocný čaj', comp: 'Zloženie' }
+            : { flavoured: 'Ochucený ', herb: 'Bylinný čaj', fruit: 'Ovocný čaj', comp: 'Složení' };
+        const isTea = x => (recipeInfo(x.code) || {}).kind === 'tea';
+        const teas = item.recipe.filter(isTea);
+        let name = '';
+        if (item.category === 'tea') {
+            const group = teas.length === 1 ? lbl(teas[0]) : 'čaj';
+            name = teas.length === item.recipe.length ? group.charAt(0).toLocaleUpperCase(loc) + group.slice(1) : N.flavoured + group;
+        } else if (item.category === 'herb') name = N.herb;
+        else if (item.category === 'fruit') name = N.fruit;
+        return `${name ? name + '. ' : ''}${N.comp}: ${item.recipe.map(x => `${lbl(x)} ${x.pct} %`).join(', ')}`;
+    }
     /* Receptura stejně jako na webu a v databázi (../recipe.js). Skryté
        suroviny se počítají taky, ať jde staré směsi aspoň zobrazit. */
     const recipeInfo = code => {
@@ -650,6 +676,7 @@
     function openOrder(o) {
         if (!o) return;
         const items = Array.isArray(o.items) ? o.items : [];
+        const toSk = /^(sk|slovensko|slovakia)$/i.test(String(o.country || '').trim());
         const address = [`${o.first_name} ${o.last_name}`, o.street, `${o.zip} ${o.city}`.trim(), o.country]
             .filter(Boolean).join('\n');
         const html = `
@@ -668,6 +695,7 @@
                             ${Array.isArray(i.recipe) && i.recipe.length
                                 ? `<ul class="order-recipe">${i.recipe.map(x => `<li><span>${esc(x.name || ingName(x.code))}</span><span>${esc(x.pct)} %</span><strong>${esc(String(x.grams).replace('.', ','))} g</strong></li>`).join('')}</ul>`
                                 : `<div class="order-item-sub">${esc((i.ingredient_names || i.ingredients || []).join(', '))}</div>`}
+                            ${toSk && pouchLabel(i, 'sk') ? `<p class="order-label"><span>Na štítek slovensky (posíláš na Slovensko):</span> ${esc(pouchLabel(i, 'sk'))}</p>` : ''}
                             <div class="order-item-sub">${esc(i.weight_g)} g × ${esc(i.qty)}${i.surcharge_czk ? `, z toho příplatek ${kc(i.surcharge_czk)} za kus` : ''}</div>
                         </div>
                         <strong>${kc(i.line_czk)}</strong>
@@ -704,7 +732,7 @@
                     ${o.packeta_point ? `<dt>Výdejní místo</dt><dd>${esc(o.packeta_point)}${o.packeta_point_id ? ` (ID ${esc(o.packeta_point_id)})` : ''}</dd>` : ''}
                     <dt>Platba</dt><dd>${esc(PAYMENT[o.payment_method] || o.payment_method)}</dd>
                     ${o.payment_method === 'transfer' ? `<dt>Variabilní symbol</dt><dd>${esc(o.id)}</dd>` : ''}
-                    <dt>Jazyk webu</dt><dd>${o.lang === 'en' ? 'angličtina' : 'čeština'}</dd>
+                    <dt>Jazyk webu</dt><dd>${({ en: 'angličtina', sk: 'slovenština' })[o.lang] || 'čeština'}</dd>
                     <dt>Obchodní podmínky</dt><dd>${o.terms_version ? `znění z ${esc(o.terms_version)}, odsouhlaseno tlačítkem „Objednat a zaplatit“ ${esc(formatDate(o.created_at))}` : 'neuvedeno'}</dd>
                 </dl>
             </div>
@@ -812,7 +840,7 @@
     function openIngredient(ing) {
         const isNew = !ing;
         const i = ing || {
-            category: 'flavor', name_cs: '', name_en: '', desc_cs: '', desc_en: '', emoji: '🍵', color: '#87ab68',
+            category: 'flavor', name_cs: '', name_en: '', name_sk: '', desc_cs: '', desc_en: '', desc_sk: '', emoji: '🍵', color: '#87ab68',
             caffeine: null, flavor_cs: [], flavor_en: [], health_cs: [], health_en: [], pairs: [],
             brew_temp: '', brew_time: '', photo_url: null, in_stock: true, active: true,
             sort: (Math.max(0, ...state.ingredients.map(x => x.sort || 0)) + 10),
@@ -827,6 +855,7 @@
                     <label class="field"><span>Název česky</span><input type="text" name="name_cs" maxlength="60" required value="${esc(i.name_cs)}"></label>
                     <label class="field"><span>Název anglicky</span><input type="text" name="name_en" maxlength="60" required value="${esc(i.name_en)}"></label>
                 </div>
+                <label class="field"><span>Název slovensky</span><input type="text" name="name_sk" maxlength="60" placeholder="Prázdné = česky" value="${esc(i.name_sk || '')}"></label>
                 ${isNew
                     ? '<p class="help" id="code-help">Z anglického názvu vznikne vnitřní název pro sdílené odkazy. Později už nejde změnit.</p>'
                     : `<p class="help">Vnitřní název pro odkazy a košíky: <strong>${esc(i.code)}</strong></p>`}
@@ -836,6 +865,7 @@
                 </label>
                 <label class="field"><span>Popis česky</span><textarea name="desc_cs" rows="2" maxlength="500">${esc(i.desc_cs)}</textarea></label>
                 <label class="field"><span>Popis anglicky</span><textarea name="desc_en" rows="2" maxlength="500">${esc(i.desc_en)}</textarea></label>
+                <label class="field"><span>Popis slovensky</span><textarea name="desc_sk" rows="2" maxlength="500" placeholder="Prázdné = česky">${esc(i.desc_sk || '')}</textarea></label>
                 <div class="field-row">
                     <label class="field"><span>Barva</span><input type="color" name="color" value="${esc(i.color)}"><small>Podklad ikonky a tečky v košíku.</small></label>
                     <label class="field"><span>Emoji (jen v administraci)</span><input type="text" name="emoji" maxlength="8" value="${esc(i.emoji)}"></label>
@@ -870,10 +900,12 @@
                 </div>
                 <label class="field"><span>Chuť česky</span><input type="text" name="flavor_cs" value="${esc((i.flavor_cs || []).join(', '))}"><small>Oddělené čárkou, např. sladká, květinová</small></label>
                 <label class="field"><span>Chuť anglicky</span><input type="text" name="flavor_en" value="${esc((i.flavor_en || []).join(', '))}"></label>
+                <label class="field"><span>Chuť slovensky</span><input type="text" name="flavor_sk" value="${esc((i.flavor_sk || []).join(', '))}"></label>
                 <fieldset class="field-group">
                     <legend>Na etiketu a do informací o potravině</legend>
                     <div class="field-row">
                         <label class="field"><span>Název ve složení</span><input type="text" name="label_cs" maxlength="80" placeholder="např. citronová kůra" value="${esc(i.label_cs || '')}"></label>
+                        <label class="field"><span>Ve složení slovensky</span><input type="text" name="label_sk" maxlength="80" placeholder="napr. citrónová kôra" value="${esc(i.label_sk || '')}"></label>
                         <label class="field"><span>Druh</span>
                             <select name="kind">${Object.entries(KIND).map(([k, v]) =>
                                 `<option value="${k}"${(i.kind || defaultKind(i.category)) === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
@@ -939,17 +971,18 @@
                 const v = n => form[n].value.trim();
                 const category = form.category.value;
                 const row = {
-                    name_cs: v('name_cs'), name_en: v('name_en'),
-                    desc_cs: v('desc_cs'), desc_en: v('desc_en'),
+                    name_cs: v('name_cs'), name_en: v('name_en'), name_sk: v('name_sk'),
+                    desc_cs: v('desc_cs'), desc_en: v('desc_en'), desc_sk: v('desc_sk'),
                     category,
                     color: form.color.value.toLowerCase(),
                     emoji: v('emoji') || '🍵',
                     caffeine: category === 'base' && form.caffeine.value !== '' ? Number(form.caffeine.value) : null,
                     brew_temp: category === 'base' ? (v('brew_temp') || null) : null,
                     brew_time: category === 'base' ? (v('brew_time') || null) : null,
-                    flavor_cs: splitList(v('flavor_cs')), flavor_en: splitList(v('flavor_en')),
+                    flavor_cs: splitList(v('flavor_cs')), flavor_en: splitList(v('flavor_en')), flavor_sk: splitList(v('flavor_sk')),
                     health_cs: splitList(v('health_cs')), health_en: splitList(v('health_en')),
                     label_cs: v('label_cs') || null,
+                    label_sk: v('label_sk'),
                     kind: form.kind.value,
                     max_pct: form.max_pct.value === '' ? null : parseInt(form.max_pct.value, 10),
                     surcharge_czk: form.surcharge_czk.value === '' ? 0 : parseInt(form.surcharge_czk.value, 10),
@@ -1066,7 +1099,7 @@
     function openBlend(blend) {
         const isNew = !blend;
         const b = blend || {
-            name: '', desc_cs: '', desc_en: '', ingredients: [], parts: null, emoji: '🍵', is_preset: false,
+            name: '', desc_cs: '', desc_en: '', desc_sk: '', ingredients: [], parts: null, emoji: '🍵', is_preset: false,
             photo_url: null, active: true, sort: Math.max(0, ...state.blends.map(x => x.sort || 0)) + 10,
         };
         // Suroviny a díly (1–3). Starší směsi bez dílů: 3 + 1 + 1.
@@ -1092,6 +1125,7 @@
                 </fieldset>
                 <label class="field"><span>Popis česky</span><textarea name="desc_cs" rows="3" maxlength="500">${esc(b.desc_cs)}</textarea></label>
                 <label class="field"><span>Popis anglicky</span><textarea name="desc_en" rows="3" maxlength="500">${esc(b.desc_en)}</textarea></label>
+                <label class="field"><span>Popis slovensky</span><textarea name="desc_sk" rows="3" maxlength="500" placeholder="Prázdné = česky">${esc(b.desc_sk || '')}</textarea></label>
                 <label class="field field-inline"><span>Emoji</span><input type="text" name="emoji" maxlength="8" value="${esc(b.emoji)}"></label>
                 <label class="switch-row"><input type="checkbox" class="switch" name="is_preset" ${b.is_preset ? 'checked' : ''}><span>Rychlá volba v mixéru</span></label>
                 <label class="switch-row"><input type="checkbox" class="switch" name="active" ${b.active ? 'checked' : ''}><span>Zobrazovat na webu</span></label>
@@ -1174,6 +1208,7 @@
                     name: form.name.value.trim(),
                     desc_cs: form.desc_cs.value.trim(),
                     desc_en: form.desc_en.value.trim(),
+                    desc_sk: form.desc_sk.value.trim(),
                     ingredients: c.map(x => x.code),
                     parts: c.map(x => x.parts),
                     emoji: form.emoji.value.trim() || '🍵',
@@ -1927,7 +1962,7 @@
             <div class="table-row waitlist-row" data-id="${esc(w.id)}">
                 <span class="row-main">
                     <span class="row-title"><a href="mailto:${esc(w.email)}">${esc(w.email)}</a></span>
-                    <span class="row-sub">${esc(name(w.product_id))}, ${esc(formatDate(w.created_at, false))}${w.lang === 'en' ? ', anglicky' : ''}</span>
+                    <span class="row-sub">${esc(name(w.product_id))}, ${esc(formatDate(w.created_at, false))}${({ en: ', anglicky', sk: ', slovensky' })[w.lang] || ''}</span>
                 </span>
                 <button type="button" class="icon-btn" data-field="delete" aria-label="Smazat ${esc(w.email)}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg>
@@ -2478,7 +2513,7 @@
     function openCraft(product) {
         const isNew = !product;
         const p = product || {
-            kind: 'soap', name_cs: '', name_en: '', desc_cs: '', desc_en: '', ingredients: [],
+            kind: 'soap', name_cs: '', name_en: '', name_sk: '', desc_cs: '', desc_en: '', desc_sk: '', ingredients: [],
             color: '#d9c4a0', photo_url: null, active: true,
             sort: Math.max(0, ...state.craft.map(x => x.sort || 0)) + 10,
         };
@@ -2498,10 +2533,12 @@
                 </label>
                 <label class="field"><span>Název česky</span><input type="text" name="name_cs" maxlength="60" required value="${esc(p.name_cs)}"></label>
                 <label class="field"><span>Název anglicky</span><input type="text" name="name_en" maxlength="60" value="${esc(p.name_en)}"><small>Prázdné = česky i v angličtině.</small></label>
+                <label class="field"><span>Název slovensky</span><input type="text" name="name_sk" maxlength="60" placeholder="Prázdné = česky" value="${esc(p.name_sk || '')}"></label>
                 <fieldset class="field picks"><span>Suroviny z čajů (nejvýš 4)</span>${groups}
                     <small>U těchhle ingrediencí web ukáže odkaz „Najdeš i v“ a u čajů s nimi „Ze stejných surovin“.</small></fieldset>
                 <label class="field"><span>Popis česky</span><textarea name="desc_cs" rows="3" maxlength="500">${esc(p.desc_cs)}</textarea><small>Jak voní a z čeho je. Žádné léčivé účinky, ty u kosmetiky uvádět nejde.</small></label>
                 <label class="field"><span>Popis anglicky</span><textarea name="desc_en" rows="3" maxlength="500">${esc(p.desc_en)}</textarea></label>
+                <label class="field"><span>Popis slovensky</span><textarea name="desc_sk" rows="3" maxlength="500" placeholder="Prázdné = česky">${esc(p.desc_sk || '')}</textarea></label>
                 <label class="field field-inline"><span>Barva</span><input type="color" name="color" value="${esc(p.color)}"></label>
                 <label class="switch-row"><input type="checkbox" class="switch" name="active" ${p.active ? 'checked' : ''}><span>Zobrazovat na webu</span></label>
                 <label class="field field-inline"><span>Pořadí</span><input type="number" name="sort" step="1" value="${esc(p.sort)}"></label>
@@ -2531,8 +2568,10 @@
                     kind: form.kind.value === 'balm' ? 'balm' : 'soap',
                     name_cs: form.name_cs.value.trim(),
                     name_en: form.name_en.value.trim(),
+                    name_sk: form.name_sk.value.trim(),
                     desc_cs: form.desc_cs.value.trim(),
                     desc_en: form.desc_en.value.trim(),
+                    desc_sk: form.desc_sk.value.trim(),
                     ingredients: boxes().filter(b => b.checked).map(b => b.value).slice(0, 4),
                     color: /^#[0-9a-f]{6}$/i.test(form.color.value) ? form.color.value : '#d9c4a0',
                     active: form.active.checked,
@@ -2672,6 +2711,7 @@
         form.promo_bar_enabled.checked = st.promo_bar_enabled !== false;
         form.promo_bar_cs.value = st.promo_bar_cs || '';
         form.promo_bar_en.value = st.promo_bar_en || '';
+        form.promo_bar_sk.value = st.promo_bar_sk || '';
 
         const sf = $('#seller-form');
         ['seller_name', 'seller_ico', 'seller_address', 'seller_email', 'seller_phone', 'durability_months'].forEach(n => {
@@ -2682,7 +2722,7 @@
     // Výchozí hodnoty, dokud v databázi není řádek nastavení (nebo chybí
     // sloupce, protože se setup.sql ještě nespustil znovu).
     const SETTINGS_DEFAULTS = {
-        free_ship_threshold: 500, cod_fee_czk: 39, promo_bar_enabled: true, promo_bar_cs: '', promo_bar_en: '',
+        free_ship_threshold: 500, cod_fee_czk: 39, promo_bar_enabled: true, promo_bar_cs: '', promo_bar_en: '', promo_bar_sk: '',
         seller_name: '', seller_ico: '', seller_address: '', seller_email: 'hello@teaseyou.cz', seller_phone: '',
         durability_months: 12,
         sales_open: false, sales_opened_at: null,
@@ -2787,6 +2827,7 @@
             promo_bar_enabled: form.promo_bar_enabled.checked,
             promo_bar_cs: form.promo_bar_cs.value.trim() || null,
             promo_bar_en: form.promo_bar_en.value.trim() || null,
+            promo_bar_sk: form.promo_bar_sk.value.trim() || null,
         };
         // Sloupec s příplatkem posíláme jen tehdy, když ho databáze už má.
         if (!state.settings || 'cod_fee_czk' in state.settings) row.cod_fee_czk = codFee;

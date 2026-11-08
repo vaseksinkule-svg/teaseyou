@@ -176,6 +176,20 @@ Dalším spuštěním `setup.sql` přibude:
   a objednávky zůstanou. Co potom změníš v administraci, další běh nepřepíše.
 - Sloupce `settings.recipe_*_pct` se už nepoužívají (poměr volí zákazník díly).
 
+## Slovenština (listopad 2026)
+
+Dalším spuštěním `setup.sql` přibudou slovenské sloupce. Prázdný = web ukáže
+český text, nic se tedy nemusí vyplnit hned.
+
+- `ingredients`: `name_sk`, `desc_sk`, `flavor_sk`, `label_sk` (jak se surovina
+  píše ve složení na slovenském štítku).
+- `blends.desc_sk`, `craft_products.name_sk` a `desc_sk`, `settings.promo_bar_sk`.
+- Katalog v2 je rovnou vyplní pro všechny suroviny, směsi a mýdla. Kde už
+  slovenský text máš, nepřepíše ho.
+- `orders.lang` a `craft_waitlist.lang` berou i `sk`.
+- Administrace u objednávky na Slovensko ukáže text na štítek slovensky
+  (název podle vyhlášky a složení s procenty).
+
 ## Odstoupení, osobní údaje a úklid (listopad 2026)
 
 Dalším spuštěním `setup.sql` přibude:

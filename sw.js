@@ -8,7 +8,7 @@
  * Když měníš seznam PRECACHE, zvyš VERSION — jinak se stará cache nezahodí.
  */
 
-const VERSION = 'v11';
+const VERSION = 'v12';
 const CACHE = `teaseyou-${VERSION}`;
 
 // Minimum, aby se web offline vůbec vykreslil.
@@ -19,6 +19,7 @@ const PRECACHE = [
     './style.css',
     './config.js',
     './db.js',
+    './i18n-sk.js',
     './recipe.js',
     './icons.js',
     './script.js',

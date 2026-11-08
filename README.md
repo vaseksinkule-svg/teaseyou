@@ -69,10 +69,16 @@ pak jen záloha pro případ, že databáze neodpoví.
 | Otázky a vyhodnocení kvízu | `script.js:2193` — `QUIZ_QUESTIONS`, `QUIZ_BLENDS` |
 | Přednastavené mixy (záloha, jinak směsi s rychlou volbou v administraci) | `script.js:2510` — `MIX_PRESETS` |
 | Návody na louhování (záloha, jinak u základů v administraci) | `script.js:921` — `BREW` |
-| Překlady (CS/EN) | `script.js:9` — `TRANSLATIONS` |
+| Překlady (CS/EN) | `script.js` — `TRANSLATIONS` |
+| Překlady (SK) | `i18n-sk.js` — stejné klíče jako česky |
 
-Jazyk se volí podle prohlížeče (`script.js:6`). Čeština je výchozí,
-angličtina je fallback.
+Jazyk si zákazník vybere v hlavičce (CZ / SK / EN) nebo v patičce. Volba se
+pamatuje v prohlížeči; bez ní se jazyk vezme z nastavení prohlížeče (čeština,
+slovenština, jinak angličtina). Po přepnutí se stránka načte znovu a vrátí
+se tam, kde zákazník byl, včetně rozdělané směsi v mixéru. Chybějící
+slovenský text se ukáže česky, chybějící anglický česky nikdy (spadne na
+anglický klíč). Texty z databáze (názvy, popisy, lišta) mají sloupce `_cs`,
+`_sk` a `_en`, prázdný slovenský = český.
 
 ## Struktura
 
@@ -82,6 +88,7 @@ style.css                  Styly včetně tmavého režimu.
 script.js                  Mixér, košík, checkout, kvíz, i18n, data ingrediencí.
 recipe.js                  Výpočet receptury (díly → %, gramy, druh čaje, příplatek). Stejný je v databázi.
 icons.js                   Vestavěné ikonky surovin, dokud v adminu nenahraješ vlastní.
+i18n-sk.js                 Slovenské texty webu (klíče jako v TRANSLATIONS ve script.js).
 config.js                  Adresa a veřejný klíč Supabase.
 db.js                      Malý klient pro Supabase (tabulky, přihlášení, fotky).
 admin/                     Administrace: objednávky, nabídka, ceny, slevy.
