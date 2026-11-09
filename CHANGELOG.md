@@ -27,6 +27,15 @@ takže se řadí podle data.
   dárek a osobní odběr viditelně v detailu i v seznamu.
 - Obchodní podmínky a zásady ochrany údajů doplněné o QR platbu, osobní
   odběr, dárek a recenze (znění z 9. 11. 2026).
+- **Nákup: u každé suroviny, od koho ji koupit.** 41 nabídek podle sortimentu
+  na webech dodavatelů (Herbona 19 surovin, čaje a kůry u Wollenhauptu,
+  Alveusu a Zeleného Draka, u Wollenhauptu a Alveusu i čísla položek).
+  Ceny prázdné, doplní se z ceníku. Poznámka u nabídky je vidět v seznamu.
+
+### Změněno
+- Máta klasnatá → **máta kadeřavá** (Herbona prodává kadeřavou). Název,
+  složení na etiketě („máta kadeřavá (list)“, slovensky „mäta kučeravá“),
+  popis směsi Open Air a balzámu. Kód suroviny zůstává `Spearmint`.
 
 ### Přidáno (slovenština a výběr jazyka)
 - Výběr jazyka **CZ / SK / EN** v hlavičce a v patičce. Volba se pamatuje;

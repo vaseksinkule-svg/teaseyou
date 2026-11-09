@@ -192,6 +192,9 @@ Pořád stačí jedno spuštění `setup.sql`. Přibude:
   objednávky + e-mail, objednávka musí být Odeslaná nebo Hotová) a
   `public_reviews()` (web, jen schválené, bez čísla objednávky). Recenze jsou
   v záloze i v koši. Neschválené se po půl roce smažou (`purge_expired_data`).
+- Nákup: u každé prodávané suroviny nabídky od dodavatelů (bez cen),
+  jednou podle `settings.purchase_seed_version`. Co pak smažeš, se nevrátí.
+- Máta klasnatá se v katalogu i v Nákupu jmenuje **Máta kadeřavá**.
 - Noční záloha teď hlídá i tabulku `reviews`. Než spustíš `setup.sql`, skončí
   chybou „v záloze chybí tabulky reviews“ (záloha se i tak uloží).
 

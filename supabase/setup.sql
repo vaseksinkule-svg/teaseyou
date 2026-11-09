@@ -1344,7 +1344,7 @@ values
     ('rose_hip', 'Rose Hip', 'flavor', 'Šípek', 'Rose Hip', 'Nakyslý, ovocný a svěží.', 'Tart, fruity and tangy.', '🔴', '#f8bbd0', null, array['nakyslá', 'ovocná', 'svěží']::text[], array['tart', 'fruity', 'tangy']::text[], array['Hibiscus', 'Apple', 'Rooibos']::text[], null, null, 140, 'fruit', 'šípek', null, 0, 'Šípka', 'Kyslastá, ovocná a svieža.', array['kyslastá', 'ovocná', 'svieža']::text[], 'šípky'),
     ('hibiscus', 'Hibiscus', 'flavor', 'Ibišek', 'Hibiscus', 'Rubínová barva a příjemná kyselost.', 'Ruby colour and a pleasant tartness.', '🌺', '#b0234a', null, array['nakyslá', 'ovocná', 'živá']::text[], array['tart', 'fruity', 'vibrant']::text[], array['Rose Hip', 'Apple', 'Strawberry']::text[], null, null, 150, 'herb', 'ibišek (květ)', null, 0, 'Ibištek', 'Rubínová farba a príjemná kyslosť.', array['kyslastá', 'ovocná', 'živá']::text[], 'ibištek (kvet)'),
     ('rose', 'Rose', 'flavor', 'Růže', 'Rose', 'Květinová a jemná.', 'Floral and delicate.', '🌹', '#e8607a', null, array['květinová', 'romantická', 'lehká']::text[], array['floral', 'romantic', 'light']::text[], array['White Tea', 'Oolong Tea', 'Lavender']::text[], null, null, 160, 'herb', 'růže (okvětní lístky)', null, 30, 'Ruža', 'Kvetinová a jemná.', array['kvetinová', 'romantická', 'ľahká']::text[], 'ruža (okvetné lístky)'),
-    ('spearmint', 'Spearmint', 'flavor', 'Máta klasnatá', 'Spearmint', 'Sladší a jemnější než peprná.', 'Sweeter and softer than peppermint.', '🌿', '#a8d8a8', null, array['chladivá', 'sladká', 'jemná']::text[], array['cool', 'sweet', 'mild']::text[], array['Rooibos', 'Green Tea', 'Lemon']::text[], null, null, 170, 'herb', 'máta klasnatá (list)', null, 0, 'Mäta klasnatá', 'Sladšia a jemnejšia ako pieporná.', array['chladivá', 'sladká', 'jemná']::text[], 'mäta klasnatá (list)'),
+    ('spearmint', 'Spearmint', 'flavor', 'Máta kadeřavá', 'Curly Mint', 'Sladší a jemnější než peprná.', 'Sweeter and softer than peppermint.', '🌿', '#a8d8a8', null, array['chladivá', 'sladká', 'jemná']::text[], array['cool', 'sweet', 'mild']::text[], array['Rooibos', 'Green Tea', 'Lemon']::text[], null, null, 170, 'herb', 'máta kadeřavá (list)', null, 0, 'Mäta kučeravá', 'Sladšia a jemnejšia ako pieporná.', array['chladivá', 'sladká', 'jemná']::text[], 'mäta kučeravá (list)'),
     ('lemongrass', 'Lemongrass', 'flavor', 'Citronová tráva', 'Lemongrass', 'Vůně citronu bez kyselosti.', 'Lemon scent without the sourness.', '🌾', '#c9d77b', null, array['citrusová', 'svěží', 'travnatá']::text[], array['citrusy', 'fresh', 'grassy']::text[], array['Green Tea', 'Ginger', 'Lemon Balm']::text[], null, null, 180, 'herb', 'citronová tráva (list)', 30, 0, 'Citrónová tráva', 'Vôňa citróna bez kyslosti.', array['citrusová', 'svieža', 'trávová']::text[], 'citrónová tráva (list)'),
     ('fennel', 'Fennel', 'flavor', 'Fenykl', 'Fennel', 'Nasládlý, s tónem anýzu.', 'Sweetish, with a hint of anise.', '✳️', '#a4b36b', null, array['sladká', 'kořeněná', 'jemná']::text[], array['sweet', 'spicy', 'mild']::text[], array['Chamomile', 'Mint', 'Lemon Balm']::text[], null, null, 190, 'herb', 'fenykl (plod)', null, 0, 'Fenikel', 'Nasladlý, s tónom anízu.', array['sladká', 'korenistá', 'jemná']::text[], 'fenikel (plod)'),
     ('orange', 'Orange', 'extra', 'Pomerančová kůra', 'Orange Peel', 'Citrusová, svěží a šťavnatá.', 'Citrusy, bright and zesty.', '🍊', '#ffb347', null, array['citrusová', 'jiskřivá', 'osvěžující']::text[], array['citrusy', 'bright', 'zesty']::text[], array['Rooibos', 'Black Tea', 'Cinnamon']::text[], null, null, 200, 'fruit', 'pomerančová kůra', 30, 0, 'Pomarančová kôra', 'Citrusová, svieža a šťavnatá.', array['citrusová', 'iskrivá', 'osviežujúca']::text[], 'pomarančová kôra'),
@@ -1361,7 +1361,7 @@ values
     ('still_evening', 'Still Evening', 'Heřmánek a meduňka se špetkou levandule. Jemný, květinový a bez kofeinu — na konec dne.', 'Chamomile and lemon balm with a pinch of lavender. Gentle, floral and caffeine-free — for the end of the day.', 'Harmanček a medovka so štipkou levandule. Jemný, kvetinový a bez kofeínu — na koniec dňa.', array['Chamomile', 'Lemon Balm', 'Lavender']::text[], array[2, 2, 1]::smallint[], '🌙', true, 20),
     ('deep_winter', 'Deep Winter', 'Černý čaj se zázvorem a skořicí. Plný a hřejivý — nejlepší s oběma rukama kolem hrnku.', 'Black tea with ginger and cinnamon. Full and warming — best with both hands around the mug.', 'Čierny čaj so zázvorom a škoricou. Plný a hrejivý — najlepší, keď držíš hrnček oboma rukami.', array['Black Tea', 'Ginger', 'Cinnamon']::text[], array[3, 1, 1]::smallint[], '❄️', true, 30),
     ('late_light', 'Late Light', 'Oolong s růží a špetkou levandule. Měkký a trochu květinový — na ten tichý kus odpoledne.', 'Oolong with rose and a pinch of lavender. Soft and a little floral — for the quiet part of the afternoon.', 'Oolong s ružou a štipkou levandule. Mäkký a trochu kvetinový — na tichú časť popoludnia.', array['Oolong Tea', 'Rose', 'Lavender']::text[], array[3, 1, 1]::smallint[], '🌅', false, 40),
-    ('open_air', 'Open Air', 'Rooibos s pomerančovou kůrou a mátou klasnatou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.', 'Rooibos with orange peel and spearmint. Naturally sweet and caffeine-free — good any time.', 'Rooibos s pomarančovou kôrou a mätou klasnatou. Prirodzene sladký a bez kofeínu — dobrý kedykoľvek.', array['Rooibos', 'Orange', 'Spearmint']::text[], array[3, 1, 1]::smallint[], '🌿', false, 50),
+    ('open_air', 'Open Air', 'Rooibos s pomerančovou kůrou a mátou kadeřavou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.', 'Rooibos with orange peel and curly mint. Naturally sweet and caffeine-free — good any time.', 'Rooibos s pomarančovou kôrou a mätou kučeravou. Prirodzene sladký a bez kofeínu — dobrý kedykoľvek.', array['Rooibos', 'Orange', 'Spearmint']::text[], array[3, 1, 1]::smallint[], '🌿', false, 50),
     ('slow_tuesday', 'Slow Tuesday', 'Jablko s ibiškem, šípkem a skořicí. Ovocný a hřejivý — čajový ekvivalent nicnedělání.', 'Apple with hibiscus, rose hip and cinnamon. Fruity and warming — the tea equivalent of doing nothing.', 'Jablko s ibištekom, šípkami a škoricou. Ovocný a hrejivý — čajový ekvivalent ničnerobenia.', array['Apple', 'Hibiscus', 'Rose Hip', 'Cinnamon']::text[], array[3, 1, 1, 1]::smallint[], '🍎', true, 60)
 on conflict (id) do nothing;
 
@@ -1417,8 +1417,8 @@ select * from (values
      'A beeswax lip balm with honey and vanilla.',
      array['Honey', 'Vanilla']::text[], '#ffc107', 50),
     ('mata', 'balm', 'Máta', 'Mint',
-     'Chladivý balzám na rty s mátou klasnatou.',
-     'A cooling lip balm with spearmint.',
+     'Chladivý balzám na rty s mátou kadeřavou.',
+     'A cooling lip balm with curly mint.',
      array['Spearmint']::text[], '#a8d8a8', 60)
 ) as v(id, kind, name_cs, name_en, desc_cs, desc_en, ingredients, color, sort)
 where not exists (select 1 from public.craft_products);
@@ -1498,7 +1498,7 @@ begin
             ('rose_hip', 'flavor', 'Šípek', 'Rose Hip', 'Nakyslý, ovocný a svěží.', 'Tart, fruity and tangy.', '🔴', '#f8bbd0', array['nakyslá', 'ovocná', 'svěží']::text[], array['tart', 'fruity', 'tangy']::text[], array['Hibiscus', 'Apple', 'Rooibos']::text[], 140, 'fruit', 'šípek', null::smallint, 0, null::smallint, 'Šípka', 'Kyslastá, ovocná a svieža.', array['kyslastá', 'ovocná', 'svieža']::text[], 'šípky'),
             ('hibiscus', 'flavor', 'Ibišek', 'Hibiscus', 'Rubínová barva a příjemná kyselost.', 'Ruby colour and a pleasant tartness.', '🌺', '#b0234a', array['nakyslá', 'ovocná', 'živá']::text[], array['tart', 'fruity', 'vibrant']::text[], array['Rose Hip', 'Apple', 'Strawberry']::text[], 150, 'herb', 'ibišek (květ)', null::smallint, 0, null::smallint, 'Ibištek', 'Rubínová farba a príjemná kyslosť.', array['kyslastá', 'ovocná', 'živá']::text[], 'ibištek (kvet)'),
             ('rose', 'flavor', 'Růže', 'Rose', 'Květinová a jemná.', 'Floral and delicate.', '🌹', '#e8607a', array['květinová', 'romantická', 'lehká']::text[], array['floral', 'romantic', 'light']::text[], array['White Tea', 'Oolong Tea', 'Lavender']::text[], 160, 'herb', 'růže (okvětní lístky)', null::smallint, 30, null::smallint, 'Ruža', 'Kvetinová a jemná.', array['kvetinová', 'romantická', 'ľahká']::text[], 'ruža (okvetné lístky)'),
-            ('spearmint', 'flavor', 'Máta klasnatá', 'Spearmint', 'Sladší a jemnější než peprná.', 'Sweeter and softer than peppermint.', '🌿', '#a8d8a8', array['chladivá', 'sladká', 'jemná']::text[], array['cool', 'sweet', 'mild']::text[], array['Rooibos', 'Green Tea', 'Lemon']::text[], 170, 'herb', 'máta klasnatá (list)', null::smallint, 0, null::smallint, 'Mäta klasnatá', 'Sladšia a jemnejšia ako pieporná.', array['chladivá', 'sladká', 'jemná']::text[], 'mäta klasnatá (list)'),
+            ('spearmint', 'flavor', 'Máta kadeřavá', 'Curly Mint', 'Sladší a jemnější než peprná.', 'Sweeter and softer than peppermint.', '🌿', '#a8d8a8', array['chladivá', 'sladká', 'jemná']::text[], array['cool', 'sweet', 'mild']::text[], array['Rooibos', 'Green Tea', 'Lemon']::text[], 170, 'herb', 'máta kadeřavá (list)', null::smallint, 0, null::smallint, 'Mäta kučeravá', 'Sladšia a jemnejšia ako pieporná.', array['chladivá', 'sladká', 'jemná']::text[], 'mäta kučeravá (list)'),
             ('lemongrass', 'flavor', 'Citronová tráva', 'Lemongrass', 'Vůně citronu bez kyselosti.', 'Lemon scent without the sourness.', '🌾', '#c9d77b', array['citrusová', 'svěží', 'travnatá']::text[], array['citrusy', 'fresh', 'grassy']::text[], array['Green Tea', 'Ginger', 'Lemon Balm']::text[], 180, 'herb', 'citronová tráva (list)', 30::smallint, 0, null::smallint, 'Citrónová tráva', 'Vôňa citróna bez kyslosti.', array['citrusová', 'svieža', 'trávová']::text[], 'citrónová tráva (list)'),
             ('fennel', 'flavor', 'Fenykl', 'Fennel', 'Nasládlý, s tónem anýzu.', 'Sweetish, with a hint of anise.', '✳️', '#a4b36b', array['sladká', 'kořeněná', 'jemná']::text[], array['sweet', 'spicy', 'mild']::text[], array['Chamomile', 'Mint', 'Lemon Balm']::text[], 190, 'herb', 'fenykl (plod)', null::smallint, 0, null::smallint, 'Fenikel', 'Nasladlý, s tónom anízu.', array['sladká', 'korenistá', 'jemná']::text[], 'fenikel (plod)'),
             ('orange', 'extra', 'Pomerančová kůra', 'Orange Peel', 'Citrusová, svěží a šťavnatá.', 'Citrusy, bright and zesty.', '🍊', '#ffb347', array['citrusová', 'jiskřivá', 'osvěžující']::text[], array['citrusy', 'bright', 'zesty']::text[], array['Rooibos', 'Black Tea', 'Cinnamon']::text[], 200, 'fruit', 'pomerančová kůra', 30::smallint, 0, null::smallint, 'Pomarančová kôra', 'Citrusová, svieža a šťavnatá.', array['citrusová', 'iskrivá', 'osviežujúca']::text[], 'pomarančová kôra'),
@@ -1520,7 +1520,7 @@ begin
             ('still_evening', 'Still Evening', '🌙', true, 20, array['Chamomile', 'Lemon Balm', 'Lavender']::text[], array[2, 2, 1]::smallint[], 'Heřmánek a meduňka se špetkou levandule. Jemný, květinový a bez kofeinu — na konec dne.', 'Chamomile and lemon balm with a pinch of lavender. Gentle, floral and caffeine-free — for the end of the day.', 'Harmanček a medovka so štipkou levandule. Jemný, kvetinový a bez kofeínu — na koniec dňa.'),
             ('deep_winter', 'Deep Winter', '❄️', true, 30, array['Black Tea', 'Ginger', 'Cinnamon']::text[], array[3, 1, 1]::smallint[], 'Černý čaj se zázvorem a skořicí. Plný a hřejivý — nejlepší s oběma rukama kolem hrnku.', 'Black tea with ginger and cinnamon. Full and warming — best with both hands around the mug.', 'Čierny čaj so zázvorom a škoricou. Plný a hrejivý — najlepší, keď držíš hrnček oboma rukami.'),
             ('late_light', 'Late Light', '🌅', false, 40, array['Oolong Tea', 'Rose', 'Lavender']::text[], array[3, 1, 1]::smallint[], 'Oolong s růží a špetkou levandule. Měkký a trochu květinový — na ten tichý kus odpoledne.', 'Oolong with rose and a pinch of lavender. Soft and a little floral — for the quiet part of the afternoon.', 'Oolong s ružou a štipkou levandule. Mäkký a trochu kvetinový — na tichú časť popoludnia.'),
-            ('open_air', 'Open Air', '🌿', false, 50, array['Rooibos', 'Orange', 'Spearmint']::text[], array[3, 1, 1]::smallint[], 'Rooibos s pomerančovou kůrou a mátou klasnatou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.', 'Rooibos with orange peel and spearmint. Naturally sweet and caffeine-free — good any time.', 'Rooibos s pomarančovou kôrou a mätou klasnatou. Prirodzene sladký a bez kofeínu — dobrý kedykoľvek.'),
+            ('open_air', 'Open Air', '🌿', false, 50, array['Rooibos', 'Orange', 'Spearmint']::text[], array[3, 1, 1]::smallint[], 'Rooibos s pomerančovou kůrou a mátou kadeřavou. Přirozeně sladký a bez kofeinu — dobrý kdykoli.', 'Rooibos with orange peel and curly mint. Naturally sweet and caffeine-free — good any time.', 'Rooibos s pomarančovou kôrou a mätou kučeravou. Prirodzene sladký a bez kofeínu — dobrý kedykoľvek.'),
             ('slow_tuesday', 'Slow Tuesday', '🍎', true, 60, array['Apple', 'Hibiscus', 'Rose Hip', 'Cinnamon']::text[], array[3, 1, 1, 1]::smallint[], 'Jablko s ibiškem, šípkem a skořicí. Ovocný a hřejivý — čajový ekvivalent nicnedělání.', 'Apple with hibiscus, rose hip and cinnamon. Fruity and warming — the tea equivalent of doing nothing.', 'Jablko s ibištekom, šípkami a škoricou. Ovocný a hrejivý — čajový ekvivalent ničnerobenia.')
         on conflict (id) do update
            set ingredients = excluded.ingredients, parts = excluded.parts, emoji = excluded.emoji,
@@ -1536,11 +1536,11 @@ begin
             ('rooibos_pomeranc', 'Rooibos a pomaranč', 'Hrejivé mydlo s rooibosom a pomarančovou kôrou.'),
             ('ruze_bily_caj', 'Ruža a biely čaj', 'Kvetinové mydlo s ružou a bielym čajom.'),
             ('med_vanilka', 'Med a vanilka', 'Balzam na pery zo včelieho vosku s medom a vanilkou.'),
-            ('mata', 'Mäta', 'Chladivý balzam na pery s mätou klasnatou.')
+            ('mata', 'Mäta', 'Chladivý balzam na pery s mätou kučeravou.')
           ) as v(id, name_sk, desc_sk)
          where c.id = v.id and c.name_sk = '';
-        update public.craft_products set desc_cs = 'Chladivý balzám na rty s mátou klasnatou.'
-         where id = 'mata' and desc_cs = 'Chladivý balzám na rty s mátou peprnou.';
+        update public.craft_products set desc_cs = 'Chladivý balzám na rty s mátou kadeřavou.', desc_en = 'A cooling lip balm with curly mint.'
+         where id = 'mata' and desc_cs in ('Chladivý balzám na rty s mátou peprnou.', 'Chladivý balzám na rty s mátou klasnatou.');
 
         insert into public.purchase_materials (name, ingredient_code, for_tea)
         select v.name, v.code, true
@@ -1565,11 +1565,11 @@ begin
           ) as v(name, website, supplies, notes)
          where not exists (select 1 from public.purchase_suppliers s where lower(s.name) = lower(v.name));
 
-        -- Nákup: suroviny pojmenované podle starých názvů (máta klasnatá se
-        -- dřív omylem jmenovala „Máta peprná“).
-        update public.purchase_materials set name = 'Máta klasnatá'
-         where ingredient_code = 'Spearmint' and name = 'Máta peprná'
-           and not exists (select 1 from public.purchase_materials where name = 'Máta klasnatá');
+        -- Nákup: suroviny pojmenované podle starých názvů (máta kadeřavá,
+        -- kód Spearmint, se dřív omylem jmenovala „Máta peprná“).
+        update public.purchase_materials set name = 'Máta kadeřavá'
+         where ingredient_code = 'Spearmint' and name in ('Máta peprná', 'Máta klasnatá')
+           and not exists (select 1 from public.purchase_materials where name = 'Máta kadeřavá');
         update public.purchase_materials set name = 'Máta peprná'
          where ingredient_code = 'Mint' and name = 'Máta'
            and not exists (select 1 from public.purchase_materials where name = 'Máta peprná');
@@ -1587,6 +1587,85 @@ begin
          where ingredient_code = any (array['Vanilla', 'Cocoa', 'Coconut', 'Honey', 'Turmeric']);
 
         update public.settings set catalog_version = 2 where id = 1;
+    end if;
+end;
+$$;
+
+-- Nákup: u každé suroviny, od koho ji jde koupit (podle sortimentu na webech
+-- dodavatelů 9. 11. 2026). Ceny tam nejsou, ty doplníš z ceníku. Proběhne
+-- jednou; co pak v administraci smažeš nebo změníš, zůstane.
+alter table public.settings add column if not exists purchase_seed_version smallint not null default 0;
+do $$
+begin
+    if (select purchase_seed_version from public.settings where id = 1) < 1 then
+        -- každá prodávaná surovina má svůj řádek v Nákupu
+        insert into public.purchase_materials (name, ingredient_code, for_tea)
+        select i.name_cs, i.code, true
+          from public.ingredients i
+         where i.active
+           and not exists (select 1 from public.purchase_materials m where m.ingredient_code = i.code)
+        on conflict (name) do nothing;
+
+        insert into public.purchase_offers (supplier_id, material_id, note)
+        select s.id, m.id, v.note
+          from (values
+            -- Herbona (Cheb): byliny, koření, sušené ovoce, zelený čaj, rooibos
+            ('Herbona', 'Green Tea',   'V sortimentu „čaj zelený (různé druhy)“. Zeptat se, jaké druhy a řez.'),
+            ('Herbona', 'Rooibos',     'V sortimentu (Speciality). Cena, řez a balení: info@herbona.cz.'),
+            ('Herbona', 'Chamomile',   'Heřmánek, květ. Cena, řez a balení: info@herbona.cz.'),
+            ('Herbona', 'Lemon Balm',  'Meduňka, list. Cena, řez a balení: info@herbona.cz.'),
+            ('Herbona', 'Linden',      'Lípa, květ. Cena, řez a balení: info@herbona.cz.'),
+            ('Herbona', 'Mint',        'Máta peprná, list. Cena, řez a balení: info@herbona.cz.'),
+            ('Herbona', 'Spearmint',   'Máta kadeřavá, list. Na etiketě „máta kadeřavá (list)“.'),
+            ('Herbona', 'Apple',       'Jablko, plod. Zeptat se na velikost kousků do čaje.'),
+            ('Herbona', 'Strawberry',  'Jahoda, plod (mají i list, ten nechceme). Zeptat se na kousky.'),
+            ('Herbona', 'Raspberry',   'Malina, plod (mají i list, ten nechceme). Zeptat se na kousky.'),
+            ('Herbona', 'Blueberry',   'Borůvka, plod. Zeptat se na kousky.'),
+            ('Herbona', 'Rose Hip',    'Šípek, plod. Cena, řez a balení: info@herbona.cz.'),
+            ('Herbona', 'Hibiscus',    'Ibišek, květ. Cena, řez a balení: info@herbona.cz.'),
+            ('Herbona', 'Rose',        'Růže, květ. Chceme okvětní lístky, zeptat se.'),
+            ('Herbona', 'Lemongrass',  'Citronová tráva (nať). Cena, řez a balení: info@herbona.cz.'),
+            ('Herbona', 'Fennel',      'Fenykl, plod. Cena a balení: info@herbona.cz.'),
+            ('Herbona', 'Cinnamon',    'Skořice, kůra. Zeptat se na řez do čaje.'),
+            ('Herbona', 'Lavender',    'Levandule, květ. Cena a balení: info@herbona.cz.'),
+            ('Herbona', 'Cardamom',    'Kardamom (u nich „kardamon“), plod. Cena a balení: info@herbona.cz.'),
+            -- Wollenhaupt (Hamburk): čaje a čisté suroviny, čísla položek z webu
+            ('Wollenhaupt', 'Black Tea',  'Čajový velkoobchod, vybrat konkrétní černý čaj, vzorky na vyžádání.'),
+            ('Wollenhaupt', 'White Tea',  'Čajový velkoobchod, vybrat konkrétní bílý čaj, vzorky na vyžádání.'),
+            ('Wollenhaupt', 'Oolong Tea', 'Čajový velkoobchod, vybrat konkrétní oolong, vzorky na vyžádání.'),
+            ('Wollenhaupt', 'Ginger',     'Ginger, cut (č. 4310742).'),
+            ('Wollenhaupt', 'Orange',     'Na webu jsem pomerančovou kůru jako samostatnou položku nenašel, píšou o citrusech obecně. Zeptat se.'),
+            ('Wollenhaupt', 'Lemon',      'Na webu jsem citronovou kůru jako samostatnou položku nenašel, píšou o citrusech obecně. Zeptat se.'),
+            ('Wollenhaupt', 'Chamomile',  'Camomile (č. 4310342), BIO č. 4373642. Záloha k Herboně.'),
+            ('Wollenhaupt', 'Lemon Balm', 'Lemon balm, cut leaves (č. 4310541). Záloha k Herboně.'),
+            ('Wollenhaupt', 'Hibiscus',   'Hibiscus, cut (č. 4300303), BIO č. 4373542. Záloha k Herboně.'),
+            ('Wollenhaupt', 'Fennel',     'Fennel sweet Organic, whole seeds (č. 4320742). Záloha k Herboně.'),
+            ('Wollenhaupt', 'Lemongrass', 'Lemongrass, cut (č. 4311942). Záloha k Herboně.'),
+            ('Wollenhaupt', 'Mint',       'Peppermint, cut leaves (č. 4310942). Záloha k Herboně.'),
+            ('Wollenhaupt', 'Rose Hip',   'Rosehips (č. 4300203), BIO č. 4373442. Záloha k Herboně.'),
+            -- Alveus (Hamburk): BIO
+            ('Alveus', 'Black Tea',  'BIO čaje, vybrat druh. 10 vzorků zdarma pro firmy.'),
+            ('Alveus', 'White Tea',  'BIO čaje, vybrat druh. 10 vzorků zdarma pro firmy.'),
+            ('Alveus', 'Oolong Tea', 'BIO oolongy (B2B shop). 10 vzorků zdarma pro firmy.'),
+            ('Alveus', 'Ginger',     'Ginger Pieces ORGANIC (č. 82867).'),
+            ('Alveus', 'Orange',     'Na webu jsem pomerančovou kůru nenašel. Zeptat se.'),
+            ('Alveus', 'Lemon',      'Na webu jsem citronovou kůru nenašel. Zeptat se.'),
+            -- Zelený Drak (Třebíč): český čajový velkoobchod
+            ('Zelený Drak', 'Black Tea',  'Velkoobchod po zaslání IČ, min. 5 000 Kč. Vybrat druh, ověřit nabídku.'),
+            ('Zelený Drak', 'White Tea',  'Velkoobchod po zaslání IČ, min. 5 000 Kč. Vybrat druh, ověřit nabídku.'),
+            ('Zelený Drak', 'Oolong Tea', 'Velkoobchod po zaslání IČ, min. 5 000 Kč. Vybrat druh, ověřit nabídku.')
+          ) as v(supplier, code, note)
+          join public.purchase_suppliers s on lower(s.name) = lower(v.supplier)
+          join lateral (select id from public.purchase_materials m
+                         where m.ingredient_code = v.code order by m.created_at limit 1) m on true
+         where not exists (select 1 from public.purchase_offers o where o.supplier_id = s.id and o.material_id = m.id);
+
+        -- Kdyby ses chtěl vrátit k mátě klasnaté: Wollenhaupt ji má.
+        update public.purchase_materials
+           set notes = 'Herbona prodává mátu kadeřavou. Mátu klasnatou (Spearmint, cut leaves, č. 4300442) má Wollenhaupt, ale pak se musí přejmenovat surovina i etiketa.'
+         where ingredient_code = 'Spearmint' and notes = '';
+
+        update public.settings set purchase_seed_version = 1 where id = 1;
     end if;
 end;
 $$;

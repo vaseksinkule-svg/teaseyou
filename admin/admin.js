@@ -1581,7 +1581,8 @@
             const pk = perKg(o);
             return `<button type="button" class="offer${cheapest != null && pk === cheapest && sorted.length > 1 ? ' is-best' : ''}" data-offer="${esc(o.id)}">
                 <span class="offer-main"><strong>${esc(other || '?')}</strong>
-                <span>${esc([o.price_czk != null && o.amount_g ? `${Number(o.price_czk).toLocaleString('cs-CZ')} Kč za ${Number(o.amount_g).toLocaleString('cs-CZ')} g` : 'bez ceny', SAMPLE[o.sample], o.rating ? `hodnocení ${o.rating}/5` : ''].filter(Boolean).join(', '))}</span></span>
+                <span>${esc([o.price_czk != null && o.amount_g ? `${Number(o.price_czk).toLocaleString('cs-CZ')} Kč za ${Number(o.amount_g).toLocaleString('cs-CZ')} g` : 'bez ceny', SAMPLE[o.sample], o.rating ? `hodnocení ${o.rating}/5` : ''].filter(Boolean).join(', '))}</span>
+                ${o.note ? `<span class="offer-note">${esc(o.note.length > 160 ? o.note.slice(0, 160) + '…' : o.note)}</span>` : ''}</span>
                 <span class="offer-price">${esc(kcKg(pk))}</span>
             </button>`;
         }).join('')}</div>`;

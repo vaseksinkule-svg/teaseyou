@@ -551,6 +551,7 @@ body.sheet-open .toast { bottom: max(96px, calc(env(safe-area-inset-bottom) + 96
 .offer.is-best { border-color: var(--forest); background: var(--pale); }
 .offer-main { display: grid; gap: 2px; min-width: 0; }
 .offer-main span { color: var(--muted); font-size: 13px; }
+.offer-main .offer-note { color: var(--ink); font-size: 13px; line-height: 1.4; white-space: normal; }
 .offer-price { font-weight: 700; white-space: nowrap; }
 .calc-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 12px; align-items: end; }
 .calc-grid .field-inline > span { min-width: 0; }
