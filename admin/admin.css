@@ -591,3 +591,7 @@ body.sheet-open .toast { bottom: max(96px, calc(env(safe-area-inset-bottom) + 96
 .restore-table th:first-child, .restore-table td:first-child { text-align: left; }
 .restore-table .warn { color: var(--rust); font-weight: 700; }
 .trash-row .row-sub { white-space: normal; }
+
+/* Recenze */
+.rv-stars { color: var(--forest); letter-spacing: 1px; }
+.rv-big { color: var(--forest); font-size: 26px; letter-spacing: 2px; margin-bottom: 8px; }

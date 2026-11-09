@@ -208,6 +208,15 @@
         </div>
     </section>
 
+    <section class="reviews-section" id="reviews-home" hidden aria-labelledby="reviews-title">
+        <div class="section-head">
+            <h2 class="section-title" id="reviews-title" data-i18n="reviews_title">Co říkají zákazníci</h2>
+            <p class="reviews-summary" id="reviews-home-summary"></p>
+        </div>
+        <div class="reviews-list" id="reviews-home-list"></div>
+        <p class="reviews-note" data-i18n="reviews_note">Recenze píšou jen zákazníci, kteří u nás nakoupili.</p>
+    </section>
+
     <section class="craft-band" id="craft-home" aria-labelledby="craft-home-title">
         <div class="craft-band-copy">
             <h2 class="section-title" id="craft-home-title" data-i18n="craft_home_title">Ze stejných bylinek i mýdla</h2>
@@ -310,6 +319,12 @@
                     </dl>
                 </section>
                 <section class="food-info" id="detail-food" aria-labelledby="detail-food-title"></section>
+                <section class="detail-reviews" id="detail-reviews" hidden aria-labelledby="detail-reviews-title">
+                    <h2 id="detail-reviews-title" data-i18n="reviews_title_blend">Hodnocení</h2>
+                    <p class="reviews-summary" id="detail-reviews-summary"></p>
+                    <div class="reviews-list" id="detail-reviews-list"></div>
+                    <p class="reviews-note" data-i18n="reviews_note">Recenze píšou jen zákazníci, kteří u nás nakoupili.</p>
+                </section>
                 <aside class="detail-craft" id="detail-craft" hidden aria-labelledby="detail-craft-title">
                     <h2 class="brew-title" id="detail-craft-title" data-i18n="craft_same_title">Ze stejných surovin</h2>
                     <div id="detail-craft-list"></div>
@@ -487,6 +502,10 @@
                     <span data-i18n="order_shipping">Doprava</span>
                     <span id="checkout-shipping-cost">0 Kč</span>
                 </div>
+                <div class="sum-line" id="checkout-gift-row" style="display:none;">
+                    <span data-i18n="gift_row">Dárkové balení</span>
+                    <span id="checkout-gift-cost">0 Kč</span>
+                </div>
                 <div class="sum-line" id="checkout-payment-row" style="display:none;">
                     <span data-i18n="order_payment_fee">Příplatek za dobírku</span>
                     <span id="checkout-payment-cost">0 Kč</span>
@@ -521,6 +540,7 @@
                         </div>
                         <label class="choice shipping-option"><input type="radio" name="shipping" value="post" data-price="89" onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name">Česká pošta</span><span class="choice-desc shipping-desc" data-i18n="ship_post_desc">Doručení za 3–5 pracovních dní</span></span><span class="choice-price shipping-price">89 Kč</span></label>
                         <label class="choice shipping-option"><input type="radio" name="shipping" value="dpd" data-price="119" onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name" data-i18n="ship_dpd_name">Kurýr DPD</span><span class="choice-desc shipping-desc" data-i18n="ship_dpd_desc">Doručení další pracovní den</span></span><span class="choice-price shipping-price">119 Kč</span></label>
+                        <label class="choice shipping-option" style="display:none"><input type="radio" name="shipping" value="pickup" data-price="0" disabled onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name" data-i18n="ship_pickup_name">Osobní odběr</span><span class="choice-desc shipping-desc" id="pickup-note">Karlovy Vary, ozveme se, až bude připravená</span></span><span class="choice-price shipping-price">0 Kč</span></label>
                     </div>
                 </fieldset>
                 <fieldset class="form-step">
@@ -548,6 +568,17 @@
                     </div>
                 </fieldset>
                 <p id="payment-error" class="field-error" role="alert" style="display:none;" data-i18n="err_payment">Vyber, jak chceš zaplatit.</p>
+                <div class="gift-block" id="gift-block" hidden>
+                    <label class="choice gift-option">
+                        <input type="checkbox" id="f-gift" name="gift" onchange="syncGiftFields()">
+                        <span class="choice-body"><span class="choice-name" data-i18n="gift_title">Zabalit jako dárek</span><span class="choice-desc" data-i18n="gift_desc">Zabalíme do dárkového papíru a do balíčku nedáme doklad s cenou. Ten ti pošleme e-mailem.</span></span>
+                        <span class="choice-price" id="gift-price">0 Kč</span>
+                    </label>
+                    <div class="form-group" id="gift-message-group" hidden>
+                        <label class="field-label" for="f-gift-message"><span data-i18n="gift_message">Vzkaz na kartičku</span> <span class="field-opt" data-i18n="checkout_note_opt">(nepovinné)</span></label>
+                        <textarea id="f-gift-message" name="giftMessage" class="field" rows="2" maxlength="300" data-i18n-placeholder="gift_message_ph" placeholder="Všechno nejlepší, Jano!"></textarea>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label class="field-label" for="f-note"><span data-i18n="checkout_note">Poznámka</span> <span class="field-opt" data-i18n="checkout_note_opt">(nepovinné)</span></label>
                     <textarea id="f-note" name="note" class="field" rows="3" placeholder="Třeba vzkaz na přání, když je to dárek" data-i18n-placeholder="note_placeholder2"></textarea>
@@ -567,6 +598,7 @@
         <h1 class="page-title" data-i18n="success_title">Díky, objednávka je u nás</h1>
         <p class="page-lede" data-i18n="success_desc">Směs namícháme a obvykle do 24 hodin odešleme.</p>
         <p class="success-num" id="success-order-num"></p>
+        <section class="pay-box" id="success-pay" hidden aria-live="polite"></section>
         <ol class="success-steps">
             <li class="is-done" data-i18n="success_step1">Objednávka přijatá</li>
             <li data-i18n="success_step2">Namícháme</li>
@@ -650,13 +682,15 @@
             <h2>4. Platba</h2>
             <ul>
                 <li><strong>Dobírka:</strong> platíš dopravci při převzetí. Příplatek je <span data-shop="cod_fee">39 Kč</span>.</li>
-                <li><strong>Bankovní převod:</strong> údaje k platbě ti pošleme e-mailem. Zaplatit je potřeba do 7 dnů, jinak objednávku zrušíme. Směs odešleme, jakmile platba dorazí na účet.</li>
+                <li><strong>Bankovní převod:</strong> údaje k platbě ti pošleme e-mailem, a když je máme na webu nastavené, ukážeme je i s QR kódem hned po odeslání objednávky. Zaplatit je potřeba do 7 dnů, jinak objednávku zrušíme. Směs odešleme, jakmile platba dorazí na účet.</li>
+                <li><strong>Při osobním odběru:</strong> platíš hotově při předání, bez příplatku.</li>
             </ul>
-            <p>Způsob platby si vybíráš sám, žádný není předem zaškrtnutý. Doklad o koupi přikládáme k zásilce.</p>
+            <p>Způsob platby si vybíráš sám, žádný není předem zaškrtnutý. Doklad o koupi přikládáme k zásilce. Když zvolíš zabalení jako dárek, doklad do balíčku nedáme a pošleme ti ho e-mailem.</p>
 
             <h2>5. Dodání</h2>
             <p>Směs mícháme až po objednání a obvykle ji odešleme do 24 hodin. U převodu počítáme od připsání platby. Nejpozději odešleme do 5 pracovních dnů. Kdyby to nešlo, dáme ti vědět a domluvíme se.</p>
-            <p>Doručujeme po Česku a na Slovensko přes Zásilkovnu, Českou poštu nebo kurýra DPD. Doba doručení je uvedená u každého způsobu v pokladně.</p>
+            <p>Doručujeme po Česku a na Slovensko přes Zásilkovnu, Českou poštu nebo kurýra DPD. Doba doručení je uvedená u každého způsobu v pokladně. Když pokladna nabízí osobní odběr, vyzvedneš si směs na místě, které je u něj napsané. Ozveme se, až bude připravená.</p>
+            <p>Dárkové balení se vzkazem nabízíme, jen když je v pokladně. Jeho cena se ukáže dřív, než objednávku odešleš.</p>
             <p>Při převzetí zkontroluj, že je obal zásilky v pořádku. Když je poškozený, můžeš zásilku odmítnout, nebo s dopravcem sepsat záznam o poškození. Převzetím na tebe přechází nebezpečí škody na zboží.</p>
 
             <h2>6. Odstoupení od smlouvy</h2>
@@ -687,7 +721,7 @@
 
             <h2>10. Závěrem</h2>
             <p>Podmínky se řídí českým právem. Platí ve znění, které bylo na webu, když jsi objednávku odeslal. Pozdější změny se tvé objednávky netýkají. Předchozí znění ti na požádání pošleme.</p>
-            <p class="legal-updated">Znění ze dne 5. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
+            <p class="legal-updated">Znění ze dne 9. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
         </div>
         <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
     </div>
@@ -763,10 +797,11 @@
             <div class="legal-table-wrap" role="region" aria-label="Přehled zpracování osobních údajů" tabindex="0"><table class="legal-table legal-table--stack">
                 <thead><tr><th>Kdy</th><th>Jaké údaje</th><th>Proč a podle čeho</th><th>Jak dlouho</th></tr></thead>
                 <tbody>
-                    <tr><td data-label="Kdy">Objednávka</td><td data-label="Jaké údaje">jméno a příjmení, e-mail, telefon, doručovací adresa nebo výdejní místo, obsah objednávky, poznámka, slevový kód, datum a znění obchodních podmínek</td><td data-label="Proč a podle čeho">Abychom smlouvu splnili: namíchali, poslali a vyřídili případnou reklamaci (čl. 6 odst. 1 písm. b) GDPR). Bez těchto údajů objednávku vyřídit nejde. U výdejního místa Zásilkovny adresu nechceme.</td><td data-label="Jak dlouho">E-mail, telefon a poznámku smažeme 5 let po objednávce. Jméno, adresu a obsah objednávky si necháme kvůli daním a reklamacím, nejdéle 10 let.</td></tr>
+                    <tr><td data-label="Kdy">Objednávka</td><td data-label="Jaké údaje">jméno a příjmení, e-mail, telefon, doručovací adresa nebo výdejní místo, obsah objednávky, poznámka, u dárku vzkaz na kartičku, slevový kód, datum a znění obchodních podmínek</td><td data-label="Proč a podle čeho">Abychom smlouvu splnili: namíchali, poslali a vyřídili případnou reklamaci (čl. 6 odst. 1 písm. b) GDPR). Bez těchto údajů objednávku vyřídit nejde. U výdejního místa Zásilkovny adresu nechceme.</td><td data-label="Jak dlouho">E-mail, telefon a poznámku smažeme 5 let po objednávce. Jméno, adresu a obsah objednávky si necháme kvůli daním a reklamacím, nejdéle 10 let.</td></tr>
                     <tr><td data-label="Kdy">Doklady</td><td data-label="Jaké údaje">jméno, adresa, obsah a cena objednávky</td><td data-label="Proč a podle čeho">Povinnost uchovávat daňové záznamy (čl. 6 odst. 1 písm. c) GDPR).</td><td data-label="Jak dlouho">Po dobu, kterou ukládají daňové předpisy, nejdéle 10 let</td></tr>
                     <tr><td data-label="Kdy">Odstoupení od smlouvy</td><td data-label="Jaké údaje">číslo objednávky, jméno, e-mail, co vracíš, číslo účtu, poznámka, datum a čas</td><td data-label="Proč a podle čeho">Zákon nám ukládá odstoupení přijmout, potvrdit a vrátit peníze (čl. 6 odst. 1 písm. c) GDPR).</td><td data-label="Jak dlouho">10 let</td></tr>
                     <tr><td data-label="Kdy">Upozornění na mýdla a balzámy</td><td data-label="Jaké údaje">e-mail a vybraný produkt</td><td data-label="Proč a podle čeho">Tvůj souhlas, když e-mail necháš (čl. 6 odst. 1 písm. a) GDPR). Můžeš ho kdykoli odvolat e-mailem. Souhlas může dát člověk od 15 let (§ 7 zákona č. 110/2019 Sb.).</td><td data-label="Jak dlouho">Do odeslání upozornění, nejdéle 2 roky, pak se smaže sám</td></tr>
+                    <tr><td data-label="Kdy">Recenze</td><td data-label="Jaké údaje">jméno nebo přezdívka, hodnocení, text, jazyk, datum a číslo objednávky, ke které recenze patří. E-mail z formuláře použijeme jen k ověření nákupu a neukládáme ho.</td><td data-label="Proč a podle čeho">Tvůj souhlas se zveřejněním (čl. 6 odst. 1 písm. a) GDPR). Recenzi i souhlas můžeš kdykoli odvolat e-mailem, recenzi pak smažeme.</td><td data-label="Jak dlouho">Dokud je zveřejněná nebo do odvolání souhlasu. Nezveřejněné mažeme po 6 měsících.</td></tr>
                     <tr><td data-label="Kdy">Ochrana proti zneužití</td><td data-label="Jaké údaje">e-mail a čas objednávky nebo odstoupení</td><td data-label="Proč a podle čeho">Oprávněný zájem: omezujeme počet objednávek a odstoupení z jednoho e-mailu (čl. 6 odst. 1 písm. f) GDPR).</td><td data-label="Jak dlouho">Stejně jako objednávka</td></tr>
                     <tr><td data-label="Kdy">Žádosti o osobní údaje</td><td data-label="Jaké údaje">e-mail, druh žádosti, kdy a jak jsme ji vyřídili</td><td data-label="Proč a podle čeho">Musíme umět doložit, že jsme žádost vyřídili (čl. 5 odst. 2 a čl. 6 odst. 1 písm. c) GDPR).</td><td data-label="Jak dlouho">5 let</td></tr>
                     <tr><td data-label="Kdy">Když nám napíšeš</td><td data-label="Jaké údaje">e-mail a obsah zprávy</td><td data-label="Proč a podle čeho">Oprávněný zájem odpovědět ti (čl. 6 odst. 1 písm. f) GDPR).</td><td data-label="Jak dlouho">Dokud věc neuzavřeme, nejdéle 2 roky</td></tr>
@@ -800,7 +835,7 @@
 
             <h2>7. Změny</h2>
             <p>Když zásady podstatně změníme, upozorníme na to tady na webu. Předchozí znění ti na požádání pošleme.</p>
-            <p class="legal-updated">Znění ze dne 7. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
+            <p class="legal-updated">Znění ze dne 9. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
         </div>
         <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
     </div>
@@ -825,6 +860,7 @@
                     <tr><td>teaseyou_notify_email, teaseyou_notified</td><td>E-mail a produkty, u kterých chceš upozornit, až budou k mání</td><td>Dokud je nesmažeš</td></tr>
                     <tr><td>teaseyou_promo_dismissed</td><td>Že jsi zavřel lištu nahoře</td><td>Dokud ho nesmažeš</td></tr>
                     <tr><td>theme</td><td>Světlý nebo tmavý vzhled</td><td>Dokud ho nesmažeš</td></tr>
+                    <tr><td>teaseyou_reviewed</td><td>Které objednávky už jsi ohodnotil, ať se formulář neukazuje znovu</td><td>Dokud ho nesmažeš</td></tr>
                     <tr><td>teaseyou_lang</td><td>Jazyk webu, který sis vybral (čeština, slovenština, angličtina)</td><td>Dokud ho nesmažeš</td></tr>
                     <tr><td>teaseyou_catalog_v1</td><td>Kopie nabídky, aby se web načetl rychleji</td><td>Přepíše se při další návštěvě</td></tr>
                 </tbody>
@@ -991,6 +1027,7 @@
 <script src="config.js"></script>
 <script src="db.js"></script>
 <script src="i18n-sk.js"></script>
+<script src="bank.js"></script>
 <script src="recipe.js"></script>
 <script src="icons.js"></script>
 <script src="script.js"></script>

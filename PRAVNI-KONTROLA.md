@@ -4,7 +4,7 @@ Kontrola podle checklistu „The App Launch Checklist“ (35 bodů, stav k říj
 přepočítaná na český e-shop se sypaným čajem. U každého bodu je, jestli se nás týká,
 podle čeho v Česku, co je hotové a co zbývá.
 
-- **Stav ke dni:** 8. 11. 2026
+- **Stav ke dni:** 9. 11. 2026
 - **Projít znovu:** nejpozději 5. 11. 2027, a vždycky, když přibude nová funkce, dodavatel,
   druh údajů, způsob placení nebo nová země prodeje. Úkol na to je v administraci
   (Nákup → Úkoly).
@@ -75,7 +75,7 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 | # | Bod | Stav | Podle čeho v ČR | Co je na webu / co zbývá |
 |---|---|---|---|---|
 | 27 | Nepodložená tvrzení | ✅ ⏳ | zákon o ochraně spotřebitele § 5 (klamavé praktiky); nařízení 1924/2006 (zdravotní tvrzení); 1169/2011 čl. 7 | Pryč: „500+ kombinací“ (je jich 486), „certifikovaní dodavatelé“, „žádné šarže“, „čerstvost 12–18 měsíců“, „bez umělých aromatizátorů“, „mícháme ve stejný den“, „sledovací číslo e-mailem“, vymyšlený telefon v datech pro vyhledávače, zdravotní tvrzení. Termíny jsou „obvykle do 24 hodin“, jak říkají podmínky. ⏳ Potvrdit, že sedí příběh v *O nás* (maturitní práce). Zelená tvrzení („eko“, „šetrné k přírodě“) nepoužívat, novela zákona podle směrnice 2024/825 prošla Sněmovnou 14. 10. 2026. |
-| 28 | Falešné recenze | ➖ | zákon o ochraně spotřebitele § 5a odst. 5 | Recenze na webu nejsou. Až budou, musí být u nich napsané, jestli a jak ověřujeme, že jsou od zákazníků. |
+| 28 | Falešné recenze | ✅ | zákon o ochraně spotřebitele § 5a odst. 5 | Hodnotit jde jen z Moje objednávky: databáze ověří číslo objednávky a e-mail z ní a pustí to až po odeslání. Na web jde recenze až po schválení v administraci. U recenzí na úvodu i u směsi je napsané, jak ověřujeme, že zveřejňujeme i kritické a že za recenze nic nedáváme. Administrace připomíná: odmítnout jen vulgární, nesouvisející nebo s cizími osobními údaji. Zveřejnění se jménem jen se souhlasem (zaškrtávátko), v zásadách ochrany údajů je nový řádek „Recenze“. ⏳ Za recenzi nedávat slevu ani dárek. |
 | 29 | Falešné certifikáty bezpečnosti | ➖ | § 5 zákona o ochraně spotřebitele | Žádné „SOC 2“, „ISO“ ani „GDPR certified“. Zásady popisují jen to, co opravdu děláme. |
 | 30 | Slib dostupnosti | ➖ | – | Nic takového neslibujeme. |
 | 31 | Loga zákazníků | ➖ | zákon o ochranných známkách | Žádná. Ikony sociálních sítí vedou jen na naše profily. |
@@ -101,7 +101,9 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 | Kosmetika (mýdla, balzámy) | ⏳ | nařízení (ES) 1223/2009 | Před prodejem posudek bezpečnosti, CPNP, oznámení hygieně. Zatím jen „Dej mi vědět“. |
 | Prodej na Slovensko: štítek | ✅ ⏳ | slovenský zákon č. 152/1995 Z. z. o potravinách, § 9 ods. 1 (označení v kodifikované podobě státního jazyka); nařízení (EU) 1169/2011 čl. 15 | Web ve slovenštině ukazuje název a složení slovensky („Ochutený zelený čaj“, „zelený čaj 60 %…“). Administrace u objednávky na Slovensko ukáže text na štítek slovensky. ⏳ Na sáčky do SK tisknout slovenský štítek (název, složení, trvanlivost, skladování, výrobce). |
 | Prodej na Slovensko: smlouva a informace | ⏳ | slovenský zákon č. 108/2024 Z. z. o ochraně spotřebitele, § 4 ods. 1 písm. g) (informace a dokumenty slovensky, jinak v jiném srozumitelném jazyce se souhlasem spotřebitele) | Web, košík a pokladna jsou slovensky. Obchodní podmínky, ochrana údajů a odstoupení zůstávají česky (jazyk smlouvy) a ve slovenštině i angličtině mají nahoře poznámku. ⏳ Rozhodnout: přeložit tyto tři stránky do slovenštiny, nebo si v pokladně u adresy na Slovensku vyžádat souhlas s češtinou. Projít s advokátem. |
-| Potvrzení objednávky | ⏳ | § 1824 a 1827 OZ | Do zprovoznění automatického e-mailu potvrzovat ručně a do balíčku dávat doklad a podmínky. |
+| Potvrzení objednávky | ⏳ | § 1824 a 1827 OZ | Automatický e-mail zatím není (potřebuje účet u e-mailové služby). Administrace u každé objednávky připraví potvrzení v jazyce zákazníka (zboží, ceny, doprava, platba s číslem účtu a VS, odkaz a datum znění podmínek), stačí ho odeslat. Do balíčku dávat doklad a podmínky. |
+| Platba převodem a QR | ✅ | obchodní podmínky čl. 4 | Po objednávce převodem web ukáže číslo účtu, částku, VS a QR Platbu (český standard SPAYD), když je v administraci vyplněný účet. Částka a číslo jsou z databáze. |
+| Dárek a osobní odběr | ✅ | § 1811 a 1820 OZ (cena a způsob dodání před objednáním) | Obojí se zapíná v administraci, výchozí vypnuto. Cena dárkového balení i místo odběru se ukážou v pokladně před odesláním a jsou v podmínkách (čl. 4 a 5, znění z 9. 11. 2026). Vzkaz na kartičku je osobní údaj, maže se s kontakty po 5 letech. |
 
 ## Před spuštěním prodeje
 

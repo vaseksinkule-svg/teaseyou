@@ -6,6 +6,28 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (věci, které mají konkurenční e-shopy)
+- **Tlačítko Zpět funguje.** Každá stránka a hotová směs má vlastní adresu
+  (`?stranka=kviz`, `?smes=deep_winter`, jazyk `&lang=sk`). Zpět se vrátí i na
+  místo, kde zákazník na úvodu byl. Titulky, popisy a jazykové verze pro
+  Google, `sitemap.xml` se všemi stránkami a směsmi ve třech jazycích.
+- **QR platba.** Po objednávce převodem web ukáže číslo účtu, částku,
+  variabilní symbol a QR kód pro bankovní aplikaci (i v Moje objednávky).
+  Účet se zadává v administraci (číslo účtu nebo IBAN, web ho zkontroluje).
+- **Objednat znovu** v Moje objednávky: položky zpátky do košíku s dnešní
+  cenou, co už nejde (vyprodané), vynechá.
+- **Dárkové balení se vzkazem** v pokladně a **osobní odběr**. Obojí se
+  zapíná a nastavuje v administraci, výchozí je vypnuto.
+- **Recenze ověřené nákupem.** Hodnotit jde z Moje objednávky po odeslání
+  (ověří se číslo objednávky a e-mail). Na web jdou po schválení
+  v administraci, s průměrem na úvodu a u hotové směsi, s odpovědí obchodu
+  a s informací, jak recenze ověřujeme.
+- Administrace: záložka Recenze, u objednávky tlačítko **Napsat potvrzení
+  objednávky** (hotový e-mail v jazyce zákazníka, u převodu s údaji k platbě),
+  dárek a osobní odběr viditelně v detailu i v seznamu.
+- Obchodní podmínky a zásady ochrany údajů doplněné o QR platbu, osobní
+  odběr, dárek a recenze (znění z 9. 11. 2026).
+
 ### Přidáno (slovenština a výběr jazyka)
 - Výběr jazyka **CZ / SK / EN** v hlavičce a v patičce. Volba se pamatuje;
   bez ní web pozná jazyk z prohlížeče (slovenský prohlížeč dřív dostal angličtinu).

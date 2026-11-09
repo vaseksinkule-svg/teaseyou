@@ -38,7 +38,7 @@ PHOTO_TABLES = ('ingredients', 'blends', 'craft_products')
 PHOTO_MAX_BYTES = 15 * 1024 * 1024
 TABLES = ('settings', 'ingredients', 'blends', 'price_tiers', 'shipping_methods', 'promo_codes',
           'craft_products', 'craft_waitlist', 'purchase_suppliers', 'purchase_materials',
-          'purchase_offers', 'purchase_tasks', 'orders', 'withdrawals', 'privacy_requests')
+          'purchase_offers', 'purchase_tasks', 'orders', 'reviews', 'withdrawals', 'privacy_requests')
 # Bez těchhle tabulek obchod nefunguje. Když jsou prázdné, je něco špatně.
 MUST_HAVE_ROWS = ('settings', 'ingredients', 'price_tiers')
 

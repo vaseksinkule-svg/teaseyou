@@ -87,6 +87,7 @@
         <button role="tab" class="tab" data-tab="promos" aria-selected="false">Slevy</button>
         <button role="tab" class="tab" data-tab="craft" aria-selected="false">Mýdla a balzámy <span class="tab-count" id="count-waitlist" hidden></span></button>
         <button role="tab" class="tab" data-tab="purchase" aria-selected="false">Nákup <span class="tab-count" id="count-tasks" hidden></span></button>
+        <button role="tab" class="tab" data-tab="reviews" aria-selected="false">Recenze <span class="tab-count" id="count-reviews" hidden></span></button>
         <button role="tab" class="tab" data-tab="withdrawals" aria-selected="false">Odstoupení <span class="tab-count" id="count-withdrawals" hidden></span></button>
         <button role="tab" class="tab" data-tab="privacy" aria-selected="false">Osobní údaje <span class="tab-count" id="count-privacy" hidden></span></button>
         <button role="tab" class="tab" data-tab="backups" aria-selected="false">Zálohy a koš</button>
@@ -183,6 +184,24 @@
                 </label>
                 <button type="submit" class="btn btn-primary">Uložit nastavení</button>
             </form>
+            <form class="panel" id="extras-form" novalidate>
+                <h3>Dárek a osobní odběr</h3>
+                <label class="switch-row">
+                    <input type="checkbox" name="gift_wrap_enabled" class="switch">
+                    <span>Nabízet dárkové balení se vzkazem</span>
+                </label>
+                <label class="field field-inline">
+                    <span>Cena dárkového balení</span>
+                    <input type="number" name="gift_wrap_czk" min="0" max="500" step="1" inputmode="numeric"><em>Kč, 0 = zdarma</em>
+                </label>
+                <p class="help">Zákazník v pokladně zaškrtne „Zabalit jako dárek“ a může napsat vzkaz na kartičku. Doklad s cenou mu pošleš e-mailem, do balíčku nepatří.</p>
+                <label class="field">
+                    <span>Osobní odběr: kde a kdy</span>
+                    <input type="text" name="pickup_note" maxlength="200" placeholder="Karlovy Vary, Zahradní 5, po domluvě">
+                    <small>Ukáže se u volby v pokladně. Osobní odběr pak zapneš nahoře v seznamu Doprava.</small>
+                </label>
+                <button type="submit" class="btn btn-primary">Uložit</button>
+            </form>
             <form class="panel" id="seller-form" novalidate>
                 <h3>Prodávající a etiketa</h3>
                 <p class="help">Ukáže se v obchodních podmínkách, v ochraně osobních údajů, v patičce webu a v informacích o potravině. Co nevyplníš, web ukáže jako „[doplnit]“.</p>
@@ -193,6 +212,7 @@
                 </div>
                 <label class="field"><span>Adresa sídla</span><input type="text" name="seller_address" maxlength="200" placeholder="Ulice 1, 360 01 Karlovy Vary"><small>Adresa ze živnostenského rejstříku.</small></label>
                 <label class="field"><span>E-mail pro zákazníky</span><input type="email" name="seller_email" maxlength="120"></label>
+                <label class="field"><span>Účet pro platby převodem</span><input type="text" name="seller_iban" maxlength="42" placeholder="19-2000145399/0800 nebo IBAN" autocomplete="off" spellcheck="false"><small>Číslo účtu nebo IBAN. Zákazník po objednávce převodem hned uvidí údaje k platbě a QR kód.</small></label>
                 <label class="field field-inline">
                     <span>Minimální trvanlivost</span>
                     <input type="number" name="durability_months" min="1" max="36" step="1" inputmode="numeric"><em>měsíců od namíchání</em>
@@ -235,6 +255,14 @@
             <div class="filters" id="purchase-nav" role="group" aria-label="Část nákupu"></div>
             <div id="purchase-list"></div>
         </section>
+        <section class="view" id="view-reviews" role="tabpanel" hidden>
+            <div class="view-head">
+                <h2>Recenze</h2>
+            </div>
+            <p class="view-note">Zákazník hodnotí v Moje objednávky, až objednávku označíš jako Odeslanou. Web ověří číslo objednávky a e-mail. Na webu se ukáže až po schválení. Schvaluj i kritické recenze: odmítnout můžeš jen vulgární, nesouvisející nebo s cizími osobními údaji. Skrývat špatné hodnocení je klamání zákazníků.</p>
+            <div class="list" id="reviews-list"></div>
+        </section>
+
         <section class="view" id="view-withdrawals" role="tabpanel" hidden>
             <div class="view-head">
                 <h2>Odstoupení od smlouvy</h2>
@@ -327,6 +355,7 @@
 
 <script src="../config.js"></script>
 <script src="../db.js"></script>
+<script src="../bank.js"></script>
 <script src="../recipe.js"></script>
 <script src="../icons.js"></script>
 <script src="admin.js"></script>

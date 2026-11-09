@@ -143,8 +143,8 @@ create table if not exists public.price_tiers (
     updated_at  timestamptz not null default now()
 );
 
--- Doprava. Web zná tři způsoby (post, zasilkovna, dpd) — tady se jim
--- mění cena a dá se který vypnout.
+-- Doprava. Web zná čtyři způsoby (post, zasilkovna, dpd, pickup = osobní
+-- odběr) — tady se jim mění cena a dá se který vypnout.
 create table if not exists public.shipping_methods (
     id          text primary key check (id ~ '^[a-z0-9_]{2,30}$'),
     name        text not null,
@@ -173,6 +173,14 @@ alter table public.settings add column if not exists seller_address text not nul
 alter table public.settings add column if not exists seller_email   text not null default 'hello@teaseyou.cz' check (length(seller_email) <= 120);
 alter table public.settings add column if not exists seller_phone   text not null default '' check (length(seller_phone) <= 30);
 alter table public.settings add column if not exists cod_fee_czk    integer not null default 39 check (cod_fee_czk between 0 and 1000);
+-- Účet pro platbu převodem (IBAN). Web podle něj po objednávce ukáže
+-- údaje k platbě a QR kód. Prázdný = nic se neukáže.
+alter table public.settings add column if not exists seller_iban    text not null default '' check (seller_iban ~ '^([A-Z]{2}[0-9]{2}[A-Z0-9]{11,30})?$');
+-- Dárkové balení se vzkazem. Vypnuté, dokud ho nezapneš v administraci.
+alter table public.settings add column if not exists gift_wrap_enabled boolean not null default false;
+alter table public.settings add column if not exists gift_wrap_czk  integer not null default 0 check (gift_wrap_czk between 0 and 500);
+-- Osobní odběr: kde a kdy si zákazník směs vyzvedne (ukáže se v pokladně).
+alter table public.settings add column if not exists pickup_note    text not null default '' check (length(pickup_note) <= 200);
 -- recipe_*_pct: pevný poměr základ/příchuť/doplněk z doby, kdy směs měla
 -- tři sloty. Od listopadu 2026 si poměr volí zákazník díly a tyhle sloupce
 -- se nepoužívají. Zůstávají kvůli starším zálohám.
@@ -297,6 +305,10 @@ alter table public.orders add column if not exists terms_version text check (ter
 -- Kdy se z objednávky smazaly osobní údaje (viz purge_expired_data).
 alter table public.orders add column if not exists contacts_purged_at timestamptz;
 alter table public.orders add column if not exists anonymized_at timestamptz;
+-- Dárek: zabalit, vzkaz na kartičku a cena balení (je součástí total_czk).
+alter table public.orders add column if not exists gift_wrap    boolean not null default false;
+alter table public.orders add column if not exists gift_message text check (length(gift_message) <= 300);
+alter table public.orders add column if not exists gift_czk     integer not null default 0 check (gift_czk between 0 and 500);
 create index if not exists orders_created_idx on public.orders (created_at desc);
 create index if not exists orders_email_idx   on public.orders (email, created_at);
 
@@ -580,6 +592,10 @@ declare
     v_point      text  := left(btrim(coalesce(p_order -> 'packetaPoint' ->> 'name', '')), 300);
     v_point_id   text  := left(btrim(coalesce(p_order -> 'packetaPoint' ->> 'id', '')), 50);
     v_promo      text  := upper(btrim(coalesce(p_order ->> 'promo', '')));
+    v_gift_wrap  boolean := coalesce(p_order -> 'gift' ->> 'wrap', '') = 'true';
+    v_gift_msg   text  := nullif(left(btrim(coalesce(p_order -> 'gift' ->> 'message', '')), 300), '');
+    v_gift_on    boolean;
+    v_gift_fee   integer := 0;
     v_lang       text  := case when p_order ->> 'lang' in ('en', 'sk') then p_order ->> 'lang' else 'cs' end;
     v_terms      text  := case when coalesce(p_order ->> 'termsVersion', '') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
                                then p_order ->> 'termsVersion' end;
@@ -611,8 +627,9 @@ begin
     end if;
 
     -- Zákazník: stejná pravidla jako formulář na webu. Při doručení na
-    -- výdejní místo Zásilkovny adresu nepotřebujeme, tak ji nechceme
-    -- (minimalizace údajů). Když ji někdo vyplní, musí být celá a platná.
+    -- výdejní místo Zásilkovny a při osobním odběru adresu nepotřebujeme,
+    -- tak ji nechceme (minimalizace údajů). Když ji někdo vyplní, musí být
+    -- celá a platná.
     if length(v_first) not between 2 and 100
        or length(v_last) not between 2 and 100
        or length(v_email) > 200 or v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]+$'
@@ -620,7 +637,7 @@ begin
        or v_country not in ('CZ', 'SK') then
         raise exception 'invalid_customer' using errcode = 'P0001';
     end if;
-    if (v_ship_id <> 'zasilkovna' or v_street <> '' or v_city <> '' or v_zip <> '')
+    if (v_ship_id not in ('zasilkovna', 'pickup') or v_street <> '' or v_city <> '' or v_zip <> '')
        and (length(v_street) not between 3 and 200
             or length(v_city) not between 2 and 100
             or v_zip !~ '^[0-9]{3} ?[0-9]{2}$') then
@@ -743,11 +760,23 @@ begin
     end if;
 
     -- Doprava zdarma se počítá z ceny zboží před slevou, stejně jako na webu.
-    -- Příplatek za dobírku platí vždy, i při dopravě zdarma.
-    select free_ship_threshold, case when v_pay = 'cod' then cod_fee_czk else 0 end
-      into v_threshold, v_payfee
+    -- Příplatek za dobírku platí vždy, i při dopravě zdarma. Při osobním
+    -- odběru se platí při předání a příplatek není.
+    select free_ship_threshold, case when v_pay = 'cod' and v_ship_id <> 'pickup' then cod_fee_czk else 0 end,
+           gift_wrap_enabled, gift_wrap_czk
+      into v_threshold, v_payfee, v_gift_on, v_gift_fee
       from public.settings where id = 1;
     v_payfee := coalesce(v_payfee, 0);
+    -- Dárkové balení jen když je zapnuté; vzkaz patří jen k dárku.
+    if v_gift_wrap then
+        if not coalesce(v_gift_on, false) then
+            raise exception 'gift_unavailable' using errcode = 'P0001';
+        end if;
+        v_gift_fee := coalesce(v_gift_fee, 0);
+    else
+        v_gift_fee := 0;
+        v_gift_msg := null;
+    end if;
     v_shipping := case when v_threshold is not null and v_goods >= v_threshold
                        then 0 else v_ship.price_czk end;
 
@@ -770,12 +799,14 @@ begin
     insert into public.orders (
         first_name, last_name, email, phone, street, city, zip, country, note,
         shipping_method, shipping_name, packeta_point, packeta_point_id, payment_method,
-        items, goods_czk, discount_czk, shipping_czk, payment_czk, total_czk, promo_code, lang, terms_version)
+        items, goods_czk, discount_czk, shipping_czk, payment_czk, total_czk, promo_code, lang, terms_version,
+        gift_wrap, gift_message, gift_czk)
     values (
         v_first, v_last, v_email, v_phone, v_street, v_city, v_zip, v_country, v_note,
         v_ship_id, v_ship.name, nullif(v_point, ''), nullif(v_point_id, ''), v_pay,
         v_lines, v_goods, v_discount, v_shipping, v_payfee,
-        v_goods - v_discount + v_shipping + v_payfee, v_promo, v_lang, v_terms)
+        v_goods - v_discount + v_shipping + v_payfee + v_gift_fee, v_promo, v_lang, v_terms,
+        v_gift_wrap, v_gift_msg, v_gift_fee)
     returning id into v_id;
 
     v_num := 'TY-' || lpad(v_id::text, 5, '0');
@@ -788,7 +819,8 @@ begin
         'discount', v_discount,
         'shipping', v_shipping,
         'payment',  v_payfee,
-        'total',    v_goods - v_discount + v_shipping + v_payfee);
+        'gift',     v_gift_fee,
+        'total',    v_goods - v_discount + v_shipping + v_payfee + v_gift_fee);
 end;
 $$;
 
@@ -914,6 +946,134 @@ end;
 $$;
 revoke all on function public.join_craft_waitlist(text, text, text) from public;
 grant execute on function public.join_craft_waitlist(text, text, text) to anon, authenticated;
+
+
+-- ─── RECENZE ─────────────────────────────────────────────────────────
+-- Hodnotit může jen ten, kdo u nás nakoupil: zná číslo objednávky a e-mail
+-- z ní a objednávka už je odeslaná. Na web jde recenze až po schválení
+-- v administraci. Schvalují se i kritické; odmítnout jde jen vulgární,
+-- nesouvisející nebo s cizími osobními údaji. Jak recenze ověřujeme, web
+-- píše u nich (zákon o ochraně spotřebitele, § 5a odst. 5).
+create table if not exists public.reviews (
+    id          bigint generated always as identity primary key,
+    created_at  timestamptz not null default now(),
+    order_id    bigint unique references public.orders (id) on delete set null,
+    order_num   text not null check (order_num ~ '^TY-[0-9A-Z]{3,12}$'),
+    blends      text[] not null default '{}',     -- hotové směsi z objednávky
+    rating      smallint not null check (rating between 1 and 5),
+    body        text not null default '' check (length(body) <= 1000),
+    author      text not null check (length(author) between 2 and 40),
+    lang        text not null default 'cs' check (lang in ('cs', 'sk', 'en')),
+    status      text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+    reply       text not null default '' check (length(reply) <= 1000),
+    approved_at timestamptz,
+    updated_at  timestamptz not null default now()
+);
+create index if not exists reviews_status_idx on public.reviews (status, created_at desc);
+drop trigger if exists reviews_updated_at on public.reviews;
+create trigger reviews_updated_at before update on public.reviews
+    for each row execute function public.set_updated_at();
+alter table public.reviews enable row level security;
+drop policy if exists "reviews_admin" on public.reviews;
+create policy "reviews_admin" on public.reviews for all to authenticated
+    using (public.is_admin()) with check (public.is_admin());
+revoke all on public.reviews from anon;   -- web čte jen přes public_reviews()
+grant select, update, delete on public.reviews to authenticated;
+
+-- Schválení si pamatuje datum (kvůli pořadí na webu).
+create or replace function public.reviews_approved_at()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+    if new.status = 'approved' and (tg_op = 'INSERT' or old.status is distinct from 'approved') then
+        new.approved_at := now();
+    elsif new.status <> 'approved' then
+        new.approved_at := null;
+    end if;
+    return new;
+end;
+$$;
+drop trigger if exists reviews_approved on public.reviews;
+create trigger reviews_approved before insert or update of status on public.reviews
+    for each row execute function public.reviews_approved_at();
+
+create or replace function public.submit_review(p jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_num    text := upper(btrim(coalesce(p ->> 'orderNum', '')));
+    v_email  text := lower(btrim(coalesce(p ->> 'email', '')));
+    v_body   text := left(btrim(coalesce(p ->> 'body', '')), 1000);
+    v_author text := left(btrim(regexp_replace(coalesce(p ->> 'author', ''), '\s+', ' ', 'g')), 40);
+    v_lang   text := case when p ->> 'lang' in ('en', 'sk') then p ->> 'lang' else 'cs' end;
+    v_rating integer;
+    v_order  public.orders%rowtype;
+    v_blends text[];
+begin
+    if coalesce(p ->> 'consent', '') <> 'true' then
+        raise exception 'review_consent' using errcode = 'P0001';
+    end if;
+    if v_num !~ '^TY-[0-9A-Z]{3,12}$' then
+        raise exception 'invalid_order_num' using errcode = 'P0001';
+    end if;
+    v_rating := case when coalesce(p ->> 'rating', '') ~ '^[1-5]$' then (p ->> 'rating')::integer end;
+    if v_rating is null or length(v_author) < 2 then
+        raise exception 'invalid_review' using errcode = 'P0001';
+    end if;
+    -- pojistka proti zahlcení
+    if (select count(*) from public.reviews where created_at > now() - interval '1 hour') >= 30 then
+        raise exception 'too_many' using errcode = 'P0001';
+    end if;
+    select * into v_order from public.orders where num = v_num and email = v_email;
+    if not found then
+        raise exception 'review_not_found' using errcode = 'P0001';
+    end if;
+    if v_order.status not in ('shipped', 'done') then
+        raise exception 'review_too_early' using errcode = 'P0001';
+    end if;
+    if exists (select 1 from public.reviews where order_id = v_order.id) then
+        raise exception 'review_exists' using errcode = 'P0001';
+    end if;
+    select coalesce(array_agg(distinct b.id), '{}') into v_blends
+      from jsonb_array_elements(v_order.items) i
+      join public.blends b on b.name = i ->> 'name';
+    insert into public.reviews (order_id, order_num, blends, rating, body, author, lang)
+    values (v_order.id, v_order.num, v_blends, v_rating, v_body, v_author, v_lang);
+    return jsonb_build_object('ok', true);
+end;
+$$;
+revoke all on function public.submit_review(jsonb) from public;
+grant execute on function public.submit_review(jsonb) to anon, authenticated;
+
+-- Schválené recenze pro web: průměr, počet a posledních 12. S p_blend jen
+-- ty, kde zákazník tu hotovou směs koupil. Číslo objednávky ani e-mail ven nejdou.
+create or replace function public.public_reviews(p_blend text default null)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+    with r as (
+        select rating, body, author, lang, reply, created_at, approved_at
+          from public.reviews
+         where status = 'approved' and (p_blend is null or p_blend = any (blends))
+    )
+    select jsonb_build_object(
+        'count',   (select count(*) from r),
+        'average', (select round(avg(rating)::numeric, 1) from r),
+        'items',   coalesce((select jsonb_agg(jsonb_build_object(
+                        'rating', rating, 'body', body, 'author', author, 'lang', lang,
+                        'reply', reply, 'date', to_char(created_at, 'YYYY-MM-DD')) order by approved_at desc)
+                      from (select * from r order by approved_at desc limit 12) x), '[]'::jsonb));
+$$;
+revoke all on function public.public_reviews(text) from public;
+grant execute on function public.public_reviews(text) to anon, authenticated;
 
 
 -- ─── ODSTOUPENÍ OD SMLOUVY ───────────────────────────────────────────
@@ -1046,7 +1206,7 @@ begin
     get diagnostics v_wait = row_count;
     update public.orders
        set email = 'smazano@example.invalid', phone = '', note = null, admin_note = null,
-           contacts_purged_at = now()
+           gift_message = null, contacts_purged_at = now()
      where created_at < now() - interval '5 years' and contacts_purged_at is null;
     get diagnostics v_contacts = row_count;
     update public.orders
@@ -1058,6 +1218,8 @@ begin
     get diagnostics v_wd = row_count;
     delete from public.privacy_requests where created_at < now() - interval '5 years';
     get diagnostics v_req = row_count;
+    -- Recenze, které se nezveřejnily (čekají nebo jsou odmítnuté), po půl roce.
+    delete from public.reviews where status <> 'approved' and created_at < now() - interval '6 months';
     -- Koš: smazané položky držíme 30 dní, pak zmizí úplně.
     if to_regclass('public.deleted_rows') is not null then
         delete from public.deleted_rows where deleted_at < now() - interval '30 days';
@@ -1215,6 +1377,10 @@ values
     ('post', 'Česká pošta', 89, 10),
     ('zasilkovna', 'Zásilkovna', 69, 20),
     ('dpd', 'DPD kurýr', 119, 30)
+on conflict (id) do nothing;
+-- Osobní odběr je vypnutý, dokud v administraci nevyplníš, kde a kdy.
+insert into public.shipping_methods (id, name, price_czk, sort, active)
+values ('pickup', 'Osobní odběr', 0, 40, false)
 on conflict (id) do nothing;
 
 insert into public.settings (id, free_ship_threshold)
@@ -1543,7 +1709,7 @@ begin
         ('ingredients', 'id', 20), ('blends', 'id', 20), ('price_tiers', 'weight_g', 20),
         ('shipping_methods', 'id', 20), ('promo_codes', 'code', 20), ('craft_products', 'id', 20),
         ('craft_waitlist', 'id', 100), ('purchase_suppliers', 'id', 20), ('purchase_materials', 'id', 20),
-        ('purchase_offers', 'id', 100), ('purchase_tasks', 'id', 50)
+        ('purchase_offers', 'id', 100), ('purchase_tasks', 'id', 50), ('reviews', 'id', 20)
     ) as v(t, k, lim) loop
         execute format('drop trigger if exists %I_trash on public.%I', r.t, r.t);
         execute format('create trigger %I_trash after delete on public.%I
@@ -1565,7 +1731,7 @@ as $$
     select coalesce(array_position(array[
         'settings', 'ingredients', 'blends', 'price_tiers', 'shipping_methods', 'promo_codes',
         'craft_products', 'craft_waitlist', 'purchase_suppliers', 'purchase_materials',
-        'purchase_offers', 'purchase_tasks', 'orders', 'withdrawals', 'privacy_requests'], p_table), 99);
+        'purchase_offers', 'purchase_tasks', 'orders', 'reviews', 'withdrawals', 'privacy_requests'], p_table), 99);
 $$;
 
 -- Vrátí z koše všechno, co se smazalo jedním kliknutím (jedna transakce).
@@ -1634,7 +1800,7 @@ as $$
            ('shipping_methods', 'id'), ('promo_codes', 'code'), ('craft_products', 'id'),
            ('craft_waitlist', 'id'), ('purchase_suppliers', 'id'), ('purchase_materials', 'id'),
            ('purchase_offers', 'id'), ('purchase_tasks', 'id'), ('orders', 'id'),
-           ('withdrawals', 'id'), ('privacy_requests', 'id');
+           ('reviews', 'id'), ('withdrawals', 'id'), ('privacy_requests', 'id');
 $$;
 
 -- Celá databáze obchodu jako jeden JSON (jeden konzistentní snímek).
@@ -1814,6 +1980,8 @@ begin
           where exists (select 1 from public.withdrawals);
         perform setval(pg_get_serial_sequence('public.privacy_requests', 'id'), (select max(id) from public.privacy_requests))
           where exists (select 1 from public.privacy_requests);
+        perform setval(pg_get_serial_sequence('public.reviews', 'id'), (select max(id) from public.reviews))
+          where exists (select 1 from public.reviews);
         -- Obnova starší zálohy nesmí vrátit čas poslední zálohy do minulosti.
         update public.settings set last_backup_at = greatest(last_backup_at, v_last_backup) where id = 1;
         if p_dry_run then

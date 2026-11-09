@@ -399,6 +399,9 @@
             } else if (name === 'withdrawals') {
                 state.withdrawals = await db.select('withdrawals', { order: 'created_at.desc', limit: 500 });
                 renderWithdrawals();
+            } else if (name === 'reviews') {
+                state.reviews = await db.select('reviews', { order: 'created_at.desc', limit: 500 });
+                renderReviews();
             } else if (name === 'backups') {
                 state.trash = await db.select('deleted_rows', { order: 'deleted_at.desc', limit: 500 });
                 renderBackups();
@@ -660,7 +663,7 @@
                 ${glassHtml(items[0] && items[0].ingredients)}
                 <span class="row-main">
                     <span class="row-title">${esc(o.first_name)} ${esc(o.last_name)}</span>
-                    <span class="row-sub">${esc(o.num)}, ${esc(formatDate(o.created_at))}, ${count} ks</span>
+                    <span class="row-sub">${esc(o.num)}, ${esc(formatDate(o.created_at))}, ${count} ks${o.gift_wrap ? ', 🎁 dárek' : ''}${o.shipping_method === 'pickup' ? ', osobně' : ''}</span>
                 </span>
                 <span class="row-side">
                     <span class="row-price">${kc(o.total_czk)}</span>
@@ -677,8 +680,11 @@
         if (!o) return;
         const items = Array.isArray(o.items) ? o.items : [];
         const toSk = /^(sk|slovensko|slovakia)$/i.test(String(o.country || '').trim());
-        const address = [`${o.first_name} ${o.last_name}`, o.street, `${o.zip} ${o.city}`.trim(), o.country]
-            .filter(Boolean).join('\n');
+        const address = o.shipping_method === 'pickup'
+            ? `${o.first_name} ${o.last_name}\nOsobní odběr${(state.settings && state.settings.pickup_note) ? ': ' + state.settings.pickup_note : ''}`
+            : [`${o.first_name} ${o.last_name}`, o.street, `${o.zip} ${o.city}`.trim(), o.country].filter(Boolean).join('\n');
+        const payLabel = o.shipping_method === 'pickup' && o.payment_method === 'cod'
+            ? 'Hotově při osobním převzetí' : (PAYMENT[o.payment_method] || o.payment_method);
         const html = `
             <div class="order-meta">
                 <span class="pill pill-${esc(o.status)}" id="order-status-pill">${esc(STATUS[o.status] || o.status)}</span>
@@ -705,9 +711,16 @@
                     ${o.discount_czk ? `<div><span>Sleva ${esc(o.promo_code || '')}</span><span>−${kc(o.discount_czk)}</span></div>` : ''}
                     <div><span>Doprava</span><span>${o.shipping_czk ? kc(o.shipping_czk) : 'zdarma'}</span></div>
                     ${o.payment_czk ? `<div><span>Příplatek za dobírku</span><span>${kc(o.payment_czk)}</span></div>` : ''}
+                    ${o.gift_wrap ? `<div><span>Dárkové balení</span><span>${o.gift_czk ? kc(o.gift_czk) : 'zdarma'}</span></div>` : ''}
                     <div class="grand"><span>Celkem</span><span>${kc(o.total_czk)}</span></div>
                 </div>
             </div>
+
+            ${o.gift_wrap ? `<div class="sheet-section order-gift">
+                <h3>🎁 Dárek</h3>
+                <p>Zabalit jako dárek. Doklad s cenou do balíčku nedávej, pošli ho zákazníkovi e-mailem.</p>
+                ${o.gift_message ? `<p class="order-label"><span>Vzkaz na kartičku</span> ${esc(o.gift_message)}</p>` : '<p class="help">Bez vzkazu.</p>'}
+            </div>` : ''}
 
             <div class="sheet-section">
                 <h3>Stav</h3>
@@ -730,11 +743,13 @@
                     <dt>Telefon</dt><dd><a href="tel:${esc(String(o.phone).replace(/\s+/g, ''))}">${esc(o.phone)}</a></dd>
                     <dt>Doprava</dt><dd>${esc(o.shipping_name || o.shipping_method)}</dd>
                     ${o.packeta_point ? `<dt>Výdejní místo</dt><dd>${esc(o.packeta_point)}${o.packeta_point_id ? ` (ID ${esc(o.packeta_point_id)})` : ''}</dd>` : ''}
-                    <dt>Platba</dt><dd>${esc(PAYMENT[o.payment_method] || o.payment_method)}</dd>
+                    <dt>Platba</dt><dd>${esc(payLabel)}</dd>
                     ${o.payment_method === 'transfer' ? `<dt>Variabilní symbol</dt><dd>${esc(o.id)}</dd>` : ''}
                     <dt>Jazyk webu</dt><dd>${({ en: 'angličtina', sk: 'slovenština' })[o.lang] || 'čeština'}</dd>
                     <dt>Obchodní podmínky</dt><dd>${o.terms_version ? `znění z ${esc(o.terms_version)}, odsouhlaseno tlačítkem „Objednat a zaplatit“ ${esc(formatDate(o.created_at))}` : 'neuvedeno'}</dd>
                 </dl>
+                <p style="margin:12px 0 0"><a class="btn btn-secondary btn-small" id="confirm-mail" href="${esc(orderConfirmMail(o))}">Napsat potvrzení objednávky</a></p>
+                <p class="help">Otevře poštu s hotovým potvrzením v jazyce zákazníka${o.payment_method === 'transfer' ? ', včetně údajů k platbě' : ''}. Pošli ho hned po objednání.</p>
             </div>
 
             ${o.note ? `<div class="sheet-section"><h3>Poznámka od zákazníka</h3><p class="address">${esc(o.note)}</p></div>` : ''}
@@ -2091,7 +2106,7 @@
         shipping_methods: 'Doprava', promo_codes: 'Slevové kódy', craft_products: 'Mýdla a balzámy',
         craft_waitlist: 'Zájemci', purchase_suppliers: 'Dodavatelé', purchase_materials: 'Suroviny',
         purchase_offers: 'Nabídky', purchase_tasks: 'Úkoly', orders: 'Objednávky',
-        withdrawals: 'Odstoupení', privacy_requests: 'Žádosti o údaje',
+        withdrawals: 'Odstoupení', privacy_requests: 'Žádosti o údaje', reviews: 'Recenze',
     };
     let restoreData = null;
 
@@ -2309,6 +2324,66 @@
         });
     }
 
+    /* ═══ POTVRZENÍ OBJEDNÁVKY E-MAILEM ═════════════════════════════
+       Dokud e-maily neodcházejí samy, admin je pošle odsud: tlačítko
+       otevře poštu s hotovým textem v jazyce zákazníka (§ 1827 OZ:
+       potvrzení bez zbytečného odkladu). */
+    const MAIL_TEXT = {
+        cs: { hi: 'Dobrý den', thanks: (n, d) => `děkujeme za objednávku ${n} z ${d}. Tímto ji potvrzujeme, kupní smlouva je uzavřená.`,
+              items: 'Objednané zboží', ship: 'Doprava', free: 'zdarma', cod: 'Příplatek za dobírku', gift: 'Dárkové balení', discount: 'Sleva',
+              total: 'Celkem', pay: 'Platba převodem', acc: 'Číslo účtu', amount: 'Částka', vs: 'Variabilní symbol',
+              payNote: 'Zaplaťte prosím do 7 dnů. Směs odešleme, jakmile platba dorazí.', codNote: 'Platíte dopravci při převzetí.',
+              pickupNote: 'Zaplatíte při osobním převzetí.', deliver: 'Doručení', pickup: 'Osobní odběr',
+              terms: v => `Obchodní podmínky (znění z ${v}):`, bye: 'S pozdravem', subject: 'Potvrzení objednávky', pcs: 'ks' },
+        sk: { hi: 'Dobrý deň', thanks: (n, d) => `ďakujeme za objednávku ${n} z ${d}. Týmto ju potvrdzujeme, kúpna zmluva je uzavretá.`,
+              items: 'Objednaný tovar', ship: 'Doprava', free: 'zadarmo', cod: 'Príplatok za dobierku', gift: 'Darčekové balenie', discount: 'Zľava',
+              total: 'Spolu', pay: 'Platba prevodom', acc: 'Číslo účtu', amount: 'Suma', vs: 'Variabilný symbol',
+              payNote: 'Zaplaťte, prosím, do 7 dní. Zmes odošleme, hneď ako platba príde.', codNote: 'Platíte prepravcovi pri prevzatí.',
+              pickupNote: 'Zaplatíte pri osobnom prevzatí.', deliver: 'Doručenie', pickup: 'Osobný odber',
+              terms: v => `Obchodné podmienky (znenie z ${v}, zmluvu uzatvárame v češtine):`, bye: 'S pozdravom', subject: 'Potvrdenie objednávky', pcs: 'ks' },
+        en: { hi: 'Hello', thanks: (n, d) => `thank you for your order ${n} of ${d}. We hereby confirm it; the purchase contract is concluded.`,
+              items: 'Ordered items', ship: 'Shipping', free: 'free', cod: 'Cash on delivery fee', gift: 'Gift wrapping', discount: 'Discount',
+              total: 'Total', pay: 'Bank transfer', acc: 'Account number', amount: 'Amount', vs: 'Variable symbol',
+              payNote: 'Please pay within 7 days. We ship the blend as soon as the payment arrives.', codNote: 'You pay the carrier on delivery.',
+              pickupNote: 'You pay when you collect it.', deliver: 'Delivery', pickup: 'Personal pick-up',
+              terms: v => `Terms and conditions (version of ${v}, the contract is concluded in Czech):`, bye: 'Kind regards', subject: 'Order confirmation', pcs: 'pcs' },
+    };
+    function orderConfirmMail(o) {
+        const L = MAIL_TEXT[o.lang] || MAIL_TEXT.cs;
+        const st = state.settings || {};
+        const money = v => `${Number(v) || 0} Kč`;
+        const items = (Array.isArray(o.items) ? o.items : []).map(i => `- ${i.name}, ${i.weight_g} g × ${i.qty} ${L.pcs}: ${money(i.line_czk)}`);
+        const pickup = o.shipping_method === 'pickup';
+        const where = pickup ? `${L.pickup}${st.pickup_note ? ': ' + st.pickup_note : ''}`
+            : o.packeta_point ? `${o.shipping_name || o.shipping_method}: ${o.packeta_point}`
+            : [`${o.first_name} ${o.last_name}`, o.street, `${o.zip} ${o.city}`.trim(), o.country].filter(Boolean).join(', ');
+        const iban = st.seller_iban || '';
+        const transfer = o.payment_method === 'transfer' ? [
+            '', `${L.pay}:`,
+            iban ? `${L.acc}: ${Bank.czAccount(iban) || Bank.formatIban(iban)}` : `${L.acc}: [doplnit v Nastavení]`,
+            iban && Bank.czAccount(iban) ? `IBAN: ${Bank.formatIban(iban)}` : null,
+            `${L.amount}: ${money(o.total_czk)}`, `${L.vs}: ${o.id}`, L.payNote,
+        ] : ['', pickup ? L.pickupNote : L.codNote];
+        const seller = [st.seller_name || 'Tease you', st.seller_ico ? `IČO ${st.seller_ico}` : null, st.seller_address || null]
+            .filter(Boolean).join(', ');
+        const body = [
+            `${L.hi} ${o.first_name},`, '',
+            L.thanks(o.num, formatDate(o.created_at, false)), '',
+            `${L.items}:`, ...items,
+            o.discount_czk ? `${L.discount} ${o.promo_code || ''}: −${money(o.discount_czk)}` : null,
+            `${L.ship} (${pickup ? L.pickup : (o.shipping_name || o.shipping_method)}): ${o.shipping_czk ? money(o.shipping_czk) : L.free}`,
+            o.payment_czk ? `${L.cod}: ${money(o.payment_czk)}` : null,
+            o.gift_wrap ? `${L.gift}: ${o.gift_czk ? money(o.gift_czk) : L.free}` : null,
+            `${L.total}: ${money(o.total_czk)}`,
+            ...transfer, '',
+            `${L.deliver}: ${where}`, '',
+            o.terms_version ? L.terms(o.terms_version) : L.terms('—'),
+            'https://teaseyou.cz/?stranka=obchodni-podminky', '',
+            L.bye, seller, st.seller_email || 'hello@teaseyou.cz',
+        ].filter(x => x !== null).join('\n');
+        return `mailto:${encodeURIComponent(o.email)}?subject=${encodeURIComponent(`${L.subject} ${o.num}`)}&body=${encodeURIComponent(body)}`;
+    }
+
     /* ═══ ODSTOUPENÍ OD SMLOUVY ════════════════════════════════════ */
     const WD_STATUS = { new: 'Nové', confirmed: 'Potvrzené', refunded: 'Peníze vrácené', rejected: 'Zamítnuté' };
     const WD_PILL = { new: 'new', confirmed: 'paid', refunded: 'done', rejected: 'cancelled' };
@@ -2418,6 +2493,102 @@
         });
     }
 
+    /* ═══ RECENZE ══════════════════════════════════════════════════ */
+    const RV_STATUS = { pending: 'Čeká', approved: 'Zveřejněná', rejected: 'Odmítnutá' };
+    const RV_PILL = { pending: 'new', approved: 'shipped', rejected: 'cancelled' };
+    const stars = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+
+    function renderReviews() {
+        const el = $('#reviews-list');
+        const list = state.reviews || [];
+        const waiting = list.filter(r => r.status === 'pending').length;
+        const badge = $('#count-reviews');
+        badge.textContent = waiting;
+        badge.hidden = !waiting;
+        if (!list.length) {
+            el.innerHTML = '<p class="empty">Zatím žádné. Zákazník může hodnotit, až jeho objednávku označíš jako Odeslanou.</p>';
+            return;
+        }
+        const sorted = list.slice().sort((a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) || b.id - a.id);
+        el.innerHTML = sorted.map(r => `
+            <button type="button" class="row" data-review="${r.id}">
+                <span class="row-main">
+                    <span class="row-title"><span class="rv-stars" aria-label="${r.rating} z 5">${stars(r.rating)}</span> ${esc(r.author)} <span class="row-sub-inline">${esc(r.order_num)}</span></span>
+                    <span class="row-sub">${esc(formatDate(r.created_at))}${r.body ? ', ' + esc(r.body.slice(0, 80)) + (r.body.length > 80 ? '…' : '') : ', bez textu'}</span>
+                </span>
+                <span class="row-side"><span class="pill pill-${RV_PILL[r.status]}">${esc(RV_STATUS[r.status] || r.status)}</span></span>
+            </button>`).join('');
+        $$('#reviews-list [data-review]').forEach(row => row.addEventListener('click', () => {
+            openReview(state.reviews.find(r => String(r.id) === row.dataset.review));
+        }));
+    }
+
+    function openReview(r) {
+        if (!r) return;
+        const blends = (r.blends || []).map(id => (state.blends.find(b => b.id === id) || {}).name || id);
+        const html = `
+            <div class="order-meta">
+                <span class="pill pill-${RV_PILL[r.status]}">${esc(RV_STATUS[r.status])}</span>
+                <span>${esc(formatDate(r.created_at))}</span>
+            </div>
+            <div class="sheet-section">
+                <p class="rv-big" aria-label="${r.rating} z 5">${stars(r.rating)}</p>
+                ${r.body ? `<p class="address">${esc(r.body)}</p>` : '<p class="help">Jen hvězdičky, bez textu.</p>'}
+                <dl class="kv">
+                    <dt>Podpis</dt><dd>${esc(r.author)}</dd>
+                    <dt>Objednávka</dt><dd>${esc(r.order_num)} (ověřená e-mailem)</dd>
+                    ${blends.length ? `<dt>Hotové směsi</dt><dd>${esc(blends.join(', '))} <em>(ukáže se i u nich)</em></dd>` : ''}
+                    <dt>Jazyk</dt><dd>${({ en: 'angličtina', sk: 'slovenština' })[r.lang] || 'čeština'}</dd>
+                </dl>
+            </div>
+            <div class="sheet-section">
+                <h3>Zveřejnit</h3>
+                <div class="status-buttons" id="rv-status">
+                    ${Object.entries(RV_STATUS).map(([k, label]) =>
+                        `<button type="button" class="chip" data-status="${k}" aria-pressed="${r.status === k}">${esc(label)}</button>`).join('')}
+                </div>
+                <p class="help">Odmítni jen vulgární, nesouvisející nebo s cizími osobními údaji. Kritické hodnocení zveřejni a klidně na něj odpověz.</p>
+            </div>
+            <form class="sheet-section" id="rv-reply-form">
+                <label class="field"><span>Odpověď pod recenzí (uvidí ji všichni)</span><textarea name="reply" rows="3" maxlength="1000">${esc(r.reply || '')}</textarea></label>
+                <div class="sheet-actions">
+                    <button type="submit" class="btn btn-secondary btn-small">Uložit odpověď</button>
+                    <span class="spacer"></span>
+                    <button type="button" class="btn btn-danger btn-small" id="rv-delete">Smazat recenzi</button>
+                </div>
+                <p class="help">Smaž, když zákazník souhlas odvolá. Smazaná recenze jde 30 dní do koše.</p>
+            </form>`;
+        openSheet('Recenze ' + r.order_num, html, body => {
+            $$('#rv-status .chip', body).forEach(chip => chip.addEventListener('click', async () => {
+                if (chip.dataset.status === r.status) return;
+                try {
+                    Object.assign(r, await updateOne('reviews', { id: 'eq.' + r.id }, { status: chip.dataset.status }));
+                    renderReviews();
+                    openReview(r);
+                    toast(r.status === 'approved' ? 'Recenze je na webu.' : 'Stav uložený.');
+                } catch (err) { fail(err); }
+            }));
+            $('#rv-reply-form', body).addEventListener('submit', async e => {
+                e.preventDefault();
+                try {
+                    Object.assign(r, await updateOne('reviews', { id: 'eq.' + r.id }, { reply: e.currentTarget.reply.value.trim() }));
+                    sheetDirty = false;
+                    toast('Odpověď uložená.');
+                } catch (err) { fail(err); }
+            });
+            $('#rv-delete', body).addEventListener('click', async () => {
+                if (!(await confirmDialog(`Smazat recenzi od ${r.author}?`, 'Smazat'))) return;
+                try {
+                    await db.remove('reviews', { id: 'eq.' + r.id });
+                    state.reviews = state.reviews.filter(x => x.id !== r.id);
+                    closeSheet();
+                    renderReviews();
+                    toast('Smazáno, je v koši.');
+                } catch (err) { fail(err); }
+            });
+        });
+    }
+
     /* ═══ OSOBNÍ ÚDAJE (žádosti podle GDPR) ════════════════════════ */
     const REQ_KIND = { access: 'Kopie údajů', erasure: 'Výmaz', correction: 'Oprava', objection: 'Námitka', other: 'Jiné' };
 
@@ -2462,7 +2633,9 @@
             db.select('craft_waitlist', Object.assign({ order: 'created_at.desc' }, eq)),
             db.select('withdrawals', Object.assign({ order: 'created_at.desc' }, eq)),
         ]);
-        return { orders, waitlist, withdrawals };
+        const ids = orders.map(o => o.id).filter(Number.isInteger);
+        const reviews = ids.length ? await db.select('reviews', { order_id: `in.(${ids.join(',')})` }).catch(() => []) : [];
+        return { orders, waitlist, withdrawals, reviews };
     }
 
     $('#privacy-form').addEventListener('submit', async e => {
@@ -2474,12 +2647,13 @@
         try {
             const data = await findPersonalData(email);
             state.privacyFound = { email, data };
-            const n = data.orders.length + data.waitlist.length + data.withdrawals.length;
+            const n = data.orders.length + data.waitlist.length + data.withdrawals.length + data.reviews.length;
             out.innerHTML = n ? `
                 <ul class="privacy-found">
                     <li><strong>${data.orders.length}</strong> objednávek${data.orders.length ? ': ' + data.orders.map(o => esc(o.num)).join(', ') : ''}</li>
                     <li><strong>${data.waitlist.length}</strong> přihlášení k upozornění na mýdla a balzámy</li>
                     <li><strong>${data.withdrawals.length}</strong> odstoupení od smlouvy</li>
+                    <li><strong>${data.reviews.length}</strong> recenzí${data.reviews.length ? ' (smazat je můžeš v záložce Recenze)' : ''}</li>
                 </ul>
                 <div class="privacy-actions">
                     <button type="button" class="btn btn-primary btn-small" id="privacy-export">Stáhnout kopii (JSON)</button>
@@ -2697,6 +2871,11 @@
                     toast('Aspoň jeden způsob dopravy musí zůstat zapnutý.', true);
                     return;
                 }
+                if (active.checked && s.id === 'pickup' && !String((state.settings || {}).pickup_note || '').trim()) {
+                    active.checked = false;
+                    toast('Nejdřív níže v „Dárek a osobní odběr“ napiš, kde a kdy se vyzvedává.', true);
+                    return;
+                }
                 try {
                     Object.assign(s, await updateOne('shipping_methods', { id: 'eq.' + s.id }, { active: active.checked }));
                     toast(s.active ? `${s.name}: nabízíme` : `${s.name}: vypnuto`);
@@ -2717,6 +2896,12 @@
         ['seller_name', 'seller_ico', 'seller_address', 'seller_email', 'seller_phone', 'durability_months'].forEach(n => {
             sf[n].value = st[n] ?? '';
         });
+        sf.seller_iban.value = st.seller_iban ? (Bank.czAccount(st.seller_iban) || Bank.formatIban(st.seller_iban)) : '';
+
+        const xf = $('#extras-form');
+        xf.gift_wrap_enabled.checked = st.gift_wrap_enabled === true;
+        xf.gift_wrap_czk.value = st.gift_wrap_czk ?? 0;
+        xf.pickup_note.value = st.pickup_note || '';
     }
 
     // Výchozí hodnoty, dokud v databázi není řádek nastavení (nebo chybí
@@ -2724,6 +2909,7 @@
     const SETTINGS_DEFAULTS = {
         free_ship_threshold: 500, cod_fee_czk: 39, promo_bar_enabled: true, promo_bar_cs: '', promo_bar_en: '', promo_bar_sk: '',
         seller_name: '', seller_ico: '', seller_address: '', seller_email: 'hello@teaseyou.cz', seller_phone: '',
+        seller_iban: '', gift_wrap_enabled: false, gift_wrap_czk: 0, pickup_note: '',
         durability_months: 12,
         sales_open: false, sales_opened_at: null,
     };
@@ -2845,11 +3031,28 @@
         if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('E-mail nevypadá správně.', true); return; }
         const months = pct('durability_months');
         if (!(months >= 1 && months <= 36)) { toast('Trvanlivost zadej v měsících, 1 až 36.', true); return; }
-        await saveSettings({
+        const iban = v('seller_iban') ? Bank.toIban(v('seller_iban')) : '';
+        if (v('seller_iban') && !iban) { toast('Číslo účtu nesedí. Zkontroluj ho (třeba 19-2000145399/0800) nebo zadej IBAN.', true); return; }
+        const row = {
             seller_name: v('seller_name'), seller_ico: ico, seller_address: v('seller_address'),
             seller_email: email, seller_phone: v('seller_phone'),
             durability_months: months,
-        }, f.querySelector('[type=submit]'), 'Údaje o prodávajícím uložené.');
+        };
+        if (!state.settings || 'seller_iban' in state.settings) row.seller_iban = iban;
+        await saveSettings(row, f.querySelector('[type=submit]'), 'Údaje o prodávajícím uložené.');
+        if (state.settings && state.settings.seller_iban) f.seller_iban.value = Bank.czAccount(state.settings.seller_iban) || Bank.formatIban(state.settings.seller_iban);
+    });
+
+    $('#extras-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const f = e.currentTarget;
+        const price = parseInt(f.gift_wrap_czk.value, 10);
+        if (!(price >= 0 && price <= 500)) { toast('Cena dárkového balení musí být 0 až 500 Kč.', true); return; }
+        const pickup = f.pickup_note.value.trim();
+        const pickupOn = (state.shipping.find(x => x.id === 'pickup') || {}).active;
+        if (!pickup && pickupOn) { toast('Osobní odběr je zapnutý, tak musí mít napsané místo. Nebo ho nahoře v Dopravě vypni.', true); return; }
+        await saveSettings({ gift_wrap_enabled: f.gift_wrap_enabled.checked, gift_wrap_czk: price, pickup_note: pickup },
+            f.querySelector('[type=submit]'), 'Uloženo.');
     });
 
     /* ═══ SLEVY ════════════════════════════════════════════════════ */

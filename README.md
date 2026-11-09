@@ -72,6 +72,11 @@ pak jen záloha pro případ, že databáze neodpoví.
 | Překlady (CS/EN) | `script.js` — `TRANSLATIONS` |
 | Překlady (SK) | `i18n-sk.js` — stejné klíče jako česky |
 
+Každá stránka má vlastní adresu: `?stranka=kviz`, hotová směs `?smes=deep_winter`,
+jazyk `&lang=sk`. Díky tomu funguje tlačítko Zpět a Google najde jednotlivé
+stránky. Když v administraci přidáš novou hotovou směs, připiš ji do
+`sitemap.xml` (stejně jako ostatní).
+
 Jazyk si zákazník vybere v hlavičce (CZ / SK / EN) nebo v patičce. Volba se
 pamatuje v prohlížeči; bez ní se jazyk vezme z nastavení prohlížeče (čeština,
 slovenština, jinak angličtina). Po přepnutí se stránka načte znovu a vrátí
@@ -89,6 +94,8 @@ script.js                  Mixér, košík, checkout, kvíz, i18n, data ingredie
 recipe.js                  Výpočet receptury (díly → %, gramy, druh čaje, příplatek). Stejný je v databázi.
 icons.js                   Vestavěné ikonky surovin, dokud v adminu nenahraješ vlastní.
 i18n-sk.js                 Slovenské texty webu (klíče jako v TRANSLATIONS ve script.js).
+bank.js                    Číslo účtu ↔ IBAN a text QR Platby (web i administrace).
+vendor/qrcode.js           Knihovna na QR kód (MIT), načte se až u platby převodem.
 config.js                  Adresa a veřejný klíč Supabase.
 db.js                      Malý klient pro Supabase (tabulky, přihlášení, fotky).
 admin/                     Administrace: objednávky, nabídka, ceny, slevy.

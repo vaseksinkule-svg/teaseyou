@@ -3,12 +3,15 @@
    ============================================= */
 
 /* ─── JAZYK ─────────────────────────────────── */
-/* Čeština, slovenština, nebo angličtina. Přednost má volba z přepínače
+/* Čeština, slovenština, nebo angličtina. Přednost má jazyk v adrese
+   (?lang=sk, podle něj Google pozná jazykové verze), pak volba z přepínače
    v hlavičce (uložená v prohlížeči), jinak jazyk prohlížeče. Kdo nemá
    češtinu ani slovenštinu, dostane angličtinu. */
 const LANGS = ['cs', 'sk', 'en'];
 const LANG_KEY = 'teaseyou_lang';
+const URL_LANG = (() => { try { const l = new URLSearchParams(location.search).get('lang'); return LANGS.includes(l) ? l : ''; } catch (_) { return ''; } })();
 const LANG = (() => {
+    if (URL_LANG) return URL_LANG;
     try {
         const saved = localStorage.getItem(LANG_KEY);
         if (LANGS.includes(saved)) return saved;
@@ -648,7 +651,13 @@ function setLanguage(code) {
     if (!LANGS.includes(code) || code === LANG) return;
     try { localStorage.setItem(LANG_KEY, code); } catch (_) { /* soukromé okno */ }
     try { sessionStorage.setItem(VIEW_RESTORE_KEY, JSON.stringify(captureViewState())); } catch (_) {}
-    location.reload();
+    if (URL_LANG) {
+        const u = new URL(location.href);
+        u.searchParams.set('lang', code);
+        location.replace(u.href);
+    } else {
+        location.reload();
+    }
 }
 function captureViewState() {
     const page = document.querySelector('.page.active')?.id || 'home-page';
@@ -670,6 +679,9 @@ function restoreViewState() {
         sessionStorage.removeItem(VIEW_RESTORE_KEY);
     } catch (_) { return false; }
     if (!st || typeof st !== 'object' || typeof st.page !== 'string' || !/^[a-z-]+-page$/.test(st.page)) return false;
+    return withHistory('replace', () => restoreView(st));
+}
+function restoreView(st) {
     if (st.page === 'product-page' && st.mix && Array.isArray(st.mix.items)) {
         if (Number.isInteger(st.mix.weight)) mixerWeight = st.mix.weight;
         openInMixer(st.mix.items.map(x => x && x.code), String(st.mix.name || ''), Number(st.mix.step) || 1, st.mix.items.map(x => x && x.parts));
@@ -793,7 +805,7 @@ function cartGoods() {
         return s + (isFinite(line) ? line : 0);
     }, 0);
 }
-function computeTotals(shipping = 0, payFee = 0) {
+function computeTotals(shipping = 0, payFee = 0, giftFee = 0) {
     const goods    = cartGoods();
     // Sazba se drží v rozumných mezích, ať se do součtu nikdy nedostane
     // NaN ani záporná sleva (ta by cenu naopak zvyšovala).
@@ -805,13 +817,29 @@ function computeTotals(shipping = 0, payFee = 0) {
     const ship     = freeShip ? 0 : shipping;
     // Příplatek za dobírku platí i při dopravě zdarma (stejně počítá databáze).
     const pay      = Math.max(0, Number(payFee) || 0);
-    return { goods, discount, afterDiscount, freeShip, ship, pay, total: afterDiscount + ship + pay };
+    const gift     = Math.max(0, Number(giftFee) || 0);
+    return { goods, discount, afterDiscount, freeShip, ship, pay, gift, total: afterDiscount + ship + pay + gift };
 }
 
 /* Příplatek za zvolený způsob platby v pokladně. */
 function selectedPayFee() {
     const r = document.querySelector('#checkout-form input[name="payment"]:checked');
-    return r && r.value === 'cod' ? COD_FEE : 0;
+    // při osobním odběru se platí při předání, bez příplatku
+    return r && r.value === 'cod' && !pickupSelected() ? COD_FEE : 0;
+}
+function pickupSelected() {
+    const ship = document.querySelector('#checkout-form input[name="shipping"]:checked');
+    return !!ship && ship.value === 'pickup';
+}
+function selectedGiftFee() {
+    const box = document.getElementById('f-gift');
+    return GIFT_WRAP.on && box && box.checked ? GIFT_WRAP.price : 0;
+}
+function syncGiftFields() {
+    const box = document.getElementById('f-gift');
+    const msg = document.getElementById('gift-message-group');
+    if (msg) msg.hidden = !(box && box.checked);
+    refreshCheckoutTotals();
 }
 
 /* ─── BREW PARAMS per base ───────────────────── */
@@ -919,7 +947,9 @@ function closeSidebar() {
 }
 
 /* ─── PAGE NAVIGATION ────────────────────────── */
-function showPage(pageId) {
+function showPage(pageId, opts = {}) {
+    if (!document.getElementById(pageId)) pageId = 'home-page';
+    const leftAt = Math.round(window.scrollY);   // dřív, než se stránka vymění a zkrátí
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     const incoming = document.getElementById(pageId);
     if (incoming) {
@@ -928,7 +958,8 @@ function showPage(pageId) {
         void incoming.offsetWidth; // force reflow
         incoming.classList.add('page-enter');
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (opts.scroll !== false) window.scrollTo({ top: 0, behavior: 'smooth' });
+    syncHistory(pageId, opts.history || forcedHistory || 'push', leftAt);
     if (pageId === 'cart-page')         renderCart();
     if (pageId === 'checkout-page')     renderCheckoutSummary();
     if (pageId === 'cart-page' || pageId === 'checkout-page') applySalesState();
@@ -944,6 +975,136 @@ function showPage(pageId) {
     });
     document.body.dataset.page = pageId;
     if (pageId === 'product-page' && typeof updateMixerUI === 'function') updateMixerUI();
+    updateSeo(pageId);
+}
+
+/* ─── ADRESY STRÁNEK A TLAČÍTKO ZPĚT ─────────── */
+/* Každá stránka má vlastní adresu (?stranka=kviz, hotová směs
+   ?smes=deep_winter), takže v prohlížeči funguje Zpět a Vpřed, odkaz jde
+   poslat a Google stránky najde. Adresy jsou stejné ve všech jazycích,
+   jazyk přidá ?lang=… (jen když v adrese už je). */
+const PAGE_SLUGS = {
+    'product-page': 'namichat', 'quiz-page': 'kviz', 'ingredients-page': 'suroviny', 'craft-page': 'mydla',
+    'about-page': 'o-nas', 'process-page': 'jak-michame', 'saved-page': 'moje-smesi', 'orders-page': 'moje-objednavky',
+    'cart-page': 'kosik', 'checkout-page': 'pokladna', 'terms-page': 'obchodni-podminky',
+    'withdrawal-page': 'odstoupeni', 'privacy-page': 'ochrana-udaju', 'cookies-page': 'cookies',
+};
+const SLUG_PAGES = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([page, slug]) => [slug, page]));
+const SITE_URL = 'https://teaseyou.cz/';
+let detailState = null;    // co je na detailu: { blend: id } nebo celá směs (kvíz, uložené)
+let forcedHistory = null;  // 'replace' / 'none' při obnově stránky
+let pendingBlendRoute = null;
+
+function withHistory(mode, fn) {
+    const before = forcedHistory;
+    forcedHistory = mode;
+    try { return fn(); } finally { forcedHistory = before; }
+}
+
+function queryFor(pageId, lang = URL_LANG) {
+    const q = new URLSearchParams();
+    if (pageId === 'product-detail-page' && detailState && detailState.blend) q.set('smes', detailState.blend);
+    else if (PAGE_SLUGS[pageId]) q.set('stranka', PAGE_SLUGS[pageId]);
+    if (lang) q.set('lang', lang);
+    const str = q.toString();
+    return str ? '?' + str : '';
+}
+
+function syncHistory(pageId, mode, leftAt = Math.round(window.scrollY)) {
+    if (mode === 'none' || !window.history || typeof history.pushState !== 'function') return;
+    const state = { page: pageId };
+    let url = location.pathname + queryFor(pageId);
+    if (pageId === 'product-detail-page' && detailState) {
+        state.detail = detailState;
+        if (!detailState.blend) url = location.pathname + location.search;   // směs bez vlastní adresy
+    }
+    if (pageId === 'success-page') url = location.pathname + queryFor('home-page');
+    const cur = history.state;
+    const same = cur && cur.page === pageId && location.pathname + location.search === url
+        && JSON.stringify(cur.detail || null) === JSON.stringify(state.detail || null);
+    try {
+        if (mode === 'replace' || same) {
+            history.replaceState(Object.assign({}, same ? cur : {}, state), '', url);
+        } else {
+            history.replaceState(Object.assign({}, cur, { y: leftAt }), '');
+            history.pushState(state, '', url);
+        }
+    } catch (_) { /* třeba file:// nebo moc rychlých změn */ }
+}
+
+function stateFromUrl() {
+    const q = new URLSearchParams(location.search);
+    const blend = q.get('smes');
+    if (blend) return { page: 'product-detail-page', detail: { blend } };
+    return { page: SLUG_PAGES[q.get('stranka')] || 'home-page' };
+}
+
+/* Otevře stránku podle záznamu v historii nebo podle adresy. */
+function routeTo(st, mode) {
+    if (!st || typeof st !== 'object' || typeof st.page !== 'string') st = { page: 'home-page' };
+    const keepScroll = st.y > 0 ? { scroll: false } : {};
+    return withHistory(mode, () => {
+        if (st.page === 'product-detail-page') {
+            const d = st.detail || {};
+            if (typeof d.blend === 'string') {
+                if (catalogBlends.some(b => b.id === d.blend)) { openBlend(d.blend, keepScroll); pendingBlendRoute = null; return true; }
+                // směs z administrace, která ještě není načtená: zkusí se po načtení katalogu
+                if (!catalogLoaded) pendingBlendRoute = d.blend;
+            } else if (Array.isArray(d.ingredients) && d.ingredients.length) {
+                openDetail(String(d.name || ''), String(d.desc || ''), Number(d.price) || 0, d.ingredients, null, d.parts, keepScroll);
+                return true;
+            }
+            showPage('home-page', keepScroll);
+            return false;
+        }
+        if (st.page === 'success-page' && !document.querySelector('#success-order-num')?.textContent.trim()) {
+            showPage('home-page', keepScroll);
+            return false;
+        }
+        showPage(st.page, keepScroll);
+        return true;
+    });
+}
+
+window.addEventListener('popstate', e => {
+    const st = e.state || stateFromUrl();
+    routeTo(st, 'none');
+    if (st && st.y > 0) setTimeout(() => window.scrollTo({ top: st.y, behavior: 'auto' }), 40);
+});
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+/* Titulek, popis a adresy pro vyhledávače podle otevřené stránky. Mixér
+   a kvíz nemají pevný nadpis (mění se po krocích), proto mají vlastní text. */
+const PAGE_TITLE_KEYS = { 'product-page': 'title_mixer', 'quiz-page': 'nav_quiz' };
+function updateSeo(pageId) {
+    const page = document.getElementById(pageId);
+    let title = t('page_title');
+    let desc = t('meta_desc');
+    if (pageId === 'product-detail-page' && currentProduct && currentProduct.name) {
+        title = `${currentProduct.name} — Tease you`;
+        if (currentProduct.desc) desc = String(currentProduct.desc).replace(/\s+/g, ' ').slice(0, 300);
+    } else if (PAGE_TITLE_KEYS[pageId]) {
+        title = `${t(PAGE_TITLE_KEYS[pageId])} — Tease you`;
+    } else if (pageId !== 'home-page' && page) {
+        const h = page.querySelector('h1.page-title, h1, h2');
+        const head = h ? h.textContent.replace(/\s+/g, ' ').trim() : '';
+        if (head) title = `${head} — Tease you`;
+    }
+    document.title = title;
+    const set = (sel, attr, val) => { const el = document.querySelector(sel); if (el) el.setAttribute(attr, val); };
+    set('meta[name="description"]', 'content', desc);
+    set('meta[property="og:title"]', 'content', title);
+    set('meta[property="og:description"]', 'content', desc);
+    const absolute = lang => new URL(queryFor(pageId, lang), SITE_URL).href;
+    // Detail směsi bez vlastní adresy (kvíz, uložené směsi) se do vyhledávače nedává.
+    const own = pageId !== 'success-page' && !(pageId === 'product-detail-page' && !(detailState && detailState.blend));
+    set('link[rel="canonical"]', 'href', own ? absolute(LANG) : absolute(LANG).replace(/\?.*$/, ''));
+    set('meta[property="og:url"]', 'content', own ? absolute(LANG) : SITE_URL);
+    for (const l of [...LANGS, 'x-default']) {
+        let link = document.querySelector(`link[rel="alternate"][hreflang="${l}"]`);
+        if (!link) { link = document.createElement('link'); link.rel = 'alternate'; link.hreflang = l; document.head.appendChild(link); }
+        link.href = own ? absolute(l === 'x-default' ? '' : l) : SITE_URL;
+    }
 }
 
 /* ─── FAQ ACCORDION ──────────────────────────── */
@@ -961,8 +1122,11 @@ function toggleBrewGuide(btn) {
 }
 
 /* ─── PRODUCT DETAIL ─────────────────────────── */
-function openDetail(name, desc, price, ingredientsIn, colors, partsIn) {
+function openDetail(name, desc, price, ingredientsIn, colors, partsIn, opts = {}) {
     const { codes: ingredients, parts } = Recipe.normalize(ingredientsIn, partsIn);
+    const fromCatalog = catalogBlends.find(b => b.name === name);
+    detailState = fromCatalog ? { blend: fromCatalog.id } : { name, desc, price, ingredients, parts };
+    renderDetailReviews(fromCatalog && fromCatalog.id);
     // Barvy se berou z katalogu — admin je mohl změnit od doby, kdy vznikl
     // kvíz nebo uložený mix.
     colors = ingredients.map((c, i) => ingColor(c) || (colors && colors[i]) || 'transparent');
@@ -983,7 +1147,7 @@ function openDetail(name, desc, price, ingredientsIn, colors, partsIn) {
 
     renderPriceOptions();
     preselectQty(document.querySelector('#product-detail-page .qty-options'));
-    showPage('product-detail-page');
+    showPage('product-detail-page', opts);
 }
 
 /* Sáček a seznam ingrediencí na detailu hotové směsi: podíl v % a kolik
@@ -1040,7 +1204,11 @@ function refreshCheckoutTotals() {
     if (payErr && document.querySelector('#checkout-form input[name="payment"]:checked')) payErr.style.display = 'none';
     const shipRadio = document.querySelector('#checkout-form input[name="shipping"]:checked');
     const cost = shipRadio ? parseFloat(shipRadio.getAttribute('data-price')) || 0 : 0;
-    const totals = computeTotals(cost, selectedPayFee());
+    const totals = computeTotals(cost, selectedPayFee(), selectedGiftFee());
+    const giftRow = document.getElementById('checkout-gift-row');
+    if (giftRow) giftRow.style.display = document.getElementById('f-gift')?.checked && GIFT_WRAP.on ? 'flex' : 'none';
+    const giftEl = document.getElementById('checkout-gift-cost');
+    if (giftEl) giftEl.textContent = totals.gift ? fmt(totals.gift) : t('gift_free');
     const row = document.getElementById('checkout-shipping-row');
     const costEl = document.getElementById('checkout-shipping-cost');
     if (row) row.style.display = shipRadio ? 'flex' : 'none';
@@ -1056,14 +1224,25 @@ function refreshCheckoutTotals() {
 
 function syncAddressFields() {
     const ship = document.querySelector('#checkout-form input[name="shipping"]:checked');
-    const pickup = !!ship && ship.value === 'zasilkovna';
+    const pickup = !!ship && (ship.value === 'zasilkovna' || ship.value === 'pickup');
     document.querySelectorAll('#checkout-form .address-only').forEach(el => { el.hidden = pickup; });
     ['f-street', 'f-city', 'f-zip'].forEach(id => {
         const f = document.getElementById(id);
         if (f) { f.required = !pickup; if (pickup) setFieldError(f, ''); }
     });
     const hint = document.getElementById('address-hint');
-    if (hint) hint.hidden = !pickup;
+    if (hint) {
+        hint.hidden = !pickup;
+        if (pickup) hint.textContent = t(ship.value === 'pickup' ? 'address_not_needed_pickup' : 'address_not_needed');
+    }
+    // dobírka se u osobního odběru mění na platbu při předání
+    const inPerson = !!ship && ship.value === 'pickup';
+    const cod = document.querySelector('#checkout-form input[name="payment"][value="cod"]')?.closest('.payment-option');
+    if (cod) {
+        const name = cod.querySelector('.choice-name'), desc = cod.querySelector('.choice-desc');
+        if (name) name.textContent = t(inPerson ? 'pay_on_pickup' : 'pay_cod');
+        if (desc) desc.textContent = t(inPerson ? 'pay_on_pickup_desc' : 'pay_cod_desc');
+    }
 }
 
 function handleShippingChange(radio) {
@@ -1532,7 +1711,7 @@ function validateCheckout(form) {
     let ok = true;
     let firstInvalid = null;
     const shipChoice = form.querySelector('input[name="shipping"]:checked');
-    const needsAddress = !shipChoice || shipChoice.value !== 'zasilkovna';
+    const needsAddress = !shipChoice || (shipChoice.value !== 'zasilkovna' && shipChoice.value !== 'pickup');
     const checks = [
         ['firstName', v => v.trim().length >= 2,                      t('err_firstname')],
         ['lastName',  v => v.trim().length >= 2,                      t('err_lastname')],
@@ -1591,7 +1770,8 @@ function submitOrder(e) {
 
     const shipRadio = form.querySelector('input[name="shipping"]:checked');
     const shipPrice = shipRadio ? parseFloat(shipRadio.getAttribute('data-price')) || 0 : 0;
-    const totals = computeTotals(shipPrice, selectedPayFee());
+    const totals = computeTotals(shipPrice, selectedPayFee(), selectedGiftFee());
+    const payRadio = form.querySelector('input[name="payment"]:checked');
     const orderNum = 'TY-' + Date.now().toString(36).toUpperCase().slice(-6);
 
     const order = {
@@ -1604,7 +1784,10 @@ function submitOrder(e) {
         promo:       appliedPromo ? appliedPromo.code : null,
         shipping:    totals.ship,
         payment:     totals.pay,
+        gift:        totals.gift,
         total:       totals.total,
+        ship:        shipRadio ? shipRadio.value : '',
+        pay:         payRadio ? payRadio.value : '',
         packetaPoint: packetaPoint ? `${packetaPoint.name}, ${packetaPoint.city}` : null
     };
 
@@ -1645,7 +1828,9 @@ function submitOrder(e) {
             order.discount = serverResult.discount;
             order.shipping = serverResult.shipping;
             if (Number.isFinite(serverResult.payment)) order.payment = serverResult.payment;
+            if (Number.isFinite(serverResult.gift)) order.gift = serverResult.gift;
             order.total    = serverResult.total;
+            order.server   = true;   // číslo a částka jsou z databáze (jde podle nich platit)
         }
         orders.unshift(order);
         if (orders.length > 50) orders.pop();
@@ -1656,6 +1841,9 @@ function submitOrder(e) {
         const pouch = document.getElementById('success-pouch');
         const first = order.items[0];
         if (pouch && first) pouch.innerHTML = pouchHtml({ name: first.name, codes: first.ingredients, parts: first.parts, size: 'pouch--sm' });
+        renderPaymentBox(document.getElementById('success-pay'), order);
+        const giftBox = document.getElementById('f-gift');
+        if (giftBox) { giftBox.checked = false; const m = document.getElementById('f-gift-message'); if (m) m.value = ''; syncGiftFields(); }
 
         cart = [];
         appliedPromo = null;
@@ -1664,7 +1852,7 @@ function submitOrder(e) {
         savePromo();
         updateCartBadge();
         unlock();
-        showPage('success-page');
+        showPage('success-page', { history: 'replace' });   // Zpět nevede do prázdné pokladny
         launchConfetti();
     };
 
@@ -1740,6 +1928,235 @@ function launchConfetti() {
     }
 }
 
+/* ─── PLATBA PŘEVODEM: ÚDAJE A QR KÓD ─────────── */
+/* Ukáže se jen u objednávky z databáze (číslo a částku spočítal server)
+   a jen když je v administraci vyplněný účet. QR je český standard
+   QR Platba, knihovna se načte až tady. */
+let qrLibLoading = null;
+function loadQrLib() {
+    if (typeof window.qrcode === 'function') return Promise.resolve(window.qrcode);
+    if (!qrLibLoading) {
+        qrLibLoading = new Promise((resolve, reject) => {
+            const el = document.createElement('script');
+            el.src = 'vendor/qrcode.js';
+            el.async = true;
+            el.onload = () => (typeof window.qrcode === 'function' ? resolve(window.qrcode) : reject(new Error('qrcode')));
+            el.onerror = () => { qrLibLoading = null; reject(new Error('qrcode')); };
+            document.head.appendChild(el);
+        });
+    }
+    return qrLibLoading;
+}
+
+function paymentInfo(order) {
+    if (!order || order.pay !== 'transfer' || !order.server || !SELLER.iban || !window.Bank) return null;
+    const vs = Bank.variableSymbol(order.num);
+    const amount = Number(order.total);
+    if (!vs || !(amount > 0)) return null;
+    return { iban: SELLER.iban, account: Bank.czAccount(SELLER.iban), amount, vs, msg: `Tease you ${order.num}` };
+}
+
+function renderPaymentBox(box, order) {
+    if (!box) return;
+    const info = paymentInfo(order);
+    box.hidden = !info;
+    box.innerHTML = '';
+    if (!info) return;
+    const rows = [
+        [t('pay_account'), info.account || Bank.formatIban(info.iban)],
+        info.account ? ['IBAN', Bank.formatIban(info.iban)] : null,
+        [t('pay_amount'), fmt(info.amount)],
+        [t('pay_vs'), info.vs],
+    ].filter(Boolean);
+    box.innerHTML = `
+        <h2 class="pay-box-title">${escHtml(t('pay_box_title'))}</h2>
+        <div class="pay-box-body">
+            <figure class="pay-qr">
+                <div class="pay-qr-code" role="img" aria-label="${escHtml(t('pay_qr_label'))}"></div>
+                <figcaption>${escHtml(t('pay_qr_caption'))}</figcaption>
+            </figure>
+            <dl class="pay-details">${rows.map(([k, v]) => `<div><dt>${escHtml(k)}</dt><dd>${escHtml(v)}</dd></div>`).join('')}</dl>
+        </div>
+        <p class="pay-box-note">${escHtml(t('pay_box_note'))}</p>`;
+    const text = Bank.spayd(info);
+    loadQrLib().then(qr => {
+        const code = qr(0, 'M');
+        code.addData(text);
+        code.make();
+        const el = box.querySelector('.pay-qr-code');
+        if (el) { el.innerHTML = code.createSvgTag({ cellSize: 4, margin: 4, scalable: true }); el.dataset.spayd = text; }
+    }).catch(() => {
+        const fig = box.querySelector('.pay-qr');
+        if (fig) fig.hidden = true;   // bez QR zůstanou údaje k opsání
+    });
+}
+
+/* ─── OBJEDNAT ZNOVU ──────────────────────────── */
+/* Položky staré objednávky zpátky do košíku, s dnešní cenou. Co už nejde
+   (vyprodaná nebo zrušená surovina, velikost, která se už neprodává),
+   vynechá a řekne to. */
+function reorder(num) {
+    const o = orders.find(x => x.num === num);
+    if (!o) return;
+    let added = 0, skipped = 0;
+    (Array.isArray(o.items) ? o.items : []).forEach(it => {
+        const raw = Array.isArray(it.ingredients) ? it.ingredients : [];
+        const known = raw.filter(c => typeof c === 'string' && ingByCode(c));
+        const weight = parseInt(it.weight, 10);
+        const { codes, parts } = Recipe.normalize(known, Array.isArray(it.parts) ? it.parts : null);
+        const ok = known.length && known.length === raw.length && PRICES[weight]
+            && !outOfStockIn(codes).length && recipeOf(codes, parts, weight).ok;
+        const price = ok ? unitPrice(codes, parts, weight) : 0;
+        if (!price) { skipped++; return; }
+        const qty = Math.min(Math.max(parseInt(it.qty, 10) || 1, 1), 20);
+        const name = String(it.name || '').trim().slice(0, 60) || 'Custom Mix';
+        const same = i => i.name === name && i.ingredients.join('|') === codes.join('|')
+            && (i.parts || []).join() === parts.join() && parseInt(i.weight, 10) === weight;
+        const existing = cart.find(same);
+        if (existing) existing.qty += qty;
+        else cart.push({ id: ++cartIdCounter, name, ingredients: codes.slice(), parts: parts.slice(),
+                         colors: codes.map(c => ingColor(c) || '#ccc'), weight: weight + 'g', priceBase: price, qty });
+        added++;
+    });
+    if (!added) { showToast(t('reorder_none'), '🫙'); return; }
+    saveCart();
+    updateCartBadge();
+    showPage('cart-page');
+    showToast(skipped ? t('reorder_some').replace('{n}', skipped) : t('reorder_done'), skipped ? '⚠️' : '🛒');
+}
+
+/* ─── RECENZE ─────────────────────────────────── */
+/* Hodnotit jde z Moje objednávky: databáze ověří číslo objednávky a e-mail
+   z ní a pustí to až po odeslání. Na web jdou jen schválené (admin).
+   Jak ověřujeme, píšeme u recenzí (zákon o ochraně spotřebitele). */
+const REVIEWED_KEY = 'teaseyou_reviewed';
+const reviewsCache = {};
+const reviewsOn = () => !!(window.TeaDB && TeaDB.configured);
+function reviewedOrders() { const v = readStore(REVIEWED_KEY, []); return Array.isArray(v) ? v : []; }
+const fmtRating = n => Number(n).toLocaleString(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+function starsHtml(n, label = true) {
+    const full = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
+    const aria = label ? ` role="img" aria-label="${escHtml(t('reviews_stars').replace('{n}', fmtRating(n)))}"` : ' aria-hidden="true"';
+    return `<span class="stars"${aria}>${'★'.repeat(full)}<span class="stars-off">${'★'.repeat(5 - full)}</span></span>`;
+}
+function reviewsCountText(n) {
+    const form = n === 1 ? 'one' : (n >= 2 && n <= 4 ? 'few' : 'many');
+    return `${n} ${t('reviews_n_' + form)}`;
+}
+function loadReviews(blend) {
+    if (!reviewsOn()) return Promise.resolve(null);
+    const key = blend || '';
+    if (!reviewsCache[key]) {
+        reviewsCache[key] = TeaDB.rpc('public_reviews', blend ? { p_blend: blend } : {})
+            .catch(() => { delete reviewsCache[key]; return null; });
+    }
+    return reviewsCache[key];
+}
+function renderReviewBlock(prefix, data, max) {
+    const section = document.getElementById(prefix);
+    if (!section) return;
+    const count = data && Number(data.count) || 0;
+    const items = data && Array.isArray(data.items) ? data.items : [];
+    section.hidden = !count;
+    if (!count) return;
+    const summary = document.getElementById(prefix + '-summary');
+    if (summary) summary.innerHTML = `${starsHtml(data.average)} <strong>${escHtml(fmtRating(data.average))}</strong> ${escHtml(t('reviews_of5'))} · ${escHtml(reviewsCountText(count))}`;
+    const list = document.getElementById(prefix + '-list');
+    if (list) list.innerHTML = items.slice(0, max).map(r => {
+        const d = new Date(String(r.date || '') + 'T12:00:00');
+        const when = isNaN(d) ? '' : d.toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' });
+        return `<article class="review-card">
+            <header class="review-head">${starsHtml(r.rating)}<span class="review-meta">${escHtml(r.author)}${when ? ' · ' + escHtml(when) : ''}</span></header>
+            ${r.body ? `<p class="review-body">${escHtml(r.body)}</p>` : ''}
+            ${r.reply ? `<p class="review-reply"><strong>${escHtml(t('reviews_reply'))}</strong> ${escHtml(r.reply)}</p>` : ''}
+        </article>`;
+    }).join('');
+}
+function renderHomeReviews() {
+    loadReviews('').then(data => renderReviewBlock('reviews-home', data, 6));
+}
+function renderDetailReviews(blendId) {
+    const section = document.getElementById('detail-reviews');
+    if (section) section.hidden = true;
+    if (!blendId) return;
+    loadReviews(blendId).then(data => {
+        if (detailState && detailState.blend === blendId) renderReviewBlock('detail-reviews', data, 4);
+    });
+}
+
+function reviewFormHtml(num) {
+    const id = 'rv-' + String(num).replace(/[^A-Za-z0-9-]/g, '');
+    const stars = [1, 2, 3, 4, 5].map(n => `<label class="star-pick"><input type="radio" name="rating" value="${n}" class="visually-hidden"><span aria-hidden="true">★</span><span class="visually-hidden">${escHtml(t('review_star_n').replace('{n}', n))}</span></label>`).join('');
+    return `<form class="review-form" data-review-form="${escHtml(num)}" novalidate>
+        <fieldset class="star-input"><legend class="field-label">${escHtml(t('review_legend'))}</legend><div class="star-row">${stars}</div></fieldset>
+        <div class="form-group"><label class="field-label" for="${id}-body">${escHtml(t('review_body'))} <span class="field-opt">${escHtml(t('checkout_note_opt'))}</span></label>
+            <textarea id="${id}-body" name="body" class="field" rows="3" maxlength="1000"></textarea></div>
+        <div class="form-group"><label class="field-label" for="${id}-author">${escHtml(t('review_author'))}</label>
+            <input id="${id}-author" name="author" class="field" maxlength="40" autocomplete="given-name" placeholder="${escHtml(t('review_author_ph'))}"></div>
+        <div class="form-group"><label class="field-label" for="${id}-email">${escHtml(t('review_email'))}</label>
+            <input id="${id}-email" name="email" type="email" class="field" maxlength="200" autocomplete="email" aria-describedby="${id}-email-hint">
+            <small class="field-hint" id="${id}-email-hint">${escHtml(t('review_email_hint'))}</small></div>
+        <label class="check-row"><input type="checkbox" name="consent"> <span>${escHtml(t('review_consent'))}</span></label>
+        <p class="field-error review-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary btn-small">${escHtml(t('review_send'))}</button>
+    </form>`;
+}
+
+const REVIEW_ERRORS = { review_not_found: 'review_err_not_found', review_too_early: 'review_err_too_early',
+    review_exists: 'review_err_exists', review_consent: 'review_err_consent', invalid_review: 'review_err_rating',
+    too_many: 'review_err_other' };
+
+function submitReview(form) {
+    const num = form.dataset.reviewForm;
+    const err = form.querySelector('.review-error');
+    const say = key => { err.textContent = t(key); err.hidden = false; };
+    err.hidden = true;
+    const rating = form.querySelector('input[name="rating"]:checked');
+    const author = form.elements.author.value.trim().replace(/\s+/g, ' ');
+    const email = form.elements.email.value.trim();
+    if (!rating) return say('review_err_rating');
+    if (author.length < 2) { form.elements.author.focus(); return say('review_err_author'); }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { form.elements.email.focus(); return say('review_err_email'); }
+    if (!form.elements.consent.checked) return say('review_err_consent');
+    const btn = form.querySelector('[type=submit]');
+    btn.disabled = true;
+    TeaDB.rpc('submit_review', { p: { orderNum: num, email, rating: rating.value, body: form.elements.body.value.trim().slice(0, 1000),
+                                      author: author.slice(0, 40), lang: LANG, consent: 'true' } })
+        .then(() => {
+            const done = reviewedOrders().filter(x => x !== num);
+            done.unshift(num);
+            try { localStorage.setItem(REVIEWED_KEY, JSON.stringify(done.slice(0, 50))); } catch (_) {}
+            const card = form.closest('.order-card');
+            form.outerHTML = `<p class="review-thanks" role="status">${escHtml(t('review_thanks'))}</p>`;
+            const b = card && card.querySelector('[data-review]');
+            if (b) b.remove();
+        })
+        .catch(e => {
+            btn.disabled = false;
+            const code = e && e.message;
+            if (code === 'review_exists') {
+                try { localStorage.setItem(REVIEWED_KEY, JSON.stringify([num, ...reviewedOrders()].slice(0, 50))); } catch (_) {}
+            }
+            say(REVIEW_ERRORS[code] || 'review_err_other');
+        });
+}
+
+document.addEventListener('click', e => {
+    const b = e.target.closest('[data-review]');
+    if (!b) return;
+    const card = b.closest('.order-card');
+    let form = card && card.querySelector('.review-form');
+    if (form) { form.remove(); b.setAttribute('aria-expanded', 'false'); return; }
+    card.querySelector('.order-actions').insertAdjacentHTML('afterend', reviewFormHtml(b.dataset.review));
+    b.setAttribute('aria-expanded', 'true');
+    form = card.querySelector('.review-form');
+    form.querySelectorAll('input[name="rating"]').forEach(r => r.addEventListener('change', () => {
+        form.querySelector('.star-input').dataset.value = r.value;
+    }));
+    form.addEventListener('submit', ev => { ev.preventDefault(); submitReview(form); });
+    form.querySelector('input[name="rating"]').focus();
+});
+
 /* ─── RENDER ORDER HISTORY ───────────────────── */
 function renderOrders() {
     const list  = document.getElementById('orders-list');
@@ -1764,10 +2181,22 @@ function renderOrders() {
             <dl class="order-sums">
                 ${o.discount ? `<div><dt>${escHtml(t('order_discount'))}${o.promo ? ' ' + escHtml(o.promo) : ''}</dt><dd>-${fmt(o.discount)}</dd></div>` : ''}
                 <div><dt>${escHtml(t('order_shipping'))}</dt><dd>${o.shipping ? fmt(o.shipping) : escHtml(t('ship_free_short'))}</dd></div>
+                ${o.payment ? `<div><dt>${escHtml(t('order_payment_fee'))}</dt><dd>${fmt(o.payment)}</dd></div>` : ''}
+                ${o.gift ? `<div><dt>${escHtml(t('gift_row'))}</dt><dd>${fmt(o.gift)}</dd></div>` : ''}
                 <div class="order-total"><dt>${escHtml(t('order_total'))}</dt><dd>${fmt(o.total)}</dd></div>
             </dl>
-            ${orderWithdrawable(o) ? `<p class="order-actions"><button type="button" class="btn btn-quiet btn-small" data-withdraw="${escHtml(o.num)}">${escHtml(t('wd_button'))}</button></p>` : ''}`;
+            ${paymentInfo(o) ? `<details class="order-pay" data-pay="${escHtml(o.num)}"><summary>${escHtml(t('pay_box_title'))}</summary><div class="pay-box pay-box--inline"></div></details>` : ''}
+            <p class="order-actions">
+                <button type="button" class="btn btn-quiet btn-small" data-reorder="${escHtml(o.num)}">${escHtml(t('reorder_btn'))}</button>
+                ${o.server && reviewsOn() && !reviewedOrders().includes(o.num) ? `<button type="button" class="btn btn-quiet btn-small" data-review="${escHtml(o.num)}" aria-expanded="false">${escHtml(t('review_btn'))}</button>` : ''}
+                ${orderWithdrawable(o) ? `<button type="button" class="btn btn-quiet btn-small" data-withdraw="${escHtml(o.num)}">${escHtml(t('wd_button'))}</button>` : ''}
+            </p>`;
         list.appendChild(card);
+        const pay = card.querySelector('.order-pay');
+        if (pay) pay.addEventListener('toggle', () => {
+            const box = pay.querySelector('.pay-box');
+            if (pay.open && box && !box.childElementCount) renderPaymentBox(box, o);
+        });
     });
 }
 
@@ -1878,6 +2307,8 @@ function showWithdrawalDone(data, when, saved) {
 document.addEventListener('click', e => {
     const w = e.target.closest('[data-withdraw]');
     if (w) { startWithdrawal(w.dataset.withdraw); return; }
+    const again = e.target.closest('[data-reorder]');
+    if (again) { reorder(again.dataset.reorder); return; }
     if (e.target.closest('#wd-start')) {
         const form = document.getElementById('wd-form');
         if (form && !form.hidden) { form.hidden = true; e.target.closest('#wd-start').setAttribute('aria-expanded', 'false'); }
@@ -1971,9 +2402,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSavedBlends();
     renderCart();
     // sdílený odkaz (?b=…), jinak místo, kde zákazník byl před přepnutím jazyka
+    // pak stránka podle adresy (?stranka=…, ?smes=…)
     if (new URLSearchParams(location.search).get('b')) loadBlendFromUrl();
-    else restoreViewState();
+    else if (!restoreViewState()) routeTo(stateFromUrl(), 'replace');
     refreshCatalog();    // čerstvá data ze Supabase (když je nastavený)
+    renderHomeReviews();
 
 });
 
@@ -2231,10 +2664,9 @@ function loadBlendFromUrl() {
     if (!keep.length) return;
     const codes = keep.map(x => x[0]);
     const parts = keep.length === all.length && p.length === all.length ? keep.map(x => x[1]) : null;
-    openInMixer(codes, params.get('n') || '', recipeOf(codes, parts, 100).ok ? 4 : 1, parts);
+    // Adresa se nahradí adresou mixéru, aby obnovení stránky směs nenačetlo znovu.
+    withHistory('replace', () => openInMixer(codes, params.get('n') || '', recipeOf(codes, parts, 100).ok ? 4 : 1, parts));
     setTimeout(() => showToast(t('toast_shared_loaded'), '🔗'), 700);
-    // Clean the URL so a refresh doesn't re-trigger
-    history.replaceState(null, '', location.origin + location.pathname);
 }
 
 /* =============================================
@@ -2455,8 +2887,11 @@ function blendSubtitle(codes) {
 /* ─── PRODÁVAJÍCÍ A NASTAVENÍ OBCHODU ───────────
    Údaje se vyplňují v administraci (Nastavení → Prodávající a etiketa)
    a web je dosadí do podmínek, patičky a informací o potravině. */
-const SELLER = { name: '', ico: '', address: '', email: 'hello@teaseyou.cz', phone: '' };
+const SELLER = { name: '', ico: '', address: '', email: 'hello@teaseyou.cz', phone: '', iban: '' };
 let COD_FEE = 39;                                  // Kč, příplatek za dobírku
+// Dárkové balení a osobní odběr se zapínají v administraci (Ceny a doprava).
+const GIFT_WRAP = { on: false, price: 0 };
+let PICKUP_NOTE = '';
 let DURABILITY_MONTHS = 12;
 // Prodej je zapnutý, až to admin přepne (Ceny a doprava → Prodej). Do té doby
 // web ukazuje „Připravujeme spuštění“ a pokladna je zavřená. Databáze to hlídá taky.
@@ -2473,6 +2908,10 @@ function applyShopSettings(st) {
     const mail = str(st.seller_email, 120);
     SELLER.email   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail) ? mail : 'hello@teaseyou.cz';
     if (Number.isInteger(st.cod_fee_czk) && st.cod_fee_czk >= 0) COD_FEE = st.cod_fee_czk;
+    SELLER.iban = window.Bank && Bank.isIban(st.seller_iban || '') ? String(st.seller_iban) : '';
+    GIFT_WRAP.on = st.gift_wrap_enabled === true;
+    GIFT_WRAP.price = Number.isInteger(st.gift_wrap_czk) && st.gift_wrap_czk >= 0 && st.gift_wrap_czk <= 500 ? st.gift_wrap_czk : 0;
+    PICKUP_NOTE = str(st.pickup_note, 200);
     if (Number.isInteger(st.durability_months) && st.durability_months >= 1 && st.durability_months <= 36) {
         DURABILITY_MONTHS = st.durability_months;
     }
@@ -2482,7 +2921,29 @@ function applyShopSettings(st) {
     SALES_OPENED_AT = opened && !isNaN(opened) ? opened : null;
     const codText = COD_FEE ? ` (+${COD_FEE} Kč)` : '';
     TRANSLATIONS.cs.pay_cod_desc = 'Platíš při převzetí' + codText;
+    TRANSLATIONS.sk.pay_cod_desc = 'Platíš pri prevzatí' + codText;
     TRANSLATIONS.en.pay_cod_desc = 'Pay when you collect it' + codText;
+    applyCheckoutExtras();
+}
+
+/* Dárkové balení a osobní odběr v pokladně podle nastavení obchodu. */
+function applyCheckoutExtras() {
+    const gift = document.getElementById('gift-block');
+    if (gift) {
+        gift.hidden = !GIFT_WRAP.on;
+        const box = document.getElementById('f-gift');
+        if (!GIFT_WRAP.on && box && box.checked) { box.checked = false; syncGiftFields(); }
+        const price = document.getElementById('gift-price');
+        if (price) price.textContent = GIFT_WRAP.price ? '+' + fmt(GIFT_WRAP.price) : t('gift_free');
+    }
+    const note = document.getElementById('pickup-note');
+    if (note) note.textContent = PICKUP_NOTE || t('ship_pickup_desc');
+    const transfer = document.querySelector('#checkout-form input[name="payment"][value="transfer"]')?.closest('.payment-option')?.querySelector('.choice-desc');
+    if (transfer) {
+        transfer.dataset.i18n = SELLER.iban ? 'pay_transfer_desc_qr' : 'pay_transfer_desc';
+        transfer.textContent = t(transfer.dataset.i18n);
+    }
+    if (document.getElementById('checkout-page')?.classList.contains('active')) refreshCheckoutTotals();
 }
 
 /* Dosadí údaje o prodávajícím do všech [data-seller] a [data-shop]. Co chybí,
@@ -2857,12 +3318,12 @@ function renderBlendCards() {
     });
 }
 
-function openBlend(id) {
+function openBlend(id, opts = {}) {
     const b = catalogBlends.find(x => x.id === id);
     if (!b) return;
     const desc = pickLang(b, 'desc');
     const price = unitPrice(b.ingredients, b.parts, 100) || blendPriceFrom(b);
-    openDetail(b.name, desc || '', price, b.ingredients.slice(), null, b.parts.slice());
+    openDetail(b.name, desc || '', price, b.ingredients.slice(), null, b.parts.slice(), opts);
 }
 
 /* Volá openDetail: fotka směsi místo skleničky (když ji admin nahrál)
@@ -2931,7 +3392,7 @@ function renderShippingOptions() {
         label.style.display = '';
         radio.setAttribute('data-price', String(s.price));
         const priceEl = label.querySelector('.shipping-price');
-        if (priceEl) priceEl.textContent = fmt(s.price);
+        if (priceEl) priceEl.textContent = s.price ? fmt(s.price) : t('ship_free_short');
     });
 }
 
@@ -3007,6 +3468,11 @@ function refreshCatalog() {
             }
             try { localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({ at: Date.now(), data: fresh })); } catch (_) {}
             if (!previous || JSON.stringify(previous) !== JSON.stringify(fresh)) rerenderAfterCatalog();
+            if (pendingBlendRoute && document.getElementById('home-page')?.classList.contains('active')) {
+                const id = pendingBlendRoute;
+                pendingBlendRoute = null;
+                if (catalogBlends.some(b => b.id === id)) withHistory('replace', () => openBlend(id));
+            }
             return true;
         } catch (err) {
             console.warn('[teaseyou] Katalog se nepodařilo načíst, jedu z uložených dat.', err);
@@ -3043,14 +3509,16 @@ async function revalidateStoredPromo() {
    jsou teď na webu. Ukládá se ke každé objednávce jako záznam o tom, s čím
    zákazník souhlasil. Při změně podmínek ho přepiš a staré znění si nech
    (je v historii gitu). */
-const TERMS_VERSION = '2026-11-05';
+const TERMS_VERSION = '2026-11-09';
 
 function buildOrderPayload(form) {
     const val = name => (form.elements[name] ? String(form.elements[name].value || '').trim() : '');
     const ship = form.querySelector('input[name="shipping"]:checked');
     const pay  = form.querySelector('input[name="payment"]:checked');
     // Na výdejní místo adresu nepotřebujeme, tak ji ani neposíláme.
-    const needsAddress = !ship || ship.value !== 'zasilkovna';
+    const needsAddress = !ship || (ship.value !== 'zasilkovna' && ship.value !== 'pickup');
+    const gift = document.getElementById('f-gift');
+    const wantsGift = GIFT_WRAP.on && !!gift && gift.checked;
     const addr = name => (needsAddress ? val(name) : '');
     return {
         customer: {
@@ -3072,13 +3540,14 @@ function buildOrderPayload(form) {
         packetaPoint: packetaPoint
             ? { id: String(packetaPoint.id || ''), name: `${packetaPoint.name}, ${packetaPoint.city}` }
             : null,
+        gift: wantsGift ? { wrap: true, message: val('giftMessage').slice(0, 300) } : null,
         lang: LANG,
         termsVersion: TERMS_VERSION,
     };
 }
 
 const ORDER_ERROR_CODES = new Set(['sales_closed', 'out_of_stock', 'promo_invalid', 'invalid_customer', 'too_many_orders',
-    'pickup_point_required', 'invalid_shipping', 'invalid_weight', 'unknown_ingredient']);
+    'pickup_point_required', 'invalid_shipping', 'invalid_weight', 'unknown_ingredient', 'gift_unavailable']);
 
 function handleOrderError(err) {
     const code = err && err.message;
@@ -3103,6 +3572,7 @@ function handleOrderError(err) {
         case 'too_many_orders':       showToast(t('err_too_many_orders'), '⏳'); break;
         case 'pickup_point_required': showToast(t('err_pickup_point'), '📦'); break;
         case 'invalid_shipping':      showToast(t('err_shipping_unavailable'), '🚚'); refresh(); break;
+        case 'gift_unavailable':      showToast(t('err_gift_unavailable'), '🎁'); refresh(); break;
         case 'invalid_weight':        showToast(t('err_weight_unavailable'), '⚖️'); refresh(); break;
         case 'unknown_ingredient':    showToast(t('err_unknown_ingredient'), '⚠️'); refresh(); break;
         case 'invalid_recipe':        showToast(t('err_invalid_recipe'), '⚠️'); refresh(); break;
@@ -4138,6 +4608,118 @@ Object.assign(TRANSLATIONS.en, {
     craft_mail_subject: 'Let me know when it is ready',
     craft_also_in:      'Also in:',
     craft_same_title:   'Made from the same',
+});
+
+/* Adresy stránek, osobní odběr, dárek, QR platba, objednat znovu. */
+Object.assign(TRANSLATIONS.cs, {
+    title_mixer:          'Namíchej si čaj',
+    ship_pickup_name:     'Osobní odběr',
+    ship_pickup_desc:     'Karlovy Vary, ozveme se, až bude připravená',
+    address_not_needed_pickup: 'Při osobním odběru adresu nepotřebujeme, stačí vybrat zemi.',
+    pay_on_pickup:        'Zaplatit při převzetí',
+    pay_on_pickup_desc:   'Hotově při předání, bez příplatku',
+    pay_transfer_desc_qr: 'Číslo účtu a QR kód ukážeme hned po objednání',
+    gift_title:           'Zabalit jako dárek',
+    gift_desc:            'Zabalíme do dárkového papíru a do balíčku nedáme doklad s cenou. Ten ti pošleme e-mailem.',
+    gift_message:         'Vzkaz na kartičku',
+    gift_message_ph:      'Všechno nejlepší, Jano!',
+    gift_row:             'Dárkové balení',
+    gift_free:            'Zdarma',
+    err_gift_unavailable: 'Dárkové balení teď nenabízíme. Zruš ho a zkus to znovu.',
+    pay_box_title:        'Údaje k platbě',
+    pay_account:          'Číslo účtu',
+    pay_amount:           'Částka',
+    pay_vs:               'Variabilní symbol',
+    pay_qr_label:         'QR kód pro platbu',
+    pay_qr_caption:       'Naskenuj v aplikaci své banky',
+    pay_box_note:         'Zaplať prosím do 7 dnů. Směs odešleme, jakmile platba dorazí. Údaje najdeš i v Moje objednávky.',
+    reorder_btn:          'Objednat znovu',
+    reorder_done:         'Je to v košíku, s dnešní cenou.',
+    reorder_some:         'V košíku. {n} položky už nejdou objednat (vyprodaná surovina nebo velikost).',
+    reorder_none:         'Z téhle objednávky už nejde nic objednat. Suroviny nebo velikosti se mezitím změnily.',
+    reviews_title:        'Co říkají zákazníci',
+    reviews_title_blend:  'Hodnocení',
+    reviews_note:         'Recenze píšou jen zákazníci, kteří u nás nakoupili: ověřujeme je číslem objednávky a e-mailem z ní a hodnotit jde až po odeslání. Zveřejňujeme kladné i kritické, nezveřejníme jen vulgární, nesouvisející nebo s cizími osobními údaji. Za recenze nic nedáváme.',
+    reviews_of5:          'z 5',
+    reviews_n_one:        'hodnocení',
+    reviews_n_few:        'hodnocení',
+    reviews_n_many:       'hodnocení',
+    reviews_stars:        '{n} z 5 hvězdiček',
+    reviews_reply:        'Odpověď Tease you:',
+    review_btn:           'Ohodnotit',
+    review_legend:        'Jak ti chutnalo?',
+    review_star_n:        '{n} z 5',
+    review_body:          'Co bys řekl(a) ostatním?',
+    review_author:        'Podpis, který uvidí ostatní',
+    review_author_ph:     'Jana K.',
+    review_email:         'E-mail z objednávky',
+    review_email_hint:    'Ověříme jím nákup. Nezveřejníme ho ani neuložíme.',
+    review_consent:       'Souhlasím se zveřejněním recenze pod tímto podpisem.',
+    review_send:          'Odeslat hodnocení',
+    review_thanks:        'Díky! Recenzi zveřejníme, jakmile ji zkontrolujeme.',
+    review_err_rating:    'Vyber počet hvězdiček.',
+    review_err_author:    'Napiš podpis, aspoň 2 znaky.',
+    review_err_email:     'Zadej e-mail, na který přišla objednávka.',
+    review_err_consent:   'Bez souhlasu recenzi zveřejnit nemůžeme.',
+    review_err_not_found: 'Číslo objednávky a e-mail k sobě nesedí. Zadej e-mail z objednávky.',
+    review_err_too_early: 'Hodnotit jde, až ti směs odešleme.',
+    review_err_exists:    'Tahle objednávka už hodnocení má.',
+    review_err_other:     'Teď se to nepovedlo uložit. Zkus to prosím později.',
+});
+Object.assign(TRANSLATIONS.en, {
+    title_mixer:          'Mix your own tea',
+    ship_pickup_name:     'Personal pick-up',
+    ship_pickup_desc:     'Karlovy Vary, we will let you know when it is ready',
+    address_not_needed_pickup: 'For personal pick-up we do not need your address, just choose the country.',
+    pay_on_pickup:        'Pay on pick-up',
+    pay_on_pickup_desc:   'Cash when you collect it, no extra fee',
+    pay_transfer_desc_qr: 'We show the account number and a QR code right after you order',
+    gift_title:           'Wrap it as a gift',
+    gift_desc:            'We wrap it in gift paper and leave the receipt with the price out of the parcel. We e-mail it to you instead.',
+    gift_message:         'Message for the card',
+    gift_message_ph:      'Happy birthday, Jana!',
+    gift_row:             'Gift wrapping',
+    gift_free:            'Free',
+    err_gift_unavailable: 'We do not offer gift wrapping right now. Untick it and try again.',
+    pay_box_title:        'Payment details',
+    pay_account:          'Account number',
+    pay_amount:           'Amount',
+    pay_vs:               'Variable symbol',
+    pay_qr_label:         'QR code for the payment',
+    pay_qr_caption:       'Scan it in your banking app (Czech banks)',
+    pay_box_note:         'Please pay within 7 days. We ship the blend as soon as the payment arrives. You can find the details in My orders too.',
+    reorder_btn:          'Order again',
+    reorder_done:         'It is in your basket, at today\'s price.',
+    reorder_some:         'In your basket. {n} item(s) can no longer be ordered (sold-out ingredient or size).',
+    reorder_none:         'Nothing from this order can be ordered any more. Ingredients or sizes have changed.',
+    reviews_title:        'What customers say',
+    reviews_title_blend:  'Reviews',
+    reviews_note:         'Only customers who bought from us can write a review: we verify it with the order number and the order e-mail, and you can review only after we ship. We publish positive and critical reviews alike and leave out only vulgar or unrelated ones, or ones with other people\'s personal data. We give nothing in return for reviews.',
+    reviews_of5:          'out of 5',
+    reviews_n_one:        'review',
+    reviews_n_few:        'reviews',
+    reviews_n_many:       'reviews',
+    reviews_stars:        '{n} out of 5 stars',
+    reviews_reply:        'Reply from Tease you:',
+    review_btn:           'Write a review',
+    review_legend:        'How did you like it?',
+    review_star_n:        '{n} out of 5',
+    review_body:          'What would you tell others?',
+    review_author:        'Name others will see',
+    review_author_ph:     'Jana K.',
+    review_email:         'E-mail from the order',
+    review_email_hint:    'We use it to verify the purchase. We do not publish or store it.',
+    review_consent:       'I agree to publishing the review under this name.',
+    review_send:          'Send review',
+    review_thanks:        'Thank you! We will publish the review once we have checked it.',
+    review_err_rating:    'Choose the number of stars.',
+    review_err_author:    'Write a name, at least 2 characters.',
+    review_err_email:     'Enter the e-mail the order was sent to.',
+    review_err_consent:   'We cannot publish the review without your consent.',
+    review_err_not_found: 'The order number and e-mail do not match. Enter the e-mail from the order.',
+    review_err_too_early: 'You can review once we have shipped the blend.',
+    review_err_exists:    'This order already has a review.',
+    review_err_other:     'We could not save it right now. Please try again later.',
 });
 
 const CRAFT_NOTIFIED_KEY = 'teaseyou_notified';
