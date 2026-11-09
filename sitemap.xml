@@ -1,9 +1,413 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<!-- Vygenerováno ze seznamu stránek a hotových směsí (script.js: PAGE_SLUGS, BUILTIN_BLENDS).
+     Novou směs z administrace sem přidej stejně jako ostatní. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://teaseyou.cz/</loc>
-    <lastmod>2026-09-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <loc>https://teaseyou.cz/?lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=namichat&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=namichat&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=namichat&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=namichat&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=namichat"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=namichat&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=namichat&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=namichat&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=namichat&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=namichat"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=namichat&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=namichat&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=namichat&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=namichat&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=namichat"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=kviz&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=kviz&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=kviz&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=kviz&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=kviz"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=kviz&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=kviz&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=kviz&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=kviz&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=kviz"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=kviz&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=kviz&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=kviz&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=kviz&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=kviz"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=suroviny&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=suroviny&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=suroviny&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=suroviny&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=suroviny"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=suroviny&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=suroviny&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=suroviny&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=suroviny&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=suroviny"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=suroviny&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=suroviny&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=suroviny&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=suroviny&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=suroviny"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=mydla&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=mydla&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=mydla&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=mydla&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=mydla"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=mydla&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=mydla&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=mydla&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=mydla&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=mydla"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=mydla&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=mydla&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=mydla&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=mydla&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=mydla"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=o-nas&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=o-nas&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=o-nas&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=o-nas&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=o-nas"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=o-nas&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=o-nas&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=o-nas&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=o-nas&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=o-nas"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=o-nas&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=o-nas&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=o-nas&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=o-nas&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=o-nas"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=jak-michame&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=jak-michame&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=jak-michame&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=jak-michame&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=jak-michame"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=jak-michame&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=jak-michame&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=jak-michame&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=jak-michame&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=jak-michame"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=jak-michame&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=jak-michame&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=jak-michame&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=jak-michame&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=jak-michame"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=morning_window&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=morning_window&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=morning_window&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=morning_window&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=morning_window"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=morning_window&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=morning_window&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=morning_window&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=morning_window&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=morning_window"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=morning_window&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=morning_window&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=morning_window&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=morning_window&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=morning_window"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=still_evening&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=still_evening&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=still_evening&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=still_evening&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=still_evening"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=still_evening&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=still_evening&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=still_evening&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=still_evening&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=still_evening"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=still_evening&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=still_evening&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=still_evening&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=still_evening&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=still_evening"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=deep_winter&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=deep_winter&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=deep_winter&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=deep_winter&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=deep_winter"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=deep_winter&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=deep_winter&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=deep_winter&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=deep_winter&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=deep_winter"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=deep_winter&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=deep_winter&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=deep_winter&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=deep_winter&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=deep_winter"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=late_light&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=late_light&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=late_light&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=late_light&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=late_light"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=late_light&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=late_light&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=late_light&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=late_light&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=late_light"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=late_light&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=late_light&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=late_light&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=late_light&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=late_light"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=open_air&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=open_air&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=open_air&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=open_air&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=open_air"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=open_air&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=open_air&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=open_air&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=open_air&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=open_air"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=open_air&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=open_air&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=open_air&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=open_air&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=open_air"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=slow_tuesday&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=slow_tuesday&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=slow_tuesday&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=slow_tuesday&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=slow_tuesday"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=slow_tuesday&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=slow_tuesday&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=slow_tuesday&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=slow_tuesday&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=slow_tuesday"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?smes=slow_tuesday&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?smes=slow_tuesday&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?smes=slow_tuesday&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?smes=slow_tuesday&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?smes=slow_tuesday"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=obchodni-podminky"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=obchodni-podminky"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=obchodni-podminky&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=obchodni-podminky"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=odstoupeni&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=odstoupeni&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=odstoupeni&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=odstoupeni&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=odstoupeni"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=odstoupeni&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=odstoupeni&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=odstoupeni&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=odstoupeni&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=odstoupeni"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=odstoupeni&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=odstoupeni&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=odstoupeni&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=odstoupeni&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=odstoupeni"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=ochrana-udaju"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=ochrana-udaju"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=ochrana-udaju&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=ochrana-udaju"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=cookies&amp;lang=cs</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=cookies&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=cookies&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=cookies&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=cookies"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=cookies&amp;lang=sk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=cookies&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=cookies&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=cookies&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=cookies"/>
+  </url>
+  <url>
+    <loc>https://teaseyou.cz/?stranka=cookies&amp;lang=en</loc>
+    <lastmod>2026-11-09</lastmod>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://teaseyou.cz/?stranka=cookies&amp;lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://teaseyou.cz/?stranka=cookies&amp;lang=sk"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://teaseyou.cz/?stranka=cookies&amp;lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://teaseyou.cz/?stranka=cookies"/>
   </url>
 </urlset>

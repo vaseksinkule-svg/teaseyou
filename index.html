@@ -133,7 +133,7 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
         </button>
         <a class="nav-logo" href="./" onclick="event.preventDefault(); showPage('home-page')">Tease you</a>
-        <nav class="nav-links" aria-label="Hlavní navigace">
+        <nav class="nav-links" aria-label="Hlavní navigace" data-i18n-aria="aria_main_nav">
             <button onclick="showPage('product-page')" data-page="product-page" data-i18n="nav_mix">Namíchat</button>
             <button onclick="goToShelf()" data-i18n="nav_shelf">Naše směsi</button>
             <button onclick="showPage('quiz-page')" data-page="quiz-page" data-i18n="nav_quiz_short">Kvíz</button>
@@ -141,6 +141,11 @@
             <button onclick="showPage('craft-page')" data-page="craft-page" data-i18n="nav_craft_short">Mýdla</button>
         </nav>
         <div class="nav-right">
+            <select id="lang-select" class="lang-select" onchange="setLanguage(this.value)" aria-label="Jazyk webu / Language">
+                <option value="cs" lang="cs">CZ</option>
+                <option value="sk" lang="sk">SK</option>
+                <option value="en" lang="en">EN</option>
+            </select>
             <button class="icon-btn dark-mode-btn" onclick="toggleDarkMode()" aria-label="Přepnout tmavý režim" data-i18n-aria="aria_theme">
                 <svg class="dm-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
                 <svg class="dm-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -201,6 +206,15 @@
         <div class="shelf">
             <div class="ready-grid"></div>
         </div>
+    </section>
+
+    <section class="reviews-section" id="reviews-home" hidden aria-labelledby="reviews-title">
+        <div class="section-head">
+            <h2 class="section-title" id="reviews-title" data-i18n="reviews_title">Co říkají zákazníci</h2>
+            <p class="reviews-summary" id="reviews-home-summary"></p>
+        </div>
+        <div class="reviews-list" id="reviews-home-list"></div>
+        <p class="reviews-note" data-i18n="reviews_note">Recenze píšou jen zákazníci, kteří u nás nakoupili.</p>
     </section>
 
     <section class="craft-band" id="craft-home" aria-labelledby="craft-home-title">
@@ -305,6 +319,12 @@
                     </dl>
                 </section>
                 <section class="food-info" id="detail-food" aria-labelledby="detail-food-title"></section>
+                <section class="detail-reviews" id="detail-reviews" hidden aria-labelledby="detail-reviews-title">
+                    <h2 id="detail-reviews-title" data-i18n="reviews_title_blend">Hodnocení</h2>
+                    <p class="reviews-summary" id="detail-reviews-summary"></p>
+                    <div class="reviews-list" id="detail-reviews-list"></div>
+                    <p class="reviews-note" data-i18n="reviews_note">Recenze píšou jen zákazníci, kteří u nás nakoupili.</p>
+                </section>
                 <aside class="detail-craft" id="detail-craft" hidden aria-labelledby="detail-craft-title">
                     <h2 class="brew-title" id="detail-craft-title" data-i18n="craft_same_title">Ze stejných surovin</h2>
                     <div id="detail-craft-list"></div>
@@ -330,25 +350,26 @@
     <div class="mixer-layout">
         <div class="options-column">
             <div class="selection-group" data-step="1">
-                <h1 class="step-question" data-i18n="q_1">Jaký čaj bude základ?</h1>
-                <p class="step-hint" data-i18n="q_1_hint">Určuje chuť i to, kolik bude mít kofeinu.</p>
-                <div class="btn-grid" data-group="bases" role="group" aria-label="Základ"></div>
+                <h1 class="step-question" tabindex="-1" data-i18n="q_1">Na čem ji postavíš?</h1>
+                <p class="step-hint" data-i18n="q_1_hint">Vyber základ, klidně dva. Určuje chuť i to, kolik bude mít kofeinu.</p>
+                <div class="preset-chips" id="preset-chips" hidden></div>
+                <div class="btn-grid" data-group="bases" role="group" aria-label="Základ" data-i18n-aria="glass_label_base"></div>
             </div>
 
             <div class="selection-group" data-step="2">
-                <h2 class="step-question" data-i18n="q_2">Jakou chceš příchuť?</h2>
-                <p class="step-hint" data-i18n="q_2_hint">Ovoce, květy nebo něco sladšího.</p>
-                <div class="btn-grid" data-group="flavors" role="group" aria-label="Příchuť"></div>
+                <h2 class="step-question" tabindex="-1" data-i18n="q_2">Jakou chceš příchuť?</h2>
+                <p class="step-hint" data-i18n="q_2_hint">Vyber, kolik chceš, nebo krok přeskoč.</p>
+                <div class="btn-grid" data-group="flavors" role="group" aria-label="Příchuť" data-i18n-aria="glass_label_flavor"></div>
             </div>
 
             <div class="selection-group" data-step="3">
-                <h2 class="step-question" data-i18n="q_3">Čím ji dolaďíme?</h2>
-                <p class="step-hint" data-i18n="q_3_hint">Med, citrus nebo koření.</p>
-                <div class="btn-grid" data-group="extras" role="group" aria-label="Doplněk"></div>
+                <h2 class="step-question" tabindex="-1" data-i18n="q_3">Doladíme ji?</h2>
+                <p class="step-hint" data-i18n="q_3_hint">Citrusová kůra, koření nebo špetka květů. Nepovinné.</p>
+                <div class="btn-grid" data-group="extras" role="group" aria-label="Doplněk" data-i18n-aria="glass_label_extras"></div>
             </div>
 
             <div class="selection-group step-final" data-step="4">
-                <h2 class="step-question" data-i18n="q_4">Hotovo. Pojmenuj ji.</h2>
+                <h2 class="step-question" tabindex="-1" data-i18n="q_4">Hotovo. Pojmenuj ji.</h2>
                 <div class="final-pouch" id="mixer-pouch-final" aria-hidden="true"></div>
                 <label class="field-label" for="mix-name" data-i18n="name_label">Jméno na sáček</label>
                 <div class="name-row">
@@ -364,6 +385,18 @@
                 </div>
             </div>
 
+            <section class="mix-recipe" id="mix-recipe" aria-labelledby="mix-recipe-title" hidden>
+                <div class="mix-recipe-head">
+                    <h2 class="mix-recipe-title" id="mix-recipe-title" tabindex="-1"><span data-i18n="mix_title">Tvoje směs</span> <span class="mix-recipe-count" id="mix-recipe-count"></span></h2>
+                    <div class="seg" id="mix-recipe-sizes" role="group" aria-label="Spočítat pro velikost" data-i18n-aria="mix_size_label"></div>
+                </div>
+                <div class="mix-strip" id="mix-strip" aria-hidden="true"></div>
+                <ul class="mix-rows" id="mix-rows"></ul>
+                <p class="mix-hint" data-i18n="mix_hint">Poměr nastavíš díly: 2 díly jsou dvakrát víc než 1.</p>
+                <p class="mix-verdict" id="mix-verdict" role="status"></p>
+            </section>
+            <p class="visually-hidden" id="mix-live" aria-live="polite"></p>
+
             <div class="mixer-bar" id="mixer-bar">
                 <div class="mixer-bar-summary" id="mixer-bar-summary"></div>
                 <button type="button" class="btn btn-primary" id="mixer-next"></button>
@@ -376,16 +409,6 @@
         </aside>
     </div>
 
-    <!-- Zbytky starého mixéru, do kterých script.js ještě píše; nejsou vidět -->
-    <div hidden>
-        <div id="preset-chips"></div>
-        <div id="base-info"><div id="info-default-state"><h4 id="info-title"></h4><p id="info-text"></p></div>
-            <div id="info-rich" style="display:none"><span id="info-rich-emoji"></span><h4 id="info-rich-name"></h4><p id="info-rich-desc"></p>
-            <div id="info-rich-caffeine"></div><div id="info-rich-tags"></div><div id="info-rich-health"></div><div id="info-rich-pairs"></div></div></div>
-        <button id="save-mix-btn" disabled></button>
-        <span id="completion-label"></span><span id="completion-fill"></span>
-        <span id="glass-mix-name-display"></span>
-    </div>
 </section>
 
 
@@ -479,6 +502,10 @@
                     <span data-i18n="order_shipping">Doprava</span>
                     <span id="checkout-shipping-cost">0 Kč</span>
                 </div>
+                <div class="sum-line" id="checkout-gift-row" style="display:none;">
+                    <span data-i18n="gift_row">Dárkové balení</span>
+                    <span id="checkout-gift-cost">0 Kč</span>
+                </div>
                 <div class="sum-line" id="checkout-payment-row" style="display:none;">
                     <span data-i18n="order_payment_fee">Příplatek za dobírku</span>
                     <span id="checkout-payment-cost">0 Kč</span>
@@ -502,7 +529,7 @@
                 <fieldset class="form-step">
                     <legend class="form-step-title"><span class="form-step-num">2</span><span data-i18n="checkout_shipping">Doprava</span></legend>
                     <div class="choice-list">
-                        <label class="choice shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="69" required onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name">Zásilkovna</span><span class="choice-desc shipping-desc" data-i18n="ship_zasilkovna_desc">Vyzvedneš na výdejním místě</span></span><span class="choice-price shipping-price">69 Kč</span></label>
+                        <label class="choice shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="69" required onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name" data-i18n="ship_zasilkovna_name">Zásilkovna</span><span class="choice-desc shipping-desc" data-i18n="ship_zasilkovna_desc">Vyzvedneš na výdejním místě</span></span><span class="choice-price shipping-price">69 Kč</span></label>
                         <div id="packeta-picker" class="packeta-picker" style="display:none;" aria-live="polite">
                             <button type="button" id="packeta-choose-btn" class="btn btn-quiet packeta-choose-btn" onclick="openPacketaWidget()" data-i18n="packeta_choose">Vybrat výdejní místo</button>
                             <div id="packeta-selected" class="packeta-selected" style="display:none;">
@@ -513,6 +540,7 @@
                         </div>
                         <label class="choice shipping-option"><input type="radio" name="shipping" value="post" data-price="89" onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name">Česká pošta</span><span class="choice-desc shipping-desc" data-i18n="ship_post_desc">Doručení za 3–5 pracovních dní</span></span><span class="choice-price shipping-price">89 Kč</span></label>
                         <label class="choice shipping-option"><input type="radio" name="shipping" value="dpd" data-price="119" onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name" data-i18n="ship_dpd_name">Kurýr DPD</span><span class="choice-desc shipping-desc" data-i18n="ship_dpd_desc">Doručení další pracovní den</span></span><span class="choice-price shipping-price">119 Kč</span></label>
+                        <label class="choice shipping-option" style="display:none"><input type="radio" name="shipping" value="pickup" data-price="0" disabled onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name" data-i18n="ship_pickup_name">Osobní odběr</span><span class="choice-desc shipping-desc" id="pickup-note">Karlovy Vary, ozveme se, až bude připravená</span></span><span class="choice-price shipping-price">0 Kč</span></label>
                     </div>
                 </fieldset>
                 <fieldset class="form-step">
@@ -540,6 +568,17 @@
                     </div>
                 </fieldset>
                 <p id="payment-error" class="field-error" role="alert" style="display:none;" data-i18n="err_payment">Vyber, jak chceš zaplatit.</p>
+                <div class="gift-block" id="gift-block" hidden>
+                    <label class="choice gift-option">
+                        <input type="checkbox" id="f-gift" name="gift" onchange="syncGiftFields()">
+                        <span class="choice-body"><span class="choice-name" data-i18n="gift_title">Zabalit jako dárek</span><span class="choice-desc" data-i18n="gift_desc">Zabalíme do dárkového papíru a do balíčku nedáme doklad s cenou. Ten ti pošleme e-mailem.</span></span>
+                        <span class="choice-price" id="gift-price">0 Kč</span>
+                    </label>
+                    <div class="form-group" id="gift-message-group" hidden>
+                        <label class="field-label" for="f-gift-message"><span data-i18n="gift_message">Vzkaz na kartičku</span> <span class="field-opt" data-i18n="checkout_note_opt">(nepovinné)</span></label>
+                        <textarea id="f-gift-message" name="giftMessage" class="field" rows="2" maxlength="300" data-i18n-placeholder="gift_message_ph" placeholder="Všechno nejlepší, Jano!"></textarea>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label class="field-label" for="f-note"><span data-i18n="checkout_note">Poznámka</span> <span class="field-opt" data-i18n="checkout_note_opt">(nepovinné)</span></label>
                     <textarea id="f-note" name="note" class="field" rows="3" placeholder="Třeba vzkaz na přání, když je to dárek" data-i18n-placeholder="note_placeholder2"></textarea>
@@ -559,6 +598,7 @@
         <h1 class="page-title" data-i18n="success_title">Díky, objednávka je u nás</h1>
         <p class="page-lede" data-i18n="success_desc">Směs namícháme a obvykle do 24 hodin odešleme.</p>
         <p class="success-num" id="success-order-num"></p>
+        <section class="pay-box" id="success-pay" hidden aria-live="polite"></section>
         <ol class="success-steps">
             <li class="is-done" data-i18n="success_step1">Objednávka přijatá</li>
             <li data-i18n="success_step2">Namícháme</li>
@@ -608,6 +648,7 @@
 <section id="terms-page" class="page">
     <div class="page-wrap page-narrow legal">
         <h1 class="page-title">Obchodní podmínky</h1>
+        <p class="legal-lang-note" data-legal-note hidden></p>
         <div class="legal-body">
             <p class="legal-lede">Platí pro nákup v e-shopu Tease you na adrese <span data-shop="url">vaseksinkule-svg.github.io/teaseyou</span>. Píšeme je co nejsrozumitelněji. Kde to jde, odkazujeme na zákon, aby bylo jasné, odkud pravidlo pochází.</p>
 
@@ -641,13 +682,15 @@
             <h2>4. Platba</h2>
             <ul>
                 <li><strong>Dobírka:</strong> platíš dopravci při převzetí. Příplatek je <span data-shop="cod_fee">39 Kč</span>.</li>
-                <li><strong>Bankovní převod:</strong> údaje k platbě ti pošleme e-mailem. Zaplatit je potřeba do 7 dnů, jinak objednávku zrušíme. Směs odešleme, jakmile platba dorazí na účet.</li>
+                <li><strong>Bankovní převod:</strong> údaje k platbě ti pošleme e-mailem, a když je máme na webu nastavené, ukážeme je i s QR kódem hned po odeslání objednávky. Zaplatit je potřeba do 7 dnů, jinak objednávku zrušíme. Směs odešleme, jakmile platba dorazí na účet.</li>
+                <li><strong>Při osobním odběru:</strong> platíš hotově při předání, bez příplatku.</li>
             </ul>
-            <p>Způsob platby si vybíráš sám, žádný není předem zaškrtnutý. Doklad o koupi přikládáme k zásilce.</p>
+            <p>Způsob platby si vybíráš sám, žádný není předem zaškrtnutý. Doklad o koupi přikládáme k zásilce. Když zvolíš zabalení jako dárek, doklad do balíčku nedáme a pošleme ti ho e-mailem.</p>
 
             <h2>5. Dodání</h2>
             <p>Směs mícháme až po objednání a obvykle ji odešleme do 24 hodin. U převodu počítáme od připsání platby. Nejpozději odešleme do 5 pracovních dnů. Kdyby to nešlo, dáme ti vědět a domluvíme se.</p>
-            <p>Doručujeme po Česku a na Slovensko přes Zásilkovnu, Českou poštu nebo kurýra DPD. Doba doručení je uvedená u každého způsobu v pokladně.</p>
+            <p>Doručujeme po Česku a na Slovensko přes Zásilkovnu, Českou poštu nebo kurýra DPD. Doba doručení je uvedená u každého způsobu v pokladně. Když pokladna nabízí osobní odběr, vyzvedneš si směs na místě, které je u něj napsané. Ozveme se, až bude připravená.</p>
+            <p>Dárkové balení se vzkazem nabízíme, jen když je v pokladně. Jeho cena se ukáže dřív, než objednávku odešleš.</p>
             <p>Při převzetí zkontroluj, že je obal zásilky v pořádku. Když je poškozený, můžeš zásilku odmítnout, nebo s dopravcem sepsat záznam o poškození. Převzetím na tebe přechází nebezpečí škody na zboží.</p>
 
             <h2>6. Odstoupení od smlouvy</h2>
@@ -678,7 +721,7 @@
 
             <h2>10. Závěrem</h2>
             <p>Podmínky se řídí českým právem. Platí ve znění, které bylo na webu, když jsi objednávku odeslal. Pozdější změny se tvé objednávky netýkají. Předchozí znění ti na požádání pošleme.</p>
-            <p class="legal-updated">Znění ze dne 5. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
+            <p class="legal-updated">Znění ze dne 9. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
         </div>
         <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
     </div>
@@ -688,6 +731,7 @@
 <section id="withdrawal-page" class="page">
     <div class="page-wrap page-narrow legal">
         <h1 class="page-title">Odstoupení od smlouvy</h1>
+        <p class="legal-lang-note" data-legal-note hidden></p>
         <div class="legal-body">
             <p class="legal-lede">Hotovou směs v neotevřeném sáčku můžeš vrátit do 14 dnů od převzetí bez udání důvodu. Směsi namíchané na míru vrátit nejde, ty můžeš jen reklamovat. Podrobnosti jsou v <a href="#" onclick="event.preventDefault(); showPage('terms-page')">obchodních podmínkách</a>, článek 6.</p>
 
@@ -741,6 +785,7 @@
 <section id="privacy-page" class="page">
     <div class="page-wrap page-narrow legal">
         <h1 class="page-title">Ochrana osobních údajů</h1>
+        <p class="legal-lang-note" data-legal-note hidden></p>
         <div class="legal-body">
             <p class="legal-lede">Sbíráme jen to, co potřebujeme, abychom ti mohli poslat čaj. Nic neprodáváme a nesledujeme tě reklamou.</p>
 
@@ -752,10 +797,11 @@
             <div class="legal-table-wrap" role="region" aria-label="Přehled zpracování osobních údajů" tabindex="0"><table class="legal-table legal-table--stack">
                 <thead><tr><th>Kdy</th><th>Jaké údaje</th><th>Proč a podle čeho</th><th>Jak dlouho</th></tr></thead>
                 <tbody>
-                    <tr><td data-label="Kdy">Objednávka</td><td data-label="Jaké údaje">jméno a příjmení, e-mail, telefon, doručovací adresa nebo výdejní místo, obsah objednávky, poznámka, slevový kód, datum a znění obchodních podmínek</td><td data-label="Proč a podle čeho">Abychom smlouvu splnili: namíchali, poslali a vyřídili případnou reklamaci (čl. 6 odst. 1 písm. b) GDPR). Bez těchto údajů objednávku vyřídit nejde. U výdejního místa Zásilkovny adresu nechceme.</td><td data-label="Jak dlouho">E-mail, telefon a poznámku smažeme 5 let po objednávce. Jméno, adresu a obsah objednávky si necháme kvůli daním a reklamacím, nejdéle 10 let.</td></tr>
+                    <tr><td data-label="Kdy">Objednávka</td><td data-label="Jaké údaje">jméno a příjmení, e-mail, telefon, doručovací adresa nebo výdejní místo, obsah objednávky, poznámka, u dárku vzkaz na kartičku, slevový kód, datum a znění obchodních podmínek</td><td data-label="Proč a podle čeho">Abychom smlouvu splnili: namíchali, poslali a vyřídili případnou reklamaci (čl. 6 odst. 1 písm. b) GDPR). Bez těchto údajů objednávku vyřídit nejde. U výdejního místa Zásilkovny adresu nechceme.</td><td data-label="Jak dlouho">E-mail, telefon a poznámku smažeme 5 let po objednávce. Jméno, adresu a obsah objednávky si necháme kvůli daním a reklamacím, nejdéle 10 let.</td></tr>
                     <tr><td data-label="Kdy">Doklady</td><td data-label="Jaké údaje">jméno, adresa, obsah a cena objednávky</td><td data-label="Proč a podle čeho">Povinnost uchovávat daňové záznamy (čl. 6 odst. 1 písm. c) GDPR).</td><td data-label="Jak dlouho">Po dobu, kterou ukládají daňové předpisy, nejdéle 10 let</td></tr>
                     <tr><td data-label="Kdy">Odstoupení od smlouvy</td><td data-label="Jaké údaje">číslo objednávky, jméno, e-mail, co vracíš, číslo účtu, poznámka, datum a čas</td><td data-label="Proč a podle čeho">Zákon nám ukládá odstoupení přijmout, potvrdit a vrátit peníze (čl. 6 odst. 1 písm. c) GDPR).</td><td data-label="Jak dlouho">10 let</td></tr>
                     <tr><td data-label="Kdy">Upozornění na mýdla a balzámy</td><td data-label="Jaké údaje">e-mail a vybraný produkt</td><td data-label="Proč a podle čeho">Tvůj souhlas, když e-mail necháš (čl. 6 odst. 1 písm. a) GDPR). Můžeš ho kdykoli odvolat e-mailem. Souhlas může dát člověk od 15 let (§ 7 zákona č. 110/2019 Sb.).</td><td data-label="Jak dlouho">Do odeslání upozornění, nejdéle 2 roky, pak se smaže sám</td></tr>
+                    <tr><td data-label="Kdy">Recenze</td><td data-label="Jaké údaje">jméno nebo přezdívka, hodnocení, text, jazyk, datum a číslo objednávky, ke které recenze patří. E-mail z formuláře použijeme jen k ověření nákupu a neukládáme ho.</td><td data-label="Proč a podle čeho">Tvůj souhlas se zveřejněním (čl. 6 odst. 1 písm. a) GDPR). Recenzi i souhlas můžeš kdykoli odvolat e-mailem, recenzi pak smažeme.</td><td data-label="Jak dlouho">Dokud je zveřejněná nebo do odvolání souhlasu. Nezveřejněné mažeme po 6 měsících.</td></tr>
                     <tr><td data-label="Kdy">Ochrana proti zneužití</td><td data-label="Jaké údaje">e-mail a čas objednávky nebo odstoupení</td><td data-label="Proč a podle čeho">Oprávněný zájem: omezujeme počet objednávek a odstoupení z jednoho e-mailu (čl. 6 odst. 1 písm. f) GDPR).</td><td data-label="Jak dlouho">Stejně jako objednávka</td></tr>
                     <tr><td data-label="Kdy">Žádosti o osobní údaje</td><td data-label="Jaké údaje">e-mail, druh žádosti, kdy a jak jsme ji vyřídili</td><td data-label="Proč a podle čeho">Musíme umět doložit, že jsme žádost vyřídili (čl. 5 odst. 2 a čl. 6 odst. 1 písm. c) GDPR).</td><td data-label="Jak dlouho">5 let</td></tr>
                     <tr><td data-label="Kdy">Když nám napíšeš</td><td data-label="Jaké údaje">e-mail a obsah zprávy</td><td data-label="Proč a podle čeho">Oprávněný zájem odpovědět ti (čl. 6 odst. 1 písm. f) GDPR).</td><td data-label="Jak dlouho">Dokud věc neuzavřeme, nejdéle 2 roky</td></tr>
@@ -789,7 +835,7 @@
 
             <h2>7. Změny</h2>
             <p>Když zásady podstatně změníme, upozorníme na to tady na webu. Předchozí znění ti na požádání pošleme.</p>
-            <p class="legal-updated">Znění ze dne 7. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
+            <p class="legal-updated">Znění ze dne 9. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
         </div>
         <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
     </div>
@@ -799,6 +845,7 @@
 <section id="cookies-page" class="page">
     <div class="page-wrap page-narrow legal">
         <h1 class="page-title">Cookies</h1>
+        <p class="legal-lang-note" data-legal-note hidden></p>
         <div class="legal-body">
             <p class="legal-lede">Cookies v pravém slova smyslu nepoužíváme. Web si jen ve tvém prohlížeči (v takzvaném localStorage) pamatuje věci, o které sám požádáš, třeba obsah košíku. Nic z toho se neposílá nám ani nikomu jinému. Proto se tě na souhlas neptáme.</p>
 
@@ -813,9 +860,12 @@
                     <tr><td>teaseyou_notify_email, teaseyou_notified</td><td>E-mail a produkty, u kterých chceš upozornit, až budou k mání</td><td>Dokud je nesmažeš</td></tr>
                     <tr><td>teaseyou_promo_dismissed</td><td>Že jsi zavřel lištu nahoře</td><td>Dokud ho nesmažeš</td></tr>
                     <tr><td>theme</td><td>Světlý nebo tmavý vzhled</td><td>Dokud ho nesmažeš</td></tr>
+                    <tr><td>teaseyou_reviewed</td><td>Které objednávky už jsi ohodnotil, ať se formulář neukazuje znovu</td><td>Dokud ho nesmažeš</td></tr>
+                    <tr><td>teaseyou_lang</td><td>Jazyk webu, který sis vybral (čeština, slovenština, angličtina)</td><td>Dokud ho nesmažeš</td></tr>
                     <tr><td>teaseyou_catalog_v1</td><td>Kopie nabídky, aby se web načetl rychleji</td><td>Přepíše se při další návštěvě</td></tr>
                 </tbody>
             </table></div>
+            <p>Když přepneš jazyk, web si na chvíli (jen do zavření záložky) zapamatuje, na které stránce jsi byl a co máš rozmíchané v mixéru (<code>teaseyou_restore</code>), ať o to po přepnutí nepřijdeš. Po načtení stránky to hned smaže.</p>
             <p>Kvůli rychlosti a fungování bez internetu si prohlížeč ukládá i soubory webu (obrázky, písma, skripty).</p>
             <p>Když v pokladně otevřeš mapu výdejních míst Zásilkovny, načte se z jejích serverů a může si ukládat vlastní údaje podle <a href="https://www.zasilkovna.cz" rel="noopener" target="_blank">pravidel Zásilkovny</a>. Dokud mapu neotevřeš, nic se z ní nenačítá.</p>
 
@@ -855,7 +905,7 @@
             <p class="page-lede" data-i18n="ing_page_sub">Ze všeho tady se dá míchat.</p>
         </header>
         <section class="ing-section" aria-labelledby="ing-h-bases">
-            <h2 class="section-title ing-cat-title" id="ing-h-bases" data-i18n="ing_cat_bases">Čajové základy</h2>
+            <h2 class="section-title ing-cat-title" id="ing-h-bases" data-i18n="ing_cat_bases">Základy</h2>
             <div class="ing-grid" id="ing-grid-bases"></div>
         </section>
         <section class="ing-section" aria-labelledby="ing-h-flavors">
@@ -891,19 +941,6 @@
 </section>
 
 </main>
-
-<div id="order-modal" class="modal">
-    <div class="modal-content">
-        <h2 class="modal-title" data-i18n="modal_qty_title">Select Quantity</h2>
-        <div class="qty-options qty-options--center">
-            <button class="qty-btn" onclick="selectQty(50, event)">50g<span class="qty-price">49 Kč</span></button>
-            <button class="qty-btn" onclick="selectQty(100, event)">100g<span class="qty-price">89 Kč</span></button>
-            <button class="qty-btn" onclick="selectQty(250, event)">250g<span class="qty-price">199 Kč</span></button>
-        </div>
-        <button id="final-order-btn" class="btn btn-primary btn-lg disabled" onclick="confirmOrder()" disabled data-i18n="btn_confirm">Confirm</button>
-        <button onclick="closeOrderModal()" class="btn btn-link modal-cancel" data-i18n="btn_cancel">Cancel</button>
-    </div>
-</div>
 
 <footer class="site-footer">
     <div class="footer-inner">
@@ -954,6 +991,11 @@
         <span id="footer-copy"></span>
         <span data-i18n="footer_made_in">Mícháme v Česku</span>
         <a class="footer-credits" href="THIRD-PARTY-LICENSES.txt" data-i18n="footer_credits">Licence písem a ikon</a>
+        <span class="footer-langs" role="group" aria-label="Jazyk webu / Language">
+            <button type="button" class="footer-lang" lang="cs" data-lang="cs" onclick="setLanguage('cs')">Čeština</button>
+            <button type="button" class="footer-lang" lang="sk" data-lang="sk" onclick="setLanguage('sk')">Slovenčina</button>
+            <button type="button" class="footer-lang" lang="en" data-lang="en" onclick="setLanguage('en')">English</button>
+        </span>
     </div>
 </footer>
 
@@ -984,6 +1026,10 @@
 </nav>
 <script src="config.js"></script>
 <script src="db.js"></script>
+<script src="i18n-sk.js"></script>
+<script src="bank.js"></script>
+<script src="recipe.js"></script>
+<script src="icons.js"></script>
 <script src="script.js"></script>
 <script>
 if ('serviceWorker' in navigator) {

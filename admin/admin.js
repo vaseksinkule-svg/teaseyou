@@ -117,6 +117,52 @@
     }
     const ingByCode = code => state.ingredients.find(i => i.code === code);
     const ingName = code => (ingByCode(code) || {}).name_cs || code;
+    /* Text na štítek sáčku. Na Slovensko jde slovensky (nařízení EU 1169/2011,
+       čl. 15: jazyk srozumitelný v zemi prodeje), jinak česky. Druh čaje
+       stejně jako na webu (vyhláška 187/2023 Sb., § 2). */
+    function pouchLabel(item, lang) {
+        if (!Array.isArray(item.recipe) || !item.recipe.length) return '';
+        const loc = lang === 'sk' ? 'sk' : 'cs';
+        const low = s => String(s || '').toLocaleLowerCase(loc);
+        const lbl = x => {
+            const i = ingByCode(x.code) || {};
+            const cs = String(i.label_cs || '').trim() || low(i.name_cs || x.name || x.code);
+            if (loc === 'cs') return cs;
+            return String(i.label_sk || '').trim() || (i.name_sk ? low(i.name_sk) : cs);
+        };
+        const N = loc === 'sk'
+            ? { flavoured: 'Ochutený ', herb: 'Bylinný čaj', fruit: 'Ovocný čaj', comp: 'Zloženie' }
+            : { flavoured: 'Ochucený ', herb: 'Bylinný čaj', fruit: 'Ovocný čaj', comp: 'Složení' };
+        const isTea = x => (recipeInfo(x.code) || {}).kind === 'tea';
+        const teas = item.recipe.filter(isTea);
+        let name = '';
+        if (item.category === 'tea') {
+            const group = teas.length === 1 ? lbl(teas[0]) : 'čaj';
+            name = teas.length === item.recipe.length ? group.charAt(0).toLocaleUpperCase(loc) + group.slice(1) : N.flavoured + group;
+        } else if (item.category === 'herb') name = N.herb;
+        else if (item.category === 'fruit') name = N.fruit;
+        return `${name ? name + '. ' : ''}${N.comp}: ${item.recipe.map(x => `${lbl(x)} ${x.pct} %`).join(', ')}`;
+    }
+    /* Receptura stejně jako na webu a v databázi (../recipe.js). Skryté
+       suroviny se počítají taky, ať jde staré směsi aspoň zobrazit. */
+    const recipeInfo = code => {
+        const i = ingByCode(code);
+        return i ? { kind: i.kind || (i.category === 'base' ? 'tea' : 'herb'), maxPct: i.max_pct, surcharge: i.surcharge_czk || 0 } : null;
+    };
+    const recipeOf = (codes, parts, weight) => Recipe.evaluate(codes, parts, recipeInfo, weight || 100);
+    const RECIPE_ERRORS = {
+        empty: 'Vyber aspoň jednu surovinu.',
+        too_many: 'Nejvýš 5 surovin.',
+        duplicate: 'Každá surovina jen jednou.',
+        unknown: 'Některá surovina už v katalogu není.',
+        too_many_pinch: 'Špetka (limit do 5 %) může být nejvýš ze dvou surovin.',
+        no_main: 'Samotná špetka nestačí, přidej hlavní surovinu.',
+        no_category: 'Žádná skupina nemá přes polovinu: čaj aspoň 50 %, nebo byliny či ovoce víc než 50 % (vyhláška 187/2023 Sb., § 2).',
+    };
+    const recipeError = r => r.error === 'over_limit'
+        ? `${ingName(r.errorCode)} smí tvořit nejvýš ${(ingByCode(r.errorCode) || {}).max_pct} % (příloha 1 vyhlášky).`
+        : (RECIPE_ERRORS[r.error] || 'Směs takhle nejde.');
+    const CATEGORY_NAME = { tea: 'ochucený nebo čistý čaj', herb: 'bylinný čaj', fruit: 'ovocný čaj' };
     const ingColor = code => (ingByCode(code) || {}).color || '#dddddd';
     const splitList = s => String(s || '').split(',').map(x => x.trim()).filter(Boolean).slice(0, 12);
     const slugify = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -139,14 +185,19 @@
             : { day: 'numeric', month: 'numeric', year: 'numeric' });
     }
     function glassHtml(codes) {
-        const layers = (codes || []).slice(0, 3);
+        const layers = (codes || []).slice(0, 5);
         return `<span class="glass" aria-hidden="true">${layers.map(c =>
             `<span style="background:${esc(ingColor(c))}"></span>`).join('')}</span>`;
     }
+    /* Stejná ikonka jako na webu: vlastní (Ikonka), fotka, nebo vestavěná kresba. */
     function swatchHtml(ing) {
+        const color = /^#[0-9a-f]{6}$/i.test(ing.color || '') ? ing.color : '#cccccc';
+        const icon = safePhoto(ing.icon_url);
+        if (icon) return `<span class="ing-ico has-img" style="--c:${esc(color)}" aria-hidden="true"><img src="${esc(icon)}" alt="" loading="lazy"></span>`;
         const photo = safePhoto(ing.photo_url);
-        if (photo) return `<span class="swatch" style="background-image:url('${esc(photo)}')" aria-hidden="true"></span>`;
-        return `<span class="swatch" style="background:${esc(ing.color)}" aria-hidden="true">${esc(ing.emoji)}</span>`;
+        if (photo) return `<span class="ing-ico has-photo" style="--c:${esc(color)};background-image:url('${esc(photo)}')" aria-hidden="true"></span>`;
+        const kind = ing.kind || (ing.category === 'base' ? 'tea' : '');
+        return `<span class="ing-ico" style="--c:${esc(color)}" aria-hidden="true">${IngIcons.svg(IngIcons.keyFor(ing.code, kind))}</span>`;
     }
     function safePhoto(url) {
         return typeof url === 'string' && /^https:\/\/[^\s"'()<>\\]+$/.test(url) ? url : '';
@@ -348,6 +399,9 @@
             } else if (name === 'withdrawals') {
                 state.withdrawals = await db.select('withdrawals', { order: 'created_at.desc', limit: 500 });
                 renderWithdrawals();
+            } else if (name === 'reviews') {
+                state.reviews = await db.select('reviews', { order: 'created_at.desc', limit: 500 });
+                renderReviews();
             } else if (name === 'backups') {
                 state.trash = await db.select('deleted_rows', { order: 'deleted_at.desc', limit: 500 });
                 renderBackups();
@@ -433,6 +487,73 @@
         if (!blob) throw new Error('Fotku se nepodařilo zpracovat.');
         return blob;
     }
+    /* Ikonka: PNG s průhledným pozadím, nejvýš 512 px. SVG se tady převede
+       na PNG, ať se do úložiště nedostane nic, co by šlo spustit. */
+    async function prepareIcon(file) {
+        if (file.size > 2 * 1024 * 1024) throw new Error('Ikonka je moc velká, nahraj soubor do 2 MB.');
+        const isSvg = file.type === 'image/svg+xml' || /\.svg$/i.test(file.name || '');
+        const img = await loadImage(isSvg ? new Blob([await file.text()], { type: 'image/svg+xml' }) : file);
+        const w = img.naturalWidth || 512, h = img.naturalHeight || 512;
+        // SVG bez rozměrů nakreslíme rovnou na 512 px, bitmapu jen zmenšíme.
+        const scale = isSvg ? 512 / Math.max(w, h) : Math.min(1, 512 / Math.max(w, h));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(w * scale));
+        canvas.height = Math.max(1, Math.round(h * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        const blob = await canvasBlob(canvas, 'image/png');
+        if (!blob) throw new Error('Ikonku se nepodařilo zpracovat.');
+        return blob;
+    }
+
+    /* Ovládání ikonky v panelu ingredience. Stejně jako u fotky: nahraje
+       hned, do ingredience se zapíše až uložením, nepoužité se smažou. */
+    function iconControl(body, initialUrl, idHint, previewOf) {
+        const ctl = { url: initialUrl || null, uploaded: [] };
+        const box = $('#icon-field', body);
+        const input = $('input[type=file]', box);
+        const removeBtn = $('[data-icon=remove]', box);
+        const paint = () => {
+            $('.icon-preview', box).innerHTML = previewOf(safePhoto(ctl.url));
+            removeBtn.hidden = !safePhoto(ctl.url);
+        };
+        ctl.paint = paint;
+        paint();
+        $('[data-icon=pick]', box).addEventListener('click', () => input.click());
+        removeBtn.addEventListener('click', () => { ctl.url = null; sheetDirty = true; paint(); });
+        input.addEventListener('change', async () => {
+            const file = input.files && input.files[0];
+            input.value = '';
+            if (!file) return;
+            const btn = $('[data-icon=pick]', box);
+            btn.disabled = true;
+            btn.textContent = 'Nahrávám…';
+            try {
+                const blob = await prepareIcon(file);
+                const path = `icons/${slugify(idHint() || 'ikonka') || 'ikonka'}-${Date.now().toString(36)}.png`;
+                const url = await db.upload(PHOTO_BUCKET, path, blob, 'image/png');
+                ctl.uploaded.push(url);
+                ctl.url = url;
+                sheetDirty = true;
+                paint();
+                toast('Ikonka nahraná. Nezapomeň uložit.');
+            } catch (err) {
+                fail(err);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Nahrát ikonku';
+            }
+        });
+        ctl.commit = () => {
+            const unused = ctl.uploaded.filter(u => u !== ctl.url);
+            if (initialUrl && initialUrl !== ctl.url) unused.push(initialUrl);
+            removePhotos(unused);
+            ctl.uploaded = [];
+            initialUrl = ctl.url;
+        };
+        ctl.discard = () => { removePhotos(ctl.uploaded.filter(u => u !== initialUrl)); ctl.uploaded = []; };
+        return ctl;
+    }
+
     function storagePath(url) {
         const prefix = db.publicUrl(PHOTO_BUCKET, '');
         return typeof url === 'string' && url.startsWith(prefix) ? decodeURIComponent(url.slice(prefix.length)) : null;
@@ -542,7 +663,7 @@
                 ${glassHtml(items[0] && items[0].ingredients)}
                 <span class="row-main">
                     <span class="row-title">${esc(o.first_name)} ${esc(o.last_name)}</span>
-                    <span class="row-sub">${esc(o.num)}, ${esc(formatDate(o.created_at))}, ${count} ks</span>
+                    <span class="row-sub">${esc(o.num)}, ${esc(formatDate(o.created_at))}, ${count} ks${o.gift_wrap ? ', 🎁 dárek' : ''}${o.shipping_method === 'pickup' ? ', osobně' : ''}</span>
                 </span>
                 <span class="row-side">
                     <span class="row-price">${kc(o.total_czk)}</span>
@@ -558,8 +679,12 @@
     function openOrder(o) {
         if (!o) return;
         const items = Array.isArray(o.items) ? o.items : [];
-        const address = [`${o.first_name} ${o.last_name}`, o.street, `${o.zip} ${o.city}`.trim(), o.country]
-            .filter(Boolean).join('\n');
+        const toSk = /^(sk|slovensko|slovakia)$/i.test(String(o.country || '').trim());
+        const address = o.shipping_method === 'pickup'
+            ? `${o.first_name} ${o.last_name}\nOsobní odběr${(state.settings && state.settings.pickup_note) ? ': ' + state.settings.pickup_note : ''}`
+            : [`${o.first_name} ${o.last_name}`, o.street, `${o.zip} ${o.city}`.trim(), o.country].filter(Boolean).join('\n');
+        const payLabel = o.shipping_method === 'pickup' && o.payment_method === 'cod'
+            ? 'Hotově při osobním převzetí' : (PAYMENT[o.payment_method] || o.payment_method);
         const html = `
             <div class="order-meta">
                 <span class="pill pill-${esc(o.status)}" id="order-status-pill">${esc(STATUS[o.status] || o.status)}</span>
@@ -573,8 +698,11 @@
                         ${glassHtml(i.ingredients)}
                         <div>
                             <div><strong>${esc(i.name)}</strong></div>
-                            <div class="order-item-sub">${esc((i.ingredient_names || i.ingredients || []).join(', '))}</div>
-                            <div class="order-item-sub">${esc(i.weight_g)} g × ${esc(i.qty)}</div>
+                            ${Array.isArray(i.recipe) && i.recipe.length
+                                ? `<ul class="order-recipe">${i.recipe.map(x => `<li><span>${esc(x.name || ingName(x.code))}</span><span>${esc(x.pct)} %</span><strong>${esc(String(x.grams).replace('.', ','))} g</strong></li>`).join('')}</ul>`
+                                : `<div class="order-item-sub">${esc((i.ingredient_names || i.ingredients || []).join(', '))}</div>`}
+                            ${toSk && pouchLabel(i, 'sk') ? `<p class="order-label"><span>Na štítek slovensky (posíláš na Slovensko):</span> ${esc(pouchLabel(i, 'sk'))}</p>` : ''}
+                            <div class="order-item-sub">${esc(i.weight_g)} g × ${esc(i.qty)}${i.surcharge_czk ? `, z toho příplatek ${kc(i.surcharge_czk)} za kus` : ''}</div>
                         </div>
                         <strong>${kc(i.line_czk)}</strong>
                     </div>`).join('')}
@@ -583,9 +711,16 @@
                     ${o.discount_czk ? `<div><span>Sleva ${esc(o.promo_code || '')}</span><span>−${kc(o.discount_czk)}</span></div>` : ''}
                     <div><span>Doprava</span><span>${o.shipping_czk ? kc(o.shipping_czk) : 'zdarma'}</span></div>
                     ${o.payment_czk ? `<div><span>Příplatek za dobírku</span><span>${kc(o.payment_czk)}</span></div>` : ''}
+                    ${o.gift_wrap ? `<div><span>Dárkové balení</span><span>${o.gift_czk ? kc(o.gift_czk) : 'zdarma'}</span></div>` : ''}
                     <div class="grand"><span>Celkem</span><span>${kc(o.total_czk)}</span></div>
                 </div>
             </div>
+
+            ${o.gift_wrap ? `<div class="sheet-section order-gift">
+                <h3>🎁 Dárek</h3>
+                <p>Zabalit jako dárek. Doklad s cenou do balíčku nedávej, pošli ho zákazníkovi e-mailem.</p>
+                ${o.gift_message ? `<p class="order-label"><span>Vzkaz na kartičku</span> ${esc(o.gift_message)}</p>` : '<p class="help">Bez vzkazu.</p>'}
+            </div>` : ''}
 
             <div class="sheet-section">
                 <h3>Stav</h3>
@@ -608,11 +743,13 @@
                     <dt>Telefon</dt><dd><a href="tel:${esc(String(o.phone).replace(/\s+/g, ''))}">${esc(o.phone)}</a></dd>
                     <dt>Doprava</dt><dd>${esc(o.shipping_name || o.shipping_method)}</dd>
                     ${o.packeta_point ? `<dt>Výdejní místo</dt><dd>${esc(o.packeta_point)}${o.packeta_point_id ? ` (ID ${esc(o.packeta_point_id)})` : ''}</dd>` : ''}
-                    <dt>Platba</dt><dd>${esc(PAYMENT[o.payment_method] || o.payment_method)}</dd>
+                    <dt>Platba</dt><dd>${esc(payLabel)}</dd>
                     ${o.payment_method === 'transfer' ? `<dt>Variabilní symbol</dt><dd>${esc(o.id)}</dd>` : ''}
-                    <dt>Jazyk webu</dt><dd>${o.lang === 'en' ? 'angličtina' : 'čeština'}</dd>
+                    <dt>Jazyk webu</dt><dd>${({ en: 'angličtina', sk: 'slovenština' })[o.lang] || 'čeština'}</dd>
                     <dt>Obchodní podmínky</dt><dd>${o.terms_version ? `znění z ${esc(o.terms_version)}, odsouhlaseno tlačítkem „Objednat a zaplatit“ ${esc(formatDate(o.created_at))}` : 'neuvedeno'}</dd>
                 </dl>
+                <p style="margin:12px 0 0"><a class="btn btn-secondary btn-small" id="confirm-mail" href="${esc(orderConfirmMail(o))}">Napsat potvrzení objednávky</a></p>
+                <p class="help">Otevře poštu s hotovým potvrzením v jazyce zákazníka${o.payment_method === 'transfer' ? ', včetně údajů k platbě' : ''}. Pošli ho hned po objednání.</p>
             </div>
 
             ${o.note ? `<div class="sheet-section"><h3>Poznámka od zákazníka</h3><p class="address">${esc(o.note)}</p></div>` : ''}
@@ -679,6 +816,8 @@
                             <span class="row-sub">${!i.active ? 'Skrytá, na webu není vidět' : esc(i.desc_cs || i.name_en)}</span>
                         </span>
                         <span class="row-side">
+                            ${i.surcharge_czk ? `<span class="pill">+${esc(i.surcharge_czk)} Kč/100 g</span>` : ''}
+                            ${i.max_pct ? `<span class="pill">max ${esc(i.max_pct)} %</span>` : ''}
                             ${i.in_stock ? '' : '<span class="pill pill-out">Vyprodáno</span>'}
                             <label class="stock-toggle" title="Skladem">
                                 <span class="stock-label">Skladem</span>
@@ -716,7 +855,7 @@
     function openIngredient(ing) {
         const isNew = !ing;
         const i = ing || {
-            category: 'flavor', name_cs: '', name_en: '', desc_cs: '', desc_en: '', emoji: '🍵', color: '#87ab68',
+            category: 'flavor', name_cs: '', name_en: '', name_sk: '', desc_cs: '', desc_en: '', desc_sk: '', emoji: '🍵', color: '#87ab68',
             caffeine: null, flavor_cs: [], flavor_en: [], health_cs: [], health_en: [], pairs: [],
             brew_temp: '', brew_time: '', photo_url: null, in_stock: true, active: true,
             sort: (Math.max(0, ...state.ingredients.map(x => x.sort || 0)) + 10),
@@ -731,6 +870,7 @@
                     <label class="field"><span>Název česky</span><input type="text" name="name_cs" maxlength="60" required value="${esc(i.name_cs)}"></label>
                     <label class="field"><span>Název anglicky</span><input type="text" name="name_en" maxlength="60" required value="${esc(i.name_en)}"></label>
                 </div>
+                <label class="field"><span>Název slovensky</span><input type="text" name="name_sk" maxlength="60" placeholder="Prázdné = česky" value="${esc(i.name_sk || '')}"></label>
                 ${isNew
                     ? '<p class="help" id="code-help">Z anglického názvu vznikne vnitřní název pro sdílené odkazy. Později už nejde změnit.</p>'
                     : `<p class="help">Vnitřní název pro odkazy a košíky: <strong>${esc(i.code)}</strong></p>`}
@@ -740,9 +880,22 @@
                 </label>
                 <label class="field"><span>Popis česky</span><textarea name="desc_cs" rows="2" maxlength="500">${esc(i.desc_cs)}</textarea></label>
                 <label class="field"><span>Popis anglicky</span><textarea name="desc_en" rows="2" maxlength="500">${esc(i.desc_en)}</textarea></label>
+                <label class="field"><span>Popis slovensky</span><textarea name="desc_sk" rows="2" maxlength="500" placeholder="Prázdné = česky">${esc(i.desc_sk || '')}</textarea></label>
                 <div class="field-row">
-                    <label class="field"><span>Barva ve skleničce</span><input type="color" name="color" value="${esc(i.color)}"></label>
-                    <label class="field"><span>Emoji (když není fotka)</span><input type="text" name="emoji" maxlength="8" value="${esc(i.emoji)}"></label>
+                    <label class="field"><span>Barva</span><input type="color" name="color" value="${esc(i.color)}"><small>Podklad ikonky a tečky v košíku.</small></label>
+                    <label class="field"><span>Emoji (jen v administraci)</span><input type="text" name="emoji" maxlength="8" value="${esc(i.emoji)}"></label>
+                </div>
+                <div class="field" id="icon-field">
+                    <span>Ikonka</span>
+                    <div class="icon-row">
+                        <span class="icon-preview"></span>
+                        <span class="photo-actions">
+                            <input type="file" accept="image/png,image/webp,image/svg+xml,.svg">
+                            <button type="button" class="btn btn-secondary btn-small" data-icon="pick">Nahrát ikonku</button>
+                            <button type="button" class="btn-link" data-icon="remove">Vrátit vestavěnou</button>
+                        </span>
+                    </div>
+                    <small>PNG nebo SVG s průhledným pozadím, ideálně čtverec 512 × 512 px. Web ji ukáže v kolečku v barvě suroviny: v mixéru, na sáčku, v encyklopedii. Bez ní je tu jednoduchá kresba.</small>
                 </div>
                 <div class="base-only">
                     <div class="field-row">
@@ -762,20 +915,25 @@
                 </div>
                 <label class="field"><span>Chuť česky</span><input type="text" name="flavor_cs" value="${esc((i.flavor_cs || []).join(', '))}"><small>Oddělené čárkou, např. sladká, květinová</small></label>
                 <label class="field"><span>Chuť anglicky</span><input type="text" name="flavor_en" value="${esc((i.flavor_en || []).join(', '))}"></label>
+                <label class="field"><span>Chuť slovensky</span><input type="text" name="flavor_sk" value="${esc((i.flavor_sk || []).join(', '))}"></label>
                 <fieldset class="field-group">
                     <legend>Na etiketu a do informací o potravině</legend>
                     <div class="field-row">
                         <label class="field"><span>Název ve složení</span><input type="text" name="label_cs" maxlength="80" placeholder="např. citronová kůra" value="${esc(i.label_cs || '')}"></label>
+                        <label class="field"><span>Ve složení slovensky</span><input type="text" name="label_sk" maxlength="80" placeholder="napr. citrónová kôra" value="${esc(i.label_sk || '')}"></label>
                         <label class="field"><span>Druh</span>
                             <select name="kind">${Object.entries(KIND).map(([k, v]) =>
                                 `<option value="${k}"${(i.kind || defaultKind(i.category)) === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
                         </label>
                     </div>
                     <div class="field-row">
-                        <label class="field"><span>Nejvýš ve směsi</span><input type="number" name="max_pct" min="1" max="100" step="1" inputmode="numeric" placeholder="bez limitu" value="${esc(i.max_pct || '')}"><small>V % podle přílohy 1 vyhlášky 187/2023 Sb. Třeba levandule, kurkuma a kardamom nejvýš 5.</small></label>
+                        <label class="field"><span>Nejvýš ve směsi</span><input type="number" name="max_pct" min="1" max="100" step="1" inputmode="numeric" placeholder="bez limitu" value="${esc(i.max_pct || '')}"><small>V % podle přílohy 1 vyhlášky 187/2023 Sb. Třeba citronová kůra 30, levandule a kardamom 5. Do 5 % je surovina „špetka“: ve směsi má pevně 4 %.</small></label>
                         <label class="field"><span>Alergeny</span><input type="text" name="allergens" maxlength="200" placeholder="žádné" value="${esc(i.allergens || '')}"><small>Podle specifikace od dodavatele, např. oxid siřičitý u sušeného ovoce.</small></label>
                     </div>
                 </fieldset>
+                <label class="field field-inline"><span>Příplatek za prémiovou surovinu</span>
+                    <input type="number" name="surcharge_czk" min="0" max="1000" step="1" inputmode="numeric" placeholder="0" value="${esc(i.surcharge_czk || '')}"><em>Kč za 100 g</em></label>
+                <p class="help">Připočte se k ceně sáčku podle toho, kolik suroviny v něm je. Třeba 50 Kč za 100 g u bílého čaje: když je ho ve 100g sáčku 60 %, sáček stojí o 30 Kč víc.</p>
                 <label class="field"><span>Poznámky o účincích česky</span><input type="text" name="health_cs" value="${esc((i.health_cs || []).join(', '))}">
                     <small>Jen pro tebe, na webu se neukazují. U potravin smí web uvádět jen zdravotní tvrzení schválená EU (nařízení 1924/2006).</small></label>
                 <label class="field"><span>Poznámky o účincích anglicky</span><input type="text" name="health_en" value="${esc((i.health_en || []).join(', '))}"></label>
@@ -798,6 +956,13 @@
         openSheet(isNew ? 'Nová ingredience' : i.name_cs, html, body => {
             const form = $('#ing-form', body);
             const photo = photoControl(body, i.photo_url, 'ingredients', () => form.name_en.value || i.code, i.emoji);
+            const iconPreview = url => swatchHtml({
+                code: i.code || codeFromName(form.name_en.value), kind: form.kind.value, category: form.category.value,
+                color: form.color.value, icon_url: url, photo_url: url ? null : photo.url,
+            });
+            const icon = iconControl(body, i.icon_url, () => form.name_en.value || i.code, iconPreview);
+            ['color', 'kind', 'category'].forEach(n => form[n].addEventListener('input', () => icon.paint()));
+            ['kind', 'category'].forEach(n => form[n].addEventListener('change', () => icon.paint()));
             const syncBase = () => { $('.base-only', body).hidden = form.category.value !== 'base'; };
             syncBase();
             form.category.addEventListener('change', syncBase);
@@ -821,27 +986,33 @@
                 const v = n => form[n].value.trim();
                 const category = form.category.value;
                 const row = {
-                    name_cs: v('name_cs'), name_en: v('name_en'),
-                    desc_cs: v('desc_cs'), desc_en: v('desc_en'),
+                    name_cs: v('name_cs'), name_en: v('name_en'), name_sk: v('name_sk'),
+                    desc_cs: v('desc_cs'), desc_en: v('desc_en'), desc_sk: v('desc_sk'),
                     category,
                     color: form.color.value.toLowerCase(),
                     emoji: v('emoji') || '🍵',
                     caffeine: category === 'base' && form.caffeine.value !== '' ? Number(form.caffeine.value) : null,
                     brew_temp: category === 'base' ? (v('brew_temp') || null) : null,
                     brew_time: category === 'base' ? (v('brew_time') || null) : null,
-                    flavor_cs: splitList(v('flavor_cs')), flavor_en: splitList(v('flavor_en')),
+                    flavor_cs: splitList(v('flavor_cs')), flavor_en: splitList(v('flavor_en')), flavor_sk: splitList(v('flavor_sk')),
                     health_cs: splitList(v('health_cs')), health_en: splitList(v('health_en')),
                     label_cs: v('label_cs') || null,
+                    label_sk: v('label_sk'),
                     kind: form.kind.value,
                     max_pct: form.max_pct.value === '' ? null : parseInt(form.max_pct.value, 10),
+                    surcharge_czk: form.surcharge_czk.value === '' ? 0 : parseInt(form.surcharge_czk.value, 10),
                     allergens: v('allergens'),
                     pairs: $$('#pairs .chip[aria-pressed="true"]', body).map(c => c.dataset.pair),
                     photo_url: photo.url,
+                    icon_url: icon.url,
                     in_stock: form.in_stock.checked,
                     active: form.active.checked,
                     sort: parseInt(v('sort'), 10) || 0,
                 };
                 if (!row.name_cs || !row.name_en) { formError('#ing-error', 'Vyplň český i anglický název.'); return; }
+                if (!(Number.isInteger(row.surcharge_czk) && row.surcharge_czk >= 0 && row.surcharge_czk <= 1000)) {
+                    formError('#ing-error', 'Příplatek zadej v celých korunách za 100 g, 0 až 1000.'); return;
+                }
                 if (row.max_pct !== null && !(row.max_pct >= 1 && row.max_pct <= 100)) {
                     formError('#ing-error', 'Nejvyšší podíl ve směsi musí být 1 až 100 %, nebo nech pole prázdné.'); return;
                 }
@@ -870,6 +1041,7 @@
                     }
                     state.ingredients.sort((a, b) => (a.sort - b.sort) || a.name_cs.localeCompare(b.name_cs, 'cs'));
                     photo.commit();
+                    icon.commit();
                     toast(isNew ? `Přidáno: ${row.name_cs}` : `Uloženo: ${row.name_cs}`);
                     closeSheet(true);
                     renderIngredients();
@@ -891,13 +1063,13 @@
                     const rows = await db.remove('ingredients', { id: 'eq.' + i.id });
                     if (!rows.length) throw new db.DbError('no_rows', 0);
                     state.ingredients = state.ingredients.filter(x => x.id !== i.id);
-                    removePhotos([i.photo_url]);
+                    removePhotos([i.photo_url, i.icon_url].filter(Boolean));
                     toast(`Smazáno: ${i.name_cs}`);
                     closeSheet(true);
                     renderIngredients();
                 } catch (err) { formError('#ing-error', friendly(err)); }
             });
-            return () => photo.discard();
+            return () => { photo.discard(); icon.discard(); };
         });
     }
 
@@ -912,17 +1084,19 @@
             const photo = safePhoto(b.photo_url);
             const soldOut = b.ingredients.some(c => ingByCode(c) && !ingByCode(c).in_stock);
             const missing = b.ingredients.some(c => !ingByCode(c) || !ingByCode(c).active);
+            const invalid = !missing && !recipeOf(b.ingredients, b.parts).ok;
             return `<button type="button" class="row${b.active ? '' : ' is-muted'}" data-blend="${esc(b.id)}">
                 ${photo ? `<img class="thumb" src="${esc(photo)}" alt="" loading="lazy">` : glassHtml(b.ingredients)}
                 <span class="row-main">
                     <span class="row-title">${esc(b.name)}</span>
-                    <span class="row-sub">${esc(b.ingredients.map(ingName).join(', '))}</span>
+                    <span class="row-sub">${esc(blendLine(b))}</span>
                 </span>
                 <span class="row-side">
                     ${b.is_preset ? '<span class="pill">Rychlá volba</span>' : ''}
                     ${!b.active ? '<span class="pill">Skrytá</span>' : ''}
                     ${soldOut ? '<span class="pill pill-out">Něco vyprodáno</span>' : ''}
                     ${missing ? '<span class="pill pill-out">Ingredience není na webu</span>' : ''}
+                    ${invalid ? '<span class="pill pill-out">Složení neprojde, na webu není</span>' : ''}
                 </span>
             </button>`;
         }).join('');
@@ -931,30 +1105,42 @@
         }));
     }
 
+    /* „Zelený čaj 60 %, Máta peprná 20 %, …“ */
+    function blendLine(b) {
+        const r = recipeOf(b.ingredients, b.parts);
+        return r.rows.length ? r.rows.map(x => `${ingName(x.code)} ${x.pct} %`).join(', ') : b.ingredients.map(ingName).join(', ');
+    }
+
     function openBlend(blend) {
         const isNew = !blend;
         const b = blend || {
-            name: '', desc_cs: '', desc_en: '', ingredients: [], emoji: '🍵', is_preset: false,
+            name: '', desc_cs: '', desc_en: '', desc_sk: '', ingredients: [], parts: null, emoji: '🍵', is_preset: false,
             photo_url: null, active: true, sort: Math.max(0, ...state.blends.map(x => x.sort || 0)) + 10,
         };
-        const byCat = cat => state.ingredients.filter(i => i.category === cat);
-        const pickFor = cat => b.ingredients.find(c => (ingByCode(c) || {}).category === cat) || '';
-        const select = (name, cat, required) => `
-            <label class="field"><span>${CATEGORY[cat]}</span>
-                <select name="${name}">${required ? '' : '<option value="">— nic —</option>'}
-                    ${byCat(cat).map(i => `<option value="${esc(i.code)}"${pickFor(cat) === i.code ? ' selected' : ''}>${esc(i.name_cs)}${i.in_stock ? '' : ' (vyprodáno)'}${i.active ? '' : ' (skrytá)'}</option>`).join('')}
-                </select>
-            </label>`;
+        // Suroviny a díly (1–3). Starší směsi bez dílů: 3 + 1 + 1.
+        let rows = (() => {
+            const n = Recipe.normalize(b.ingredients, b.parts);
+            return n.codes.map((code, i) => ({ code, parts: n.parts[i] }));
+        })();
+        if (!rows.length) rows = [{ code: '', parts: 3 }];
+        const options = sel => ['base', 'flavor', 'extra'].map(cat => `<optgroup label="${CATEGORY_GROUP[cat]}">${state.ingredients
+            .filter(i => i.category === cat).map(i => `<option value="${esc(i.code)}"${sel === i.code ? ' selected' : ''}>`
+                + `${esc(i.name_cs)}${i.in_stock ? '' : ' (vyprodáno)'}${i.active ? '' : ' (skrytá)'}</option>`).join('')}</optgroup>`).join('');
         const html = `
             <form id="blend-form" novalidate>
                 <p class="form-error" id="blend-error" role="alert" hidden></p>
                 ${photoFieldHtml}
                 <label class="field"><span>Název</span><input type="text" name="name" maxlength="60" required value="${esc(b.name)}"><small>Stejný v češtině i angličtině, jako ostatní směsi.</small></label>
-                <div class="blend-preview"><span id="blend-glass"></span><span class="help" style="margin:0">Takhle bude vypadat sklenička na webu.</span></div>
-                <div class="field-row">${select('base', 'base', true)}${select('flavor', 'flavor')}</div>
-                ${select('extra', 'extra')}
+                <fieldset class="field-group">
+                    <legend>Složení</legend>
+                    <p class="help">Až 5 surovin. Díly určují poměr: 2 díly jsou dvakrát víc než 1. Suroviny s limitem do 5 % (levandule, kardamom) jsou špetka a mají pevně 4 %.</p>
+                    <div class="blend-rows" id="blend-rows"></div>
+                    <button type="button" class="btn btn-secondary btn-small" id="blend-add-row">Přidat surovinu</button>
+                    <div class="blend-preview"><span id="blend-glass"></span><p class="blend-check" id="blend-check" aria-live="polite"></p></div>
+                </fieldset>
                 <label class="field"><span>Popis česky</span><textarea name="desc_cs" rows="3" maxlength="500">${esc(b.desc_cs)}</textarea></label>
                 <label class="field"><span>Popis anglicky</span><textarea name="desc_en" rows="3" maxlength="500">${esc(b.desc_en)}</textarea></label>
+                <label class="field"><span>Popis slovensky</span><textarea name="desc_sk" rows="3" maxlength="500" placeholder="Prázdné = česky">${esc(b.desc_sk || '')}</textarea></label>
                 <label class="field field-inline"><span>Emoji</span><input type="text" name="emoji" maxlength="8" value="${esc(b.emoji)}"></label>
                 <label class="switch-row"><input type="checkbox" class="switch" name="is_preset" ${b.is_preset ? 'checked' : ''}><span>Rychlá volba v mixéru</span></label>
                 <label class="switch-row"><input type="checkbox" class="switch" name="active" ${b.active ? 'checked' : ''}><span>Zobrazovat na webu</span></label>
@@ -970,19 +1156,76 @@
         openSheet(isNew ? 'Nová směs' : b.name, html, body => {
             const form = $('#blend-form', body);
             const photo = photoControl(body, b.photo_url, 'blends', () => form.name.value || b.id, b.emoji);
-            const chosen = () => [form.base.value, form.flavor.value, form.extra.value].filter(Boolean);
-            const paintGlass = () => { $('#blend-glass', body).innerHTML = glassHtml(chosen()); };
-            paintGlass();
-            ['base', 'flavor', 'extra'].forEach(n => form[n].addEventListener('change', paintGlass));
+            const chosen = () => rows.filter(r => r.code);
+            const paintRows = () => {
+                $('#blend-rows', body).innerHTML = rows.map((r, i) => {
+                    const ing = ingByCode(r.code);
+                    const pinch = ing && Recipe.isPinch(ing.max_pct);
+                    return `<div class="blend-row" data-row="${i}">
+                        <label class="field"><span>Surovina ${i + 1}</span>
+                            <select data-field="code"><option value="">— vyber —</option>${options(r.code)}</select></label>
+                        <label class="field"><span>Díly</span>
+                            <select data-field="parts"${pinch ? ' disabled' : ''}>${[1, 2, 3].map(n =>
+                                `<option value="${n}"${r.parts === n ? ' selected' : ''}>${pinch ? 'špetka' : n}</option>`).join('')}</select></label>
+                        <button type="button" class="icon-btn" data-field="remove" aria-label="Odebrat surovinu ${i + 1}"${rows.length < 2 ? ' disabled' : ''}>×</button>
+                    </div>`;
+                }).join('');
+                $('#blend-add-row', body).disabled = rows.length >= Recipe.MAX_ITEMS;
+                paintCheck();
+            };
+            const paintCheck = () => {
+                const c = chosen();
+                $('#blend-glass', body).innerHTML = glassHtml(c.map(r => r.code));
+                const r = recipeOf(c.map(x => x.code), c.map(x => x.parts), 100);
+                const el = $('#blend-check', body);
+                el.classList.toggle('is-error', !r.ok);
+                el.textContent = !c.length ? 'Vyber aspoň jednu surovinu.'
+                    : r.ok ? `${r.rows.map(x => `${ingName(x.code)} ${x.pct} %`).join(', ')}. Je to ${CATEGORY_NAME[r.category]}.`
+                        + (r.surcharge ? ` Příplatek za 100 g: ${kc(r.surcharge)}.` : '')
+                    : recipeError(r);
+            };
+            paintRows();
+            $('#blend-rows', body).addEventListener('change', e => {
+                const row = e.target.closest('[data-row]');
+                if (!row) return;
+                const r = rows[Number(row.dataset.row)];
+                if (e.target.dataset.field === 'code') {
+                    r.code = e.target.value;
+                    const ing = ingByCode(r.code);
+                    if (ing && !r.touched) r.parts = ing.category === 'base' ? 3 : 1;
+                    paintRows();
+                } else if (e.target.dataset.field === 'parts') {
+                    r.parts = Number(e.target.value);
+                    r.touched = true;
+                    paintCheck();
+                }
+                sheetDirty = true;
+            });
+            $('#blend-rows', body).addEventListener('click', e => {
+                const btn = e.target.closest('[data-field="remove"]');
+                if (!btn) return;
+                rows.splice(Number(btn.closest('[data-row]').dataset.row), 1);
+                paintRows();
+                sheetDirty = true;
+            });
+            $('#blend-add-row', body).addEventListener('click', () => {
+                if (rows.length >= Recipe.MAX_ITEMS) return;
+                rows.push({ code: '', parts: 1 });
+                paintRows();
+                $$('#blend-rows select[data-field="code"]', body).pop()?.focus();
+            });
 
             form.addEventListener('submit', async e => {
                 e.preventDefault();
                 formError('#blend-error', '');
+                const c = chosen();
                 const row = {
                     name: form.name.value.trim(),
                     desc_cs: form.desc_cs.value.trim(),
                     desc_en: form.desc_en.value.trim(),
-                    ingredients: chosen(),
+                    desc_sk: form.desc_sk.value.trim(),
+                    ingredients: c.map(x => x.code),
+                    parts: c.map(x => x.parts),
                     emoji: form.emoji.value.trim() || '🍵',
                     is_preset: form.is_preset.checked,
                     active: form.active.checked,
@@ -990,7 +1233,9 @@
                     sort: parseInt(form.sort.value, 10) || 0,
                 };
                 if (!row.name) { formError('#blend-error', 'Vyplň název směsi.'); return; }
-                if (!row.ingredients.length) { formError('#blend-error', 'Vyber aspoň základ.'); return; }
+                if (!row.ingredients.length) { formError('#blend-error', 'Vyber aspoň jednu surovinu.'); return; }
+                const check = recipeOf(row.ingredients, row.parts);
+                if (!check.ok) { formError('#blend-error', recipeError(check)); return; }
                 if (state.blends.some(x => x.id !== b.id && x.name.toLowerCase() === row.name.toLowerCase())) {
                     formError('#blend-error', `Směs „${row.name}“ už existuje.`); return;
                 }
@@ -1336,7 +1581,8 @@
             const pk = perKg(o);
             return `<button type="button" class="offer${cheapest != null && pk === cheapest && sorted.length > 1 ? ' is-best' : ''}" data-offer="${esc(o.id)}">
                 <span class="offer-main"><strong>${esc(other || '?')}</strong>
-                <span>${esc([o.price_czk != null && o.amount_g ? `${Number(o.price_czk).toLocaleString('cs-CZ')} Kč za ${Number(o.amount_g).toLocaleString('cs-CZ')} g` : 'bez ceny', SAMPLE[o.sample], o.rating ? `hodnocení ${o.rating}/5` : ''].filter(Boolean).join(', '))}</span></span>
+                <span>${esc([o.price_czk != null && o.amount_g ? `${Number(o.price_czk).toLocaleString('cs-CZ')} Kč za ${Number(o.amount_g).toLocaleString('cs-CZ')} g` : 'bez ceny', SAMPLE[o.sample], o.rating ? `hodnocení ${o.rating}/5` : ''].filter(Boolean).join(', '))}</span>
+                ${o.note ? `<span class="offer-note">${esc(o.note.length > 160 ? o.note.slice(0, 160) + '…' : o.note)}</span>` : ''}</span>
                 <span class="offer-price">${esc(kcKg(pk))}</span>
             </button>`;
         }).join('')}</div>`;
@@ -1590,31 +1836,28 @@
         });
     }
 
-    /* Kalkulačka: kolik stojí suroviny na jeden sáček a kolik zbyde */
+    /* Kalkulačka: kolik stojí suroviny na jeden sáček a kolik zbyde.
+       Stejná receptura jako na webu: až 5 surovin, díly 1–3, špetka 4 %. */
     function renderCalc(el) {
         let saved = {};
         try { saved = JSON.parse(localStorage.getItem(CALC_KEY) || '{}') || {}; } catch (_) {}
-        const byCat = cat => state.materials.filter(m => m.ingredient_code && (ingByCode(m.ingredient_code) || {}).category === cat);
-        const pick = (name, cat) => {
-            const list = byCat(cat);
-            const sel = saved[name] && list.some(m => m.id === saved[name]) ? saved[name] : (list[0] || {}).id;
-            return `<label class="field"><span>${CATEGORY[cat]}</span><select name="${name}">${list.map(m =>
-                `<option value="${esc(m.id)}"${m.id === sel ? ' selected' : ''}>${esc(m.name)}${bestOffer(m.id) ? '' : ' (bez ceny)'}</option>`).join('')}</select></label>`;
-        };
+        const mats = state.materials.filter(m => m.ingredient_code && ingByCode(m.ingredient_code));
+        const catOf = m => (ingByCode(m.ingredient_code) || {}).category;
+        let rows = Array.isArray(saved.rows) ? saved.rows.filter(r => mats.some(m => m.id === r.m)).slice(0, Recipe.MAX_ITEMS) : [];
+        if (!rows.length) {
+            rows = ['base', 'flavor', 'extra'].map((cat, i) => ({ m: (mats.find(m => catOf(m) === cat) || {}).id, parts: i ? 1 : 3 }))
+                .filter(r => r.m);
+        }
         const tiers = state.prices.filter(p => p.active);
         const weight = tiers.some(p => p.weight_g === saved.weight) ? saved.weight : ((tiers.find(p => p.weight_g === 100) || tiers[0] || {}).weight_g);
+        const options = sel => ['base', 'flavor', 'extra'].map(cat => `<optgroup label="${CATEGORY_GROUP[cat]}">${mats.filter(m => catOf(m) === cat)
+            .map(m => `<option value="${esc(m.id)}"${m.id === sel ? ' selected' : ''}>${esc(m.name)}${bestOffer(m.id) ? '' : ' (bez ceny)'}</option>`).join('')}</optgroup>`).join('');
         el.innerHTML = `
             <form class="panel calc" id="calc-form" novalidate>
                 <h3>Kolik stojí jeden sáček</h3>
-                <p class="panel-note">Počítá s nejlevnější nabídkou u každé suroviny (bez zamítnutých dodavatelů).</p>
-                <div class="calc-grid">
-                    ${pick('base', 'base')}
-                    <label class="field field-inline"><span>Podíl</span><input type="number" name="r_base" min="0" max="100" step="1" value="${saved.r_base ?? 70}"><em>%</em></label>
-                    ${pick('flavor', 'flavor')}
-                    <label class="field field-inline"><span>Podíl</span><input type="number" name="r_flavor" min="0" max="100" step="1" value="${saved.r_flavor ?? 20}"><em>%</em></label>
-                    ${pick('extra', 'extra')}
-                    <label class="field field-inline"><span>Podíl</span><input type="number" name="r_extra" min="0" max="100" step="1" value="${saved.r_extra ?? 10}"><em>%</em></label>
-                </div>
+                <p class="panel-note">Počítá s nejlevnější nabídkou u každé suroviny (bez zamítnutých dodavatelů). Podíly jako na webu: díly 1–3, špetka 4 %.</p>
+                <div class="calc-rows" id="calc-rows"></div>
+                <button type="button" class="btn btn-secondary btn-small" id="calc-add">Přidat surovinu</button>
                 <div class="field-row">
                     <label class="field"><span>Velikost</span><select name="weight">${tiers.map(p => `<option value="${p.weight_g}"${p.weight_g === weight ? ' selected' : ''}>${p.weight_g} g (prodej ${kc(p.price_czk)})</option>`).join('')}</select></label>
                     <label class="field field-inline"><span>Sáček a etiketa</span><input type="number" name="pack" min="0" step="0.1" inputmode="decimal" value="${saved.pack ?? ''}" placeholder="0"><em>Kč</em></label>
@@ -1622,34 +1865,40 @@
                 <div id="calc-out" aria-live="polite"></div>
             </form>`;
         const form = $('#calc-form', el);
+        const paintRows = () => {
+            $('#calc-rows', el).innerHTML = rows.map((r, i) => `
+                <div class="blend-row" data-row="${i}">
+                    <label class="field"><span>Surovina ${i + 1}</span><select data-field="m">${options(r.m)}</select></label>
+                    <label class="field"><span>Díly</span><select data-field="parts">${[1, 2, 3].map(n => `<option value="${n}"${r.parts === n ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
+                    <button type="button" class="icon-btn" data-field="remove" aria-label="Odebrat surovinu ${i + 1}"${rows.length < 2 ? ' disabled' : ''}>×</button>
+                </div>`).join('');
+            $('#calc-add', el).disabled = rows.length >= Recipe.MAX_ITEMS || !mats.length;
+        };
         const paint = () => {
-            const v = {
-                base: form.base.value, flavor: form.flavor.value, extra: form.extra.value,
-                r_base: Number(form.r_base.value) || 0, r_flavor: Number(form.r_flavor.value) || 0, r_extra: Number(form.r_extra.value) || 0,
-                weight: Number(form.weight.value) || 0, pack: form.pack.value === '' ? '' : Number(form.pack.value),
-            };
+            const v = { rows: rows.map(r => ({ m: r.m, parts: r.parts })), weight: Number(form.weight.value) || 0,
+                        pack: form.pack.value === '' ? '' : Number(form.pack.value) };
             try { localStorage.setItem(CALC_KEY, JSON.stringify(v)); } catch (_) {}
-            const sum = v.r_base + v.r_flavor + v.r_extra;
             const tier = state.prices.find(p => p.weight_g === v.weight);
-            const lines = [['base', v.r_base], ['flavor', v.r_flavor], ['extra', v.r_extra]].map(([k, r]) => {
-                const m = matById(v[k]);
-                const grams = v.weight * (sum ? r / sum : 0);
-                const pk = m ? perKg(bestOffer(m.id)) : null;
-                return { name: m ? m.name : '—', grams, pk, cost: pk != null ? grams / 1000 * pk : null };
+            const chosen = rows.map(r => matById(r.m)).filter(Boolean);
+            const recipe = recipeOf(chosen.map(m => m.ingredient_code), rows.filter(r => matById(r.m)).map(r => r.parts), v.weight);
+            const lines = chosen.map((m, i) => {
+                const row = recipe.rows[i] || { pct: 0, grams: 0 };
+                const pk = perKg(bestOffer(m.id));
+                return { name: m.name, pct: row.pct, grams: row.grams, cost: pk != null ? row.grams / 1000 * pk : null };
             });
             const missing = lines.filter(l => l.cost == null).map(l => l.name);
             const ingredients = lines.reduce((a, l) => a + (l.cost || 0), 0);
             const cost = ingredients + (Number(v.pack) || 0);
-            const price = tier ? tier.price_czk : 0;
+            const price = tier ? tier.price_czk + recipe.surcharge : 0;
             const margin = price - cost;
             const r1 = n => (Math.round(n * 10) / 10).toLocaleString('cs-CZ');
             $('#calc-out', el).innerHTML = `
-                ${sum !== 100 ? `<p class="help">Podíly dávají dohromady ${sum} %, počítám je poměrem.</p>` : ''}
+                ${recipe.ok || !lines.length ? '' : `<p class="form-error">${esc(recipeError(recipe))} Na webu by tahle směs nešla objednat.</p>`}
                 <div class="calc-table">
-                    ${lines.map(l => `<div><span>${esc(l.name)}, ${r1(l.grams)} g</span><span>${l.cost == null ? 'chybí cena' : r1(l.cost) + ' Kč'}</span></div>`).join('')}
+                    ${lines.map(l => `<div><span>${esc(l.name)}, ${l.pct} % = ${r1(l.grams)} g</span><span>${l.cost == null ? 'chybí cena' : r1(l.cost) + ' Kč'}</span></div>`).join('')}
                     <div><span>Sáček a etiketa</span><span>${r1(Number(v.pack) || 0)} Kč</span></div>
                     <div class="calc-sum"><span>Náklady celkem</span><span>${missing.length ? 'aspoň ' : ''}${r1(cost)} Kč</span></div>
-                    <div><span>Prodejní cena</span><span>${kc(price)}</span></div>
+                    <div><span>Prodejní cena${recipe.surcharge ? ` (vč. příplatku ${kc(recipe.surcharge)})` : ''}</span><span>${kc(price)}</span></div>
                     ${missing.length
                         ? '<div class="calc-margin is-unknown"><span>Zbyde</span><span>doplň ceny</span></div>'
                         : `<div class="calc-margin${margin < 0 ? ' is-neg' : ''}"><span>Zbyde</span><span>${r1(margin)} Kč${price ? ` (${Math.round(margin / price * 100)} %)` : ''}</span></div>`}
@@ -1657,6 +1906,26 @@
                 ${missing.length ? `<p class="help">Bez ceny: ${esc(missing.join(', '))}. Přidej nabídku v části Suroviny.</p>` : ''}
                 <p class="help">Prodejní cena je s DPH. Jestli budeš plátce DPH, počítej s cenou bez daně. Doprava a poplatky za platbu tu nejsou.</p>`;
         };
+        paintRows();
+        $('#calc-rows', el).addEventListener('change', e => {
+            const row = e.target.closest('[data-row]');
+            if (!row) return;
+            const r = rows[Number(row.dataset.row)];
+            if (e.target.dataset.field === 'm') r.m = e.target.value;
+            if (e.target.dataset.field === 'parts') r.parts = Number(e.target.value);
+        });
+        $('#calc-rows', el).addEventListener('click', e => {
+            const btn = e.target.closest('[data-field="remove"]');
+            if (!btn) return;
+            rows.splice(Number(btn.closest('[data-row]').dataset.row), 1);
+            paintRows(); paint();
+        });
+        $('#calc-add', el).addEventListener('click', () => {
+            if (rows.length >= Recipe.MAX_ITEMS || !mats.length) return;
+            const used = new Set(rows.map(r => r.m));
+            rows.push({ m: (mats.find(m => !used.has(m.id)) || mats[0]).id, parts: 1 });
+            paintRows(); paint();
+        });
         form.addEventListener('input', paint);
         form.addEventListener('change', paint);
         paint();
@@ -1709,7 +1978,7 @@
             <div class="table-row waitlist-row" data-id="${esc(w.id)}">
                 <span class="row-main">
                     <span class="row-title"><a href="mailto:${esc(w.email)}">${esc(w.email)}</a></span>
-                    <span class="row-sub">${esc(name(w.product_id))}, ${esc(formatDate(w.created_at, false))}${w.lang === 'en' ? ', anglicky' : ''}</span>
+                    <span class="row-sub">${esc(name(w.product_id))}, ${esc(formatDate(w.created_at, false))}${({ en: ', anglicky', sk: ', slovensky' })[w.lang] || ''}</span>
                 </span>
                 <button type="button" class="icon-btn" data-field="delete" aria-label="Smazat ${esc(w.email)}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg>
@@ -1838,7 +2107,7 @@
         shipping_methods: 'Doprava', promo_codes: 'Slevové kódy', craft_products: 'Mýdla a balzámy',
         craft_waitlist: 'Zájemci', purchase_suppliers: 'Dodavatelé', purchase_materials: 'Suroviny',
         purchase_offers: 'Nabídky', purchase_tasks: 'Úkoly', orders: 'Objednávky',
-        withdrawals: 'Odstoupení', privacy_requests: 'Žádosti o údaje',
+        withdrawals: 'Odstoupení', privacy_requests: 'Žádosti o údaje', reviews: 'Recenze',
     };
     let restoreData = null;
 
@@ -2056,6 +2325,66 @@
         });
     }
 
+    /* ═══ POTVRZENÍ OBJEDNÁVKY E-MAILEM ═════════════════════════════
+       Dokud e-maily neodcházejí samy, admin je pošle odsud: tlačítko
+       otevře poštu s hotovým textem v jazyce zákazníka (§ 1827 OZ:
+       potvrzení bez zbytečného odkladu). */
+    const MAIL_TEXT = {
+        cs: { hi: 'Dobrý den', thanks: (n, d) => `děkujeme za objednávku ${n} z ${d}. Tímto ji potvrzujeme, kupní smlouva je uzavřená.`,
+              items: 'Objednané zboží', ship: 'Doprava', free: 'zdarma', cod: 'Příplatek za dobírku', gift: 'Dárkové balení', discount: 'Sleva',
+              total: 'Celkem', pay: 'Platba převodem', acc: 'Číslo účtu', amount: 'Částka', vs: 'Variabilní symbol',
+              payNote: 'Zaplaťte prosím do 7 dnů. Směs odešleme, jakmile platba dorazí.', codNote: 'Platíte dopravci při převzetí.',
+              pickupNote: 'Zaplatíte při osobním převzetí.', deliver: 'Doručení', pickup: 'Osobní odběr',
+              terms: v => `Obchodní podmínky (znění z ${v}):`, bye: 'S pozdravem', subject: 'Potvrzení objednávky', pcs: 'ks' },
+        sk: { hi: 'Dobrý deň', thanks: (n, d) => `ďakujeme za objednávku ${n} z ${d}. Týmto ju potvrdzujeme, kúpna zmluva je uzavretá.`,
+              items: 'Objednaný tovar', ship: 'Doprava', free: 'zadarmo', cod: 'Príplatok za dobierku', gift: 'Darčekové balenie', discount: 'Zľava',
+              total: 'Spolu', pay: 'Platba prevodom', acc: 'Číslo účtu', amount: 'Suma', vs: 'Variabilný symbol',
+              payNote: 'Zaplaťte, prosím, do 7 dní. Zmes odošleme, hneď ako platba príde.', codNote: 'Platíte prepravcovi pri prevzatí.',
+              pickupNote: 'Zaplatíte pri osobnom prevzatí.', deliver: 'Doručenie', pickup: 'Osobný odber',
+              terms: v => `Obchodné podmienky (znenie z ${v}, zmluvu uzatvárame v češtine):`, bye: 'S pozdravom', subject: 'Potvrdenie objednávky', pcs: 'ks' },
+        en: { hi: 'Hello', thanks: (n, d) => `thank you for your order ${n} of ${d}. We hereby confirm it; the purchase contract is concluded.`,
+              items: 'Ordered items', ship: 'Shipping', free: 'free', cod: 'Cash on delivery fee', gift: 'Gift wrapping', discount: 'Discount',
+              total: 'Total', pay: 'Bank transfer', acc: 'Account number', amount: 'Amount', vs: 'Variable symbol',
+              payNote: 'Please pay within 7 days. We ship the blend as soon as the payment arrives.', codNote: 'You pay the carrier on delivery.',
+              pickupNote: 'You pay when you collect it.', deliver: 'Delivery', pickup: 'Personal pick-up',
+              terms: v => `Terms and conditions (version of ${v}, the contract is concluded in Czech):`, bye: 'Kind regards', subject: 'Order confirmation', pcs: 'pcs' },
+    };
+    function orderConfirmMail(o) {
+        const L = MAIL_TEXT[o.lang] || MAIL_TEXT.cs;
+        const st = state.settings || {};
+        const money = v => `${Number(v) || 0} Kč`;
+        const items = (Array.isArray(o.items) ? o.items : []).map(i => `- ${i.name}, ${i.weight_g} g × ${i.qty} ${L.pcs}: ${money(i.line_czk)}`);
+        const pickup = o.shipping_method === 'pickup';
+        const where = pickup ? `${L.pickup}${st.pickup_note ? ': ' + st.pickup_note : ''}`
+            : o.packeta_point ? `${o.shipping_name || o.shipping_method}: ${o.packeta_point}`
+            : [`${o.first_name} ${o.last_name}`, o.street, `${o.zip} ${o.city}`.trim(), o.country].filter(Boolean).join(', ');
+        const iban = st.seller_iban || '';
+        const transfer = o.payment_method === 'transfer' ? [
+            '', `${L.pay}:`,
+            iban ? `${L.acc}: ${Bank.czAccount(iban) || Bank.formatIban(iban)}` : `${L.acc}: [doplnit v Nastavení]`,
+            iban && Bank.czAccount(iban) ? `IBAN: ${Bank.formatIban(iban)}` : null,
+            `${L.amount}: ${money(o.total_czk)}`, `${L.vs}: ${o.id}`, L.payNote,
+        ] : ['', pickup ? L.pickupNote : L.codNote];
+        const seller = [st.seller_name || 'Tease you', st.seller_ico ? `IČO ${st.seller_ico}` : null, st.seller_address || null]
+            .filter(Boolean).join(', ');
+        const body = [
+            `${L.hi} ${o.first_name},`, '',
+            L.thanks(o.num, formatDate(o.created_at, false)), '',
+            `${L.items}:`, ...items,
+            o.discount_czk ? `${L.discount} ${o.promo_code || ''}: −${money(o.discount_czk)}` : null,
+            `${L.ship} (${pickup ? L.pickup : (o.shipping_name || o.shipping_method)}): ${o.shipping_czk ? money(o.shipping_czk) : L.free}`,
+            o.payment_czk ? `${L.cod}: ${money(o.payment_czk)}` : null,
+            o.gift_wrap ? `${L.gift}: ${o.gift_czk ? money(o.gift_czk) : L.free}` : null,
+            `${L.total}: ${money(o.total_czk)}`,
+            ...transfer, '',
+            `${L.deliver}: ${where}`, '',
+            o.terms_version ? L.terms(o.terms_version) : L.terms('—'),
+            'https://teaseyou.cz/?stranka=obchodni-podminky', '',
+            L.bye, seller, st.seller_email || 'hello@teaseyou.cz',
+        ].filter(x => x !== null).join('\n');
+        return `mailto:${encodeURIComponent(o.email)}?subject=${encodeURIComponent(`${L.subject} ${o.num}`)}&body=${encodeURIComponent(body)}`;
+    }
+
     /* ═══ ODSTOUPENÍ OD SMLOUVY ════════════════════════════════════ */
     const WD_STATUS = { new: 'Nové', confirmed: 'Potvrzené', refunded: 'Peníze vrácené', rejected: 'Zamítnuté' };
     const WD_PILL = { new: 'new', confirmed: 'paid', refunded: 'done', rejected: 'cancelled' };
@@ -2165,6 +2494,102 @@
         });
     }
 
+    /* ═══ RECENZE ══════════════════════════════════════════════════ */
+    const RV_STATUS = { pending: 'Čeká', approved: 'Zveřejněná', rejected: 'Odmítnutá' };
+    const RV_PILL = { pending: 'new', approved: 'shipped', rejected: 'cancelled' };
+    const stars = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+
+    function renderReviews() {
+        const el = $('#reviews-list');
+        const list = state.reviews || [];
+        const waiting = list.filter(r => r.status === 'pending').length;
+        const badge = $('#count-reviews');
+        badge.textContent = waiting;
+        badge.hidden = !waiting;
+        if (!list.length) {
+            el.innerHTML = '<p class="empty">Zatím žádné. Zákazník může hodnotit, až jeho objednávku označíš jako Odeslanou.</p>';
+            return;
+        }
+        const sorted = list.slice().sort((a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) || b.id - a.id);
+        el.innerHTML = sorted.map(r => `
+            <button type="button" class="row" data-review="${r.id}">
+                <span class="row-main">
+                    <span class="row-title"><span class="rv-stars" aria-label="${r.rating} z 5">${stars(r.rating)}</span> ${esc(r.author)} <span class="row-sub-inline">${esc(r.order_num)}</span></span>
+                    <span class="row-sub">${esc(formatDate(r.created_at))}${r.body ? ', ' + esc(r.body.slice(0, 80)) + (r.body.length > 80 ? '…' : '') : ', bez textu'}</span>
+                </span>
+                <span class="row-side"><span class="pill pill-${RV_PILL[r.status]}">${esc(RV_STATUS[r.status] || r.status)}</span></span>
+            </button>`).join('');
+        $$('#reviews-list [data-review]').forEach(row => row.addEventListener('click', () => {
+            openReview(state.reviews.find(r => String(r.id) === row.dataset.review));
+        }));
+    }
+
+    function openReview(r) {
+        if (!r) return;
+        const blends = (r.blends || []).map(id => (state.blends.find(b => b.id === id) || {}).name || id);
+        const html = `
+            <div class="order-meta">
+                <span class="pill pill-${RV_PILL[r.status]}">${esc(RV_STATUS[r.status])}</span>
+                <span>${esc(formatDate(r.created_at))}</span>
+            </div>
+            <div class="sheet-section">
+                <p class="rv-big" aria-label="${r.rating} z 5">${stars(r.rating)}</p>
+                ${r.body ? `<p class="address">${esc(r.body)}</p>` : '<p class="help">Jen hvězdičky, bez textu.</p>'}
+                <dl class="kv">
+                    <dt>Podpis</dt><dd>${esc(r.author)}</dd>
+                    <dt>Objednávka</dt><dd>${esc(r.order_num)} (ověřená e-mailem)</dd>
+                    ${blends.length ? `<dt>Hotové směsi</dt><dd>${esc(blends.join(', '))} <em>(ukáže se i u nich)</em></dd>` : ''}
+                    <dt>Jazyk</dt><dd>${({ en: 'angličtina', sk: 'slovenština' })[r.lang] || 'čeština'}</dd>
+                </dl>
+            </div>
+            <div class="sheet-section">
+                <h3>Zveřejnit</h3>
+                <div class="status-buttons" id="rv-status">
+                    ${Object.entries(RV_STATUS).map(([k, label]) =>
+                        `<button type="button" class="chip" data-status="${k}" aria-pressed="${r.status === k}">${esc(label)}</button>`).join('')}
+                </div>
+                <p class="help">Odmítni jen vulgární, nesouvisející nebo s cizími osobními údaji. Kritické hodnocení zveřejni a klidně na něj odpověz.</p>
+            </div>
+            <form class="sheet-section" id="rv-reply-form">
+                <label class="field"><span>Odpověď pod recenzí (uvidí ji všichni)</span><textarea name="reply" rows="3" maxlength="1000">${esc(r.reply || '')}</textarea></label>
+                <div class="sheet-actions">
+                    <button type="submit" class="btn btn-secondary btn-small">Uložit odpověď</button>
+                    <span class="spacer"></span>
+                    <button type="button" class="btn btn-danger btn-small" id="rv-delete">Smazat recenzi</button>
+                </div>
+                <p class="help">Smaž, když zákazník souhlas odvolá. Smazaná recenze jde 30 dní do koše.</p>
+            </form>`;
+        openSheet('Recenze ' + r.order_num, html, body => {
+            $$('#rv-status .chip', body).forEach(chip => chip.addEventListener('click', async () => {
+                if (chip.dataset.status === r.status) return;
+                try {
+                    Object.assign(r, await updateOne('reviews', { id: 'eq.' + r.id }, { status: chip.dataset.status }));
+                    renderReviews();
+                    openReview(r);
+                    toast(r.status === 'approved' ? 'Recenze je na webu.' : 'Stav uložený.');
+                } catch (err) { fail(err); }
+            }));
+            $('#rv-reply-form', body).addEventListener('submit', async e => {
+                e.preventDefault();
+                try {
+                    Object.assign(r, await updateOne('reviews', { id: 'eq.' + r.id }, { reply: e.currentTarget.reply.value.trim() }));
+                    sheetDirty = false;
+                    toast('Odpověď uložená.');
+                } catch (err) { fail(err); }
+            });
+            $('#rv-delete', body).addEventListener('click', async () => {
+                if (!(await confirmDialog(`Smazat recenzi od ${r.author}?`, 'Smazat'))) return;
+                try {
+                    await db.remove('reviews', { id: 'eq.' + r.id });
+                    state.reviews = state.reviews.filter(x => x.id !== r.id);
+                    closeSheet();
+                    renderReviews();
+                    toast('Smazáno, je v koši.');
+                } catch (err) { fail(err); }
+            });
+        });
+    }
+
     /* ═══ OSOBNÍ ÚDAJE (žádosti podle GDPR) ════════════════════════ */
     const REQ_KIND = { access: 'Kopie údajů', erasure: 'Výmaz', correction: 'Oprava', objection: 'Námitka', other: 'Jiné' };
 
@@ -2209,7 +2634,9 @@
             db.select('craft_waitlist', Object.assign({ order: 'created_at.desc' }, eq)),
             db.select('withdrawals', Object.assign({ order: 'created_at.desc' }, eq)),
         ]);
-        return { orders, waitlist, withdrawals };
+        const ids = orders.map(o => o.id).filter(Number.isInteger);
+        const reviews = ids.length ? await db.select('reviews', { order_id: `in.(${ids.join(',')})` }).catch(() => []) : [];
+        return { orders, waitlist, withdrawals, reviews };
     }
 
     $('#privacy-form').addEventListener('submit', async e => {
@@ -2221,12 +2648,13 @@
         try {
             const data = await findPersonalData(email);
             state.privacyFound = { email, data };
-            const n = data.orders.length + data.waitlist.length + data.withdrawals.length;
+            const n = data.orders.length + data.waitlist.length + data.withdrawals.length + data.reviews.length;
             out.innerHTML = n ? `
                 <ul class="privacy-found">
                     <li><strong>${data.orders.length}</strong> objednávek${data.orders.length ? ': ' + data.orders.map(o => esc(o.num)).join(', ') : ''}</li>
                     <li><strong>${data.waitlist.length}</strong> přihlášení k upozornění na mýdla a balzámy</li>
                     <li><strong>${data.withdrawals.length}</strong> odstoupení od smlouvy</li>
+                    <li><strong>${data.reviews.length}</strong> recenzí${data.reviews.length ? ' (smazat je můžeš v záložce Recenze)' : ''}</li>
                 </ul>
                 <div class="privacy-actions">
                     <button type="button" class="btn btn-primary btn-small" id="privacy-export">Stáhnout kopii (JSON)</button>
@@ -2260,7 +2688,7 @@
     function openCraft(product) {
         const isNew = !product;
         const p = product || {
-            kind: 'soap', name_cs: '', name_en: '', desc_cs: '', desc_en: '', ingredients: [],
+            kind: 'soap', name_cs: '', name_en: '', name_sk: '', desc_cs: '', desc_en: '', desc_sk: '', ingredients: [],
             color: '#d9c4a0', photo_url: null, active: true,
             sort: Math.max(0, ...state.craft.map(x => x.sort || 0)) + 10,
         };
@@ -2280,10 +2708,12 @@
                 </label>
                 <label class="field"><span>Název česky</span><input type="text" name="name_cs" maxlength="60" required value="${esc(p.name_cs)}"></label>
                 <label class="field"><span>Název anglicky</span><input type="text" name="name_en" maxlength="60" value="${esc(p.name_en)}"><small>Prázdné = česky i v angličtině.</small></label>
+                <label class="field"><span>Název slovensky</span><input type="text" name="name_sk" maxlength="60" placeholder="Prázdné = česky" value="${esc(p.name_sk || '')}"></label>
                 <fieldset class="field picks"><span>Suroviny z čajů (nejvýš 4)</span>${groups}
                     <small>U těchhle ingrediencí web ukáže odkaz „Najdeš i v“ a u čajů s nimi „Ze stejných surovin“.</small></fieldset>
                 <label class="field"><span>Popis česky</span><textarea name="desc_cs" rows="3" maxlength="500">${esc(p.desc_cs)}</textarea><small>Jak voní a z čeho je. Žádné léčivé účinky, ty u kosmetiky uvádět nejde.</small></label>
                 <label class="field"><span>Popis anglicky</span><textarea name="desc_en" rows="3" maxlength="500">${esc(p.desc_en)}</textarea></label>
+                <label class="field"><span>Popis slovensky</span><textarea name="desc_sk" rows="3" maxlength="500" placeholder="Prázdné = česky">${esc(p.desc_sk || '')}</textarea></label>
                 <label class="field field-inline"><span>Barva</span><input type="color" name="color" value="${esc(p.color)}"></label>
                 <label class="switch-row"><input type="checkbox" class="switch" name="active" ${p.active ? 'checked' : ''}><span>Zobrazovat na webu</span></label>
                 <label class="field field-inline"><span>Pořadí</span><input type="number" name="sort" step="1" value="${esc(p.sort)}"></label>
@@ -2313,8 +2743,10 @@
                     kind: form.kind.value === 'balm' ? 'balm' : 'soap',
                     name_cs: form.name_cs.value.trim(),
                     name_en: form.name_en.value.trim(),
+                    name_sk: form.name_sk.value.trim(),
                     desc_cs: form.desc_cs.value.trim(),
                     desc_en: form.desc_en.value.trim(),
+                    desc_sk: form.desc_sk.value.trim(),
                     ingredients: boxes().filter(b => b.checked).map(b => b.value).slice(0, 4),
                     color: /^#[0-9a-f]{6}$/i.test(form.color.value) ? form.color.value : '#d9c4a0',
                     active: form.active.checked,
@@ -2440,6 +2872,11 @@
                     toast('Aspoň jeden způsob dopravy musí zůstat zapnutý.', true);
                     return;
                 }
+                if (active.checked && s.id === 'pickup' && !String((state.settings || {}).pickup_note || '').trim()) {
+                    active.checked = false;
+                    toast('Nejdřív níže v „Dárek a osobní odběr“ napiš, kde a kdy se vyzvedává.', true);
+                    return;
+                }
                 try {
                     Object.assign(s, await updateOne('shipping_methods', { id: 'eq.' + s.id }, { active: active.checked }));
                     toast(s.active ? `${s.name}: nabízíme` : `${s.name}: vypnuto`);
@@ -2454,20 +2891,27 @@
         form.promo_bar_enabled.checked = st.promo_bar_enabled !== false;
         form.promo_bar_cs.value = st.promo_bar_cs || '';
         form.promo_bar_en.value = st.promo_bar_en || '';
+        form.promo_bar_sk.value = st.promo_bar_sk || '';
 
         const sf = $('#seller-form');
-        ['seller_name', 'seller_ico', 'seller_address', 'seller_email', 'seller_phone',
-         'recipe_base_pct', 'recipe_flavor_pct', 'recipe_extra_pct', 'durability_months'].forEach(n => {
+        ['seller_name', 'seller_ico', 'seller_address', 'seller_email', 'seller_phone', 'durability_months'].forEach(n => {
             sf[n].value = st[n] ?? '';
         });
+        sf.seller_iban.value = st.seller_iban ? (Bank.czAccount(st.seller_iban) || Bank.formatIban(st.seller_iban)) : '';
+
+        const xf = $('#extras-form');
+        xf.gift_wrap_enabled.checked = st.gift_wrap_enabled === true;
+        xf.gift_wrap_czk.value = st.gift_wrap_czk ?? 0;
+        xf.pickup_note.value = st.pickup_note || '';
     }
 
     // Výchozí hodnoty, dokud v databázi není řádek nastavení (nebo chybí
     // sloupce, protože se setup.sql ještě nespustil znovu).
     const SETTINGS_DEFAULTS = {
-        free_ship_threshold: 500, cod_fee_czk: 39, promo_bar_enabled: true, promo_bar_cs: '', promo_bar_en: '',
+        free_ship_threshold: 500, cod_fee_czk: 39, promo_bar_enabled: true, promo_bar_cs: '', promo_bar_en: '', promo_bar_sk: '',
         seller_name: '', seller_ico: '', seller_address: '', seller_email: 'hello@teaseyou.cz', seller_phone: '',
-        recipe_base_pct: 70, recipe_flavor_pct: 20, recipe_extra_pct: 10, durability_months: 12,
+        seller_iban: '', gift_wrap_enabled: false, gift_wrap_czk: 0, pickup_note: '',
+        durability_months: 12,
         sales_open: false, sales_opened_at: null,
     };
 
@@ -2570,6 +3014,7 @@
             promo_bar_enabled: form.promo_bar_enabled.checked,
             promo_bar_cs: form.promo_bar_cs.value.trim() || null,
             promo_bar_en: form.promo_bar_en.value.trim() || null,
+            promo_bar_sk: form.promo_bar_sk.value.trim() || null,
         };
         // Sloupec s příplatkem posíláme jen tehdy, když ho databáze už má.
         if (!state.settings || 'cod_fee_czk' in state.settings) row.cod_fee_czk = codFee;
@@ -2585,21 +3030,30 @@
         if (ico && !/^[0-9]{8}$/.test(ico)) { toast('IČO má přesně 8 číslic.', true); return; }
         const email = v('seller_email');
         if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('E-mail nevypadá správně.', true); return; }
-        const base = pct('recipe_base_pct'), flavor = pct('recipe_flavor_pct'), extra = pct('recipe_extra_pct');
-        if (![base, flavor, extra].every(Number.isInteger) || base < 1 || flavor < 0 || extra < 0) {
-            toast('Receptura: vyplň celá čísla, základ aspoň 1 %.', true); return;
-        }
-        if (base + flavor + extra !== 100) {
-            toast(`Receptura musí dát dohromady 100 %, teď je to ${base + flavor + extra} %.`, true); return;
-        }
         const months = pct('durability_months');
         if (!(months >= 1 && months <= 36)) { toast('Trvanlivost zadej v měsících, 1 až 36.', true); return; }
-        await saveSettings({
+        const iban = v('seller_iban') ? Bank.toIban(v('seller_iban')) : '';
+        if (v('seller_iban') && !iban) { toast('Číslo účtu nesedí. Zkontroluj ho (třeba 19-2000145399/0800) nebo zadej IBAN.', true); return; }
+        const row = {
             seller_name: v('seller_name'), seller_ico: ico, seller_address: v('seller_address'),
             seller_email: email, seller_phone: v('seller_phone'),
-            recipe_base_pct: base, recipe_flavor_pct: flavor, recipe_extra_pct: extra,
             durability_months: months,
-        }, f.querySelector('[type=submit]'), 'Údaje o prodávajícím uložené.');
+        };
+        if (!state.settings || 'seller_iban' in state.settings) row.seller_iban = iban;
+        await saveSettings(row, f.querySelector('[type=submit]'), 'Údaje o prodávajícím uložené.');
+        if (state.settings && state.settings.seller_iban) f.seller_iban.value = Bank.czAccount(state.settings.seller_iban) || Bank.formatIban(state.settings.seller_iban);
+    });
+
+    $('#extras-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const f = e.currentTarget;
+        const price = parseInt(f.gift_wrap_czk.value, 10);
+        if (!(price >= 0 && price <= 500)) { toast('Cena dárkového balení musí být 0 až 500 Kč.', true); return; }
+        const pickup = f.pickup_note.value.trim();
+        const pickupOn = (state.shipping.find(x => x.id === 'pickup') || {}).active;
+        if (!pickup && pickupOn) { toast('Osobní odběr je zapnutý, tak musí mít napsané místo. Nebo ho nahoře v Dopravě vypni.', true); return; }
+        await saveSettings({ gift_wrap_enabled: f.gift_wrap_enabled.checked, gift_wrap_czk: price, pickup_note: pickup },
+            f.querySelector('[type=submit]'), 'Uloženo.');
     });
 
     /* ═══ SLEVY ════════════════════════════════════════════════════ */

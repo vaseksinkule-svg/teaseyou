@@ -158,6 +158,60 @@ Dalším spuštěním `setup.sql` přibude:
 Popis borůvky sliboval antioxidanty; přepíše se jen tehdy, když jsi ho
 mezitím neměnil.
 
+## Mixér s díly a katalog v2 (listopad 2026)
+
+Dalším spuštěním `setup.sql` přibude:
+
+- `ingredients.surcharge_czk`: příplatek za prémiovou surovinu v Kč za 100 g.
+- `ingredients.icon_url`: vlastní ikonka suroviny (PNG v úložišti `photos/icons/`). Bez ní web kreslí vestavěnou.
+- `blends.parts`: díly 1–3 ke každé surovině, směs má až 5 surovin.
+- `recipe_eval()`: výpočet receptury (podíly, gramy, druh čaje podle vyhlášky,
+  příplatek). Stejný jako `recipe.js` na webu. Volá ji jen `place_order()`, ta
+  podle ní odmítne směs mimo pravidla (`invalid_recipe`) a k ceně z ceníku přičte
+  příplatek. Do objednávky uloží `parts`, `recipe` (gramy na míchání),
+  `category`, `base_czk` a `surcharge_czk`.
+- **Katalog v2**, jednou (`settings.catalog_version`): nové suroviny, nové názvy,
+  skupiny, limity a příplatky, skrytí medu, vanilky, kakaa, kokosu a kurkumy,
+  nové složení hotových směsí, noví dodavatelé v Nákupu. Fotky, vyprodání
+  a objednávky zůstanou. Co potom změníš v administraci, další běh nepřepíše.
+- Sloupce `settings.recipe_*_pct` se už nepoužívají (poměr volí zákazník díly).
+
+## QR platba, dárek, osobní odběr a recenze (listopad 2026)
+
+Pořád stačí jedno spuštění `setup.sql`. Přibude:
+
+- `settings.seller_iban`: účet pro platby převodem. Vyplníš ho v Ceny a
+  doprava → Prodávající (stačí české číslo účtu, uloží se jako IBAN).
+  Prázdný = web QR neukáže a údaje k platbě posíláš e-mailem jako dřív.
+- `settings.gift_wrap_enabled`, `gift_wrap_czk`: dárkové balení, výchozí
+  vypnuté. `orders.gift_wrap`, `gift_message`, `gift_czk` (je v `total_czk`).
+- Doprava `pickup` (osobní odběr), výchozí vypnutá. Zapnout jde až po
+  vyplnění `settings.pickup_note` (kde a kdy). Adresu nechce, dobírka je bez
+  příplatku (platí se při předání).
+- Tabulka `reviews` a funkce `submit_review()` (zákazník, ověří číslo
+  objednávky + e-mail, objednávka musí být Odeslaná nebo Hotová) a
+  `public_reviews()` (web, jen schválené, bez čísla objednávky). Recenze jsou
+  v záloze i v koši. Neschválené se po půl roce smažou (`purge_expired_data`).
+- Nákup: u každé prodávané suroviny nabídky od dodavatelů (bez cen),
+  jednou podle `settings.purchase_seed_version`. Co pak smažeš, se nevrátí.
+- Máta klasnatá se v katalogu i v Nákupu jmenuje **Máta kadeřavá**.
+- Noční záloha teď hlídá i tabulku `reviews`. Než spustíš `setup.sql`, skončí
+  chybou „v záloze chybí tabulky reviews“ (záloha se i tak uloží).
+
+## Slovenština (listopad 2026)
+
+Dalším spuštěním `setup.sql` přibudou slovenské sloupce. Prázdný = web ukáže
+český text, nic se tedy nemusí vyplnit hned.
+
+- `ingredients`: `name_sk`, `desc_sk`, `flavor_sk`, `label_sk` (jak se surovina
+  píše ve složení na slovenském štítku).
+- `blends.desc_sk`, `craft_products.name_sk` a `desc_sk`, `settings.promo_bar_sk`.
+- Katalog v2 je rovnou vyplní pro všechny suroviny, směsi a mýdla. Kde už
+  slovenský text máš, nepřepíše ho.
+- `orders.lang` a `craft_waitlist.lang` berou i `sk`.
+- Administrace u objednávky na Slovensko ukáže text na štítek slovensky
+  (název podle vyhlášky a složení s procenty).
+
 ## Odstoupení, osobní údaje a úklid (listopad 2026)
 
 Dalším spuštěním `setup.sql` přibude:

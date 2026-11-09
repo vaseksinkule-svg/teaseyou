@@ -6,6 +6,102 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přidáno (věci, které mají konkurenční e-shopy)
+- **Tlačítko Zpět funguje.** Každá stránka a hotová směs má vlastní adresu
+  (`?stranka=kviz`, `?smes=deep_winter`, jazyk `&lang=sk`). Zpět se vrátí i na
+  místo, kde zákazník na úvodu byl. Titulky, popisy a jazykové verze pro
+  Google, `sitemap.xml` se všemi stránkami a směsmi ve třech jazycích.
+- **QR platba.** Po objednávce převodem web ukáže číslo účtu, částku,
+  variabilní symbol a QR kód pro bankovní aplikaci (i v Moje objednávky).
+  Účet se zadává v administraci (číslo účtu nebo IBAN, web ho zkontroluje).
+- **Objednat znovu** v Moje objednávky: položky zpátky do košíku s dnešní
+  cenou, co už nejde (vyprodané), vynechá.
+- **Dárkové balení se vzkazem** v pokladně a **osobní odběr**. Obojí se
+  zapíná a nastavuje v administraci, výchozí je vypnuto.
+- **Recenze ověřené nákupem.** Hodnotit jde z Moje objednávky po odeslání
+  (ověří se číslo objednávky a e-mail). Na web jdou po schválení
+  v administraci, s průměrem na úvodu a u hotové směsi, s odpovědí obchodu
+  a s informací, jak recenze ověřujeme.
+- Administrace: záložka Recenze, u objednávky tlačítko **Napsat potvrzení
+  objednávky** (hotový e-mail v jazyce zákazníka, u převodu s údaji k platbě),
+  dárek a osobní odběr viditelně v detailu i v seznamu.
+- Obchodní podmínky a zásady ochrany údajů doplněné o QR platbu, osobní
+  odběr, dárek a recenze (znění z 9. 11. 2026).
+- **Nákup: u každé suroviny, od koho ji koupit.** 41 nabídek podle sortimentu
+  na webech dodavatelů (Herbona 19 surovin, čaje a kůry u Wollenhauptu,
+  Alveusu a Zeleného Draka, u Wollenhauptu a Alveusu i čísla položek).
+  Ceny prázdné, doplní se z ceníku. Poznámka u nabídky je vidět v seznamu.
+
+### Změněno
+- Máta klasnatá → **máta kadeřavá** (Herbona prodává kadeřavou). Název,
+  složení na etiketě („máta kadeřavá (list)“, slovensky „mäta kučeravá“),
+  popis směsi Open Air a balzámu. Kód suroviny zůstává `Spearmint`.
+
+### Přidáno (slovenština a výběr jazyka)
+- Výběr jazyka **CZ / SK / EN** v hlavičce a v patičce. Volba se pamatuje;
+  bez ní web pozná jazyk z prohlížeče (slovenský prohlížeč dřív dostal angličtinu).
+- Po přepnutí se web vrátí tam, kde zákazník byl: rozdělaná směs v mixéru
+  (suroviny, díly, krok, název, velikost) i otevřená hotová směs zůstanou.
+- Celý web slovensky (`i18n-sk.js`), včetně informací o potravině: „Ochutený
+  zelený čaj“, složení „zelený čaj 60 %, mäta pieporná (list) 20 %…“.
+- Slovenské názvy, popisy, chutě a složení surovin, popisy směsí, mýdla a lišta
+  v administraci (prázdné = česky). Objednávka a zájemce si pamatují `sk`.
+- Administrace u objednávky na Slovensko ukáže text na štítek slovensky.
+- Obchodní podmínky, ochrana údajů, odstoupení a cookies zůstávají česky;
+  ve slovenštině a angličtině mají nahoře poznámku, že jsou česky.
+- Mapa Zásilkovny se otevře v jazyce webu a pro zemi z adresy.
+
+### Opraveno (překlady)
+- Anglický web ukazoval české názvy ve složení a druh čaje („Ochucený…“),
+  teď „Flavoured green tea“, „green tea 60 %“. Upozornění na kofein u bylinného
+  čaje s pravým čajem chybělo v angličtině.
+- Popisky pro čtečky obrazovky, data a gramy podle jazyka; opravené anglické
+  věty v úvodu, kvízu a FAQ; odstraněno 128 nepoužívaných překladů.
+- Na nejužších telefonech se logo nedotýká výběru jazyka.
+
+### Změněno (ikonky surovin)
+- Místo barevných koleček s tečkami má každá surovina jednoduchou kreslenou
+  ikonku (`icons.js`) na světlém podkladu v barvě suroviny: v mixéru, v panelu
+  směsi, na etiketě sáčku, v encyklopedii, na detailu směsi i v adminu.
+- Admin, Ingredience → **Ikonka**: nahraješ vlastní (PNG nebo SVG s průhledným
+  pozadím). Uloží se jako PNG 512 px, nic se neořezává, SVG se převede na PNG.
+  „Vrátit vestavěnou“ ji zase odebere. Nový sloupec `ingredients.icon_url`.
+- Všechno kreslí jedna funkce (`ingIconHtml`), takže výměna platí všude najednou.
+
+### Změněno (mixér: víc surovin, díly, gramy)
+- V každém kroku jde vybrat víc věcí, dohromady až **5 surovin**. Klik už sám
+  nepřeskočí na další krok; nepovinné kroky (příchuť, doplněk) jdou **přeskočit**.
+- Nový panel **Tvoje směs**: ke každé surovině díly 1–3 (−/+), podíl v %, gramy
+  pro vybranou velikost (50 / 100 / 250 g), pruh s poměrem, kolik šálků to dá
+  a jestli je to podle vyhlášky ochucený, bylinný, nebo ovocný čaj.
+- Hlídá limity z přílohy 1 vyhlášky 187/2023 Sb. (citronová a pomerančová kůra,
+  citronová tráva, zázvor, skořice nejvýš 30 %). Levandule a kardamom jsou
+  „špetka“ s pevnými 4 %. Směs bez druhu (žádná skupina přes polovinu) nejde
+  objednat a mixér poradí, co změnit.
+- **Prémiové suroviny** (bílý čaj, oolong, růže, jahody, maliny, kardamom) mají
+  příplatek za 100 g podle toho, kolik jich v sáčku je. Částky se mění v adminu.
+- Jeden výpočet receptury: `recipe.js` na webu i v adminu a stejný
+  `recipe_eval()` v databázi; `place_order()` ho použije pro kontrolu i cenu
+  a k objednávce uloží díly, procenta a gramy na míchání.
+- Staré košíky, uložené směsi a sdílené odkazy fungují dál (díly 3 + 1 + 1).
+- Rychlý start z hotové směsi v kroku 1 (směsi označené „Rychlá volba v mixéru“).
+- Kvíz bere složení z hotových směsí v katalogu.
+- Opraveno: jméno směsi ze sdíleného odkazu se v hlášce vykreslilo jako HTML.
+
+### Změněno (sortiment, katalog v2)
+- Suroviny podle toho, co jde běžně koupit u dodavatelů (Herbona, Wollenhaupt,
+  Alveus, Zelený Drak) a co povoluje příloha 1 vyhlášky. Nově meduňka, lípa,
+  jablko, ibišek, citronová tráva a fenykl; máta peprná je základ, „Pomeranč“
+  a „Citron“ jsou poctivě kůra. Med, vanilka, kakao, kokos a kurkuma se skryly
+  (zůstávají kvůli starým objednávkám).
+- Hotové směsi mají nové složení s díly (Still Evening je teď bylinná bez
+  kofeinu, Slow Tuesday ovocná).
+- `setup.sql` převede katalog jednou (`settings.catalog_version` = 2), další běhy
+  úpravy z administrace nepřepíšou. V Nákupu přibyli noví dodavatelé a suroviny.
+- Admin: editor směsi s až 5 surovinami a díly a s kontrolou podle vyhlášky,
+  příplatek u ingredience, gramy na míchání u objednávky, kalkulačka nákladů
+  s díly. Pevná receptura 70/20/10 z nastavení zmizela.
+
 ### Změněno (náhled pro sdílení)
 - Nový `og-image.jpg` podle současného designu: zelený pás, nadpis v Unbounded
   a dva sáčky přímo z webu. Starý `og-image.svg` (patkové písmo) pryč.

@@ -44,11 +44,11 @@ v administraci. Formspree je pak už jen e-mail navíc.
 | Kde | Konstanta | Co to je |
 |---|---|---|
 | `config.js` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Napojení na databázi — viz [`supabase/README.md`](supabase/README.md) |
-| `script.js:869` | `FORMSPREE_ID` | ID formuláře na Formspree, kam chodí objednávky |
-| `script.js:812` | `PACKETA_API_KEY` | Klíč pro widget výdejních míst Zásilkovny |
-| `script.js:872` | `GOPAY_GOID` | ID obchodníka GoPay |
-| `script.js:873` | `COMGATE_MERCHANT` | ID obchodníka Comgate |
-| `script.js:871` | `PAYMENT_GATEWAY` | Přepnout z `'none'` na `'gopay'` nebo `'comgate'` |
+| `script.js:883` | `FORMSPREE_ID` | ID formuláře na Formspree, kam chodí objednávky |
+| `script.js:814` | `PACKETA_API_KEY` | Klíč pro widget výdejních míst Zásilkovny |
+| `script.js:886` | `GOPAY_GOID` | ID obchodníka GoPay |
+| `script.js:887` | `COMGATE_MERCHANT` | ID obchodníka Comgate |
+| `script.js:885` | `PAYMENT_GATEWAY` | Přepnout z `'none'` na `'gopay'` nebo `'comgate'` |
 | `index.html` | `telephone` v JSON-LD | Je tam `+420123456789`, což je zjevně placeholder |
 
 ## Kde se co mění
@@ -69,10 +69,21 @@ pak jen záloha pro případ, že databáze neodpoví.
 | Otázky a vyhodnocení kvízu | `script.js:2193` — `QUIZ_QUESTIONS`, `QUIZ_BLENDS` |
 | Přednastavené mixy (záloha, jinak směsi s rychlou volbou v administraci) | `script.js:2510` — `MIX_PRESETS` |
 | Návody na louhování (záloha, jinak u základů v administraci) | `script.js:921` — `BREW` |
-| Překlady (CS/EN) | `script.js:9` — `TRANSLATIONS` |
+| Překlady (CS/EN) | `script.js` — `TRANSLATIONS` |
+| Překlady (SK) | `i18n-sk.js` — stejné klíče jako česky |
 
-Jazyk se volí podle prohlížeče (`script.js:6`). Čeština je výchozí,
-angličtina je fallback.
+Každá stránka má vlastní adresu: `?stranka=kviz`, hotová směs `?smes=deep_winter`,
+jazyk `&lang=sk`. Díky tomu funguje tlačítko Zpět a Google najde jednotlivé
+stránky. Když v administraci přidáš novou hotovou směs, připiš ji do
+`sitemap.xml` (stejně jako ostatní).
+
+Jazyk si zákazník vybere v hlavičce (CZ / SK / EN) nebo v patičce. Volba se
+pamatuje v prohlížeči; bez ní se jazyk vezme z nastavení prohlížeče (čeština,
+slovenština, jinak angličtina). Po přepnutí se stránka načte znovu a vrátí
+se tam, kde zákazník byl, včetně rozdělané směsi v mixéru. Chybějící
+slovenský text se ukáže česky, chybějící anglický česky nikdy (spadne na
+anglický klíč). Texty z databáze (názvy, popisy, lišta) mají sloupce `_cs`,
+`_sk` a `_en`, prázdný slovenský = český.
 
 ## Struktura
 
@@ -80,6 +91,11 @@ angličtina je fallback.
 index.html                 Celý web. Všechny "stránky" jsou sekce, přepíná JS.
 style.css                  Styly včetně tmavého režimu.
 script.js                  Mixér, košík, checkout, kvíz, i18n, data ingrediencí.
+recipe.js                  Výpočet receptury (díly → %, gramy, druh čaje, příplatek). Stejný je v databázi.
+icons.js                   Vestavěné ikonky surovin, dokud v adminu nenahraješ vlastní.
+i18n-sk.js                 Slovenské texty webu (klíče jako v TRANSLATIONS ve script.js).
+bank.js                    Číslo účtu ↔ IBAN a text QR Platby (web i administrace).
+vendor/qrcode.js           Knihovna na QR kód (MIT), načte se až u platby převodem.
 config.js                  Adresa a veřejný klíč Supabase.
 db.js                      Malý klient pro Supabase (tabulky, přihlášení, fotky).
 admin/                     Administrace: objednávky, nabídka, ceny, slevy.
