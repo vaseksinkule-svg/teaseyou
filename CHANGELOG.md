@@ -6,6 +6,37 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Průchod celým webem (11. 11. 2026)
+- **Rychlejší načítání.** Písma mají jen řezy a písmena, která web používá
+  (225 kB → 67 kB, vypadají stejně), skripty nebrzdí vykreslení a česká
+  stránka se po načtení nepřepisuje. Lighthouse na telefonu, česky: výkon
+  68 → 91, první vykreslení 4,9 s → 1,7 s (měřeno lokálně bez komprese).
+- **Opravdové odkazy.** Menu, karty směsí, patička i tlačítka „Namíchat“ jsou
+  odkazy s adresou: jdou otevřít v novém panelu a vidí je vyhledávač.
+  Po přepnutí stránky dostane fokus její nadpis (klávesnice, čtečky), menu
+  na telefonu drží fokus a zavře se klávesou Esc.
+- **Nový model sáčku.** Svár s otvorem na zavěšení, zip, skládané dno, světlo
+  zleva. Etiketa už nic neuřezává: dlouhý název suroviny se zalomí, dlouhé
+  jméno směsi dostane menší písmo.
+- **Chuť a kofein jednou větou** u každé směsi i u vlastní v mixéru
+  („Chuť: zemitá, chladivá a jiskřivá. S kofeinem.“). Skládá se ze slov,
+  která jsou u surovin v katalogu. Nad směsmi filtr s kofeinem / bez kofeinu.
+- **Další směsi** pod detailem směsi. Stránka Suroviny má skok na skupinu.
+- **Kvíz** se už neptá dvakrát na chuť (nově: jak čaj piješ, roční období),
+  odpovědi mají ikonky. Důvod výběru už neříká „klid“ (zdravotní tvrzení).
+- **O nás a Jak to děláme** mají obrázky: sáčky z nabídky a ikonky kroků.
+- **Texty.** Všude „směs“ a „suroviny“, české pomlčky a uvozovky, pevné
+  mezery za předložkami a před jednotkami, opravené „v Moje objednávky“,
+  popisy směsí bez dlouhých pomlček („šálek“ místo „pohár“). Slovensky
+  a anglicky totéž.
+- **Opravy.** Stín na levém okraji stránky (zavřené menu), patička
+  uprostřed krátkých stránek, uříznutá cena v liště mixéru na úzkém telefonu,
+  prázdné „Jako v čaji:“ u balzámu, hlášky s emoji.
+- `tools/sync-static.js` srovná české texty v `index.html` se slovníkem ve
+  `script.js` (a s `--check` ohlásí rozdíl).
+- **`supabase/setup.sql`**: jen nové popisy šesti hotových směsí; kde sis
+  popis přepsal, zůstane tvůj.
+
 ### Přidáno (věci, které mají konkurenční e-shopy)
 - **Tlačítko Zpět funguje.** Každá stránka a hotová směs má vlastní adresu
   (`?stranka=kviz`, `?smes=deep_winter`, jazyk `&lang=sk`). Zpět se vrátí i na

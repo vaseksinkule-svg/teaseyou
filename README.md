@@ -99,6 +99,10 @@ vendor/qrcode.js           Knihovna na QR kód (MIT), načte se až u platby př
 config.js                  Adresa a veřejný klíč Supabase.
 db.js                      Malý klient pro Supabase (tabulky, přihlášení, fotky).
 admin/                     Administrace: objednávky, nabídka, ceny, slevy.
+tools/sync-static.js       Srovná české texty v index.html se slovníkem ve script.js.
+                           Po změně českého textu spusť: node tools/sync-static.js
+fonts/                     Písma (SIL OFL). Soubory *-600-700 a *-400-700 jsou zmenšené
+                           verze pro rychlé načtení, zbylé slouží jako záloha a pro administraci.
 supabase/setup.sql         Celá databáze — tabulky, pravidla přístupu, výchozí data.
 supabase/README.md         Jak databázi založit a co v ní je.
 sw.js                      Service worker — offline režim a cache.
