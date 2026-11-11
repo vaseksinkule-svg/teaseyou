@@ -574,10 +574,30 @@ TRANSLATIONS.sk = Object.assign({}, (typeof self !== 'undefined' && self.TEASEYO
 /* ─── TRANSLATION HELPER ─────────────────────── */
 function t(key) {
     const own = TRANSLATIONS[LANG] && TRANSLATIONS[LANG][key];
-    if (own !== undefined) return own;
-    if (LANG === 'sk' && TRANSLATIONS.cs[key] !== undefined) return TRANSLATIONS.cs[key];
+    if (own !== undefined) return typo(own);
+    if (LANG === 'sk' && TRANSLATIONS.cs[key] !== undefined) return typo(TRANSLATIONS.cs[key]);
     if (TRANSLATIONS.en[key] !== undefined) return TRANSLATIONS.en[key];
     return key;
+}
+
+/* ─── Typografie ─────────────────────────────── */
+/* V češtině a slovenštině nemá jednopísmenná předložka nebo spojka zůstat
+   na konci řádku („pošleme ti ji v / sáčku“) a číslo se nemá odtrhnout od
+   jednotky („500 / Kč“). Tahle funkce mezi ně dává pevnou mezeru. Volá ji
+   t() a pickLang(), takže platí pro texty ze slovníku i z databáze. Texty se
+   značkami (odkazy) a angličtinu nechává být. Dva průchody jsou kvůli dvěma
+   krátkým slovům za sebou („a v sáčku“). */
+const TYPO_WORD = /(^|[\s(„“"])([ksvzouaiKSVZOUAI])[ \t]+(?=\S)/g;
+const TYPO_UNIT = /(\d)[ \t]+(?=(?:Kč|%|g|kg|ml|min|°C|ks)(?![0-9A-Za-zÀ-ž]))/g;
+const typoCache = new Map();
+function typo(s) {
+    if (LANG === 'en' || typeof s !== 'string' || s.length < 4 || s.indexOf('<') >= 0) return s;
+    let out = typoCache.get(s);
+    if (out === undefined) {
+        out = s.replace(TYPO_WORD, '$1$2\u00a0').replace(TYPO_WORD, '$1$2\u00a0').replace(TYPO_UNIT, '$1\u00a0');
+        typoCache.set(s, out);
+    }
+    return out;
 }
 
 /* Text z databáze v jazyce webu: pole name → name_sk, name_cs, name_en.
@@ -587,7 +607,7 @@ function pickLang(row, field) {
     const order = LANG === 'en' ? ['en', 'cs'] : LANG === 'sk' ? ['sk', 'cs', 'en'] : ['cs', 'en'];
     for (const l of order) {
         const v = row[field + '_' + l];
-        if (Array.isArray(v) ? v.length : (typeof v === 'string' && v.trim())) return v;
+        if (Array.isArray(v) ? v.length : (typeof v === 'string' && v.trim())) return typo(v);
     }
     return Array.isArray(row[field + '_cs']) ? [] : '';
 }
@@ -2486,6 +2506,9 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (!restoreViewState()) routeTo(stateFromUrl(), 'replace');
     refreshCatalog();    // čerstvá data ze Supabase (když je nastavený)
     renderHomeReviews();
+    // ikonky zapsané v HTML jen jménem (data-icon="scale") se dokreslí z icons.js
+    document.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = IngIcons.svg(el.dataset.icon); });
+    renderAboutStage();
     document.documentElement.classList.remove('i18n-wait');   // texty jsou přeložené, můžou se ukázat
     setTimeout(() => { pageReady = true; }, 0);
 });
@@ -3332,6 +3355,7 @@ function renderCatalogDom() {
     if (!catalogLoaded) return;
     renderIngredientButtons();
     renderBlendCards();
+    if (typeof renderAboutStage === 'function') renderAboutStage();
     renderCraft();
     renderPriceOptions();
     renderShippingOptions();
@@ -3447,6 +3471,15 @@ document.addEventListener('click', e => {
     const grid = document.querySelector('.shelf .ready-grid');
     if (grid) grid.scrollLeft = 0;
 });
+
+/* Stránka O nás: tři sáčky z nabídky místo fotky. */
+function renderAboutStage() {
+    const stage = document.getElementById('about-stage');
+    if (!stage) return;
+    const picks = catalogBlends.slice(0, 3);
+    stage.hidden = picks.length < 3;
+    stage.innerHTML = picks.map(b => pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--about', weight: '100 g' })).join('');
+}
 
 /* Pod detailem směsi: tři další z nabídky, napřed ty se stejným kofeinem. */
 function renderDetailMore(currentId) {
