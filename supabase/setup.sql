@@ -135,6 +135,18 @@ alter table public.blends add constraint blends_parts_check
     check (parts is null or (cardinality(parts) = cardinality(ingredients)
                              and 1 <= all (parts) and 3 >= all (parts)));
 
+-- Proč si koupit hotovou směs (listopad 2026): chvíle dne (barevný pruh na
+-- etiketě a filtr na webu), „Proč to funguje“ a tip k přípravě, ve třech
+-- jazycích. Prázdné = na webu se neukáže.
+alter table public.blends add column if not exists moment text
+    check (moment in ('morning', 'afternoon', 'evening', 'winter', 'summer'));
+alter table public.blends add column if not exists story_cs text not null default '' check (length(story_cs) <= 600);
+alter table public.blends add column if not exists story_en text not null default '' check (length(story_en) <= 600);
+alter table public.blends add column if not exists story_sk text not null default '' check (length(story_sk) <= 600);
+alter table public.blends add column if not exists tip_cs text not null default '' check (length(tip_cs) <= 300);
+alter table public.blends add column if not exists tip_en text not null default '' check (length(tip_en) <= 300);
+alter table public.blends add column if not exists tip_sk text not null default '' check (length(tip_sk) <= 300);
+
 -- Ceník podle gramáže. Cena je za celé balení, ne za gram.
 create table if not exists public.price_tiers (
     weight_g    integer primary key check (weight_g between 1 and 5000),
@@ -1355,15 +1367,24 @@ values
     ('cardamom', 'Cardamom', 'extra', 'Kardamom', 'Cardamom', 'Exotický, kořeněný a květinový. Stačí špetka.', 'Exotic, spicy and floral. A pinch is enough.', '🫛', '#80cbc4', null, array['exotická', 'kořeněná', 'květinová']::text[], array['exotic', 'spicy', 'floral']::text[], array['Black Tea', 'Oolong Tea', 'Cinnamon']::text[], null, null, 250, 'herb', 'kardamom (semeno)', 5, 80, 'Kardamón', 'Exotický, korenistý a kvetinový. Stačí štipka.', array['exotická', 'korenistá', 'kvetinová']::text[], 'kardamón (semeno)')
 on conflict (id) do nothing;
 
-insert into public.blends (id, name, desc_cs, desc_en, desc_sk, ingredients, parts, emoji, is_preset, sort)
-values
-    ('morning_window', 'Morning Window', 'Zelený čaj s mátou peprnou a citronovou kůrou. Čistý a svěží šálek, který rozjede den.', 'Green tea with peppermint and lemon peel. A clean, bright cup that gets the day going.', 'Zelený čaj s mätou piepornou a citrónovou kôrou. Čistá a svieža šálka, ktorá naštartuje deň.', array['Green Tea', 'Mint', 'Lemon']::text[], array[3, 1, 1]::smallint[], '☀️', true, 10),
-    ('still_evening', 'Still Evening', 'Heřmánek a meduňka se špetkou levandule. Jemný, květinový a bez kofeinu. Na konec dne.', 'Chamomile and lemon balm with a pinch of lavender. Gentle, floral and caffeine-free, for the end of the day.', 'Harmanček a medovka so štipkou levandule. Jemný, kvetinový a bez kofeínu. Na koniec dňa.', array['Chamomile', 'Lemon Balm', 'Lavender']::text[], array[2, 2, 1]::smallint[], '🌙', true, 20),
-    ('deep_winter', 'Deep Winter', 'Černý čaj se zázvorem a skořicí. Plný a hřejivý, nejlepší s oběma rukama kolem hrnku.', 'Black tea with ginger and cinnamon. Full and warming, best with both hands around the mug.', 'Čierny čaj so zázvorom a škoricou. Plný a hrejivý, najlepší, keď držíš hrnček oboma rukami.', array['Black Tea', 'Ginger', 'Cinnamon']::text[], array[3, 1, 1]::smallint[], '❄️', true, 30),
-    ('late_light', 'Late Light', 'Oolong s růží a špetkou levandule. Měkký a lehce květinový, na tichou část odpoledne.', 'Oolong with rose and a pinch of lavender. Soft and a little floral, for the quiet part of the afternoon.', 'Oolong s ružou a štipkou levandule. Mäkký a trochu kvetinový, na tichú časť popoludnia.', array['Oolong Tea', 'Rose', 'Lavender']::text[], array[3, 1, 1]::smallint[], '🌅', false, 40),
-    ('open_air', 'Open Air', 'Rooibos s pomerančovou kůrou a mátou kadeřavou. Přirozeně nasládlý a bez kofeinu, dobrý kdykoli.', 'Rooibos with orange peel and curly mint. Naturally sweet and caffeine-free, good any time.', 'Rooibos s pomarančovou kôrou a mätou kučeravou. Prirodzene sladký a bez kofeínu, dobrý kedykoľvek.', array['Rooibos', 'Orange', 'Spearmint']::text[], array[3, 1, 1]::smallint[], '🌿', false, 50),
-    ('slow_tuesday', 'Slow Tuesday', 'Jablko s ibiškem, šípkem a skořicí. Ovocný a hřejivý. Čajový ekvivalent nicnedělání.', 'Apple with hibiscus, rose hip and cinnamon. Fruity and warming. The tea equivalent of doing nothing.', 'Jablko s ibištekom, šípkami a škoricou. Ovocný a hrejivý. Čajový ekvivalent ničnerobenia.', array['Apple', 'Hibiscus', 'Rose Hip', 'Cinnamon']::text[], array[3, 1, 1, 1]::smallint[], '🍎', true, 60)
-on conflict (id) do nothing;
+-- Výchozí směsi jen do prázdné tabulky (nová databáze). Dřív se vkládaly
+-- při každém běhu, takže se směs smazaná v administraci po dalším
+-- spuštění setup.sql vrátila.
+do $$
+begin
+    if not exists (select 1 from public.blends) then
+        insert into public.blends (id, name, desc_cs, desc_en, desc_sk, ingredients, parts, emoji, is_preset, sort)
+        values
+            ('morning_window', 'Morning Window', 'Zelený čaj s mátou peprnou a citronovou kůrou. Čistý a svěží šálek, který rozjede den.', 'Green tea with peppermint and lemon peel. A clean, bright cup that gets the day going.', 'Zelený čaj s mätou piepornou a citrónovou kôrou. Čistá a svieža šálka, ktorá naštartuje deň.', array['Green Tea', 'Mint', 'Lemon']::text[], array[3, 1, 1]::smallint[], '☀️', true, 10),
+            ('still_evening', 'Still Evening', 'Heřmánek a meduňka se špetkou levandule. Jemný, květinový a bez kofeinu. Na konec dne.', 'Chamomile and lemon balm with a pinch of lavender. Gentle, floral and caffeine-free, for the end of the day.', 'Harmanček a medovka so štipkou levandule. Jemný, kvetinový a bez kofeínu. Na koniec dňa.', array['Chamomile', 'Lemon Balm', 'Lavender']::text[], array[2, 2, 1]::smallint[], '🌙', true, 20),
+            ('deep_winter', 'Deep Winter', 'Černý čaj se zázvorem a skořicí. Plný a hřejivý, nejlepší s oběma rukama kolem hrnku.', 'Black tea with ginger and cinnamon. Full and warming, best with both hands around the mug.', 'Čierny čaj so zázvorom a škoricou. Plný a hrejivý, najlepší, keď držíš hrnček oboma rukami.', array['Black Tea', 'Ginger', 'Cinnamon']::text[], array[3, 1, 1]::smallint[], '❄️', true, 30),
+            ('late_light', 'Late Light', 'Oolong s růží a špetkou levandule. Měkký a lehce květinový, na tichou část odpoledne.', 'Oolong with rose and a pinch of lavender. Soft and a little floral, for the quiet part of the afternoon.', 'Oolong s ružou a štipkou levandule. Mäkký a trochu kvetinový, na tichú časť popoludnia.', array['Oolong Tea', 'Rose', 'Lavender']::text[], array[3, 1, 1]::smallint[], '🌅', false, 40),
+            ('open_air', 'Open Air', 'Rooibos s pomerančovou kůrou a mátou kadeřavou. Přirozeně nasládlý a bez kofeinu, dobrý kdykoli.', 'Rooibos with orange peel and curly mint. Naturally sweet and caffeine-free, good any time.', 'Rooibos s pomarančovou kôrou a mätou kučeravou. Prirodzene sladký a bez kofeínu, dobrý kedykoľvek.', array['Rooibos', 'Orange', 'Spearmint']::text[], array[3, 1, 1]::smallint[], '🌿', false, 50),
+            ('slow_tuesday', 'Slow Tuesday', 'Jablko s ibiškem, šípkem a skořicí. Ovocný a hřejivý. Čajový ekvivalent nicnedělání.', 'Apple with hibiscus, rose hip and cinnamon. Fruity and warming. The tea equivalent of doing nothing.', 'Jablko s ibištekom, šípkami a škoricou. Ovocný a hrejivý. Čajový ekvivalent ničnerobenia.', array['Apple', 'Hibiscus', 'Rose Hip', 'Cinnamon']::text[], array[3, 1, 1, 1]::smallint[], '🍎', true, 60)
+        on conflict (id) do nothing;
+    end if;
+end
+$$;
 
 insert into public.price_tiers (weight_g, price_czk)
 values
@@ -1612,6 +1633,83 @@ update public.blends set desc_sk = replace(desc_sk, 'Prirodzene sladký a bez ko
 update public.blends set desc_cs = replace(desc_cs, 'Ovocný a hřejivý — čajový ekvivalent nicnedělání.', 'Ovocný a hřejivý. Čajový ekvivalent nicnedělání.') where id = 'slow_tuesday' and desc_cs like '%Ovocný a hřejivý — čajový ekvivalent nicnedělání.';
 update public.blends set desc_en = replace(desc_en, 'Fruity and warming — the tea equivalent of doing nothing.', 'Fruity and warming. The tea equivalent of doing nothing.') where id = 'slow_tuesday' and desc_en like '%Fruity and warming — the tea equivalent of doing nothing.';
 update public.blends set desc_sk = replace(desc_sk, 'Ovocný a hrejivý — čajový ekvivalent ničnerobenia.', 'Ovocný a hrejivý. Čajový ekvivalent ničnerobenia.') where id = 'slow_tuesday' and desc_sk like '%Ovocný a hrejivý — čajový ekvivalent ničnerobenia.';
+
+-- Hotové směsi v2 (listopad 2026), jednou podle settings.blends_seed_version:
+-- původním šesti doplní chvíli, „Proč to funguje“ a tip (jen kde je prázdno)
+-- a přidá osm nových. Co pak v administraci změníš nebo smažeš, další běh
+-- nevrátí. Recepty jsou návrh: před prodejem je namíchej a ochutnej.
+alter table public.settings add column if not exists blends_seed_version smallint not null default 0;
+do $$
+begin
+    if (select blends_seed_version from public.settings where id = 1) < 1 then
+        update public.blends set
+            moment = coalesce(moment, 'morning'),
+            story_cs = case when story_cs = '' then 'Zelený čaj je sám o sobě trochu travnatý. Máta peprná ho zchladí a citronová kůra mu dodá šťávu, takže chutná jasně i bez cukru.' else story_cs end,
+            story_en = case when story_en = '' then 'Green tea on its own is a little grassy. Peppermint cools it down and lemon peel adds brightness, so it tastes lively even without sugar.' else story_en end,
+            story_sk = case when story_sk = '' then 'Zelený čaj je sám osebe trochu trávnatý. Mäta pieporná ho schladí a citrónová kôra mu dodá šťavu, takže chutí jasne aj bez cukru.' else story_sk end,
+            tip_cs = case when tip_cs = '' then 'Zalij vodou kolem 80 °C, ne vroucí, jinak zhořkne. Lístky vydrží i druhé zalití.' else tip_cs end,
+            tip_en = case when tip_en = '' then 'Use water around 80 °C, not boiling, or it turns bitter. The leaves are good for a second steep.' else tip_en end,
+            tip_sk = case when tip_sk = '' then 'Zalej vodou okolo 80 °C, nie vriacou, inak zhorkne. Lístky vydržia aj druhé zaliatie.' else tip_sk end
+         where id = 'morning_window';
+        update public.blends set
+            moment = coalesce(moment, 'evening'),
+            story_cs = case when story_cs = '' then 'Heřmánek a meduňka jsou jemné a nasládlé, takže se navzájem nepřekřikují. Levandule je jen špetka: víc by přehlušila všechno ostatní.' else story_cs end,
+            story_en = case when story_en = '' then 'Chamomile and lemon balm are both soft and slightly sweet, so neither drowns the other out. The lavender is just a pinch: any more would overpower everything else.' else story_en end,
+            story_sk = case when story_sk = '' then 'Rumanček a medovka sú jemné a nasladlé, takže sa navzájom neprekrikujú. Levanduľa je len štipka: viac by prehlušila všetko ostatné.' else story_sk end,
+            tip_cs = case when tip_cs = '' then 'Zalij vroucí vodou a nech louhovat 5–7 minut pod pokličkou, ať vůně neuteče.' else tip_cs end,
+            tip_en = case when tip_en = '' then 'Pour boiling water and steep for 5–7 minutes with a lid on, so the aroma stays in the cup.' else tip_en end,
+            tip_sk = case when tip_sk = '' then 'Zalej vriacou vodou a nechaj lúhovať 5–7 minút pod pokrievkou, aby vôňa neunikla.' else tip_sk end
+         where id = 'still_evening';
+        update public.blends set
+            moment = coalesce(moment, 'winter'),
+            story_cs = case when story_cs = '' then 'Černý čaj je dost silný, aby unesl zázvor i skořici. Zázvor štípne, skořice to zakulatí a dohromady to voní jako vánoční pečení.' else story_cs end,
+            story_en = case when story_en = '' then 'Black tea is strong enough to carry both ginger and cinnamon. The ginger bites, the cinnamon rounds it off, and together they smell like Christmas baking.' else story_en end,
+            story_sk = case when story_sk = '' then 'Čierny čaj je dosť silný, aby uniesol zázvor aj škoricu. Zázvor štipne, škorica to zaokrúhli a spolu to vonia ako vianočné pečenie.' else story_sk end,
+            tip_cs = case when tip_cs = '' then 'Snese mléko i lžičku medu. Louhuj 4 minuty, ať je dost silný.' else tip_cs end,
+            tip_en = case when tip_en = '' then 'Takes milk and a spoonful of honey well. Steep for 4 minutes so it stays strong.' else tip_en end,
+            tip_sk = case when tip_sk = '' then 'Znesie mlieko aj lyžičku medu. Lúhuj 4 minúty, aby bol dosť silný.' else tip_sk end
+         where id = 'deep_winter';
+        update public.blends set
+            moment = coalesce(moment, 'afternoon'),
+            story_cs = case when story_cs = '' then 'Oolong je napůl mezi zeleným a černým čajem: trochu pražený, trochu květinový. Růže tu květinovou stránku vytáhne, levandule ji jen podtrhne.' else story_cs end,
+            story_en = case when story_en = '' then 'Oolong sits halfway between green and black tea: a little roasted, a little floral. Rose brings out the floral side and lavender just underlines it.' else story_en end,
+            story_sk = case when story_sk = '' then 'Oolong je napoly medzi zeleným a čiernym čajom: trochu pražený, trochu kvetinový. Ruža tú kvetinovú stránku vytiahne, levanduľa ju len podčiarkne.' else story_sk end,
+            tip_cs = case when tip_cs = '' then 'Oolong vydrží dvě až tři zalití. Každé chutná trochu jinak, druhé bývá nejlepší.' else tip_cs end,
+            tip_en = case when tip_en = '' then 'Oolong takes two or three steeps. Each one tastes a bit different, and the second is often the best.' else tip_en end,
+            tip_sk = case when tip_sk = '' then 'Oolong vydrží dve až tri zaliatia. Každé chutí trochu inak, druhé býva najlepšie.' else tip_sk end
+         where id = 'late_light';
+        update public.blends set
+            moment = coalesce(moment, 'afternoon'),
+            story_cs = case when story_cs = '' then 'Rooibos je přirozeně nasládlý a nehořkne, ani když ho necháš louhovat dlouho. Pomerančová kůra a máta kadeřavá ho rozjasní, takže není těžký.' else story_cs end,
+            story_en = case when story_en = '' then 'Rooibos is naturally sweet and never turns bitter, even if you leave it steeping. Orange peel and curly mint brighten it so it never feels heavy.' else story_en end,
+            story_sk = case when story_sk = '' then 'Rooibos je prirodzene nasladlý a nezhorkne, ani keď ho necháš lúhovať dlho. Pomarančová kôra a mäta kučeravá ho rozjasnia, takže nie je ťažký.' else story_sk end,
+            tip_cs = case when tip_cs = '' then 'Dobrý horký i ledový. Na ledový ho zalij vroucí vodou, nech 6 minut louhovat, vychladnout a dej do lednice.' else tip_cs end,
+            tip_en = case when tip_en = '' then 'Good hot or iced. For iced tea, pour boiling water, steep for 6 minutes, let it cool and put it in the fridge.' else tip_en end,
+            tip_sk = case when tip_sk = '' then 'Dobrý horúci aj ľadový. Na ľadový ho zalej vriacou vodou, nechaj 6 minút lúhovať, vychladnúť a daj do chladničky.' else tip_sk end
+         where id = 'open_air';
+        update public.blends set
+            moment = coalesce(moment, 'winter'),
+            story_cs = case when story_cs = '' then 'Jablko dává sladkost, ibišek a šípek kyselost a rubínovou barvu, skořice teplo. Chutná jako jablečný koláč, jen tekutý.' else story_cs end,
+            story_en = case when story_en = '' then 'Apple brings the sweetness, hibiscus and rose hip the tartness and ruby colour, cinnamon the warmth. It tastes like apple pie, only liquid.' else story_en end,
+            story_sk = case when story_sk = '' then 'Jablko dáva sladkosť, ibištek a šípka kyslosť a rubínovú farbu, škorica teplo. Chutí ako jablkový koláč, len tekutý.' else story_sk end,
+            tip_cs = case when tip_cs = '' then 'Ovocný čaj potřebuje vroucí vodu a čas: aspoň 8 minut. Krátce louhovaný je vodový.' else tip_cs end,
+            tip_en = case when tip_en = '' then 'Fruit tea needs boiling water and time: at least 8 minutes. Steeped briefly, it tastes watery.' else tip_en end,
+            tip_sk = case when tip_sk = '' then 'Ovocný čaj potrebuje vriacu vodu a čas: aspoň 8 minút. Krátko lúhovaný je vodový.' else tip_sk end
+         where id = 'slow_tuesday';
+        insert into public.blends (id, name, emoji, is_preset, active, sort, ingredients, parts, desc_cs, desc_en, desc_sk, moment, story_cs, story_en, story_sk, tip_cs, tip_en, tip_sk) values
+            ('sunday_paper', 'Sunday Paper', '🍊', false, true, 70, array['Black Tea', 'Orange', 'Cardamom'], array[3, 1, 1]::smallint[], 'Černý čaj s pomerančovou kůrou a špetkou kardamomu. Silný, voňavý a pomalý, na snídani, která nikam nespěchá.', 'Black tea with orange peel and a pinch of cardamom. Strong, fragrant and unhurried, for a breakfast that is going nowhere.', 'Čierny čaj s pomarančovou kôrou a štipkou kardamónu. Silný, voňavý a pomalý, na raňajky, ktoré nikam neponáhľajú.', 'morning', 'Pomeranč a černý čaj jsou klasika. Kardamom je to, čím se tahle směs liší: dá jí vůni, kterou poznáš už při zalévání. Je ho jen špetka, aby nepřebil čaj.', 'Orange and black tea are a classic. The cardamom is what sets this one apart: a scent you notice as soon as the water hits the leaves. It''s only a pinch, so it never overpowers the tea.', 'Pomaranč a čierny čaj sú klasika. Kardamón je to, čím sa táto zmes líši: dá jej vôňu, ktorú spoznáš už pri zalievaní. Je ho len štipka, aby neprebil čaj.', 'Louhuj 4 minuty. S kapkou mléka chutná jako snídaňový čaj z kavárny.', 'Steep for 4 minutes. With a dash of milk it tastes like a café breakfast tea.', 'Lúhuj 4 minúty. S kvapkou mlieka chutí ako raňajkový čaj z kaviarne.'),
+            ('desk_hours', 'Desk Hours', '🍋', false, true, 80, array['Green Tea', 'Lemongrass', 'Ginger'], array[3, 1, 1]::smallint[], 'Zelený čaj s citronovou trávou a zázvorem. Svěží, lehce pikantní, na odpoledne u práce.', 'Green tea with lemongrass and ginger. Fresh and lightly spicy, for an afternoon at your desk.', 'Zelený čaj s citrónovou trávou a zázvorom. Svieži, jemne pikantný, na popoludnie pri práci.', 'afternoon', 'Citronová tráva voní po citronu, ale nekyselí, takže zelený čaj zůstane jemný. Zázvor mu na konci přidá lehké štípnutí.', 'Lemongrass smells of lemon without the sourness, so the green tea stays gentle. The ginger adds a light kick at the end.', 'Citrónová tráva vonia po citróne, ale nekyslí, takže zelený čaj zostane jemný. Zázvor mu na konci pridá jemné štipnutie.', 'Voda kolem 80 °C a 2–3 minuty. Do velkého hrnku dej dvě lžičky a až dopiješ, zalij je znovu.', 'Water around 80 °C, 2–3 minutes. Use two teaspoons for a big mug and top them up again when you finish.', 'Voda okolo 80 °C a 2–3 minúty. Do veľkého hrnčeka daj dve lyžičky a keď dopiješ, zalej ich znova.'),
+            ('garden_party', 'Garden Party', '🍓', false, true, 90, array['White Tea', 'Strawberry', 'Rose'], array[3, 1, 1]::smallint[], 'Bílý čaj s jahodou a růží. Jemný, ovocný a voňavý, nejlepší vychlazený.', 'White tea with strawberry and rose. Delicate, fruity and fragrant, best served chilled.', 'Biely čaj s jahodou a ružou. Jemný, ovocný a voňavý, najlepší vychladený.', 'summer', 'Bílý čaj je ze všech nejjemnější, proto k němu nepatří nic výrazného. Jahoda mu dá sladkost, růže vůni a pořád je cítit čaj.', 'White tea is the most delicate of all, so nothing loud belongs with it. Strawberry brings sweetness, rose brings scent, and you can still taste the tea.', 'Biely čaj je zo všetkých najjemnejší, preto k nemu nepatrí nič výrazné. Jahoda mu dá sladkosť, ruža vôňu a stále je cítiť čaj.', 'Na ledový čaj: zalij vodou o 80 °C, louhuj 3 minuty, nech vychladnout a nalij na led.', 'For iced tea: steep in 80 °C water for 3 minutes, let it cool and pour over ice.', 'Na ľadový čaj: zalej vodou s teplotou 80 °C, lúhuj 3 minúty, nechaj vychladnúť a nalej na ľad.'),
+            ('pink_hour', 'Pink Hour', '🌺', false, true, 100, array['Hibiscus', 'Rose Hip', 'Strawberry', 'Lemon'], array[2, 1, 1, 1]::smallint[], 'Ibišek se šípkem, jahodou a citronovou kůrou. Růžový, nakyslý a bez kofeinu, nejlepší vychlazený.', 'Hibiscus with rose hip, strawberry and lemon peel. Pink, tart and caffeine-free, best served chilled.', 'Ibištek so šípkou, jahodou a citrónovou kôrou. Ružový, nakyslý a bez kofeínu, najlepší vychladený.', 'summer', 'Ibišek dá barvu a kyselost jako od brusinek, jahoda ji zjemní a citronová kůra osvěží. Vychlazený chutná skoro jako limonáda.', 'Hibiscus brings colour and a cranberry-like tartness, strawberry softens it and lemon peel freshens it up. Chilled, it tastes almost like lemonade.', 'Ibištek dá farbu a kyslosť ako od brusníc, jahoda ju zjemní a citrónová kôra osvieži. Vychladený chutí skoro ako limonáda.', 'Na ledový čaj zalij 2 lžíce půl litrem vroucí vody, louhuj 10 minut, sceď a nech vychladnout. Pak dolij studenou vodou nebo ledem do litru.', 'For iced tea, steep 2 tablespoons in half a litre of boiling water for 10 minutes, strain and let it cool. Then top up to a litre with cold water or ice.', 'Na ľadový čaj zalej 2 lyžice pol litrom vriacej vody, lúhuj 10 minút, preceď a nechaj vychladnúť. Potom dolej studenou vodou alebo ľadom do litra.'),
+            ('after_dinner', 'After Dinner', '🌱', false, true, 110, array['Mint', 'Lemon Balm', 'Fennel'], array[2, 2, 1]::smallint[], 'Máta peprná s meduňkou a fenyklem. Chladivá, lehce nasládlá a bez kofeinu, na chvíli po večeři.', 'Peppermint with lemon balm and fennel. Cooling, lightly sweet and caffeine-free, for the moment after dinner.', 'Mäta pieporná s medovkou a feniklom. Chladivá, jemne nasladlá a bez kofeínu, na chvíľu po večeri.', 'evening', 'Máta peprná je výrazná, meduňka ji zjemní citronovou vůní a fenykl přidá nasládlý tón, který připomíná anýz. Kofein v ní není, takže nevadí ani pozdě večer.', 'Peppermint is bold; lemon balm softens it with a lemony scent and fennel adds a sweet, anise-like note. There''s no caffeine, so it''s fine even late in the evening.', 'Mäta pieporná je výrazná, medovka ju zjemní citrónovou vôňou a fenikel pridá nasladlý tón, ktorý pripomína aníz. Kofeín v nej nie je, takže nevadí ani neskoro večer.', 'Dobrá i ve velké konvici na celý večer: 5 lžiček na litr vroucí vody, 7 minut.', 'Good in a big pot for the whole evening: 5 teaspoons per litre of boiling water, 7 minutes.', 'Dobrá aj vo veľkej kanvici na celý večer: 5 lyžičiek na liter vriacej vody, 7 minút.'),
+            ('quiet_street', 'Quiet Street', '🌼', false, true, 120, array['Linden', 'Chamomile', 'Lemon'], array[2, 1, 1]::smallint[], 'Lipový květ s heřmánkem a citronovou kůrou. Medově sladký, jemný a bez kofeinu.', 'Linden blossom with chamomile and lemon peel. Honey-sweet, gentle and caffeine-free.', 'Lipový kvet s rumančekom a citrónovou kôrou. Medovo sladký, jemný a bez kofeínu.', 'evening', 'Lípa voní jako ulice v červnu, když kvete. Heřmánek jí dodá jablečný tón a citronová kůra hlídá, aby nebyla moc sladká.', 'Linden smells like a street in June when the trees are in bloom. Chamomile adds an apple-like note and lemon peel keeps it from getting too sweet.', 'Lipa vonia ako ulica v júni, keď kvitne. Rumanček jej dodá jablkový tón a citrónová kôra stráži, aby nebola príliš sladká.', 'Vroucí voda, 5–7 minut. Lžička medu k ní sedí víc než cukr.', 'Boiling water, 5–7 minutes. A spoonful of honey suits it better than sugar.', 'Vriaca voda, 5–7 minút. Lyžička medu k nej sedí viac ako cukor.'),
+            ('snowed_in', 'Snowed In', '❄️', false, true, 130, array['Rooibos', 'Apple', 'Cinnamon', 'Cardamom'], array[2, 1, 1, 1]::smallint[], 'Rooibos s jablkem, skořicí a špetkou kardamomu. Hřejivý a sladký jako zimní pečení, ale bez kofeinu, takže i večer.', 'Rooibos with apple, cinnamon and a pinch of cardamom. Warm and sweet like winter baking, but caffeine-free, so evenings too.', 'Rooibos s jablkom, škoricou a štipkou kardamónu. Hrejivý a sladký ako zimné pečenie, ale bez kofeínu, takže aj večer.', 'winter', 'Zimní směs pro ty, kdo nechtějí kofein: místo černého čaje je tu rooibos, který je sám nasládlý. Jablko se skořicí chutná jako štrúdl, kardamom přidá vůni.', 'A winter blend for anyone skipping caffeine: instead of black tea it uses rooibos, which is naturally sweet. Apple and cinnamon taste like strudel, cardamom adds the scent.', 'Zimná zmes pre tých, ktorí nechcú kofeín: namiesto čierneho čaju je tu rooibos, ktorý je sám nasladlý. Jablko so škoricou chutí ako štrúdľa, kardamón pridá vôňu.', 'Vroucí voda a klidně 8 minut, rooibos nezhořkne. S mlékem chutná jako zimní latte.', 'Boiling water and up to 8 minutes; rooibos won''t turn bitter. With milk it tastes like a winter latte.', 'Vriaca voda a pokojne 8 minút, rooibos nezhorkne. S mliekom chutí ako zimné latte.'),
+            ('mint_condition', 'Mint Condition', '🌿', false, true, 140, array['Green Tea', 'Spearmint', 'Mint'], array[3, 1, 1]::smallint[], 'Zelený čaj se dvěma mátami, peprnou a kadeřavou. Svěží a chladivý, horký i s ledem.', 'Green tea with two mints, peppermint and curly mint. Fresh and cooling, hot or iced.', 'Zelený čaj s dvoma mätami, piepornou a kučeravou. Svieži a chladivý, horúci aj s ľadom.', 'summer', 'Máta peprná chladí, kadeřavá je sladší a měkčí. Spolu chutnají plněji než každá zvlášť, trochu jako marocký mátový čaj.', 'Peppermint cools, curly mint is sweeter and softer. Together they taste fuller than either alone, a bit like Moroccan mint tea.', 'Mäta pieporná chladí, kučeravá je sladšia a mäkšia. Spolu chutia plnšie ako každá zvlášť, trochu ako marocký mätový čaj.', 'Na ledový: zalij vodou o 80 °C, louhuj 3 minuty, nech vychladnout a podávej s ledem a plátkem citronu.', 'For iced tea: steep in 80 °C water for 3 minutes, let it cool and serve with ice and a slice of lemon.', 'Na ľadový: zalej vodou s teplotou 80 °C, lúhuj 3 minúty, nechaj vychladnúť a podávaj s ľadom a plátkom citróna.')
+        on conflict (id) do nothing;
+        update public.settings set blends_seed_version = 1 where id = 1;
+    end if;
+end
+$$;
 
 -- Nákup: u každé suroviny, od koho ji jde koupit (podle sortimentu na webech
 -- dodavatelů 9. 11. 2026). Ceny tam nejsou, ty doplníš z ceníku. Proběhne
