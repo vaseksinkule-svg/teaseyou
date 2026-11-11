@@ -250,6 +250,7 @@
             <h2 class="section-title" id="shelf-title" data-i18n="shelf_title">Naše směsi</h2>
             <p class="section-lede" data-i18n="shelf_lede">Hotové kombinace. Objednej je rovnou, nebo si je v mixéru uprav podle sebe.</p>
         </div>
+        <div class="chips shelf-filter" id="shelf-filter" role="group" aria-label="Které směsi ukázat" data-i18n-aria="shelf_filter_aria" hidden></div>
         <div class="shelf">
             <div class="ready-grid"></div>
         </div>
@@ -349,6 +350,7 @@
             <div class="detail-info">
                 <h1 id="detail-title" class="page-title detail-title">Směs</h1>
                 <p id="detail-desc" class="detail-desc"></p>
+                <p id="detail-profile" class="detail-profile" hidden></p>
                 <ul id="detail-ingredients-list" class="detail-ings"></ul>
                 <p id="detail-stock-note" class="stock-note" hidden></p>
                 <p class="field-label" data-i18n="size_label">Velikost</p>
@@ -378,6 +380,10 @@
                 </aside>
             </div>
         </div>
+        <section class="detail-more" id="detail-more" hidden aria-labelledby="detail-more-title">
+            <h2 class="section-title" id="detail-more-title" data-i18n="detail_more">Další směsi</h2>
+            <div class="more-grid" id="detail-more-grid"></div>
+        </section>
     </div>
 </section>
 
@@ -956,6 +962,7 @@
             <h1 class="page-title" data-i18n="ing_page_title">Suroviny</h1>
             <p class="page-lede" data-i18n="ing_page_sub">Ze všeho tady se dá míchat. U každé suroviny najdeš, jak chutná a s čím si rozumí.</p>
         </header>
+        <div class="chips ing-jump" id="ing-jump" role="group" aria-label="Skupiny surovin" data-i18n-aria="ing_jump_aria"></div>
         <section class="ing-section" aria-labelledby="ing-h-bases">
             <h2 class="section-title ing-cat-title" id="ing-h-bases" data-i18n="ing_cat_bases">Základy</h2>
             <div class="ing-grid" id="ing-grid-bases"></div>

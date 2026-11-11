@@ -470,7 +470,6 @@ self.TEASEYOU_I18N_SK = {
     pay_box_note:           'Zaplať, prosím, do 7 dní. Zmes odošleme, hneď ako platba príde. Údaje nájdeš aj v Moje objednávky.',
     reorder_btn:            'Objednať znova',
     reorder_done:           'Je to v košíku, s dnešnou cenou.',
-    reorder_some:           'V košíku. {n} položky sa už nedajú objednať (vypredaná surovina alebo veľkosť).',
     reorder_none:           'Z tejto objednávky sa už nedá nič objednať. Suroviny alebo veľkosti sa medzitým zmenili.',
     reviews_title:          'Čo hovoria zákazníci',
     reviews_title_blend:    'Hodnotenie',
