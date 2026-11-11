@@ -181,6 +181,8 @@ body {
 /* Slovenská a anglická verze: české texty z HTML se ukážou až přeložené. */
 .i18n-wait [data-i18n], .i18n-wait [data-i18n-html] { visibility: hidden; }
 h1, h2, h3, h4, p, ul, ol, figure { margin: 0; }
+/* odstavec nekončí jedním osamělým slovem na řádku */
+p, li { text-wrap: pretty; }
 ul, ol { padding: 0; list-style: none; }
 img { max-width: 100%; display: block; }
 button { font: inherit; color: inherit; }
