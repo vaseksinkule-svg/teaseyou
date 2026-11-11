@@ -418,7 +418,7 @@ body.dark svg.dm-dark { display: block; }
 .page { display: none; }
 /* Krátká stránka (kvíz, prázdný košík) vyplní obrazovku, takže černá
    patička začíná až pod ní a nevyjíždí doprostřed. */
-.page.active { display: block; min-height: calc(100vh - var(--nav-h) - 40px); min-height: calc(100dvh - var(--nav-h) - 40px); }
+.page.active { display: block; min-height: calc(100vh - var(--nav-h) - 24px); min-height: calc(100dvh - var(--nav-h) - 24px); }
 .page.page-enter { animation: pageIn .28s ease both; }
 @keyframes pageIn { from { opacity: 0; } }
 

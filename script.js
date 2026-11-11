@@ -628,11 +628,16 @@ function tIng(name) { return ING_KEYS[name] ? t(ING_KEYS[name]) : name; }
 
 /* ─── APPLY TRANSLATIONS ─────────────────────── */
 function applyTranslations() {
+    // Text se přepisuje, jen když se liší. Česká stránka má stejné texty už
+    // v HTML (hlídá to tools/sync-static.js), takže se jí nikdo nedotkne:
+    // nic neproblikne a prohlížeč nepočítá hlavní nadpis jako nově vykreslený.
     document.querySelectorAll('[data-i18n]').forEach(el => {
-        el.textContent = t(el.getAttribute('data-i18n'));
+        const text = t(el.getAttribute('data-i18n'));
+        if (el.textContent !== text) el.textContent = text;
     });
     document.querySelectorAll('[data-i18n-html]').forEach(el => {
-        el.innerHTML = t(el.getAttribute('data-i18n-html'));
+        const html = t(el.getAttribute('data-i18n-html'));
+        if (el.innerHTML !== html) el.innerHTML = html;
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
@@ -2988,19 +2993,22 @@ function joinAnd(list) {
 function blendHasCaffeine(codes) {
     return (codes || []).some(c => ((ingByCode(c) || {}).caffeine || 0) > 0);
 }
-/* Chuť směsi: přídavná jména surovin z katalogu (svěží, zemitá…). Čím větší
-   podíl surovina má a čím dřív u ní slovo stojí, tím víc váží. Vrací
-   nejsilnější tři – nic nevymýšlí, jen skládá to, co je u surovin napsané. */
+/* Chuť směsi: přídavná jména surovin z katalogu (svěží, zemitá…). Napřed
+   první slovo od každé suroviny v pořadí podle podílu, aby se do tří slov
+   dostala i menší surovina (máta v zeleném čaji); zbylá místa doplní další
+   slova hlavních surovin. Nic nevymýšlí, jen skládá, co je u surovin napsané. */
 function blendTaste(codes, parts, n = 3) {
-    const score = new Map();
-    blendComposition(codes, parts).forEach(c => {
+    const lists = blendComposition(codes, parts).map(c => {
         const ing = ingByCode(c.code);
-        ((ing && ing.flavor) || []).forEach((word, i) => {
-            const w = String(word).trim().toLocaleLowerCase(LOCALE);
-            if (w) score.set(w, (score.get(w) || 0) + Math.max(c.pct, 1) * (1 - i * 0.25));
-        });
+        return ((ing && ing.flavor) || []).map(w => String(w).trim().toLocaleLowerCase(LOCALE)).filter(Boolean);
     });
-    return [...score.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(e => e[0]);
+    const out = [];
+    for (let depth = 0; out.length < n && lists.some(l => l.length > depth); depth++) {
+        for (const l of lists) {
+            if (out.length < n && l[depth] && !out.includes(l[depth])) out.push(l[depth]);
+        }
+    }
+    return out;
 }
 /* Jedna věta o směsi: „Chuť: svěží, zemitá a citrusová. Bez kofeinu.“ */
 function blendProfileText(codes, parts) {
