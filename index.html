@@ -250,7 +250,7 @@
     <section class="ready-made-section shelf-section" id="shelf" aria-labelledby="shelf-title">
         <div class="section-head">
             <h2 class="section-title" id="shelf-title" data-i18n="shelf_title">Naše směsi</h2>
-            <p class="section-lede" data-i18n="shelf_lede">Hotové kombinace. Objednej je rovnou, nebo si je v&nbsp;mixéru uprav podle sebe.</p>
+            <p class="section-lede" data-i18n="shelf_lede">Každá má svůj recept, tip na přípravu a&nbsp;chvíli dne, ke které se hodí. Objednej ji, jak je, nebo si ji v&nbsp;mixéru uprav.</p>
         </div>
         <div class="chips shelf-filter" id="shelf-filter" role="group" aria-label="Které směsi ukázat" data-i18n-aria="shelf_filter_aria" hidden></div>
         <div class="shelf">
@@ -350,9 +350,14 @@
                 <div class="detail-pouch" id="detail-pouch" aria-hidden="true"></div>
             </figure>
             <div class="detail-info">
+                <p class="detail-moment" id="detail-moment" hidden></p>
                 <h1 id="detail-title" class="page-title detail-title">Směs</h1>
                 <p id="detail-desc" class="detail-desc"></p>
                 <p id="detail-profile" class="detail-profile" hidden></p>
+                <section class="blend-story" id="detail-story" hidden aria-labelledby="detail-story-title">
+                    <h2 class="brew-title" id="detail-story-title" data-i18n="detail_story_title">Proč to funguje</h2>
+                    <p id="detail-story-text"></p>
+                </section>
                 <ul id="detail-ingredients-list" class="detail-ings"></ul>
                 <p id="detail-stock-note" class="stock-note" hidden></p>
                 <p class="field-label" data-i18n="size_label">Velikost</p>
@@ -368,6 +373,7 @@
                         <div><dt data-i18n="brew_water">Teplota vody</dt><dd id="detail-temp">90–95 °C</dd></div>
                         <div><dt data-i18n="brew_time">Louhování</dt><dd id="detail-time">3–4 min</dd></div>
                     </dl>
+                    <p class="brew-tip" id="detail-tip-row" hidden><strong data-i18n="brew_tip">Tip</strong> <span id="detail-tip"></span></p>
                 </section>
                 <section class="food-info" id="detail-food" aria-labelledby="detail-food-title"></section>
                 <section class="detail-reviews" id="detail-reviews" hidden aria-labelledby="detail-reviews-title">

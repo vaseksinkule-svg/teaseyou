@@ -255,7 +255,7 @@ self.TEASEYOU_I18N_SK = {
     hero_note_ship:         'Nad {limit} doprava zadarmo.',
     how_cta:                'Začať miešať',
     shelf_title:            'Naše zmesi',
-    shelf_lede:             'Hotové kombinácie. Objednaj ich rovno, alebo si ich v mixéri uprav podľa seba.',
+    shelf_lede:             'Každá má svoj recept, tip na prípravu a chvíľu dňa, ku ktorej sa hodí. Objednaj ju, ako je, alebo si ju v mixéri uprav.',
     quizband_title:         'Nevieš, čo by ti chutilo?',
     quizband_text:          'Päť krátkych otázok a odporučíme ti zmes podľa toho, kedy čaj piješ a aké chute máš v obľube.',
     quizband_btn:           'Spustiť kvíz',
@@ -516,4 +516,18 @@ self.TEASEYOU_I18N_SK = {
     detail_more:         'Ďalšie zmesi',
     ing_jump_aria:       'Skupiny surovín',
     and_word:            'a',
+
+    /* ── Texty přidané při úpravách webu (listopad 2026) ── */
+    moment_morning:        'Ráno',
+    moment_afternoon:      'Popoludnie',
+    moment_evening:        'Večer',
+    moment_winter:         'Zima',
+    moment_summer:         'Leto',
+    moment_for_morning:    'Na ráno',
+    moment_for_afternoon:  'Na popoludnie',
+    moment_for_evening:    'Na večer',
+    moment_for_winter:     'Na zimu',
+    moment_for_summer:     'Na leto',
+    detail_story_title:    'Prečo to funguje',
+    brew_tip:              'Tip',
 };

@@ -1141,6 +1141,10 @@ function routeTo(st, mode) {
 }
 
 window.addEventListener('popstate', e => {
+    // Odkaz uvnitř stránky (#obsah u „Přeskočit na obsah“, #shelf) přidá do
+    // historie záznam bez stavu. Stránka se tím nemění, takže ji znovu
+    // nepřepínáme: jinak by skočila nahoru a fokus by odešel na nadpis.
+    if (!e.state && location.hash) return;
     const st = e.state || stateFromUrl();
     routeTo(st, 'none');
     if (st && st.y > 0) setTimeout(() => window.scrollTo({ top: st.y, behavior: 'auto' }), 40);
@@ -1216,6 +1220,7 @@ function openDetail(name, desc, price, ingredientsIn, colors, partsIn, opts = {}
     const profileEl = document.getElementById('detail-profile');
     if (profileEl) { const profile = blendProfileText(ingredients, parts); profileEl.textContent = profile; profileEl.hidden = !profile; }
     renderDetailMore(fromCatalog && fromCatalog.id);
+    renderDetailStory(fromCatalog);
     renderDetailVisual(name, ingredients, parts);
     renderDetailCraft(ingredients);
 
@@ -1236,7 +1241,8 @@ function openDetail(name, desc, price, ingredientsIn, colors, partsIn, opts = {}
 function renderDetailVisual(name, ingredients, parts) {
     const weight = parseInt(currentProduct.weight, 10) || 0;
     const box = document.getElementById('detail-pouch');
-    if (box) box.innerHTML = pouchHtml({ name, codes: ingredients, parts, size: 'pouch--hero', weight: weight ? weight + ' g' : '' });
+    const band = momentOf(catalogBlends.find(b => b.name === name));
+    if (box) box.innerHTML = pouchHtml({ name, codes: ingredients, parts, size: 'pouch--hero', weight: weight ? weight + ' g' : '', band });
     const list = document.getElementById('detail-ingredients-list');
     const r = recipeOf(ingredients, parts, weight);
     if (list) list.innerHTML = r.rows.map(row =>
@@ -2527,9 +2533,9 @@ const QUIZ_QUESTIONS = [
     {   // kdy
         q: "quiz_q1",
         options: [
-            { icon: "sunrise",    text: "quiz_q1_o1", tags: ["bold", "caffeine"] },
-            { icon: "sun",        text: "quiz_q1_o2", tags: ["fresh", "mild"] },
-            { icon: "moon",       text: "quiz_q1_o3", tags: ["herbal", "calm"] },
+            { icon: "sunrise",    text: "quiz_q1_o1", tags: ["bold", "caffeine", "@morning"] },
+            { icon: "sun",        text: "quiz_q1_o2", tags: ["fresh", "mild", "@afternoon"] },
+            { icon: "moon",       text: "quiz_q1_o3", tags: ["herbal", "calm", "@evening"] },
             { icon: "clock",      text: "quiz_q1_o4", tags: ["versatile"] },
         ]
     },
@@ -2564,9 +2570,9 @@ const QUIZ_QUESTIONS = [
         q: "quiz_q5",
         options: [
             { icon: "blossom",    text: "quiz_q5_o1", tags: ["floral", "mild"] },
-            { icon: "berries",    text: "quiz_q5_o2", tags: ["fruit", "fresh"] },
+            { icon: "berries",    text: "quiz_q5_o2", tags: ["fruit", "fresh", "@summer"] },
             { icon: "apple",      text: "quiz_q5_o3", tags: ["spice", "fruit"] },
-            { icon: "snow",       text: "quiz_q5_o4", tags: ["bold", "caffeine"] },
+            { icon: "snow",       text: "quiz_q5_o4", tags: ["bold", "caffeine", "@winter"] },
         ]
     },
 ];
@@ -2592,13 +2598,26 @@ function tQuizTag(tag) {
 
 /* Výsledky kvízu. Složení se bere z hotových směsí v katalogu (podle id),
    tady jsou jen štítky, podle kterých se vybírá. */
+/* Štítky hotových směsí pro kvíz. Skóre = kolikrát odpovědi daný štítek
+   vybraly, plus bonus, když směs sedí na chvíli dne z 1. otázky (kdy) nebo
+   roční období z 5. otázky (@morning…). Rozložení je vyzkoušené na všech
+   1024 kombinacích odpovědí: každá směs vyjde aspoň v 16 z nich. */
+const QUIZ_MOMENT_BONUS = 1.5;
 const QUIZ_BLENDS = [
-    { id: 'deep_winter',    tags: ['bold', 'caffeine'] },
-    { id: 'morning_window', tags: ['fresh', 'mild'] },
-    { id: 'still_evening',  tags: ['herbal', 'calm'] },
-    { id: 'open_air',       tags: ['citrus', 'fresh'] },
-    { id: 'late_light',     tags: ['floral', 'mild'] },
-    { id: 'slow_tuesday',   tags: ['fruit', 'spice'] },
+    { id: 'deep_winter',    tags: ['bold', 'caffeine', 'spice'] },
+    { id: 'morning_window', tags: ['fresh', 'mild', 'citrus'] },
+    { id: 'still_evening',  tags: ['herbal', 'calm', 'floral'] },
+    { id: 'open_air',       tags: ['citrus', 'fresh', 'versatile'] },
+    { id: 'late_light',     tags: ['floral', 'mild', 'caffeine'] },
+    { id: 'slow_tuesday',   tags: ['fruit', 'spice', 'versatile'] },
+    { id: 'sunday_paper',   tags: ['bold', 'caffeine', 'citrus'] },
+    { id: 'desk_hours',     tags: ['citrus', 'caffeine', 'fresh'] },
+    { id: 'garden_party',   tags: ['floral', 'fruit', 'mild'] },
+    { id: 'pink_hour',      tags: ['fruit', 'citrus', 'herbal'] },
+    { id: 'after_dinner',   tags: ['herbal', 'fresh', 'calm'] },
+    { id: 'quiet_street',   tags: ['calm', 'floral', 'mild'] },
+    { id: 'snowed_in',      tags: ['spice', 'herbal', 'calm'] },
+    { id: 'mint_condition', tags: ['fresh', 'mild', 'versatile'] },
 ];
 function quizBlends() {
     const all = catalogBlends.length ? catalogBlends : BUILTIN_BLENDS;
@@ -2668,9 +2687,15 @@ function quizBack() {
     renderQuizStep();
 }
 
+function quizScore(blend) {
+    const hits = blend.tags.reduce((sum, tg) => sum + quizAnswerTags.filter(x => x === tg).length, 0);
+    const moment = momentOf(blend);
+    return hits + (moment && quizAnswerTags.includes('@' + moment) ? QUIZ_MOMENT_BONUS : 0);
+}
+
 function renderQuizResult() {
     const body = document.getElementById('quiz-body');
-    const scored = quizBlends().map(blend => ({ ...blend, score: blend.tags.filter(tg => quizAnswerTags.includes(tg)).length }))
+    const scored = quizBlends().map(blend => ({ ...blend, score: quizScore(blend) }))
         .sort((a, b) => b.score - a.score);
     const best = scored[0];
     if (!best) { body.innerHTML = ''; return; }
@@ -2691,7 +2716,7 @@ function renderQuizResult() {
                     <button type="button" class="btn btn-link" onclick="startQuiz()">${escHtml(t('btn_try_again'))}</button>
                 </div>
             </div>
-            <figure class="quiz-stage" aria-hidden="true">${pouchHtml({ name: best.name, codes: best.ingredients, parts: best.parts, size: 'pouch--hero', weight: '100 g' })}</figure>
+            <figure class="quiz-stage" aria-hidden="true">${pouchHtml({ name: best.name, codes: best.ingredients, parts: best.parts, size: 'pouch--hero', weight: '100 g', band: momentOf(best) })}</figure>
             ${runnerUp ? `
             <div class="quiz-runnerup">
                 <p>${escHtml(t('quiz_also'))}</p>
@@ -2822,12 +2847,20 @@ const BUILTIN_INGREDIENTS = [
     {"id": "cardamom", "code": "Cardamom", "category": "extra", "name_cs": "Kardamom", "name_en": "Cardamom", "desc_cs": "Exotický, kořeněný a květinový. Stačí špetka.", "desc_en": "Exotic, spicy and floral. A pinch is enough.", "emoji": "🫛", "color": "#80cbc4", "flavor_cs": ["exotická", "kořeněná", "květinová"], "flavor_en": ["exotic", "spicy", "floral"], "pairs": ["Black Tea", "Oolong Tea", "Cinnamon"], "sort": 250, "kind": "herb", "label_cs": "kardamom (semeno)", "max_pct": 5, "surcharge_czk": 80, "name_sk": "Kardamón", "desc_sk": "Exotický, korenistý a kvetinový. Stačí štipka.", "flavor_sk": ["exotická", "korenistá", "kvetinová"], "label_sk": "kardamón (semeno)"},
 ];
 const BUILTIN_BLENDS = [
-    {"id": "morning_window", "name": "Morning Window", "emoji": "☀️", "is_preset": true, "sort": 10, "ingredients": ["Green Tea", "Mint", "Lemon"], "parts": [3, 1, 1], "desc_cs": "Zelený čaj s mátou peprnou a citronovou kůrou. Čistý a svěží šálek, který rozjede den.", "desc_en": "Green tea with peppermint and lemon peel. A clean, bright cup that gets the day going.", "desc_sk": "Zelený čaj s mätou piepornou a citrónovou kôrou. Čistá a svieža šálka, ktorá naštartuje deň."},
-    {"id": "still_evening", "name": "Still Evening", "emoji": "🌙", "is_preset": true, "sort": 20, "ingredients": ["Chamomile", "Lemon Balm", "Lavender"], "parts": [2, 2, 1], "desc_cs": "Heřmánek a meduňka se špetkou levandule. Jemný, květinový a bez kofeinu. Na konec dne.", "desc_en": "Chamomile and lemon balm with a pinch of lavender. Gentle, floral and caffeine-free, for the end of the day.", "desc_sk": "Harmanček a medovka so štipkou levandule. Jemný, kvetinový a bez kofeínu. Na koniec dňa."},
-    {"id": "deep_winter", "name": "Deep Winter", "emoji": "❄️", "is_preset": true, "sort": 30, "ingredients": ["Black Tea", "Ginger", "Cinnamon"], "parts": [3, 1, 1], "desc_cs": "Černý čaj se zázvorem a skořicí. Plný a hřejivý, nejlepší s oběma rukama kolem hrnku.", "desc_en": "Black tea with ginger and cinnamon. Full and warming, best with both hands around the mug.", "desc_sk": "Čierny čaj so zázvorom a škoricou. Plný a hrejivý, najlepší, keď držíš hrnček oboma rukami."},
-    {"id": "late_light", "name": "Late Light", "emoji": "🌅", "is_preset": false, "sort": 40, "ingredients": ["Oolong Tea", "Rose", "Lavender"], "parts": [3, 1, 1], "desc_cs": "Oolong s růží a špetkou levandule. Měkký a lehce květinový, na tichou část odpoledne.", "desc_en": "Oolong with rose and a pinch of lavender. Soft and a little floral, for the quiet part of the afternoon.", "desc_sk": "Oolong s ružou a štipkou levandule. Mäkký a trochu kvetinový, na tichú časť popoludnia."},
-    {"id": "open_air", "name": "Open Air", "emoji": "🌿", "is_preset": false, "sort": 50, "ingredients": ["Rooibos", "Orange", "Spearmint"], "parts": [3, 1, 1], "desc_cs": "Rooibos s pomerančovou kůrou a mátou kadeřavou. Přirozeně nasládlý a bez kofeinu, dobrý kdykoli.", "desc_en": "Rooibos with orange peel and curly mint. Naturally sweet and caffeine-free, good any time.", "desc_sk": "Rooibos s pomarančovou kôrou a mätou kučeravou. Prirodzene sladký a bez kofeínu, dobrý kedykoľvek."},
-    {"id": "slow_tuesday", "name": "Slow Tuesday", "emoji": "🍎", "is_preset": true, "sort": 60, "ingredients": ["Apple", "Hibiscus", "Rose Hip", "Cinnamon"], "parts": [3, 1, 1, 1], "desc_cs": "Jablko s ibiškem, šípkem a skořicí. Ovocný a hřejivý. Čajový ekvivalent nicnedělání.", "desc_en": "Apple with hibiscus, rose hip and cinnamon. Fruity and warming. The tea equivalent of doing nothing.", "desc_sk": "Jablko s ibištekom, šípkami a škoricou. Ovocný a hrejivý. Čajový ekvivalent ničnerobenia."},
+    {"id": "morning_window", "name": "Morning Window", "emoji": "☀️", "is_preset": true, "sort": 10, "ingredients": ["Green Tea", "Mint", "Lemon"], "parts": [3, 1, 1], "desc_cs": "Zelený čaj s mátou peprnou a citronovou kůrou. Čistý a svěží šálek, který rozjede den.", "desc_en": "Green tea with peppermint and lemon peel. A clean, bright cup that gets the day going.", "desc_sk": "Zelený čaj s mätou piepornou a citrónovou kôrou. Čistá a svieža šálka, ktorá naštartuje deň.", "moment": "morning", "story_cs": "Zelený čaj je sám o sobě trochu travnatý. Máta peprná ho zchladí a citronová kůra mu dodá šťávu, takže chutná jasně i bez cukru.", "story_en": "Green tea on its own is a little grassy. Peppermint cools it down and lemon peel adds brightness, so it tastes lively even without sugar.", "story_sk": "Zelený čaj je sám osebe trochu trávnatý. Mäta pieporná ho schladí a citrónová kôra mu dodá šťavu, takže chutí jasne aj bez cukru.", "tip_cs": "Zalij vodou kolem 80 °C, ne vroucí, jinak zhořkne. Lístky vydrží i druhé zalití.", "tip_en": "Use water around 80 °C, not boiling, or it turns bitter. The leaves are good for a second steep.", "tip_sk": "Zalej vodou okolo 80 °C, nie vriacou, inak zhorkne. Lístky vydržia aj druhé zaliatie."},
+    {"id": "still_evening", "name": "Still Evening", "emoji": "🌙", "is_preset": true, "sort": 20, "ingredients": ["Chamomile", "Lemon Balm", "Lavender"], "parts": [2, 2, 1], "desc_cs": "Heřmánek a meduňka se špetkou levandule. Jemný, květinový a bez kofeinu. Na konec dne.", "desc_en": "Chamomile and lemon balm with a pinch of lavender. Gentle, floral and caffeine-free, for the end of the day.", "desc_sk": "Harmanček a medovka so štipkou levandule. Jemný, kvetinový a bez kofeínu. Na koniec dňa.", "moment": "evening", "story_cs": "Heřmánek a meduňka jsou jemné a nasládlé, takže se navzájem nepřekřikují. Levandule je jen špetka: víc by přehlušila všechno ostatní.", "story_en": "Chamomile and lemon balm are both soft and slightly sweet, so neither drowns the other out. The lavender is just a pinch: any more would overpower everything else.", "story_sk": "Rumanček a medovka sú jemné a nasladlé, takže sa navzájom neprekrikujú. Levanduľa je len štipka: viac by prehlušila všetko ostatné.", "tip_cs": "Zalij vroucí vodou a nech louhovat 5–7 minut pod pokličkou, ať vůně neuteče.", "tip_en": "Pour boiling water and steep for 5–7 minutes with a lid on, so the aroma stays in the cup.", "tip_sk": "Zalej vriacou vodou a nechaj lúhovať 5–7 minút pod pokrievkou, aby vôňa neunikla."},
+    {"id": "deep_winter", "name": "Deep Winter", "emoji": "❄️", "is_preset": true, "sort": 30, "ingredients": ["Black Tea", "Ginger", "Cinnamon"], "parts": [3, 1, 1], "desc_cs": "Černý čaj se zázvorem a skořicí. Plný a hřejivý, nejlepší s oběma rukama kolem hrnku.", "desc_en": "Black tea with ginger and cinnamon. Full and warming, best with both hands around the mug.", "desc_sk": "Čierny čaj so zázvorom a škoricou. Plný a hrejivý, najlepší, keď držíš hrnček oboma rukami.", "moment": "winter", "story_cs": "Černý čaj je dost silný, aby unesl zázvor i skořici. Zázvor štípne, skořice to zakulatí a dohromady to voní jako vánoční pečení.", "story_en": "Black tea is strong enough to carry both ginger and cinnamon. The ginger bites, the cinnamon rounds it off, and together they smell like Christmas baking.", "story_sk": "Čierny čaj je dosť silný, aby uniesol zázvor aj škoricu. Zázvor štipne, škorica to zaokrúhli a spolu to vonia ako vianočné pečenie.", "tip_cs": "Snese mléko i lžičku medu. Louhuj 4 minuty, ať je dost silný.", "tip_en": "Takes milk and a spoonful of honey well. Steep for 4 minutes so it stays strong.", "tip_sk": "Znesie mlieko aj lyžičku medu. Lúhuj 4 minúty, aby bol dosť silný."},
+    {"id": "late_light", "name": "Late Light", "emoji": "🌅", "is_preset": false, "sort": 40, "ingredients": ["Oolong Tea", "Rose", "Lavender"], "parts": [3, 1, 1], "desc_cs": "Oolong s růží a špetkou levandule. Měkký a lehce květinový, na tichou část odpoledne.", "desc_en": "Oolong with rose and a pinch of lavender. Soft and a little floral, for the quiet part of the afternoon.", "desc_sk": "Oolong s ružou a štipkou levandule. Mäkký a trochu kvetinový, na tichú časť popoludnia.", "moment": "afternoon", "story_cs": "Oolong je napůl mezi zeleným a černým čajem: trochu pražený, trochu květinový. Růže tu květinovou stránku vytáhne, levandule ji jen podtrhne.", "story_en": "Oolong sits halfway between green and black tea: a little roasted, a little floral. Rose brings out the floral side and lavender just underlines it.", "story_sk": "Oolong je napoly medzi zeleným a čiernym čajom: trochu pražený, trochu kvetinový. Ruža tú kvetinovú stránku vytiahne, levanduľa ju len podčiarkne.", "tip_cs": "Oolong vydrží dvě až tři zalití. Každé chutná trochu jinak, druhé bývá nejlepší.", "tip_en": "Oolong takes two or three steeps. Each one tastes a bit different, and the second is often the best.", "tip_sk": "Oolong vydrží dve až tri zaliatia. Každé chutí trochu inak, druhé býva najlepšie."},
+    {"id": "open_air", "name": "Open Air", "emoji": "🌿", "is_preset": false, "sort": 50, "ingredients": ["Rooibos", "Orange", "Spearmint"], "parts": [3, 1, 1], "desc_cs": "Rooibos s pomerančovou kůrou a mátou kadeřavou. Přirozeně nasládlý a bez kofeinu, dobrý kdykoli.", "desc_en": "Rooibos with orange peel and curly mint. Naturally sweet and caffeine-free, good any time.", "desc_sk": "Rooibos s pomarančovou kôrou a mätou kučeravou. Prirodzene sladký a bez kofeínu, dobrý kedykoľvek.", "moment": "afternoon", "story_cs": "Rooibos je přirozeně nasládlý a nehořkne, ani když ho necháš louhovat dlouho. Pomerančová kůra a máta kadeřavá ho rozjasní, takže není těžký.", "story_en": "Rooibos is naturally sweet and never turns bitter, even if you leave it steeping. Orange peel and curly mint brighten it so it never feels heavy.", "story_sk": "Rooibos je prirodzene nasladlý a nezhorkne, ani keď ho necháš lúhovať dlho. Pomarančová kôra a mäta kučeravá ho rozjasnia, takže nie je ťažký.", "tip_cs": "Dobrý horký i ledový. Na ledový ho zalij vroucí vodou, nech 6 minut louhovat, vychladnout a dej do lednice.", "tip_en": "Good hot or iced. For iced tea, pour boiling water, steep for 6 minutes, let it cool and put it in the fridge.", "tip_sk": "Dobrý horúci aj ľadový. Na ľadový ho zalej vriacou vodou, nechaj 6 minút lúhovať, vychladnúť a daj do chladničky."},
+    {"id": "slow_tuesday", "name": "Slow Tuesday", "emoji": "🍎", "is_preset": true, "sort": 60, "ingredients": ["Apple", "Hibiscus", "Rose Hip", "Cinnamon"], "parts": [3, 1, 1, 1], "desc_cs": "Jablko s ibiškem, šípkem a skořicí. Ovocný a hřejivý. Čajový ekvivalent nicnedělání.", "desc_en": "Apple with hibiscus, rose hip and cinnamon. Fruity and warming. The tea equivalent of doing nothing.", "desc_sk": "Jablko s ibištekom, šípkami a škoricou. Ovocný a hrejivý. Čajový ekvivalent ničnerobenia.", "moment": "winter", "story_cs": "Jablko dává sladkost, ibišek a šípek kyselost a rubínovou barvu, skořice teplo. Chutná jako jablečný koláč, jen tekutý.", "story_en": "Apple brings the sweetness, hibiscus and rose hip the tartness and ruby colour, cinnamon the warmth. It tastes like apple pie, only liquid.", "story_sk": "Jablko dáva sladkosť, ibištek a šípka kyslosť a rubínovú farbu, škorica teplo. Chutí ako jablkový koláč, len tekutý.", "tip_cs": "Ovocný čaj potřebuje vroucí vodu a čas: aspoň 8 minut. Krátce louhovaný je vodový.", "tip_en": "Fruit tea needs boiling water and time: at least 8 minutes. Steeped briefly, it tastes watery.", "tip_sk": "Ovocný čaj potrebuje vriacu vodu a čas: aspoň 8 minút. Krátko lúhovaný je vodový."},
+    {"id": "sunday_paper", "name": "Sunday Paper", "emoji": "🍊", "is_preset": false, "sort": 70, "ingredients": ["Black Tea", "Orange", "Cardamom"], "parts": [3, 1, 1], "desc_cs": "Černý čaj s pomerančovou kůrou a špetkou kardamomu. Silný, voňavý a pomalý, na snídani, která nikam nespěchá.", "desc_en": "Black tea with orange peel and a pinch of cardamom. Strong, fragrant and unhurried, for a breakfast that is going nowhere.", "desc_sk": "Čierny čaj s pomarančovou kôrou a štipkou kardamónu. Silný, voňavý a pomalý, na raňajky, ktoré nikam neponáhľajú.", "moment": "morning", "story_cs": "Pomeranč a černý čaj jsou klasika. Kardamom je to, čím se tahle směs liší: dá jí vůni, kterou poznáš už při zalévání. Je ho jen špetka, aby nepřebil čaj.", "story_en": "Orange and black tea are a classic. The cardamom is what sets this one apart: a scent you notice as soon as the water hits the leaves. It's only a pinch, so it never overpowers the tea.", "story_sk": "Pomaranč a čierny čaj sú klasika. Kardamón je to, čím sa táto zmes líši: dá jej vôňu, ktorú spoznáš už pri zalievaní. Je ho len štipka, aby neprebil čaj.", "tip_cs": "Louhuj 4 minuty. S kapkou mléka chutná jako snídaňový čaj z kavárny.", "tip_en": "Steep for 4 minutes. With a dash of milk it tastes like a café breakfast tea.", "tip_sk": "Lúhuj 4 minúty. S kvapkou mlieka chutí ako raňajkový čaj z kaviarne."},
+    {"id": "desk_hours", "name": "Desk Hours", "emoji": "🍋", "is_preset": false, "sort": 80, "ingredients": ["Green Tea", "Lemongrass", "Ginger"], "parts": [3, 1, 1], "desc_cs": "Zelený čaj s citronovou trávou a zázvorem. Svěží, lehce pikantní, na odpoledne u práce.", "desc_en": "Green tea with lemongrass and ginger. Fresh and lightly spicy, for an afternoon at your desk.", "desc_sk": "Zelený čaj s citrónovou trávou a zázvorom. Svieži, jemne pikantný, na popoludnie pri práci.", "moment": "afternoon", "story_cs": "Citronová tráva voní po citronu, ale nekyselí, takže zelený čaj zůstane jemný. Zázvor mu na konci přidá lehké štípnutí.", "story_en": "Lemongrass smells of lemon without the sourness, so the green tea stays gentle. The ginger adds a light kick at the end.", "story_sk": "Citrónová tráva vonia po citróne, ale nekyslí, takže zelený čaj zostane jemný. Zázvor mu na konci pridá jemné štipnutie.", "tip_cs": "Voda kolem 80 °C a 2–3 minuty. Do velkého hrnku dej dvě lžičky a až dopiješ, zalij je znovu.", "tip_en": "Water around 80 °C, 2–3 minutes. Use two teaspoons for a big mug and top them up again when you finish.", "tip_sk": "Voda okolo 80 °C a 2–3 minúty. Do veľkého hrnčeka daj dve lyžičky a keď dopiješ, zalej ich znova."},
+    {"id": "garden_party", "name": "Garden Party", "emoji": "🍓", "is_preset": false, "sort": 90, "ingredients": ["White Tea", "Strawberry", "Rose"], "parts": [3, 1, 1], "desc_cs": "Bílý čaj s jahodou a růží. Jemný, ovocný a voňavý, nejlepší vychlazený.", "desc_en": "White tea with strawberry and rose. Delicate, fruity and fragrant, best served chilled.", "desc_sk": "Biely čaj s jahodou a ružou. Jemný, ovocný a voňavý, najlepší vychladený.", "moment": "summer", "story_cs": "Bílý čaj je ze všech nejjemnější, proto k němu nepatří nic výrazného. Jahoda mu dá sladkost, růže vůni a pořád je cítit čaj.", "story_en": "White tea is the most delicate of all, so nothing loud belongs with it. Strawberry brings sweetness, rose brings scent, and you can still taste the tea.", "story_sk": "Biely čaj je zo všetkých najjemnejší, preto k nemu nepatrí nič výrazné. Jahoda mu dá sladkosť, ruža vôňu a stále je cítiť čaj.", "tip_cs": "Na ledový čaj: zalij vodou o 80 °C, louhuj 3 minuty, nech vychladnout a nalij na led.", "tip_en": "For iced tea: steep in 80 °C water for 3 minutes, let it cool and pour over ice.", "tip_sk": "Na ľadový čaj: zalej vodou s teplotou 80 °C, lúhuj 3 minúty, nechaj vychladnúť a nalej na ľad."},
+    {"id": "pink_hour", "name": "Pink Hour", "emoji": "🌺", "is_preset": false, "sort": 100, "ingredients": ["Hibiscus", "Rose Hip", "Strawberry", "Lemon"], "parts": [2, 1, 1, 1], "desc_cs": "Ibišek se šípkem, jahodou a citronovou kůrou. Růžový, nakyslý a bez kofeinu, nejlepší vychlazený.", "desc_en": "Hibiscus with rose hip, strawberry and lemon peel. Pink, tart and caffeine-free, best served chilled.", "desc_sk": "Ibištek so šípkou, jahodou a citrónovou kôrou. Ružový, nakyslý a bez kofeínu, najlepší vychladený.", "moment": "summer", "story_cs": "Ibišek dá barvu a kyselost jako od brusinek, jahoda ji zjemní a citronová kůra osvěží. Vychlazený chutná skoro jako limonáda.", "story_en": "Hibiscus brings colour and a cranberry-like tartness, strawberry softens it and lemon peel freshens it up. Chilled, it tastes almost like lemonade.", "story_sk": "Ibištek dá farbu a kyslosť ako od brusníc, jahoda ju zjemní a citrónová kôra osvieži. Vychladený chutí skoro ako limonáda.", "tip_cs": "Na ledový čaj zalij 2 lžíce půl litrem vroucí vody, louhuj 10 minut, sceď a nech vychladnout. Pak dolij studenou vodou nebo ledem do litru.", "tip_en": "For iced tea, steep 2 tablespoons in half a litre of boiling water for 10 minutes, strain and let it cool. Then top up to a litre with cold water or ice.", "tip_sk": "Na ľadový čaj zalej 2 lyžice pol litrom vriacej vody, lúhuj 10 minút, preceď a nechaj vychladnúť. Potom dolej studenou vodou alebo ľadom do litra."},
+    {"id": "after_dinner", "name": "After Dinner", "emoji": "🌱", "is_preset": false, "sort": 110, "ingredients": ["Mint", "Lemon Balm", "Fennel"], "parts": [2, 2, 1], "desc_cs": "Máta peprná s meduňkou a fenyklem. Chladivá, lehce nasládlá a bez kofeinu, na chvíli po večeři.", "desc_en": "Peppermint with lemon balm and fennel. Cooling, lightly sweet and caffeine-free, for the moment after dinner.", "desc_sk": "Mäta pieporná s medovkou a feniklom. Chladivá, jemne nasladlá a bez kofeínu, na chvíľu po večeri.", "moment": "evening", "story_cs": "Máta peprná je výrazná, meduňka ji zjemní citronovou vůní a fenykl přidá nasládlý tón, který připomíná anýz. Kofein v ní není, takže nevadí ani pozdě večer.", "story_en": "Peppermint is bold; lemon balm softens it with a lemony scent and fennel adds a sweet, anise-like note. There's no caffeine, so it's fine even late in the evening.", "story_sk": "Mäta pieporná je výrazná, medovka ju zjemní citrónovou vôňou a fenikel pridá nasladlý tón, ktorý pripomína aníz. Kofeín v nej nie je, takže nevadí ani neskoro večer.", "tip_cs": "Dobrá i ve velké konvici na celý večer: 5 lžiček na litr vroucí vody, 7 minut.", "tip_en": "Good in a big pot for the whole evening: 5 teaspoons per litre of boiling water, 7 minutes.", "tip_sk": "Dobrá aj vo veľkej kanvici na celý večer: 5 lyžičiek na liter vriacej vody, 7 minút."},
+    {"id": "quiet_street", "name": "Quiet Street", "emoji": "🌼", "is_preset": false, "sort": 120, "ingredients": ["Linden", "Chamomile", "Lemon"], "parts": [2, 1, 1], "desc_cs": "Lipový květ s heřmánkem a citronovou kůrou. Medově sladký, jemný a bez kofeinu.", "desc_en": "Linden blossom with chamomile and lemon peel. Honey-sweet, gentle and caffeine-free.", "desc_sk": "Lipový kvet s rumančekom a citrónovou kôrou. Medovo sladký, jemný a bez kofeínu.", "moment": "evening", "story_cs": "Lípa voní jako ulice v červnu, když kvete. Heřmánek jí dodá jablečný tón a citronová kůra hlídá, aby nebyla moc sladká.", "story_en": "Linden smells like a street in June when the trees are in bloom. Chamomile adds an apple-like note and lemon peel keeps it from getting too sweet.", "story_sk": "Lipa vonia ako ulica v júni, keď kvitne. Rumanček jej dodá jablkový tón a citrónová kôra stráži, aby nebola príliš sladká.", "tip_cs": "Vroucí voda, 5–7 minut. Lžička medu k ní sedí víc než cukr.", "tip_en": "Boiling water, 5–7 minutes. A spoonful of honey suits it better than sugar.", "tip_sk": "Vriaca voda, 5–7 minút. Lyžička medu k nej sedí viac ako cukor."},
+    {"id": "snowed_in", "name": "Snowed In", "emoji": "❄️", "is_preset": false, "sort": 130, "ingredients": ["Rooibos", "Apple", "Cinnamon", "Cardamom"], "parts": [2, 1, 1, 1], "desc_cs": "Rooibos s jablkem, skořicí a špetkou kardamomu. Hřejivý a sladký jako zimní pečení, ale bez kofeinu, takže i večer.", "desc_en": "Rooibos with apple, cinnamon and a pinch of cardamom. Warm and sweet like winter baking, but caffeine-free, so evenings too.", "desc_sk": "Rooibos s jablkom, škoricou a štipkou kardamónu. Hrejivý a sladký ako zimné pečenie, ale bez kofeínu, takže aj večer.", "moment": "winter", "story_cs": "Zimní směs pro ty, kdo nechtějí kofein: místo černého čaje je tu rooibos, který je sám nasládlý. Jablko se skořicí chutná jako štrúdl, kardamom přidá vůni.", "story_en": "A winter blend for anyone skipping caffeine: instead of black tea it uses rooibos, which is naturally sweet. Apple and cinnamon taste like strudel, cardamom adds the scent.", "story_sk": "Zimná zmes pre tých, ktorí nechcú kofeín: namiesto čierneho čaju je tu rooibos, ktorý je sám nasladlý. Jablko so škoricou chutí ako štrúdľa, kardamón pridá vôňu.", "tip_cs": "Vroucí voda a klidně 8 minut, rooibos nezhořkne. S mlékem chutná jako zimní latte.", "tip_en": "Boiling water and up to 8 minutes; rooibos won't turn bitter. With milk it tastes like a winter latte.", "tip_sk": "Vriaca voda a pokojne 8 minút, rooibos nezhorkne. S mliekom chutí ako zimné latte."},
+    {"id": "mint_condition", "name": "Mint Condition", "emoji": "🌿", "is_preset": false, "sort": 140, "ingredients": ["Green Tea", "Spearmint", "Mint"], "parts": [3, 1, 1], "desc_cs": "Zelený čaj se dvěma mátami, peprnou a kadeřavou. Svěží a chladivý, horký i s ledem.", "desc_en": "Green tea with two mints, peppermint and curly mint. Fresh and cooling, hot or iced.", "desc_sk": "Zelený čaj s dvoma mätami, piepornou a kučeravou. Svieži a chladivý, horúci aj s ľadom.", "moment": "summer", "story_cs": "Máta peprná chladí, kadeřavá je sladší a měkčí. Spolu chutnají plněji než každá zvlášť, trochu jako marocký mátový čaj.", "story_en": "Peppermint cools, curly mint is sweeter and softer. Together they taste fuller than either alone, a bit like Moroccan mint tea.", "story_sk": "Mäta pieporná chladí, kučeravá je sladšia a mäkšia. Spolu chutia plnšie ako každá zvlášť, trochu ako marocký mätový čaj.", "tip_cs": "Na ledový: zalij vodou o 80 °C, louhuj 3 minuty, nech vychladnout a podávej s ledem a plátkem citronu.", "tip_en": "For iced tea: steep in 80 °C water for 3 minutes, let it cool and serve with ice and a slice of lemon.", "tip_sk": "Na ľadový: zalej vodou s teplotou 80 °C, lúhuj 3 minúty, nechaj vychladnúť a podávaj s ľadom a plátkom citróna."},
 ];
 
 const CATALOG_CACHE_KEY  = 'teaseyou_catalog_v1';
@@ -2941,12 +2974,19 @@ function fmtGrams(g) {
     const n = Math.round(g * 10) / 10;
     return (SLAVIC ? String(n).replace('.', ',') : String(n)) + ' g';
 }
-/* Louhování podle hlavní suroviny, která má vlastní teplotu a čas. */
+/* Louhování podle hlavní suroviny, která má vlastní teplotu a čas. Když
+   žádná nemá (třeba ibišek se šípkem a jahodou), rozhodne druh směsi:
+   ovocný a bylinný čaj se zalévá vroucí vodou, ovocný louhuje déle.
+   Dřív tu byla napevno příprava černého čaje (90–95 °C), což u ovocné
+   směsi nesedělo. */
 function brewFor(codes, parts) {
     const r = recipeOf(codes, parts, 100);
     const main = r.rows.slice().sort((a, b) => b.pct - a.pct).map(x => x.code).find(c => BREW[c])
         || (codes || []).find(c => BREW[c]);
-    return BREW[main] || { temp: '90–95°C', time: '3–4 min' };
+    if (BREW[main]) return BREW[main];
+    if (r.category === 'fruit') return { temp: '100°C', time: '8–10 min' };
+    if (r.category === 'herb') return { temp: '100°C', time: '5–7 min' };
+    return { temp: '90–95°C', time: '3–4 min' };
 }
 /* Proč směs nejde objednat, lidsky. */
 function mixErrorText(r) {
@@ -2984,6 +3024,13 @@ function ingIconHtml(code, cls = '') {
     return `<span class="${klass}" style="--c:${color}" aria-hidden="true">${IngIcons.svg(IngIcons.keyFor(code, kind))}</span>`;
 }
 function bySort(a, b) { return (a.sort || 0) - (b.sort || 0); }
+/* Chvíle dne u hotové směsi (blends.moment). Barva je pruh nahoře na
+   etiketě sáčku: podle něj se směsi z nabídky poznají od vlastních
+   a stejnou barvu má tečka u filtru nad směsmi. */
+const MOMENTS = ['morning', 'afternoon', 'evening', 'winter', 'summer'];
+const MOMENT_COLOR = { morning: '#e0a43a', afternoon: '#7fa65a', evening: '#6c70a6', winter: '#b0553b', summer: '#d4668a' };
+const momentOf = b => (b && MOMENTS.includes(b.moment) ? b.moment : '');
+
 /* Výčet se spojkou před poslední položkou: „svěží, zemitá a citrusová“. */
 function joinAnd(list) {
     if (list.length < 2) return list[0] || '';
@@ -3435,13 +3482,13 @@ function blendCardHtml(b) {
     const photo = safePhoto(b.photo_url);
     const visual = photo
         ? `<div class="ready-photo"><img src="${escHtml(photo)}" alt="" loading="lazy" decoding="async"></div>`
-        : pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--sm' });
+        : pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--sm', band: momentOf(b) });
     const soldOut = outOfStockIn(b.ingredients).length
         ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : '';
     const tint = ingColor(b.ingredients[1]) || ingColor(b.ingredients[0]) || '';
     const from = blendPriceFrom(b);
     const caf = blendHasCaffeine(b.ingredients);
-    return `<a class="ready-card" href="${escHtml(blendHref(b.id))}" data-blend="${escHtml(b.id)}" data-caf="${caf ? '1' : '0'}">
+    return `<a class="ready-card" href="${escHtml(blendHref(b.id))}" data-blend="${escHtml(b.id)}" data-caf="${caf ? '1' : '0'}" data-moment="${momentOf(b)}">
             <div class="ready-visual" aria-hidden="true"${tint ? ` style="--tint:${escHtml(tint)}"` : ''}>${visual}</div>
             <h3 class="ready-name">${escHtml(b.name)}</h3>
             <p class="ready-mix">${escHtml(blendSubtitle(b.ingredients))}</p>
@@ -3457,19 +3504,23 @@ function renderBlendCards() {
     renderShelfFilter();
 }
 
-/* Filtr nad směsmi: všechny / s kofeinem / bez kofeinu. Ukáže se, jen když
-   má co rozlišit (v nabídce jsou oba druhy). */
+/* Filtr nad směsmi: všechny, chvíle dne (jen ty, které v nabídce jsou)
+   a bez kofeinu. Ukáže se, jen když má z čeho vybírat. */
 let shelfFilter = 'all';
 function renderShelfFilter() {
     const box = document.getElementById('shelf-filter');
     const cards = [...document.querySelectorAll('.shelf .ready-grid .ready-card')];
     if (!box) return;
-    const both = cards.some(c => c.dataset.caf === '1') && cards.some(c => c.dataset.caf === '0');
-    box.hidden = !both;
-    if (!both) shelfFilter = 'all';
-    box.innerHTML = [['all', 'shelf_all'], ['1', 'caf_yes'], ['0', 'caf_no']].map(([v, key]) =>
-        `<button type="button" class="chip${shelfFilter === v ? ' is-on' : ''}" data-shelf-filter="${v}" aria-pressed="${shelfFilter === v}">${escHtml(t(key))}</button>`).join('');
-    cards.forEach(c => { c.hidden = shelfFilter !== 'all' && c.dataset.caf !== shelfFilter; });
+    const opts = [['all', t('shelf_all'), '']];
+    MOMENTS.forEach(m => { if (cards.some(c => c.dataset.moment === m)) opts.push([m, t('moment_' + m), MOMENT_COLOR[m]]); });
+    if (cards.some(c => c.dataset.caf === '1') && cards.some(c => c.dataset.caf === '0')) opts.push(['0', t('caf_no'), '']);
+    box.hidden = opts.length < 3;
+    if (box.hidden || !opts.some(o => o[0] === shelfFilter)) shelfFilter = 'all';
+    box.innerHTML = opts.map(([v, label, color]) =>
+        `<button type="button" class="chip${shelfFilter === v ? ' is-on' : ''}" data-shelf-filter="${v}" aria-pressed="${shelfFilter === v}"${color ? ` style="--band:${color}"` : ''}>${escHtml(label)}</button>`).join('');
+    cards.forEach(c => {
+        c.hidden = shelfFilter !== 'all' && (shelfFilter === '0' ? c.dataset.caf !== '0' : c.dataset.moment !== shelfFilter);
+    });
 }
 document.addEventListener('click', e => {
     const b = e.target.closest && e.target.closest('[data-shelf-filter]');
@@ -3486,10 +3537,29 @@ function renderAboutStage() {
     if (!stage) return;
     const picks = catalogBlends.slice(0, 3);
     stage.hidden = picks.length < 3;
-    stage.innerHTML = picks.map(b => pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--about', weight: '100 g' })).join('');
+    stage.innerHTML = picks.map(b => pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--about', weight: '100 g', band: momentOf(b) })).join('');
 }
 
-/* Pod detailem směsi: tři další z nabídky, napřed ty se stejným kofeinem. */
+/* Detail hotové směsi: chvíle dne nad názvem, „Proč to funguje“ a tip
+   k přípravě. U vlastní nebo sdílené směsi nic z toho není. */
+function renderDetailStory(b) {
+    const moment = momentOf(b);
+    const chip = document.getElementById('detail-moment');
+    if (chip) {
+        chip.hidden = !moment;
+        chip.textContent = moment ? t('moment_for_' + moment) : '';
+        chip.style.setProperty('--band', MOMENT_COLOR[moment] || 'transparent');
+    }
+    const story = b ? pickLang(b, 'story') : '';
+    const box = document.getElementById('detail-story');
+    if (box) { box.hidden = !story; document.getElementById('detail-story-text').textContent = story; }
+    const tip = b ? pickLang(b, 'tip') : '';
+    const tipRow = document.getElementById('detail-tip-row');
+    if (tipRow) { tipRow.hidden = !tip; document.getElementById('detail-tip').textContent = tip; }
+}
+
+/* Pod detailem směsi: tři další z nabídky, napřed ty na stejnou chvíli dne,
+   pak se stejným kofeinem. */
 function renderDetailMore(currentId) {
     const sec = document.getElementById('detail-more');
     const grid = document.getElementById('detail-more-grid');
@@ -3497,7 +3567,8 @@ function renderDetailMore(currentId) {
     const current = catalogBlends.find(b => b.id === currentId);
     const caf = current ? blendHasCaffeine(current.ingredients) : null;
     const rest = catalogBlends.filter(b => b.id !== currentId)
-        .map((b, i) => ({ b, i, same: caf !== null && blendHasCaffeine(b.ingredients) === caf }))
+        .map((b, i) => ({ b, i, same: (momentOf(current) && momentOf(b) === momentOf(current) ? 2 : 0)
+            + (caf !== null && blendHasCaffeine(b.ingredients) === caf ? 1 : 0) }))
         .sort((x, y) => (y.same - x.same) || (x.i - y.i)).slice(0, 3).map(x => x.b);
     sec.hidden = !rest.length;
     grid.innerHTML = rest.map(blendCardHtml).join('');
@@ -3600,6 +3671,7 @@ function rerenderAfterCatalog() {
     applySeller();
     if (document.getElementById('product-detail-page')?.classList.contains('active') && currentProduct) {
         renderDetailVisual(currentProduct.name, currentProduct.ingredients, currentProduct.parts);
+        renderDetailStory(catalogBlends.find(b => b.name === currentProduct.name));
     }
     renderIngredientEncyclopedia();
     renderPresets();
@@ -3797,7 +3869,7 @@ Object.assign(TRANSLATIONS.cs, {
     hero_note_ship:    'Nad {limit} doprava zdarma.',
     how_cta:           'Začít míchat',
     shelf_title:       'Naše směsi',
-    shelf_lede:        'Hotové kombinace. Objednej je rovnou, nebo si je v mixéru uprav podle sebe.',
+    shelf_lede:        'Každá má svůj recept, tip na přípravu a chvíli dne, ke které se hodí. Objednej ji, jak je, nebo si ji v mixéru uprav.',
     quizband_title:    'Nevíš, co by ti chutnalo?',
     quizband_text:     'Pět krátkých otázek a doporučíme ti směs podle toho, kdy čaj piješ a jaké chutě máš v oblibě.',
     quizband_btn:      'Spustit kvíz',
@@ -3841,7 +3913,7 @@ Object.assign(TRANSLATIONS.en, {
     hero_note_ship:    'Free shipping over {limit}.',
     how_cta:           'Start mixing',
     shelf_title:       'Our blends',
-    shelf_lede:        'Ready-made combinations. Order one as it is, or tweak it in the mixer.',
+    shelf_lede:        'Each one has its own recipe, a brewing tip and a time of day it suits. Order it as it is, or tweak it in the mixer.',
     quizband_title:    'Not sure what you would like?',
     quizband_text:     'Five quick questions and we will suggest a blend based on when you drink tea and which flavours you like.',
     quizband_btn:      'Take the quiz',
@@ -4257,7 +4329,7 @@ const POUCH_SVG = `<svg class="pouch-bag" viewBox="0 0 200 270" preserveAspectRa
 const LAYER_LABELS = ['glass_label_base', 'glass_label_flavor', 'glass_label_extras'];
 
 /* Sáček s etiketou: jméno, suroviny s podílem (od největšího) a gramáž. */
-function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholders = false, weight = '' } = {}) {
+function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholders = false, weight = '', band = '' } = {}) {
     const comp = blendComposition(codes, parts);
     const real = Recipe.normalize(codes, parts).codes;
     const li = (code, pct) => `<li>${ingIconHtml(code, 'pouch-ico')}`
@@ -4272,7 +4344,9 @@ function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholder
     // Dlouhé jméno dostane menší písmo, ať se na etiketu vejde celé (nic se neuřezává).
     const longest = Math.max(...shown.split(/\s+/).map(w => w.length));
     const fit = shown.length > 22 || longest > 12 ? ' is-xl-name' : (shown.length > 13 || longest > 9 ? ' is-long-name' : '');
-    return `<div class="pouch ${size}">${POUCH_SVG}<div class="pouch-label${dotCodes.length > 3 ? ' is-long' : ''}${fit}">`
+    const bandColor = MOMENT_COLOR[band] || '';
+    return `<div class="pouch ${size}">${POUCH_SVG}<div class="pouch-label${dotCodes.length > 3 ? ' is-long' : ''}${fit}${bandColor ? ' has-band' : ''}">`
+        + (bandColor ? `<span class="pouch-band" style="--band:${bandColor}"></span>` : '')
         + `<span class="pouch-brand">Tease you</span>`
         + `<span class="pouch-name${name ? '' : ' is-empty'}">${escHtml(shown)}</span>`
         + `<ul class="pouch-ings${dotCodes.length > 3 ? ' is-long' : ''}">${rows}</ul>`
@@ -4310,7 +4384,7 @@ function renderHero(id, animate) {
     heroBlendId = b.id;
     const weights = sortedWeights();
     const weight = weights.includes(100) ? '100 g' : (weights[0] ? weights[0] + ' g' : '');
-    box.innerHTML = pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--hero', weight });
+    box.innerHTML = pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--hero', weight, band: momentOf(b) });
     if (animate && !reduceMotion()) {
         box.classList.remove('is-swapping');
         void box.offsetWidth;
@@ -4619,7 +4693,11 @@ function updateMixerUI() {
     const page = document.getElementById('product-page');
     if (!page) return;
     if (!PRICES[mixerWeight]) mixerWeight = defaultMixerWeight();
-    mixerSyncProduct();
+    // Mixér se překresluje i na pozadí (třeba když se dotáhne katalog).
+    // Na otevřeném detailu hotové směsi nesmí přepsat currentProduct, jinak
+    // by sáček ukázal „Moje směs“ a do košíku by nešlo nic. Při přechodu
+    // do mixéru se updateMixerUI volá znovu a směs se z mixéru sestaví.
+    if (!document.getElementById('product-detail-page')?.classList.contains('active')) mixerSyncProduct();
     const codes = mixCodes(), parts = mixParts();
     const name = document.getElementById('mix-name')?.value.trim() || '';
     const r = mixRecipe();
@@ -4957,6 +5035,36 @@ Object.assign(TRANSLATIONS.en, {
     detail_more:         'More blends',
     ing_jump_aria:       'Ingredient groups',
     and_word:            'and',
+});
+
+/* ─── Texty přidané při úpravách webu (listopad 2026) ─── */
+Object.assign(TRANSLATIONS.cs, {
+    moment_morning:        'Ráno',
+    moment_afternoon:      'Odpoledne',
+    moment_evening:        'Večer',
+    moment_winter:         'Zima',
+    moment_summer:         'Léto',
+    moment_for_morning:    'Na ráno',
+    moment_for_afternoon:  'Na odpoledne',
+    moment_for_evening:    'Na večer',
+    moment_for_winter:     'Na zimu',
+    moment_for_summer:     'Na léto',
+    detail_story_title:    'Proč to funguje',
+    brew_tip:              'Tip',
+});
+Object.assign(TRANSLATIONS.en, {
+    moment_morning:        'Morning',
+    moment_afternoon:      'Afternoon',
+    moment_evening:        'Evening',
+    moment_winter:         'Winter',
+    moment_summer:         'Summer',
+    moment_for_morning:    'For mornings',
+    moment_for_afternoon:  'For afternoons',
+    moment_for_evening:    'For evenings',
+    moment_for_winter:     'For winter',
+    moment_for_summer:     'For summer',
+    detail_story_title:    'Why it works',
+    brew_tip:              'Tip',
 });
 
 const CRAFT_NOTIFIED_KEY = 'teaseyou_notified';

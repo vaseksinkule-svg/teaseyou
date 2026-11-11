@@ -1113,8 +1113,12 @@
 
     function openBlend(blend) {
         const isNew = !blend;
+        // Sloupce chvíle, příběhu a tipu přibyly v setup.sql (listopad 2026).
+        // Dokud v databázi nejsou, editor je neukáže a směs jde uložit dál.
+        const hasStory = state.blends.some(x => 'moment' in x);
         const b = blend || {
             name: '', desc_cs: '', desc_en: '', desc_sk: '', ingredients: [], parts: null, emoji: '🍵', is_preset: false,
+            moment: null, story_cs: '', story_en: '', story_sk: '', tip_cs: '', tip_en: '', tip_sk: '',
             photo_url: null, active: true, sort: Math.max(0, ...state.blends.map(x => x.sort || 0)) + 10,
         };
         // Suroviny a díly (1–3). Starší směsi bez dílů: 3 + 1 + 1.
@@ -1141,6 +1145,21 @@
                 <label class="field"><span>Popis česky</span><textarea name="desc_cs" rows="3" maxlength="500">${esc(b.desc_cs)}</textarea></label>
                 <label class="field"><span>Popis anglicky</span><textarea name="desc_en" rows="3" maxlength="500">${esc(b.desc_en)}</textarea></label>
                 <label class="field"><span>Popis slovensky</span><textarea name="desc_sk" rows="3" maxlength="500" placeholder="Prázdné = česky">${esc(b.desc_sk || '')}</textarea></label>
+                ${hasStory ? `<fieldset class="field-group">
+                    <legend>Proč si ji koupit</legend>
+                    <p class="help">Ukáže se na stránce směsi. Piš o chuti a přípravě, ne o účincích na zdraví.</p>
+                    <label class="field"><span>Chvíle dne</span><select name="moment">
+                        ${[['', 'Žádná'], ['morning', 'Ráno (žlutý pruh)'], ['afternoon', 'Odpoledne (zelený pruh)'], ['evening', 'Večer (modrý pruh)'],
+                           ['winter', 'Zima (červený pruh)'], ['summer', 'Léto (růžový pruh)']]
+                            .map(([v, l]) => `<option value="${v}"${(b.moment || '') === v ? ' selected' : ''}>${l}</option>`).join('')}
+                    </select><small>Barevný pruh na etiketě sáčku a filtr nad směsmi.</small></label>
+                    <label class="field"><span>Proč to funguje, česky</span><textarea name="story_cs" rows="3" maxlength="600">${esc(b.story_cs || '')}</textarea><small>Jak si suroviny rozumí. Dvě tři věty.</small></label>
+                    <label class="field"><span>Proč to funguje, anglicky</span><textarea name="story_en" rows="3" maxlength="600">${esc(b.story_en || '')}</textarea></label>
+                    <label class="field"><span>Proč to funguje, slovensky</span><textarea name="story_sk" rows="3" maxlength="600" placeholder="Prázdné = česky">${esc(b.story_sk || '')}</textarea></label>
+                    <label class="field"><span>Tip k přípravě, česky</span><textarea name="tip_cs" rows="2" maxlength="300">${esc(b.tip_cs || '')}</textarea><small>Ledový čaj, mléko, druhé zalití… Bylinné a ovocné vždy zalévat vroucí vodou.</small></label>
+                    <label class="field"><span>Tip k přípravě, anglicky</span><textarea name="tip_en" rows="2" maxlength="300">${esc(b.tip_en || '')}</textarea></label>
+                    <label class="field"><span>Tip k přípravě, slovensky</span><textarea name="tip_sk" rows="2" maxlength="300" placeholder="Prázdné = česky">${esc(b.tip_sk || '')}</textarea></label>
+                </fieldset>` : ''}
                 <label class="field field-inline"><span>Emoji</span><input type="text" name="emoji" maxlength="8" value="${esc(b.emoji)}"></label>
                 <label class="switch-row"><input type="checkbox" class="switch" name="is_preset" ${b.is_preset ? 'checked' : ''}><span>Rychlá volba v mixéru</span></label>
                 <label class="switch-row"><input type="checkbox" class="switch" name="active" ${b.active ? 'checked' : ''}><span>Zobrazovat na webu</span></label>
@@ -1232,6 +1251,10 @@
                     photo_url: photo.url,
                     sort: parseInt(form.sort.value, 10) || 0,
                 };
+                if (hasStory) {
+                    row.moment = form.moment.value || null;
+                    for (const f of ['story_cs', 'story_en', 'story_sk', 'tip_cs', 'tip_en', 'tip_sk']) row[f] = form[f].value.trim();
+                }
                 if (!row.name) { formError('#blend-error', 'Vyplň název směsi.'); return; }
                 if (!row.ingredients.length) { formError('#blend-error', 'Vyber aspoň jednu surovinu.'); return; }
                 const check = recipeOf(row.ingredients, row.parts);

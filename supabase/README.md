@@ -198,6 +198,27 @@ Pořád stačí jedno spuštění `setup.sql`. Přibude:
 - Noční záloha teď hlídá i tabulku `reviews`. Než spustíš `setup.sql`, skončí
   chybou „v záloze chybí tabulky reviews“ (záloha se i tak uloží).
 
+## Hotové směsi v2 (listopad 2026)
+
+Dalším spuštěním `setup.sql` přibude:
+
+- `blends.moment`: chvíle dne (`morning`, `afternoon`, `evening`, `winter`,
+  `summer`). Na webu je to barevný pruh na etiketě sáčku a filtr nad směsmi,
+  v kvízu bonus ke skóre. Prázdné = směs bez chvíle a bez pruhu.
+- `blends.story_cs/en/sk` („Proč to funguje“) a `tip_cs/en/sk` (tip
+  k přípravě). Prázdné = na stránce směsi se blok neukáže.
+- **Jednou** (`settings.blends_seed_version`): původním šesti směsím doplní
+  chvíli, příběh a tip (jen kde je prázdno) a přidá osm nových. Co pak
+  změníš nebo smažeš, se nevrátí.
+- Výchozích šest směsí se zakládá jen do prázdné tabulky. Dřív se smazaná
+  směs po dalším spuštění vrátila.
+
+Recepty nových směsí jsou návrh, jsou v pravidlech receptury, ale nikdo je
+zatím nenamíchal. Před prodejem je ochutnej a poměr uprav v *Směsi*.
+U tipů piš o chuti a přípravě, ne o účincích na zdraví. Bylinné a ovocné
+čaje se mají zalévat vroucí vodou (doporučení BfR), ledovou verzi proto
+zalij horkou vodou a pak vychlaď.
+
 ## Slovenština (listopad 2026)
 
 Dalším spuštěním `setup.sql` přibudou slovenské sloupce. Prázdný = web ukáže

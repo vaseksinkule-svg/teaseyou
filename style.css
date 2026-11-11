@@ -276,6 +276,11 @@ a { color: var(--forest); }
 .chip:hover { border-color: var(--ink); }
 .chip.is-on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .chip-count { color: var(--muted); font-weight: 500; }
+/* tečka v barvě pruhu na etiketě (chvíle dne) */
+.chip[style*="--band"]::before {
+    content: ''; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--band); flex-shrink: 0;
+}
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chips[hidden] { display: none; }
 
@@ -474,6 +479,11 @@ body.dark svg.dm-dark { display: block; }
     width: 100%;
     overflow-wrap: break-word;
     text-wrap: balance;
+}
+/* hotová směs z nabídky: barevný pruh nahoře na etiketě = chvíle dne */
+.pouch-band {
+    position: absolute; left: 0; right: 0; top: 0;
+    height: max(4px, calc(var(--w) * .034)); background: var(--band);
 }
 /* delší jméno: menší písmo, ať je na etiketě celé */
 .pouch-label.is-long-name .pouch-name { font-size: calc(var(--w) * .072); }
@@ -704,7 +714,14 @@ body.dark .pouch-label .ing-ico {
     background: var(--leaf-pale); color: var(--ink-2);
     font: 600 12px/1.3 var(--sans);
 }
-.shelf-filter { max-width: var(--wrap); margin: -8px auto 20px; padding-inline: var(--gutter); }
+.shelf-filter { margin: -8px 0 20px; }
+@media (max-width: 699px) {
+    .shelf-filter {
+        flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+        margin-inline: calc(var(--gutter) * -1); padding: 2px var(--gutter);
+    }
+    .shelf-filter::-webkit-scrollbar { display: none; }
+}
 .ready-card[hidden] { display: none; }
 @media (min-width: 700px) {
     .shelf { margin-inline: 0; }
@@ -1260,6 +1277,18 @@ textarea.field { min-height: 96px; resize: vertical; line-height: 1.45; }
     border-radius: 0 var(--r-md) var(--r-md) 0;
     color: var(--ink); font-size: 15px; line-height: 1.45;
 }
+/* detail hotové směsi: chvíle dne nad názvem a proč to funguje */
+.detail-moment {
+    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    color: var(--ink-2); font: 600 14px/1.3 var(--sans);
+}
+.detail-moment::before { content: ''; width: 12px; height: 12px; border-radius: 50%; background: var(--band); }
+.detail-moment[hidden] { display: none; }
+.blend-story { margin-top: 22px; max-width: 52ch; }
+.blend-story[hidden], .brew-tip[hidden] { display: none; }
+.blend-story p { margin-top: 6px; color: var(--ink-2); font-size: 16px; line-height: 1.55; }
+.brew-tip { margin-top: 14px; color: var(--ink-2); font-size: 15px; line-height: 1.5; }
+.brew-tip strong { color: var(--ink); }
 /* další směsi pod detailem */
 .detail-more { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
 .detail-more .section-title { margin-bottom: 20px; }

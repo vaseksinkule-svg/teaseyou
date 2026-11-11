@@ -6,6 +6,33 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Hotové směsi v2 (11. 11. 2026)
+- **Osm nových směsí**, celkem čtrnáct: Sunday Paper, Desk Hours, Garden Party,
+  Pink Hour, After Dinner, Quiet Street, Snowed In a Mint Condition. Všechny
+  projdou stejnými pravidly receptury jako objednávka. Jsou to návrhy, před
+  prodejem je namíchej a ochutnej.
+- **Proč koupit hotovou:** každá směs má chvíli dne (ráno, odpoledne, večer,
+  zima, léto), „Proč to funguje“ (jak si suroviny rozumí) a tip k přípravě
+  (ledová verze, mléko, druhé zalití). Texty jdou upravit v administraci.
+- Na etiketě sáčku je u hotových směsí barevný pruh podle chvíle dne. Nad
+  směsmi je filtr podle chvíle a „Bez kofeinu“, detail ukazuje chvíli nad
+  názvem a pod ním nejdřív další směsi na stejnou chvíli.
+- **Kvíz** počítá, kolikrát odpovědi štítek vybraly, a přidá bonus za
+  shodu s chvílí dne a ročním obdobím. Na všech 1024 kombinacích odpovědí
+  vyjde každá ze 14 směsí (dřív jen šest původních).
+- **Opravy:**
+  - odkaz na směs při první návštěvě ukázal na sáčku „Moje směs“
+    a do košíku nešlo nic, protože mixér na pozadí přepsal otevřenou směs
+    (chyba byla i na ostrém webu);
+  - ovocná směs bez vlastní přípravy ukazovala 90–95 °C a 3–4 minuty jako
+    černý čaj, teď 100 °C a 8–10 minut, bylinná 100 °C a 5–7 minut;
+  - „Přeskočit na obsah“ přepnul stránku a fokus skončil na nadpisu;
+  - `setup.sql` vracel směsi smazané v administraci, teď výchozí směsi
+    zakládá jen do prázdné tabulky.
+- **`supabase/setup.sql`**: sloupce `blends.moment`, `story_*`, `tip_*`
+  a jednorázové doplnění podle `settings.blends_seed_version`. Co pak
+  změníš nebo smažeš, další běh nevrátí.
+
 ### Ikonky na střed (11. 11. 2026)
 - Kresba ikonky sedí uprostřed kolečka. Dřív byl východ slunce a růže moc
   nízko, měsíc vlevo dole, váha a zázvor mimo střed. Každá ikonka má teď
