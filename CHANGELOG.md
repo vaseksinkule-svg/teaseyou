@@ -6,6 +6,12 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Ikonky na střed (11. 11. 2026)
+- Kresba ikonky sedí uprostřed kolečka. Dřív byl východ slunce a růže moc
+  nízko, měsíc vlevo dole, váha a zázvor mimo střed. Každá ikonka má teď
+  v `icons.js` (tabulka `SHIFT`) změřený posun doprostřed mezi střed obrysu
+  a těžiště kresby. Platí všude, kde se ikonky kreslí, i v administraci.
+
 ### Průchod celým webem (11. 11. 2026)
 - **Rychlejší načítání.** Písma mají jen řezy a písmena, která web používá
   (225 kB → 67 kB, vypadají stejně), skripty nebrzdí vykreslení a česká

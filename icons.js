@@ -112,10 +112,29 @@
 
     function keyFor(code, kind) { return BY_CODE[code] || BY_KIND[kind] || 'sprig'; }
 
+    /* Posun kresby na střed pole 24×24 [doprava, dolů]. Tvary jsou kreslené od
+       ruky a v kolečku bylo vidět, že nesedí uprostřed (východ slunce a růže
+       moc nízko, měsíc vlevo dole…). Posun míří doprostřed mezi střed obrysu
+       kresby a její těžiště: samotný obrys nestačí u tvarů, které mají váhu
+       na jedné straně (srpek měsíce, čára obzoru). U pár ikonek je poměr
+       doladěný od oka. Novou ikonku je potřeba doměřit a přidat sem; ikonka
+       bez záznamu se neposouvá. */
+    const SHIFT = {
+        leaf: [0.3, -0.3], needles: [0, 0.1], blossom: [0, 0.2], mint: [0, 0.6], balm: [0.1, 0],
+        apple: [-0.3, 0.5], strawberry: [0, -0.1], raspberry: [0, -0.6], berries: [0, -0.1],
+        rosehip: [0, -0.2], hibiscus: [0.1, 0.1], rose: [0.1, -0.7], grass: [0.1, -0.9],
+        seeds: [0, -0.2], root: [0.5, -1.3], cinnamon: [0.3, -0.2], lavender: [0.5, 0.7],
+        pod: [0, 0.5], sprig: [0.3, -0.2], berry: [0, 0.2], sunrise: [0, -2.5], moon: [1.3, -1.3],
+        clock: [0, 0.1], bolt: [0.5, 0], shuffle: [-0.4, 0.1], cup: [0, -0.2], ice: [-0.1, -0.3],
+        drop: [0.1, 0.3], scale: [0, -0.8], pouch: [0, 0.1], box: [0, -0.3],
+    };
+
     function svg(key) {
+        const k = SHAPES[key] ? key : 'sprig';
+        const s = SHIFT[k];
         return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"'
             + ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'
-            + (SHAPES[key] || SHAPES.sprig) + '</svg>';
+            + (s ? '<g transform="translate(' + s[0] + ' ' + s[1] + ')">' + SHAPES[k] + '</g>' : SHAPES[k]) + '</svg>';
     }
 
     return { svg, keyFor, KEYS: Object.keys(SHAPES) };
