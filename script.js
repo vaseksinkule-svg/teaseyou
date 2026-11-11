@@ -48,15 +48,15 @@ const TRANSLATIONS = {
         /* FAQ */
         faq_title:          'Frequently asked',
         faq_q1:             'How long does delivery take?',
-        faq_a1:             'We blend your order only after you place it and usually ship within 24 hours. Czech Republic: 2–3 business days via Zásilkovna or Česká pošta. Slovakia: 3–5 business days.',
+        faq_a1:             'We blend your order only after you place it and usually ship within 24 hours. Delivery then takes 2–3 business days within the Czech Republic (Zásilkovna or Česká pošta) and 3–5 business days to Slovakia.',
         faq_q2:             'What are the allergens?',
         faq_a2:             'Every blend lists its allergens under Ingredients and food information, based on our suppliers\' specifications. If you have a severe allergy, write to us before ordering.',
-        faq_q3:             'Can I return or exchange an order?',
+        faq_q3:             'Can I return an order?',
         faq_a3:             'A blend mixed to your choice is made to order, so it cannot be returned without a reason. A ready-made blend can be returned within 14 days if the pouch is unopened. If anything arrives damaged or wrong, write to us and we will send a new one. Details are in our terms.',
         faq_q4:             'How do I brew a blend?',
-        faq_a4:             'Use 2–3 grams per 200ml of water. Green and white teas: 75–80°C for 2–3 minutes. Black and oolong: 90–95°C for 3–4 minutes. Herbal (rooibos, chamomile): 100°C for 5–7 minutes. Each package includes a brewing guide card.',
+        faq_a4:             'Use 2–3 grams, about one teaspoon, per 200 ml of water. Green and white tea: 75–80 °C for 2–3 minutes. Oolong: 85–90 °C for 3–4 minutes. Black tea: 90–95 °C for 3–4 minutes. Herbs and rooibos: boiling water for 5–7 minutes. The exact steps for your blend are on its page. Each package includes a brewing guide card.',
         faq_q5:             'Can I send a blend as a gift?',
-        faq_a5:             'Absolutely — it\'s one of our most popular uses! During checkout, add a personal message in the note field and we\'ll include a handwritten card. We also offer gift wrapping on request.',
+        faq_a5:             'Absolutely, it is one of our most popular uses. During checkout, add a personal message in the note field and we will include a handwritten card. We also offer gift wrapping on request.',
         faq_q6:             'How long does the tea stay fresh?',
         faq_a6:             'We pack into resealable food-grade pouches. Each one shows a best-before date, usually a year from blending. Keep it dry and dark at room temperature and reseal after opening.',
         /* CTA banner */
@@ -73,14 +73,14 @@ const TRANSLATIONS = {
         /* Summary page */
         /* Saved blends */
         saved_title:        'My Blends',
-        saved_empty:        'No saved blends yet.',
+        saved_empty:        'You can save any blend in the mixer for later.',
         btn_create_first:   'Create your first blend',
         btn_load_order:     'Load & Order',
         btn_remove:         'Remove',
         saved_date_prefix:  'Saved',
         /* Orders */
         orders_title:       'My Orders',
-        orders_empty:       'No orders yet.',
+        orders_empty:       'Once you order, you will find it here along with the payment details.',
         order_num_prefix:   'Order #',
         order_discount:     'Discount',
         order_shipping:     'Shipping',
@@ -99,7 +99,7 @@ const TRANSLATIONS = {
         ship_free:          '+ Shipping: FREE',
         price_from:         'from 49 Kč',
         btn_sending:        'Sending…',
-        toast_order_failed: 'The order could not be sent. Your cart is still here — please try again.',
+        toast_order_failed: 'The order could not be sent. Your cart is still here, please try again.',
         err_no_weight:      'Pick a size first.',
         ship_free_short:    'FREE',
         btn_checkout:       'Proceed to Checkout',
@@ -142,8 +142,8 @@ const TRANSLATIONS = {
         /* Free shipping bar */
         /* Toast / system messages */
         toast_already_saved:    'You already saved this blend.',
-        toast_saved:            'saved to My Blends!',
-        toast_link_copied:      'Share link copied!',
+        toast_saved:            '“{name}” is in your saved blends.',
+        toast_link_copied:      'Link copied.',
         toast_removed:          'Blend removed',
         toast_in_cart:          '"{name}" is in your cart',
         toast_discount_applied: 'applied!',
@@ -161,31 +161,31 @@ const TRANSLATIONS = {
         err_zip:        'ZIP must be 5 digits (e.g. 110 00)',
         err_country:    'Please select a country',
         /* Quiz */
-        quiz_q1:        'What time of day do you drink most tea?',
-        quiz_q1_o1:     'Morning — I need a kick-start',
-        quiz_q1_o2:     'Afternoon — calm but refreshing',
-        quiz_q1_o3:     'Evening — wind-down ritual',
-        quiz_q1_o4:     'Any time, any mood',
-        quiz_q2:        'What flavour calls to you most?',
-        quiz_q2_o1:     'Bright & citrusy',
-        quiz_q2_o2:     'Floral & delicate',
-        quiz_q2_o3:     'Warm & spicy',
-        quiz_q2_o4:     'Sweet & fruity',
+        quiz_q1:        'When do you drink tea most often?',
+        quiz_q1_o1:     'In the morning, to get going',
+        quiz_q1_o2:     'In the afternoon, with work or a book',
+        quiz_q1_o3:     'In the evening, before bed',
+        quiz_q1_o4:     'Any time of day',
+        quiz_q2:        'Which flavour appeals to you most?',
+        quiz_q2_o1:     'Fresh and citrusy',
+        quiz_q2_o2:     'Delicate and floral',
+        quiz_q2_o3:     'Warm and spicy',
+        quiz_q2_o4:     'Sweet and fruity',
         quiz_q3:        'How do you feel about caffeine?',
         quiz_q3_o1:     'The more the better',
         quiz_q3_o2:     'A little is fine',
-        quiz_q3_o3:     'None please — herbal only',
-        quiz_q3_o4:     'Don\'t mind either way',
-        quiz_q4:        'How do you like to brew?',
-        quiz_q4_o1:     'Quick — under 3 minutes',
-        quiz_q4_o2:     'Slow & mindful — I\'ll wait',
-        quiz_q4_o3:     'Strong steep, big flavour',
-        quiz_q4_o4:     'Surprise me every time',
-        quiz_q5:        'And the taste you crave?',
-        quiz_q5_o1:     'Sweet & fruity',
-        quiz_q5_o2:     'Soft & floral',
-        quiz_q5_o3:     'Bold & spicy',
-        quiz_q5_o4:     'Surprise me',
+        quiz_q3_o3:     'None, just herbs and fruit',
+        quiz_q3_o4:     'I do not mind either way',
+        quiz_q4:        'How do you like to drink it?',
+        quiz_q4_o1:     'Hot and plain',
+        quiz_q4_o2:     'Chilled or over ice',
+        quiz_q4_o3:     'With milk or honey',
+        quiz_q4_o4:     'Different every time',
+        quiz_q5:        'Which season do you like best?',
+        quiz_q5_o1:     'Spring, when everything blooms',
+        quiz_q5_o2:     'Summer and ripe fruit',
+        quiz_q5_o3:     'Autumn, blankets and spices',
+        quiz_q5_o4:     'Winter, with a hot mug in hand',
         quiz_why:       'Why it fits you',
         quiz_also:      'You might also like',
         btn_order_blend: 'Order this blend',
@@ -193,20 +193,20 @@ const TRANSLATIONS = {
         /* Completion label */
         /* About page */
         about_hero_title:    'Tea is personal.',
-        about_hero_subtitle: 'Not some brand\'s version. Yours.',
-        about_story_p1:      'Tease you started with a school thesis. The founder spent months studying tea house culture, going from one tea house to the next, and thinking about what makes a good cup worth going back to.',
-        about_story_p2:      'That turned into this — a place where you choose every part of your blend yourself. No brand deciding for you. Just your base, your flavour, your name.',
+        about_hero_subtitle: 'Everyone likes a different one. So here, everyone mixes their own.',
+        about_story_p1:      'Tease you started as a school thesis. For months the founder went from one tea house to the next, trying to work out why you go back to some cups and not others.',
+        about_story_p2:      'His answer: nobody can decide that for you. So there is no single “best” blend here, just a mixer: pick a base, a flavour and an extra, set the ratio and give the blend a name.',
         about_callout_text:  'Every blend is mixed only after you order. Not before.',
-        about_card1_title:   'Fresh every time',
-        about_card1_desc:    'We blend after you order. Nothing sits pre-packed on a shelf.',
+        about_card1_title:   'Mixed to order',
+        about_card1_desc:    'Your blend is made when you order it. Nothing waits pre-mixed in a warehouse.',
         about_card2_title:   'Your recipe',
-        about_card2_desc:    'The mixer is the whole point. Pick a base, a flavour and an extra, set the ratio and name it. That\'s your tea.',
-        about_card3_title:   'Real ingredients',
-        about_card3_desc:    'Teas, herbs, fruit and spices from checked suppliers. Every blend lists its full ingredients with percentages.',
+        about_card2_desc:    'Set the ratio in parts and see the percentages, grams and price straight away. Save the recipe and order it again next time.',
+        about_card3_title:   'Nothing hidden',
+        about_card3_desc:    'Teas, herbs, fruit and spices from checked suppliers. Every blend shows its full ingredients with percentages, allergens and shelf life.',
         about_cta:           'Ready to find your blend?',
         btn_start_creating2: 'Start creating',
         /* SEO */
-        page_title:  'Tease you — Mix your own tea blend',
+        page_title:  'Tease you – Mix your own tea',
         meta_desc:   'Mix your own loose-leaf tea from up to five ingredients, in any ratio you like. Blended after you order. Free shipping over 500 Kč.',
         /* Ingredients — bases */
         ing_green_tea:      'Green Tea',
@@ -263,20 +263,20 @@ const TRANSLATIONS = {
         footer_terms:         'Terms & Conditions',
         footer_privacy:       'Privacy Policy',
         footer_cookies:       'Cookie Policy',
-        social_coming_soon:   'Not on social media yet — coming soon!',
+        social_coming_soon:   'We are not on social media yet. Soon.',
         /* Packeta widget */
         packeta_choose:     'Choose pickup point',
         packeta_change:     'Change branch',
         packeta_required:   'Please choose a pickup point',
         packeta_unavailable:'The pickup point map did not load. Please try again.',
         /* Promo bar */
-        promo_text:  '🍵 Free shipping on orders over 500 Kč · Use code FIRSTBLEND for 10% off your first order',
+        promo_text:  'Free shipping over 500 Kč. Code FIRSTBLEND takes 10% off your first order.',
         /* Bottom nav */
         nav_quiz_short: 'Quiz',
         /* Ingredients encyclopedia */
         nav_ingredients: 'Ingredients',
         ing_page_title: 'Ingredient Guide',
-        ing_page_sub: 'Everything in our palette — and why.',
+        ing_page_sub: 'Everything here can go into your blend. Each one comes with how it tastes and what it goes well with.',
         ing_cat_bases: 'Bases',
         ing_cat_flavors: 'Flavors',
         ing_cat_extras: 'Extras',
@@ -289,9 +289,9 @@ const TRANSLATIONS = {
         proc_1_title: 'Ingredient sourcing',
         proc_1_desc: 'For every ingredient we keep the supplier specification (origin, allergens, shelf life). We check each delivery before use: colour, aroma and taste.',
         proc_2_title: 'Precise weighing',
-        proc_2_desc: 'Each component is weighed on a digital scale using the same recipe, so the blend tastes the same every time.',
+        proc_2_desc: 'Each ingredient is weighed on a digital scale exactly to the recipe, so the blend tastes the same every time.',
         proc_3_title: 'Blending',
-        proc_3_desc: 'We mix the components by hand so they blend evenly and the leaves stay whole.',
+        proc_3_desc: 'We mix the ingredients by hand so they blend evenly and the leaves stay whole.',
         proc_4_title: 'Packaging',
         proc_4_desc: 'We pack into resealable food-grade pouches. Each one shows the blend name, ingredients, best-before date and batch number.',
         proc_5_title: 'Dispatch',
@@ -316,13 +316,13 @@ const TRANSLATIONS = {
         /* FAQ */
         faq_title:          'Časté otázky',
         faq_q1:             'Jak dlouho trvá doručení?',
-        faq_a1:             'Směs namícháme až po objednání a obvykle ji odešleme do 24 hodin. Česká republika: 2–3 pracovní dny přes Zásilkovnu nebo Českou poštu. Slovensko: 3–5 pracovních dní.',
+        faq_a1:             'Směs namícháme až po objednání a obvykle ji odešleme do 24 hodin. Po Česku pak cesta trvá 2–3 pracovní dny (Zásilkovna nebo Česká pošta), na Slovensko 3–5 pracovních dní.',
         faq_q2:             'Jaké jsou alergeny?',
         faq_a2:             'Alergeny najdeš u každé směsi v části Složení a informace o potravině, a to podle specifikací od našich dodavatelů. Když máš silnou alergii, napiš nám před objednávkou a probereme to.',
-        faq_q3:             'Mohu vrátit nebo vyměnit objednávku?',
-        faq_a3:             'Směs namíchanou podle tebe děláme na zakázku, takže ji nejde vrátit bez udání důvodu. Hotovou směs z nabídky vrátit můžeš do 14 dnů, pokud je sáček neotevřený. Když cokoli dorazí poškozené nebo jiné, než jsi objednal, napiš nám a pošleme novou. Podrobnosti jsou v obchodních podmínkách.',
+        faq_q3:             'Můžu objednávku vrátit?',
+        faq_a3:             'Směs namíchanou podle tebe vyrábíme na zakázku, takže ji nejde vrátit bez udání důvodu. Hotovou směs z nabídky můžeš vrátit do 14 dnů, pokud je sáček neotevřený. Když cokoli dorazí poškozené nebo se liší od objednávky, napiš nám a pošleme novou. Podrobnosti jsou v obchodních podmínkách.',
         faq_q4:             'Jak směs připravit?',
-        faq_a4:             'Použij 2–3 gramy na 200 ml vody. Zelené a bílé čaje: 75–80 °C po dobu 2–3 minut. Černý čaj a oolong: 90–95 °C po dobu 3–4 minut. Bylinkové čaje (rooibos, heřmánek): 100 °C po dobu 5–7 minut. Každé balení obsahuje kartičku s návodem na přípravu.',
+        faq_a4:             'Na 200 ml vody dej 2–3 gramy, tedy zhruba jednu čajovou lžičku. Zelený a bílý čaj: 75–80 °C, 2–3 minuty. Oolong: 85–90 °C, 3–4 minuty. Černý čaj: 90–95 °C, 3–4 minuty. Bylinky a rooibos: vroucí voda, 5–7 minut. Přesný postup pro svou směs najdeš na její stránce. Každé balení obsahuje kartičku s návodem na přípravu.',
         faq_q5:             'Můžu směs poslat jako dárek?',
         faq_a5:             'Určitě, je to jedno z nejoblíbenějších použití. Při objednávce napiš osobní vzkaz do poznámky a přiložíme ručně psanou kartičku. Na přání směs i dárkově zabalíme.',
         faq_q6:             'Jak dlouho čaj vydrží čerstvý?',
@@ -341,14 +341,14 @@ const TRANSLATIONS = {
         /* Summary page */
         /* Saved blends */
         saved_title:        'Moje blendy',
-        saved_empty:        'Zatím žádné uložené blendy.',
+        saved_empty:        'V mixéru si můžeš každou směs uložit na později.',
         btn_create_first:   'Vytvoř svůj první blend',
         btn_load_order:     'Načíst a objednat',
         btn_remove:         'Odebrat',
         saved_date_prefix:  'Uloženo',
         /* Orders */
         orders_title:       'Moje objednávky',
-        orders_empty:       'Zatím žádné objednávky.',
+        orders_empty:       'Až něco objednáš, najdeš to tady i s údaji k platbě.',
         order_num_prefix:   'Objednávka #',
         order_discount:     'Sleva',
         order_shipping:     'Doprava',
@@ -367,7 +367,7 @@ const TRANSLATIONS = {
         ship_free:          '+ Doprava: ZDARMA',
         price_from:         'od 49 Kč',
         btn_sending:        'Odesílám…',
-        toast_order_failed: 'Objednávku se nepodařilo odeslat. Košík ti zůstal — zkus to prosím znovu.',
+        toast_order_failed: 'Objednávku se nepodařilo odeslat. Košík ti zůstal, zkus to prosím znovu.',
         err_no_weight:      'Nejdřív vyber gramáž.',
         ship_free_short:    'Zdarma',
         btn_checkout:       'Přejít k pokladně',
@@ -410,15 +410,15 @@ const TRANSLATIONS = {
         /* Free shipping bar */
         /* Toast / system messages */
         toast_already_saved:    'Tuhle směs už máš uloženou.',
-        toast_saved:            'uložen do Moje blendy!',
-        toast_link_copied:      'Odkaz ke sdílení zkopírován!',
+        toast_saved:            '„{name}“ je v Uložených směsích.',
+        toast_link_copied:      'Odkaz je zkopírovaný.',
         toast_removed:          'Směs odebrána',
         toast_in_cart:          '„{name}“ je v košíku',
         toast_discount_applied: 'použit!',
-        toast_cart_empty:       'Tvůj košík je prázdný',
+        toast_cart_empty:       'Košík je prázdný',
         toast_check_fields:     'Zkontroluj zvýrazněná pole',
         toast_select_shipping:  'Vyber způsob dopravy',
-        toast_random:           'Náhodný blend:',
+        toast_random:           'Náhodná směs:',
         /* Validation errors */
         err_firstname:  'Zadej své jméno',
         err_lastname:   'Zadej své příjmení',
@@ -429,31 +429,31 @@ const TRANSLATIONS = {
         err_zip:        'PSČ musí mít 5 číslic (např. 110 00)',
         err_country:    'Vyber zemi',
         /* Quiz */
-        quiz_q1:        'Kdy nejčastěji piješ čaj?',
-        quiz_q1_o1:     'Ráno — potřebuji nakopnout',
-        quiz_q1_o2:     'Odpoledne — klidný, ale osvěžující',
-        quiz_q1_o3:     'Večer — rituál pro zklidnění',
-        quiz_q1_o4:     'Kdykoli, jakoukoli náladu',
-        quiz_q2:        'Jaká příchuť tě láká nejvíc?',
+        quiz_q1:        'Kdy si čaj dáváš nejčastěji?',
+        quiz_q1_o1:     'Ráno, na rozjezd',
+        quiz_q1_o2:     'Odpoledne, k práci nebo ke knížce',
+        quiz_q1_o3:     'Večer, před spaním',
+        quiz_q1_o4:     'Kdykoli během dne',
+        quiz_q2:        'Jaká chuť tě láká nejvíc?',
         quiz_q2_o1:     'Svěží a citrusová',
-        quiz_q2_o2:     'Květinová a jemná',
+        quiz_q2_o2:     'Jemná a květinová',
         quiz_q2_o3:     'Hřejivá a kořeněná',
         quiz_q2_o4:     'Sladká a ovocná',
-        quiz_q3:        'Jak se stavíš ke kofeinu?',
-        quiz_q3_o1:     'Klidně hodně',
+        quiz_q3:        'Jak to máš s kofeinem?',
+        quiz_q3_o1:     'Čím víc, tím líp',
         quiz_q3_o2:     'Trochu nevadí',
-        quiz_q3_o3:     'Žádný prosím — jen bylinky',
+        quiz_q3_o3:     'Žádný, jen bylinky a ovoce',
         quiz_q3_o4:     'Je mi to jedno',
-        quiz_q4:        'Jak čaj nejradši připravuješ?',
-        quiz_q4_o1:     'Rychle — do 3 minut',
-        quiz_q4_o2:     'Pomalu & vědomě — počkám',
-        quiz_q4_o3:     'Silný louh, velká chuť',
-        quiz_q4_o4:     'Pokaždé mě překvap',
-        quiz_q5:        'A jakou chuť si přeješ?',
-        quiz_q5_o1:     'Sladkou a ovocnou',
-        quiz_q5_o2:     'Jemnou a květinovou',
-        quiz_q5_o3:     'Výraznou a kořeněnou',
-        quiz_q5_o4:     'Překvap mě',
+        quiz_q4:        'Jak ho piješ nejradši?',
+        quiz_q4_o1:     'Horký a čistý, bez ničeho',
+        quiz_q4_o2:     'Vychlazený nebo s ledem',
+        quiz_q4_o3:     'S mlékem nebo medem',
+        quiz_q4_o4:     'Pokaždé jinak',
+        quiz_q5:        'Které roční období máš nejradši?',
+        quiz_q5_o1:     'Jaro, když všechno kvete',
+        quiz_q5_o2:     'Léto a zralé ovoce',
+        quiz_q5_o3:     'Podzim, deky a koření',
+        quiz_q5_o4:     'Zima s horkým hrnkem v ruce',
         quiz_why:       'Proč ti sedí',
         quiz_also:      'Mohlo by ti chutnat i',
         btn_order_blend: 'Objednat tento blend',
@@ -461,20 +461,20 @@ const TRANSLATIONS = {
         /* Completion label */
         /* About page */
         about_hero_title:    'Čaj je osobní.',
-        about_hero_subtitle: 'Ne to, co si o čaji myslí někdo jiný. Ten tvůj.',
-        about_story_p1:      'Tease you vzniklo kvůli maturitní práci. Zakladatel strávil měsíce studováním kultury čajoven, přecházel z jedné do druhé a přemýšlel, co dělá dobrý šálek takovým, ke kterému se vrátíš.',
-        about_story_p2:      'Z toho vzniklo toto — místo, kde si každou část svého blendu vybereš sám. Žádná značka nerozhoduje za tebe. Jen tvůj základ, tvá příchuť, tvůj název.',
+        about_hero_subtitle: 'Každému chutná jiný. Proto si u nás každý míchá ten svůj.',
+        about_story_p1:      'Tease you začalo jako maturitní práce. Zakladatel kvůli ní měsíce obcházel čajovny a zjišťoval, proč se k některému šálku vracíš a k jinému ne.',
+        about_story_p2:      'Vyšlo mu, že to za tebe nikdo neurčí. Proto tu není jedna „nejlepší“ směs, ale mixér: vybereš základ, příchuť a doplněk, nastavíš poměr a směs pojmenuješ.',
         about_callout_text:  'Každou směs mícháme až po objednání. Ne dřív.',
-        about_card1_title:   'Vždy čerstvé',
-        about_card1_desc:    'Mícháme až po objednání. Nic neleží předbalené na polici.',
+        about_card1_title:   'Mícháno na objednávku',
+        about_card1_desc:    'Směs vzniká, až když si ji objednáš. Nic nečeká namíchané ve skladu.',
         about_card2_title:   'Tvůj recept',
-        about_card2_desc:    'Mixér je celý smysl. Vyber základ, příchuť a doplněk, nastav poměr a pojmenuj to. To je tvůj čaj.',
-        about_card3_title:   'Skutečné ingredience',
-        about_card3_desc:    'Čaje, byliny, ovoce a koření od ověřených dodavatelů. U každé směsi uvádíme celé složení i s procenty.',
+        about_card2_desc:    'Poměr nastavíš po dílech a hned vidíš procenta, gramy i cenu. Recept si můžeš uložit a příště objednat znovu.',
+        about_card3_title:   'Složení na očích',
+        about_card3_desc:    'Čaje, byliny, ovoce a koření od ověřených dodavatelů. U každé směsi najdeš celé složení v procentech, alergeny i trvanlivost.',
         about_cta:           'Připraven/a najít svůj blend?',
         btn_start_creating2: 'Začít vytvářet',
         /* SEO */
-        page_title:  'Tease you — Namíchej si vlastní čaj',
+        page_title:  'Tease you – Namíchej si vlastní čaj',
         meta_desc:   'Namíchej si vlastní sypaný čaj až z pěti surovin v poměru, jaký chceš. Mícháme až po objednání. Doprava zdarma nad 500 Kč.',
         /* Ingredience — základy */
         ing_green_tea:      'Zelený čaj',
@@ -531,20 +531,20 @@ const TRANSLATIONS = {
         footer_terms:         'Obchodní podmínky',
         footer_privacy:       'Ochrana osobních údajů',
         footer_cookies:       'Cookie Policy',
-        social_coming_soon:   'Na sociálních sítích zatím nejsme — brzy!',
+        social_coming_soon:   'Na sociálních sítích zatím nejsme. Brzy budeme.',
         /* Packeta widget */
         packeta_choose:     'Vybrat výdejní místo',
         packeta_change:     'Změnit pobočku',
         packeta_required:   'Vyber prosím výdejní místo',
         packeta_unavailable:'Výběr výdejních míst se nenačetl. Zkus to prosím znovu.',
         /* Promo bar */
-        promo_text:  '🍵 Doprava zdarma při objednávce nad 500 Kč · Použij kód FIRSTBLEND a získej 10 % slevy na první nákup',
+        promo_text:  'Doprava zdarma nad 500 Kč. S kódem FIRSTBLEND máš první nákup o 10 % levnější.',
         /* Bottom nav */
         nav_quiz_short: 'Quiz',
         /* Ingredients encyclopedia */
-        nav_ingredients: 'Ingredience',
-        ing_page_title: 'Průvodce ingrediencemi',
-        ing_page_sub: 'Vše co jsme přidali do naší palety — a proč.',
+        nav_ingredients: 'Suroviny',
+        ing_page_title: 'Suroviny',
+        ing_page_sub: 'Ze všeho tady se dá míchat. U každé suroviny najdeš, jak chutná a s čím si rozumí.',
         ing_cat_bases: 'Základy',
         ing_cat_flavors: 'Příchutě',
         ing_cat_extras: 'Doplňky',
@@ -557,9 +557,9 @@ const TRANSLATIONS = {
         proc_1_title: 'Výběr surovin',
         proc_1_desc: 'Ke každé surovině máme od dodavatele specifikaci (původ, alergeny, trvanlivost). Každou dodávku před použitím zkontrolujeme: barvu, vůni i chuť.',
         proc_2_title: 'Přesné vážení',
-        proc_2_desc: 'Každou složku vážíme na digitální váze podle stejné receptury, takže směs chutná pokaždé stejně.',
+        proc_2_desc: 'Každou surovinu vážíme na digitální váze přesně podle receptu, takže směs chutná pokaždé stejně.',
         proc_3_title: 'Namíchání',
-        proc_3_desc: 'Složky ručně promícháme, aby se rovnoměrně prolnuly a listy zůstaly celé.',
+        proc_3_desc: 'Suroviny ručně promícháme, aby se rovnoměrně spojily a lístky zůstaly celé.',
         proc_4_title: 'Balení',
         proc_4_desc: 'Balíme do opakovaně uzavíratelných sáčků pro potraviny. Na každém je jméno směsi, složení, datum minimální trvanlivosti a číslo šarže.',
         proc_5_title: 'Odeslání',
@@ -877,11 +877,21 @@ function showSocialComingSoon(e) {
 /* ─── TOAST ──────────────────────────────────── */
 /* Text hlášky jde přes textContent: bývá v ní jméno směsi, které může
    přijít i ze sdíleného odkazu (?n=…), a to se nesmí vykreslit jako HTML. */
+/* Druhý parametr zůstal kvůli starším voláním; rozhoduje jen o tom, jestli
+   je hláška varování (vykřičník), nebo potvrzení (fajfka). */
+const TOAST_WARN = ['⚠️', '🫙', '⚖️'];
 function showToast(msg, icon='🛒') {
     const t = document.getElementById('toast');
+    const warn = TOAST_WARN.includes(icon);
     const ic = document.createElement('span');
-    ic.textContent = icon;
-    t.replaceChildren(ic, ' ' + String(msg));
+    ic.className = 'toast-mark' + (warn ? ' toast-mark--warn' : '');
+    ic.setAttribute('aria-hidden', 'true');
+    ic.innerHTML = warn
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 12.5 4 4 8-9"/></svg>';
+    const text = document.createElement('span');
+    text.textContent = String(msg);
+    t.replaceChildren(ic, text);
     t.classList.add('show');
     clearTimeout(t._timer);
     t._timer = setTimeout(() => t.classList.remove('show'), 3000);
@@ -935,16 +945,39 @@ function initReveal() {
 }
 
 /* ─── SIDEBAR ────────────────────────────────── */
+/* Menu na telefonu. Otevřené si bere fokus (první odkaz), Tab z něj
+   nevyjede, Esc ho zavře a fokus se vrátí na tlačítko, které ho otevřelo. */
+let sidebarOpener = null;
 function openSidebar() {
-    document.getElementById('sidebar').classList.add('open');
+    const bar = document.getElementById('sidebar');
+    sidebarOpener = document.activeElement;
+    bar.classList.add('open');
     document.getElementById('sidebar-overlay').classList.add('open');
     document.body.style.overflow = 'hidden';
+    document.querySelector('.nav-menu-icon')?.setAttribute('aria-expanded', 'true');
+    bar.querySelector('.sidebar-close')?.focus({ preventScroll: true });
 }
 function closeSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
+    const bar = document.getElementById('sidebar');
+    const wasOpen = bar.classList.contains('open');
+    bar.classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('open');
     document.body.style.overflow = '';
+    document.querySelector('.nav-menu-icon')?.setAttribute('aria-expanded', 'false');
+    if (wasOpen && bar.contains(document.activeElement) && sidebarOpener && sidebarOpener.focus) sidebarOpener.focus({ preventScroll: true });
+    sidebarOpener = null;
 }
+document.addEventListener('keydown', e => {
+    const bar = document.getElementById('sidebar');
+    if (!bar || !bar.classList.contains('open')) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeSidebar(); return; }
+    if (e.key !== 'Tab') return;
+    const items = [...bar.querySelectorAll('a[href], button:not([disabled])')];
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
 
 /* ─── PAGE NAVIGATION ────────────────────────── */
 function showPage(pageId, opts = {}) {
@@ -958,7 +991,9 @@ function showPage(pageId, opts = {}) {
         void incoming.offsetWidth; // force reflow
         incoming.classList.add('page-enter');
     }
-    if (opts.scroll !== false) window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Nová stránka začíná nahoře a hned: plynulý posun by ukázal, jak nový
+    // obsah „odjíždí“ z místa, kde zákazník byl na té staré.
+    if (opts.scroll !== false) window.scrollTo({ top: 0, behavior: 'auto' });
     syncHistory(pageId, opts.history || forcedHistory || 'push', leftAt);
     if (pageId === 'cart-page')         renderCart();
     if (pageId === 'checkout-page')     renderCheckoutSummary();
@@ -976,6 +1011,20 @@ function showPage(pageId, opts = {}) {
     document.body.dataset.page = pageId;
     if (pageId === 'product-page' && typeof updateMixerUI === 'function') updateMixerUI();
     updateSeo(pageId);
+    if (incoming) setTimeout(() => focusPageHeading(incoming), 0);
+}
+
+/* Po přepnutí stránky dostane fokus její nadpis. Kdo web ovládá klávesnicí
+   nebo čtečkou obrazovky, jinak zůstane „stát“ na odkazu, který už není vidět,
+   a nedozví se, že se obsah změnil. Při prvním načtení se fokus nebere. */
+let pageReady = false;
+function focusPageHeading(page) {
+    if (!pageReady || !page.classList.contains('active') || page.contains(document.activeElement)) return;
+    const visible = el => !!(el.offsetWidth || el.offsetHeight);
+    const target = [...page.querySelectorAll('h1, .step-question')].find(visible) || document.getElementById('obsah');
+    if (!target) return;
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
 }
 
 /* ─── ADRESY STRÁNEK A TLAČÍTKO ZPĚT ─────────── */
@@ -1081,14 +1130,14 @@ function updateSeo(pageId) {
     let title = t('page_title');
     let desc = t('meta_desc');
     if (pageId === 'product-detail-page' && currentProduct && currentProduct.name) {
-        title = `${currentProduct.name} — Tease you`;
+        title = `${currentProduct.name} – Tease you`;
         if (currentProduct.desc) desc = String(currentProduct.desc).replace(/\s+/g, ' ').slice(0, 300);
     } else if (PAGE_TITLE_KEYS[pageId]) {
-        title = `${t(PAGE_TITLE_KEYS[pageId])} — Tease you`;
+        title = `${t(PAGE_TITLE_KEYS[pageId])} – Tease you`;
     } else if (pageId !== 'home-page' && page) {
         const h = page.querySelector('h1.page-title, h1, h2');
         const head = h ? h.textContent.replace(/\s+/g, ' ').trim() : '';
-        if (head) title = `${head} — Tease you`;
+        if (head) title = `${head} – Tease you`;
     }
     document.title = title;
     const set = (sel, attr, val) => { const el = document.querySelector(sel); if (el) el.setAttribute(attr, val); };
@@ -1343,8 +1392,8 @@ async function applyPromo() {
         setPromoFeedback(t('promo_invalid'), false);
     } else {
         appliedPromo = { code, rate: promo.rate, label: promo.label };
-        setPromoFeedback(`${t('promo_applied')} — ${promo.label} 🎉`, true);
-        showToast(`${t('lbl_promo')} "${code}" ${t('toast_discount_applied')}`, '🏷️');
+        setPromoFeedback(`${t('promo_applied')}: ${promo.label}`, true);
+        showToast(t('toast_promo').replace('{code}', code), '🏷️');
     }
     savePromo();
     renderCart();
@@ -1439,16 +1488,14 @@ function saveBlend() {
     savedBlends.unshift(blend);
     if (savedBlends.length > 20) savedBlends.pop(); // max 20
     localStorage.setItem('teaseyou_saved', JSON.stringify(savedBlends));
-    showToast(`"${blend.name}" ${t('toast_saved')}`, '📌');
+    showToast(t('toast_saved').replace('{name}', blend.name), '📌');
 }
 
 /* ─── SHARE BLEND ────────────────────────────── */
 function shareBlend() {
     const url  = buildBlendUrl();
     const ings = currentProduct.ingredients.map(tIng).join(', ');
-    const text = SLAVIC
-        ? `Mrkni na můj čaj „${currentProduct.name}" — ${ings} — namíchaný na Tease you 🍵`
-        : `Check out my tea blend "${currentProduct.name}" — ${ings} — made on Tease you 🍵`;
+    const text = t('share_text').replace('{name}', currentProduct.name).replace('{ings}', ings);
     if (navigator.share) {
         navigator.share({ title: 'Tease you', text, url }).catch(() => {});
     } else {
@@ -1651,7 +1698,7 @@ function updateCartTotal() {
     // Keep the promo input in sync with stored state
     const promoInput = document.getElementById('promo-input');
     if (promoInput && appliedPromo && !promoInput.value) promoInput.value = appliedPromo.code;
-    if (appliedPromo) setPromoFeedback(`${t('promo_applied')} — ${appliedPromo.label || '-' + Math.round(appliedPromo.rate*100) + '%'} 🎉`, true);
+    if (appliedPromo) setPromoFeedback(`${t('promo_applied')}: ${appliedPromo.label || '−' + Math.round(appliedPromo.rate*100) + ' %'}`, true);
 
     const shipLine = document.getElementById('cart-shipping-line');
     if (shipLine) shipLine.textContent = totals.freeShip ? t('ship_free') : t('ship_calculated');
@@ -2022,7 +2069,7 @@ function reorder(num) {
     saveCart();
     updateCartBadge();
     showPage('cart-page');
-    showToast(skipped ? t('reorder_some').replace('{n}', skipped) : t('reorder_done'), skipped ? '⚠️' : '🛒');
+    showToast(skipped ? t('reorder_some_' + pluralForm(skipped)).replace('{n}', skipped) : t('reorder_done'), skipped ? '⚠️' : '🛒');
 }
 
 /* ─── RECENZE ─────────────────────────────────── */
@@ -2039,9 +2086,10 @@ function starsHtml(n, label = true) {
     const aria = label ? ` role="img" aria-label="${escHtml(t('reviews_stars').replace('{n}', fmtRating(n)))}"` : ' aria-hidden="true"';
     return `<span class="stars"${aria}>${'★'.repeat(full)}<span class="stars-off">${'★'.repeat(5 - full)}</span></span>`;
 }
+/* Tvar podle počtu: 1 recenze, 2–4 recenze, 5 recenzí. */
+function pluralForm(n) { return n === 1 ? 'one' : (n >= 2 && n <= 4 ? 'few' : 'many'); }
 function reviewsCountText(n) {
-    const form = n === 1 ? 'one' : (n >= 2 && n <= 4 ? 'few' : 'many');
-    return `${n} ${t('reviews_n_' + form)}`;
+    return `${n} ${t('reviews_n_' + pluralForm(n))}`;
 }
 function loadReviews(blend) {
     if (!reviewsOn()) return Promise.resolve(null);
@@ -2318,22 +2366,36 @@ document.addEventListener('click', e => {
 document.addEventListener('submit', e => { if (e.target.id === 'wd-form') submitWithdrawal(e); });
 
 
-/* ─── ACCESSIBILITY ──────────────────────────── */
-function initA11y() {
-    const selectors = '.ready-card, .nav-logo, .nav-cart-icon, .nav-menu-icon, .footer-links a[onclick], .back-link';
-    document.querySelectorAll(selectors).forEach(el => {
-        if (!el.hasAttribute('role'))     el.setAttribute('role', 'button');
-        if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
-    });
-}
-// Activate role="button" elements with keyboard (Enter / Space)
-document.addEventListener('keydown', e => {
-    if ((e.key === 'Enter' || e.key === ' ') &&
-        e.target.matches('[role="button"]:not(button):not(input):not(textarea):not(select)')) {
-        e.preventDefault();
-        e.target.click();
-    }
+/* ─── ODKAZY NA STRÁNKY WEBU ─────────────────── */
+/* Navigace jsou opravdové odkazy (<a href="?stranka=kviz" data-page="quiz-page">):
+   jdou otevřít v novém panelu, zkopírovat a vyhledávač je vidí. Obyčejné
+   kliknutí se tady odchytí a stránka se jen přepne, bez nového načítání.
+   data-page = stránka, data-blend = hotová směs, data-go="shelf" = Naše směsi. */
+document.addEventListener('click', e => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest && e.target.closest('a[data-page], a[data-blend], a[data-go]');
+    if (!a || a.target === '_blank') return;
+    e.preventDefault();
+    if (a.closest('#sidebar')) closeSidebar();
+    if (a.dataset.blend) openBlend(a.dataset.blend);
+    else if (a.dataset.go === 'shelf') goToShelf();
+    else showPage(a.dataset.page);
 });
+/* Adresy v odkazech: stejné jako v adresním řádku, včetně ?lang=, když ho
+   adresa má. Volá se po startu a po vykreslení částí, které odkazy obsahují. */
+function refreshLinks(root = document) {
+    root.querySelectorAll('a[data-page]').forEach(a => {
+        a.setAttribute('href', a.dataset.page === 'home-page' ? homeHref() : queryFor(a.dataset.page));
+    });
+    root.querySelectorAll('a[data-blend]').forEach(a => a.setAttribute('href', blendHref(a.dataset.blend)));
+    root.querySelectorAll('a[data-go="shelf"]').forEach(a => a.setAttribute('href', homeHref() + '#shelf'));
+}
+function homeHref() { return URL_LANG ? './?lang=' + URL_LANG : './'; }
+function blendHref(id) {
+    const q = new URLSearchParams({ smes: id });
+    if (URL_LANG) q.set('lang', URL_LANG);
+    return '?' + q.toString();
+}
 // Clear a field's error message as the user fixes it
 document.addEventListener('input', e => {
     if (e.target.closest('#checkout-form') && e.target.classList.contains('input-error')) {
@@ -2395,7 +2457,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initReveal();
     applySeller();
     initBackToTop();
-    initA11y();
+    refreshLinks();
     updateCartBadge();   // restore badge from persisted cart
     renderIngredientEncyclopedia();
     renderPresets();
@@ -2407,7 +2469,8 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (!restoreViewState()) routeTo(stateFromUrl(), 'replace');
     refreshCatalog();    // čerstvá data ze Supabase (když je nastavený)
     renderHomeReviews();
-
+    document.documentElement.classList.remove('i18n-wait');   // texty jsou přeložené, můžou se ukázat
+    setTimeout(() => { pageReady = true; }, 0);
 });
 
 
@@ -2416,49 +2479,49 @@ document.addEventListener('DOMContentLoaded', () => {
    ============================================= */
 
 const QUIZ_QUESTIONS = [
-    {
+    {   // kdy
         q: "quiz_q1",
         options: [
-            { icon:"🌅", text:"quiz_q1_o1", tags:["bold","caffeine"] },
-            { icon:"☀️", text:"quiz_q1_o2", tags:["fresh","mild"] },
-            { icon:"🌙", text:"quiz_q1_o3", tags:["herbal","calm"] },
-            { icon:"🌀", text:"quiz_q1_o4", tags:["versatile"] },
+            { icon: "sunrise",    text: "quiz_q1_o1", tags: ["bold", "caffeine"] },
+            { icon: "sun",        text: "quiz_q1_o2", tags: ["fresh", "mild"] },
+            { icon: "moon",       text: "quiz_q1_o3", tags: ["herbal", "calm"] },
+            { icon: "clock",      text: "quiz_q1_o4", tags: ["versatile"] },
         ]
     },
-    {
+    {   // chuť
         q: "quiz_q2",
         options: [
-            { icon:"🍋", text:"quiz_q2_o1", tags:["citrus"] },
-            { icon:"🌸", text:"quiz_q2_o2", tags:["floral"] },
-            { icon:"🫚", text:"quiz_q2_o3", tags:["spice"] },
-            { icon:"🍓", text:"quiz_q2_o4", tags:["fruit"] },
+            { icon: "citrus",     text: "quiz_q2_o1", tags: ["citrus"] },
+            { icon: "rose",       text: "quiz_q2_o2", tags: ["floral"] },
+            { icon: "cinnamon",   text: "quiz_q2_o3", tags: ["spice"] },
+            { icon: "strawberry", text: "quiz_q2_o4", tags: ["fruit"] },
         ]
     },
-    {
+    {   // kofein
         q: "quiz_q3",
         options: [
-            { icon:"⚡", text:"quiz_q3_o1", tags:["caffeine"] },
-            { icon:"🔆", text:"quiz_q3_o2", tags:["mild"] },
-            { icon:"🌿", text:"quiz_q3_o3", tags:["herbal","calm"] },
-            { icon:"🤷", text:"quiz_q3_o4", tags:["versatile"] },
+            { icon: "bolt",       text: "quiz_q3_o1", tags: ["caffeine"] },
+            { icon: "leaf",       text: "quiz_q3_o2", tags: ["mild"] },
+            { icon: "daisy",      text: "quiz_q3_o3", tags: ["herbal", "calm"] },
+            { icon: "shuffle",    text: "quiz_q3_o4", tags: ["versatile"] },
         ]
     },
-    {
+    {   // jak ho pije
         q: "quiz_q4",
         options: [
-            { icon:"⏱", text:"quiz_q4_o1", tags:["fresh","mild"] },
-            { icon:"🧘", text:"quiz_q4_o2", tags:["calm","herbal"] },
-            { icon:"💪", text:"quiz_q4_o3", tags:["bold","caffeine"] },
-            { icon:"🎲", text:"quiz_q4_o4", tags:["versatile"] },
+            { icon: "cup",        text: "quiz_q4_o1", tags: ["fresh", "mild"] },
+            { icon: "ice",        text: "quiz_q4_o2", tags: ["fruit", "citrus"] },
+            { icon: "drop",       text: "quiz_q4_o3", tags: ["bold", "spice"] },
+            { icon: "shuffle",    text: "quiz_q4_o4", tags: ["versatile"] },
         ]
     },
-    {
+    {   // roční období
         q: "quiz_q5",
         options: [
-            { icon:"🍯", text:"quiz_q5_o1", tags:["fruit","mild"] },
-            { icon:"🌸", text:"quiz_q5_o2", tags:["floral","mild"] },
-            { icon:"🔥", text:"quiz_q5_o3", tags:["spice","bold"] },
-            { icon:"✨", text:"quiz_q5_o4", tags:["versatile"] },
+            { icon: "blossom",    text: "quiz_q5_o1", tags: ["floral", "mild"] },
+            { icon: "berries",    text: "quiz_q5_o2", tags: ["fruit", "fresh"] },
+            { icon: "apple",      text: "quiz_q5_o3", tags: ["spice", "fruit"] },
+            { icon: "snow",       text: "quiz_q5_o4", tags: ["bold", "caffeine"] },
         ]
     },
 ];
@@ -2470,12 +2533,12 @@ const QUIZ_TAG_LABEL = {
     fresh:     { cs:'svěžest',          en:'freshness', sk:'sviežosť' },
     mild:      { cs:'jemnost',          en:'mildness', sk:'jemnosť' },
     herbal:    { cs:'bylinky',          en:'herbal notes', sk:'bylinky' },
-    calm:      { cs:'klid',             en:'calm', sk:'pokoj' },
+    calm:      { cs:'čaj na večer',     en:'an evening tea', sk:'čaj na večer' },
     citrus:    { cs:'citrusy',          en:'citrus', sk:'citrusy' },
     floral:    { cs:'květinové tóny',   en:'floral notes', sk:'kvetinové tóny' },
     fruit:     { cs:'ovoce',            en:'fruit', sk:'ovocie' },
     spice:     { cs:'koření',           en:'spice', sk:'korenie' },
-    versatile: { cs:'univerzálnost',    en:'versatility', sk:'univerzálnosť' },
+    versatile: { cs:'čaj na každý den', en:'an everyday tea', sk:'čaj na každý deň' },
 };
 function tQuizTag(tag) {
     const l = QUIZ_TAG_LABEL[tag];
@@ -2535,8 +2598,8 @@ function renderQuizStep() {
     const q = QUIZ_QUESTIONS[quizStep];
     body.innerHTML = `
         <h1 class="step-question quiz-question" tabindex="-1">${escHtml(t(q.q))}</h1>
-        <div class="quiz-options" role="list">
-            ${q.options.map(opt => `<button type="button" class="quiz-option" role="listitem" data-tags="${escHtml(opt.tags.join(','))}">${escHtml(t(opt.text))}</button>`).join('')}
+        <div class="quiz-options">
+            ${q.options.map(opt => `<button type="button" class="quiz-option" data-tags="${escHtml(opt.tags.join(','))}"><span class="quiz-ico" aria-hidden="true">${IngIcons.svg(opt.icon)}</span><span>${escHtml(t(opt.text))}</span></button>`).join('')}
         </div>
         ${quizStep > 0 ? `<button type="button" class="btn btn-link quiz-back" id="quiz-back">${escHtml(t('mixer_prev'))}</button>` : ''}`;
     body.querySelectorAll('.quiz-option').forEach(btn => {
@@ -2759,9 +2822,9 @@ let promoBarEnabled = true;
 
 Object.assign(TRANSLATIONS.cs, {
     ing_sold_out:             'Vyprodáno',
-    toast_sold_out:           'Tahle ingredience je teď vyprodaná',
+    toast_sold_out:           'Tahle surovina je teď vyprodaná',
     err_sold_out_named:       'Teď je vyprodané:',
-    stock_note_blend:         'Některá ingredience téhle směsi je teď vyprodaná.',
+    stock_note_blend:         'Některá surovina téhle směsi je teď vyprodaná.',
     err_weight_unavailable:   'Tuhle gramáž už neprodáváme. Odeber prosím položku z košíku a vyber jinou.',
     err_invalid_customer:     'Zkontroluj prosím kontaktní údaje a adresu.',
     launch_bar:               'Připravujeme spuštění. Objednávky zatím nepřijímáme, směs si ale můžeš namíchat a uložit.',
@@ -2770,7 +2833,7 @@ Object.assign(TRANSLATIONS.cs, {
     err_too_many_orders:      'Z tohohle e-mailu přišlo moc objednávek najednou. Zkus to prosím za hodinu.',
     err_pickup_point:         'Vyber prosím výdejní místo Zásilkovny.',
     err_shipping_unavailable: 'Tenhle způsob dopravy teď nenabízíme. Vyber prosím jiný.',
-    err_unknown_ingredient:   'Některá ingredience v košíku už není v nabídce. Odeber prosím tu položku.',
+    err_unknown_ingredient:   'Některá surovina v košíku už není v nabídce. Odeber prosím tu položku.',
     err_invalid_recipe:       'Složení jedné směsi v košíku už neprojde pravidly (nejvyšší podíly surovin). Otevři ji v mixéru a uprav, nebo ji odeber.',
     promo_checking:           'Ověřuji kód…',
     promo_check_failed:       'Kód se teď nepodařilo ověřit. Zkus to prosím za chvíli.',
@@ -3302,20 +3365,13 @@ function renderBlendCards() {
             ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : '';
         const tint = ingColor(b.ingredients[1]) || ingColor(b.ingredients[0]) || '';
         const from = blendPriceFrom(b);
-        return `<article class="ready-card" role="button" tabindex="0" data-blend="${escHtml(b.id)}" aria-label="${escHtml(b.name)}">
-                <div class="ready-visual"${tint ? ` style="--tint:${escHtml(tint)}"` : ''}>${visual}</div>
+        return `<a class="ready-card" href="${escHtml(blendHref(b.id))}" data-blend="${escHtml(b.id)}">
+                <div class="ready-visual" aria-hidden="true"${tint ? ` style="--tint:${escHtml(tint)}"` : ''}>${visual}</div>
                 <h3 class="ready-name">${escHtml(b.name)}</h3>
                 <p class="ready-mix">${escHtml(blendSubtitle(b.ingredients))}</p>
                 <p class="ready-foot"><span class="ready-price">${escHtml(from ? t('price_from_n').replace('{price}', fmt(from)) : t('price_from'))}</span>${soldOut}</p>
-            </article>`;
+            </a>`;
     }).join('');
-    grid.querySelectorAll('.ready-card[data-blend]').forEach(card => {
-        const open = () => openBlend(card.getAttribute('data-blend'));
-        card.addEventListener('click', open);
-        card.addEventListener('keydown', e => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
-        });
-    });
 }
 
 function openBlend(id, opts = {}) {
@@ -3603,7 +3659,7 @@ function notifyFormspree(form, order) {
 
 Object.assign(TRANSLATIONS.cs, {
     hero_title:        'Namíchej si čaj. Pojmenuj ho.',
-    hero_lede:         'Vybereš až pět surovin a poměr, jaký chceš. Směs čerstvě namícháme a pošleme ti ji v sáčku s tvým jménem.',
+    hero_lede:         'Vyber až pět surovin a poměr, jaký chceš. Směs namícháme až po objednání a pošleme ti ji v sáčku se jménem, které jí dáš.',
     hero_quiz_link:    'Nevíš, co vybrat? Poradí ti kvíz',
     how_result_note:   'Namícháme po objednání, obvykle odešleme do 24 hodin.',
     hero_pick:         'Chci tuhle',
@@ -3614,7 +3670,7 @@ Object.assign(TRANSLATIONS.cs, {
     shelf_title:       'Naše směsi',
     shelf_lede:        'Hotové kombinace. Objednej je rovnou, nebo si je v mixéru uprav podle sebe.',
     quizband_title:    'Nevíš, co by ti chutnalo?',
-    quizband_text:     'Odpověz na pět krátkých otázek a doporučíme ti směs, která sedí tvé náladě i denní době.',
+    quizband_text:     'Pět krátkých otázek a doporučíme ti směs podle toho, kdy čaj piješ a jaké chutě máš v oblibě.',
     quizband_btn:      'Spustit kvíz',
     pantry_lede:       'Na výběr je {bases} základů, {flavors} příchutí a {extras} doplňků. Do jedné směsi jich dáš až {max} v poměru, jaký chceš.',
     faq_lede:          'Něco tu chybí? Napiš na <a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a>.',
@@ -3641,13 +3697,13 @@ Object.assign(TRANSLATIONS.cs, {
     aria_mobile_nav:   'Mobilní navigace',
     aria_main_nav:     'Hlavní navigace',
     ship_zasilkovna_name: 'Zásilkovna',
-    toast_shared_loaded: 'Načetli jsme sdílenou směs ✨',
+    toast_shared_loaded: 'Sdílená směs je načtená.',
     lang_label:        'Jazyk',
     legal_lang_note:   '',
 });
 Object.assign(TRANSLATIONS.en, {
     hero_title:        'Mix your tea. Name it.',
-    hero_lede:         'Pick up to five ingredients and any ratio you like. We blend it fresh and send it in a pouch with your name on it.',
+    hero_lede:         'Pick up to five ingredients and any ratio you like. We blend it after you order and send it in a pouch with the name you give it.',
     hero_quiz_link:    'Not sure what to pick? Take the quiz',
     how_result_note:   'Blended after you order, usually shipped within 24 hours.',
     hero_pick:         'I want this one',
@@ -3658,7 +3714,7 @@ Object.assign(TRANSLATIONS.en, {
     shelf_title:       'Our blends',
     shelf_lede:        'Ready-made combinations. Order one as it is, or tweak it in the mixer.',
     quizband_title:    'Not sure what you would like?',
-    quizband_text:     'Answer five quick questions and we will suggest a blend for your mood and time of day.',
+    quizband_text:     'Five quick questions and we will suggest a blend based on when you drink tea and which flavours you like.',
     quizband_btn:      'Take the quiz',
     pantry_lede:       'Pick from {bases} bases, {flavors} flavours and {extras} extras. Put up to {max} in one blend, in any ratio you like.',
     faq_lede:          'Missing something? Write to <a href="mailto:hello@teaseyou.cz">hello@teaseyou.cz</a>.',
@@ -3685,7 +3741,7 @@ Object.assign(TRANSLATIONS.en, {
     aria_mobile_nav:   'Mobile navigation',
     aria_main_nav:     'Main navigation',
     ship_zasilkovna_name: 'Zásilkovna (Packeta)',
-    toast_shared_loaded: 'Loaded a shared blend ✨',
+    toast_shared_loaded: 'Shared blend loaded.',
     lang_label:        'Language',
     legal_lang_note:   'These documents are in Czech, the language of the contract. If anything is unclear, write to hello@teaseyou.cz and we will explain.',
 });
@@ -3748,7 +3804,7 @@ Object.assign(TRANSLATIONS.cs, {
     mix_surcharge_note:'V ceně je příplatek {price} za prémiové suroviny.',
     price_from_n:      'od {price}',
     pairs_tag:         'Hodí se',
-    how_pouch_name:    'Tvoje jméno',
+    how_pouch_name:    'Tvoje směs',
     glass_label_base:  'Základ',
     glass_label_flavor:'Příchuť',
     back_to_shelf:     'Naše směsi',
@@ -3762,11 +3818,11 @@ Object.assign(TRANSLATIONS.cs, {
     brew_time:         'Louhování',
     saved_title:       'Uložené směsi',
     saved_lede:        'Směsi uložené z mixéru. Objednáš je jedním klepnutím.',
-    saved_empty:       'Zatím tu nic není. V mixéru můžeš každou směs uložit na později.',
+    saved_empty:       'V mixéru si můžeš každou směs uložit na později.',
     btn_create_first:  'Namíchat směs',
     btn_load_order:    'Objednat',
     orders_lede:       'Objednávky odeslané z tohohle prohlížeče.',
-    orders_empty:      'Zatím tu nejsou žádné objednávky.',
+    orders_empty:      'Až něco objednáš, najdeš to tady i s údaji k platbě.',
     cart_title:        'Košík',
     cart_empty:        'Vyber si některou z našich směsí, nebo si namíchej vlastní.',
     btn_browse_blends: 'Naše směsi',
@@ -3798,7 +3854,7 @@ Object.assign(TRANSLATIONS.cs, {
     pay_transfer:      'Bankovní převod',
     pay_transfer_desc: 'Údaje k platbě pošleme e-mailem',
     note_placeholder2: 'Třeba vzkaz na přání, když je to dárek',
-    checkout_legal:    'Odesláním objednávky potvrzuješ, že ses seznámil s <a href="#" onclick="event.preventDefault(); showPage(\'terms-page\')">obchodními podmínkami</a> a <a href="#" onclick="event.preventDefault(); showPage(\'privacy-page\')">ochranou osobních údajů</a>.',
+    checkout_legal:    'Odesláním objednávky potvrzuješ, že ses seznámil s <a href="?stranka=obchodni-podminky" data-page="terms-page">obchodními podmínkami</a> a <a href="?stranka=ochrana-udaju" data-page="privacy-page">ochranou osobních údajů</a>.',
     checkout_withdraw_note: 'Směsi namíchané podle tvého výběru děláme na zakázku, takže je nejde vrátit do 14 dnů bez udání důvodu (§ 1837 písm. d) občanského zákoníku). Hotovou směs z nabídky vrátit můžeš, pokud zůstal sáček neotevřený. Reklamovat můžeš obojí.',
     btn_complete_order:'Objednat a zaplatit',
     order_payment_fee: 'Příplatek za dobírku',
@@ -3848,8 +3904,8 @@ Object.assign(TRANSLATIONS.cs, {
     btn_create_another:'Namíchat další směs',
     about_cta:         'Chceš si jednu namíchat?',
     btn_start_creating2:'Namíchat směs',
-    ing_page_title:    'Ingredience',
-    ing_page_sub:      'Ze všeho tady se dá míchat. U každé ingredience je, jak chutná a s čím se hodí.',
+    ing_page_title:    'Suroviny',
+    ing_page_sub:      'Ze všeho tady se dá míchat. U každé suroviny najdeš, jak chutná a s čím si rozumí.',
     ing_pairs:         'Hodí se k:',
     ing_use:           'Namíchat s tímhle',
     process_cta_title: 'Chceš si jednu namíchat?',
@@ -3860,7 +3916,7 @@ Object.assign(TRANSLATIONS.cs, {
     quiz_also:         'Mohla by ti chutnat i',
     btn_order_blend:   'Chci tuhle směs',
     btn_try_again:     'Projít kvíz znovu',
-    toast_saved:       'najdeš v Uložených směsích',
+    toast_saved:       '„{name}“ je v Uložených směsích.',
     nav_blends:        'Uložené směsi',
     nav_quiz:          'Kvíz',
 });
@@ -3922,7 +3978,7 @@ Object.assign(TRANSLATIONS.en, {
     mix_surcharge_note:'Includes a {price} surcharge for premium ingredients.',
     price_from_n:      'from {price}',
     pairs_tag:         'Goes well',
-    how_pouch_name:    'Your name',
+    how_pouch_name:    'Your blend',
     glass_label_base:  'Base',
     glass_label_flavor:'Flavour',
     back_to_shelf:     'Our blends',
@@ -3936,11 +3992,11 @@ Object.assign(TRANSLATIONS.en, {
     brew_time:         'Steep',
     saved_title:       'Saved blends',
     saved_lede:        'Blends you saved in the mixer. Order them in one tap.',
-    saved_empty:       'Nothing here yet. You can save any blend in the mixer for later.',
+    saved_empty:       'You can save any blend in the mixer for later.',
     btn_create_first:  'Mix a blend',
     btn_load_order:    'Order',
     orders_lede:       'Orders placed from this browser.',
-    orders_empty:      'No orders yet.',
+    orders_empty:      'Once you order, you will find it here along with the payment details.',
     cart_title:        'Cart',
     cart_empty:        'Pick one of our blends or mix your own.',
     btn_browse_blends: 'Our blends',
@@ -3972,7 +4028,7 @@ Object.assign(TRANSLATIONS.en, {
     pay_transfer:      'Bank transfer',
     pay_transfer_desc: 'We will e-mail you the payment details',
     note_placeholder2: 'A message for the card, if it is a gift',
-    checkout_legal:    'By placing the order you confirm you have read our <a href="#" onclick="event.preventDefault(); showPage(\'terms-page\')">terms</a> and <a href="#" onclick="event.preventDefault(); showPage(\'privacy-page\')">privacy policy</a> (in Czech).',
+    checkout_legal:    'By placing the order you confirm you have read our <a href="?stranka=obchodni-podminky" data-page="terms-page">terms</a> and <a href="?stranka=ochrana-udaju" data-page="privacy-page">privacy policy</a> (in Czech).',
     checkout_withdraw_note: 'Blends mixed to your choice are made to order, so they cannot be returned within 14 days without a reason (§ 1837(d) of the Czech Civil Code). A ready-made blend from our range can be returned if the pouch is unopened. You can file a complaint about either.',
     btn_complete_order:'Order and pay',
     order_payment_fee: 'Cash on delivery fee',
@@ -4023,7 +4079,7 @@ Object.assign(TRANSLATIONS.en, {
     about_cta:         'Want to mix one?',
     btn_start_creating2:'Mix a blend',
     ing_page_title:    'Ingredients',
-    ing_page_sub:      'Everything here goes into the mixer, with how it tastes and what it pairs with.',
+    ing_page_sub:      'Everything here can go into your blend. Each one comes with how it tastes and what it goes well with.',
     ing_pairs:         'Pairs with:',
     ing_use:           'Mix with this',
     process_cta_title: 'Want to mix one?',
@@ -4034,7 +4090,7 @@ Object.assign(TRANSLATIONS.en, {
     quiz_also:         'You might also like',
     btn_order_blend:   'I want this one',
     btn_try_again:     'Take the quiz again',
-    toast_saved:       'is in your saved blends',
+    toast_saved:       '“{name}” is in your saved blends.',
     nav_blends:        'Saved blends',
     nav_quiz:          'Quiz',
 });
@@ -4043,20 +4099,31 @@ Object.assign(TRANSLATIONS.en, {
 /* Kraftový sáček se zipem — tak, jak se čaj opravdu posílá. Na etiketě je
    jméno směsi a její tři ingredience. Obrys a textura jsou v <svg><defs>
    na začátku index.html, tady se na ně jen odkazuje. */
-const POUCH_PATH = 'M14 6H186Q192 6 192 12V20L186 26L192 32Q196 140 196 238Q196 262 172 264Q100 270 28 264Q4 262 4 238Q4 140 8 32L14 26L8 20V12Q8 6 14 6Z';
+/* Sáček v2: stojací kraftový sáček se zipem, svárem nahoře, otvorem na
+   zavěšení a skládaným dnem. Tvar (POUCH_PATH + POUCH_HOLE) je stejný i ve
+   výřezu #pouch-clip v index.html – když ho měníš, změň ho na obou místech. */
+const POUCH_PATH = 'M16 5H184Q189 5 189 10V21L184.5 26.5L189 32C194 108 197.5 180 195.5 236Q194.5 259 172 262.5Q100 269.5 28 262.5Q5.5 259 4.5 236C2.5 180 6 108 11 32L15.5 26.5L11 21V10Q11 5 16 5Z';
+const POUCH_HOLE = 'M91 14.2h18a4.3 4.3 0 0 1 0 8.600H91a4.300 4.300 0 0 1 0-8.600Z';
 const POUCH_SVG = `<svg class="pouch-bag" viewBox="0 0 200 270" preserveAspectRatio="none" focusable="false" aria-hidden="true">
-    <path d="${POUCH_PATH}" fill="url(#kraft-fill)"/>
+    <path d="${POUCH_PATH}${POUCH_HOLE}" fill-rule="evenodd" fill="url(#kraft-fill)"/>
     <g clip-path="url(#pouch-clip)">
-        <rect width="200" height="270" filter="url(#kraft-grain)" opacity=".35"/>
-        <rect y="6" width="200" height="29" fill="url(#kraft-crimp)"/>
-        <rect y="34" width="200" height="1.5" fill="#000" fill-opacity=".12"/>
-        <rect y="44" width="200" height="3" fill="#000" fill-opacity=".2"/>
-        <rect y="47" width="200" height="1.5" fill="#fff" fill-opacity=".3"/>
-        <path d="M44 62C40 120 42 180 38 236" stroke="#fff" stroke-opacity=".18" stroke-width="7" fill="none" stroke-linecap="round"/>
-        <path d="M160 70C164 130 160 190 163 232" stroke="#000" stroke-opacity=".06" stroke-width="9" fill="none" stroke-linecap="round"/>
-        <path d="M4 240Q100 254 196 240" stroke="#000" stroke-opacity=".14" stroke-width="2" fill="none"/>
+        <rect width="200" height="270" fill="url(#kraft-light)"/>
+        <rect width="200" height="270" filter="url(#kraft-grain)" opacity=".38"/>
+        <rect y="5" width="200" height="28.500" fill="url(#kraft-crimp)"/>
+        <rect y="5" width="200" height="28.500" fill="#5a3d1c" fill-opacity=".06"/>
+        <rect y="33.200" width="200" height="1.300" fill="#000" fill-opacity=".17"/>
+        <rect y="34.500" width="200" height="1" fill="#fff" fill-opacity=".24"/>
+        <rect y="45" width="200" height="2.600" fill="#000" fill-opacity=".18"/>
+        <rect y="47.600" width="200" height="1.400" fill="#fff" fill-opacity=".3"/>
+        <rect y="52" width="200" height="1" fill="#000" fill-opacity=".07"/>
+        <path d="M38 62C33 122 36 186 31 238" stroke="#fff" stroke-opacity=".2" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <path d="M164 68C169 130 164 192 168 236" stroke="#000" stroke-opacity=".07" stroke-width="11" fill="none" stroke-linecap="round"/>
+        <path d="M0 237Q100 253 200 237V270H0Z" fill="url(#kraft-gusset)"/>
+        <path d="M4 237.500Q100 253 196 237.500" stroke="#000" stroke-opacity=".2" stroke-width="1.400" fill="none"/>
+        <path d="M4 239.200Q100 254.700 196 239.200" stroke="#fff" stroke-opacity=".22" stroke-width="1" fill="none"/>
         <rect width="200" height="270" fill="url(#kraft-edge)"/>
     </g>
+    <path d="${POUCH_HOLE}" fill="none" stroke="#000" stroke-opacity=".28" stroke-width="1"/>
 </svg>`;
 const LAYER_LABELS = ['glass_label_base', 'glass_label_flavor', 'glass_label_extras'];
 
@@ -4072,9 +4139,13 @@ function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholder
     else rows = placeholders ? LAYER_LABELS.map(k => `<li class="is-empty"><i></i>${escHtml(t(k))}</li>`).join('') : '';
     const dotCodes = comp.length ? comp.map(c => c.code) : real;
     const dots = dotCodes.map(c => `<i style="--c:${escHtml(ingColor(c) || '#cccccc')}"></i>`).join('');
-    return `<div class="pouch ${size}">${POUCH_SVG}<div class="pouch-label${dotCodes.length > 3 ? ' is-long' : ''}">`
+    const shown = name || t('glass_name_default');
+    // Dlouhé jméno dostane menší písmo, ať se na etiketu vejde celé (nic se neuřezává).
+    const longest = Math.max(...shown.split(/\s+/).map(w => w.length));
+    const fit = shown.length > 22 || longest > 12 ? ' is-xl-name' : (shown.length > 13 || longest > 9 ? ' is-long-name' : '');
+    return `<div class="pouch ${size}">${POUCH_SVG}<div class="pouch-label${dotCodes.length > 3 ? ' is-long' : ''}${fit}">`
         + `<span class="pouch-brand">Tease you</span>`
-        + `<span class="pouch-name${name ? '' : ' is-empty'}">${escHtml(name || t('glass_name_default'))}</span>`
+        + `<span class="pouch-name${name ? '' : ' is-empty'}">${escHtml(shown)}</span>`
         + `<ul class="pouch-ings${dotCodes.length > 3 ? ' is-long' : ''}">${rows}</ul>`
         + `<span class="pouch-dots">${dots}</span>`
         + (weight ? `<span class="pouch-weight">${escHtml(weight)}</span>` : '')
@@ -4118,6 +4189,8 @@ function renderHero(id, animate) {
     }
     const mix = document.getElementById('hero-mix');
     if (mix) mix.textContent = blendSubtitle(b.ingredients);
+    const open = document.getElementById('hero-open');
+    if (open) { open.dataset.blend = b.id; open.setAttribute('href', blendHref(b.id)); }
 }
 function shuffleHero() {
     const others = catalogBlends.filter(b => b.id !== heroBlendId);
@@ -4495,7 +4568,6 @@ function initRedesign() {
     renderHow();
     renderPriceOptions();
     document.getElementById('hero-shuffle')?.addEventListener('click', shuffleHero);
-    document.getElementById('hero-open')?.addEventListener('click', () => openBlend(heroBlendId));
     document.getElementById('mixer-next')?.addEventListener('click', mixerNext);
     document.getElementById('mixer-back')?.addEventListener('click', mixerBack);
     document.getElementById('mixer-sizes')?.addEventListener('click', e => {
@@ -4689,7 +4761,7 @@ Object.assign(TRANSLATIONS.en, {
     pay_qr_caption:       'Scan it in your banking app (Czech banks)',
     pay_box_note:         'Please pay within 7 days. We ship the blend as soon as the payment arrives. You can find the details in My orders too.',
     reorder_btn:          'Order again',
-    reorder_done:         'It is in your basket, at today\'s price.',
+    reorder_done:         'It is in your cart, at today\'s price.',
     reorder_some:         'In your basket. {n} item(s) can no longer be ordered (sold-out ingredient or size).',
     reorder_none:         'Nothing from this order can be ordered any more. Ingredients or sizes have changed.',
     reviews_title:        'What customers say',
@@ -4720,6 +4792,42 @@ Object.assign(TRANSLATIONS.en, {
     review_err_too_early: 'You can review once we have shipped the blend.',
     review_err_exists:    'This order already has a review.',
     review_err_other:     'We could not save it right now. Please try again later.',
+});
+
+/* ─── Texty přidané při úpravách webu (listopad 2026) ─── */
+Object.assign(TRANSLATIONS.cs, {
+    orders_empty_title:  'Zatím žádná objednávka',
+    saved_empty_title:   'Zatím žádná uložená směs',
+    toast_promo:         'Kód {code} je použitý.',
+    share_text:          'Mrkni na můj čaj „{name}“: {ings}. Namíchaný na Tease you.',
+    reorder_some_one:    'V košíku. {n} položka už nejde objednat (vyprodaná surovina nebo velikost).',
+    reorder_some_few:    'V košíku. {n} položky už nejdou objednat (vyprodaná surovina nebo velikost).',
+    reorder_some_many:   'V košíku. {n} položek už nejde objednat (vyprodaná surovina nebo velikost).',
+    caf_yes:             'S kofeinem',
+    caf_no:              'Bez kofeinu',
+    shelf_filter_aria:   'Které směsi ukázat',
+    shelf_all:           'Všechny',
+    mix_taste:           'Chuť: {notes}.',
+    detail_more:         'Další směsi',
+    ing_jump_aria:       'Skupiny surovin',
+    and_word:            'a',
+});
+Object.assign(TRANSLATIONS.en, {
+    orders_empty_title:  'No orders yet',
+    saved_empty_title:   'No saved blends yet',
+    toast_promo:         'Code {code} applied.',
+    share_text:          'Have a look at my tea “{name}”: {ings}. Mixed on Tease you.',
+    reorder_some_one:    'In your cart. {n} item can no longer be ordered (sold-out ingredient or size).',
+    reorder_some_few:    'In your cart. {n} items can no longer be ordered (sold-out ingredient or size).',
+    reorder_some_many:   'In your cart. {n} items can no longer be ordered (sold-out ingredient or size).',
+    caf_yes:             'With caffeine',
+    caf_no:              'Caffeine-free',
+    shelf_filter_aria:   'Which blends to show',
+    shelf_all:           'All',
+    mix_taste:           'Taste: {notes}.',
+    detail_more:         'More blends',
+    ing_jump_aria:       'Ingredient groups',
+    and_word:            'and',
 });
 
 const CRAFT_NOTIFIED_KEY = 'teaseyou_notified';
@@ -4775,7 +4883,7 @@ function craftCardHtml(p, done) {
         </div>
         <h3 class="craft-name">${escHtml(craftName(p))}</h3>
         <p class="craft-desc">${escHtml(craftDesc(p))}</p>
-        ${(p.ingredients || []).length ? `<div class="craft-ings"><span>${escHtml(t('craft_like_tea'))}</span><ul>${craftIngsHtml(p.ingredients)}</ul></div>` : ''}
+        ${craftIngsHtml(p.ingredients || []) ? `<div class="craft-ings"><span>${escHtml(t('craft_like_tea'))}</span><ul>${craftIngsHtml(p.ingredients)}</ul></div>` : ''}
         <div class="craft-notify">
             <button type="button" class="btn btn-quiet craft-notify-btn" aria-expanded="false" aria-controls="craft-form-${id}"${done ? ' hidden' : ''}>${escHtml(t('craft_notify'))}</button>
             <form class="craft-form" id="craft-form-${id}" novalidate hidden>
@@ -4785,7 +4893,7 @@ function craftCardHtml(p, done) {
                     <button type="submit" class="btn btn-primary">${escHtml(t('craft_send'))}</button>
                 </div>
                 <p class="field-error" role="alert"></p>
-                <p class="craft-form-note">${escHtml(t('craft_form_note'))} <a href="#" onclick="event.preventDefault(); showPage('privacy-page')">${escHtml(t('craft_privacy_link'))}</a></p>
+                <p class="craft-form-note">${escHtml(t('craft_form_note'))} <a href="?stranka=ochrana-udaju" data-page="privacy-page">${escHtml(t('craft_privacy_link'))}</a></p>
             </form>
             <p class="craft-done"${done ? '' : ' hidden'}>${escHtml(t('craft_done'))}</p>
         </div>

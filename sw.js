@@ -8,7 +8,7 @@
  * Když měníš seznam PRECACHE, zvyš VERSION — jinak se stará cache nezahodí.
  */
 
-const VERSION = 'v13';
+const VERSION = 'v14';
 const CACHE = `teaseyou-${VERSION}`;
 
 // Minimum, aby se web offline vůbec vykreslil.
@@ -28,10 +28,10 @@ const PRECACHE = [
     './favicon.svg',
     './favicon.ico',
     './icon-192.png',
-    './fonts/unbounded-latin-wght-normal.woff2',
-    './fonts/unbounded-latin-ext-wght-normal.woff2',
-    './fonts/albert-sans-latin-wght-normal.woff2',
-    './fonts/albert-sans-latin-ext-wght-normal.woff2'
+    './fonts/unbounded-latin-600-700.woff2',
+    './fonts/unbounded-cs-sk-600-700.woff2',
+    './fonts/albert-sans-latin-400-700.woff2',
+    './fonts/albert-sans-cs-sk-400-700.woff2'
 ];
 
 self.addEventListener('install', event => {

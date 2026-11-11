@@ -3,58 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tease you — Namíchej si vlastní čajový blend</title>
-    <meta name="description" content="Namíchej si vlastní čaj ze 6 základů, 9 příchutí a 9 doplňků. Pojmenuj ho, my ho čerstvě zabalíme a doručíme. Doprava zdarma nad 500 Kč.">
-    <meta property="og:title" content="Tease you — Namíchej si vlastní čajový blend">
-    <meta property="og:description" content="Namíchej si vlastní čaj, pojmenuj ho a my ho odešleme čerstvě zabalený. Stovky kombinací, doprava od 69 Kč.">
+    <title>Tease you – Namíchej si vlastní čaj</title>
+    <meta name="description" content="Namíchej si vlastní sypaný čaj až z pěti surovin v poměru, jaký chceš. Mícháme až po objednání. Doprava zdarma nad 500 Kč.">
+    <meta property="og:title" content="Tease you – Namíchej si vlastní čaj">
+    <meta property="og:description" content="Namíchej si vlastní sypaný čaj až z pěti surovin v poměru, jaký chceš. Mícháme až po objednání. Doprava zdarma nad 500 Kč.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://teaseyou.cz">
-    <meta property="og:image" content="https://teaseyou.cz/og-image.jpg?v=2">
+    <meta property="og:url" content="https://teaseyou.cz/">
+    <meta property="og:image" content="https://teaseyou.cz/og-image.jpg?v=3">
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Tease you: Namíchej si čaj. Pojmenuj ho. Dva papírové sáčky s vlastními jmény směsí.">
     <meta property="og:site_name" content="Tease you">
     <meta property="og:locale" content="cs_CZ">
+    <meta property="og:locale:alternate" content="sk_SK">
+    <meta property="og:locale:alternate" content="en_GB">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Tease you — Namíchej si vlastní blend">
-    <meta name="twitter:description" content="Vlastní čajová směs, pojmenovaná a odeslaná čerstvě.">
-    <meta name="twitter:image" content="https://teaseyou.cz/og-image.jpg?v=2">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://teaseyou.cz">
-    <meta name="theme-color" content="#3d5a3e">
+    <link rel="canonical" href="https://teaseyou.cz/">
+    <meta name="theme-color" content="#3a5f3c">
     <meta name="color-scheme" content="light dark">
     <meta name="author" content="Vašek Sinkule">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <link rel="author" href="humans.txt">
     <link rel="license" href="LICENSE">
+    <!-- Písma, která jsou vidět hned po načtení: ať na ně prohlížeč nečeká až po stylech. -->
+    <link rel="preload" href="fonts/unbounded-latin-600-700.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/unbounded-cs-sk-600-700.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/albert-sans-latin-400-700.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/albert-sans-cs-sk-400-700.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" sizes="32x32">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
+    <!-- Jazyk dřív, než se stránka vykreslí. HTML je česky; kdo má slovenštinu
+         nebo angličtinu, nesmí nejdřív uvidět české texty, proto se do přeložení
+         schovají (viz .i18n-wait ve style.css). Stejné pořadí jako ve script.js:
+         ?lang=, uložená volba, jazyk prohlížeče. -->
+    <script>
+    (function () {
+        var ok = ['cs', 'sk', 'en'], lang = '';
+        try {
+            var q = new URLSearchParams(location.search).get('lang');
+            if (ok.indexOf(q) >= 0) lang = q;
+            if (!lang) { var s = localStorage.getItem('teaseyou_lang'); if (ok.indexOf(s) >= 0) lang = s; }
+        } catch (e) {}
+        if (!lang) {
+            var prefs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
+            for (var i = 0; i < prefs.length && !lang; i++) {
+                var c = String(prefs[i]).toLowerCase().slice(0, 2);
+                if (ok.indexOf(c) >= 0) lang = c;
+            }
+        }
+        lang = lang || 'en';
+        var root = document.documentElement;
+        root.lang = lang;
+        if (lang !== 'cs') {
+            root.classList.add('i18n-wait');
+            // pojistka: kdyby se skript nenačetl, české texty jsou lepší než nic
+            setTimeout(function () { root.classList.remove('i18n-wait'); }, 4000);
+        }
+    })();
+    </script>
+    <script defer src="config.js"></script>
+    <script defer src="db.js"></script>
+    <script defer src="i18n-sk.js"></script>
+    <script defer src="bank.js"></script>
+    <script defer src="recipe.js"></script>
+    <script defer src="icons.js"></script>
+    <script defer src="script.js"></script>
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
-        "@type": "Store",
+        "@type": "OnlineStore",
         "name": "Tease you",
-        "description": "Namíchej si vlastní čajovou směs ze 6 základů, 9 příchutí a 9 doplňků. Pojmenuj ji, my ji čerstvě zabalíme a pošleme.",
-        "url": "https://teaseyou.cz",
-        "image": "https://teaseyou.cz/og-image.jpg?v=2",
+        "description": "Namíchej si vlastní sypaný čaj až z pěti surovin v poměru, jaký chceš. Mícháme až po objednání.",
+        "url": "https://teaseyou.cz/",
+        "logo": "https://teaseyou.cz/icon-512.png",
+        "image": "https://teaseyou.cz/og-image.jpg?v=3",
         "email": "hello@teaseyou.cz",
-        "priceRange": "49–199 Kč",
-        "currenciesAccepted": "CZK",
-        "address": { "@type": "PostalAddress", "addressCountry": "CZ" },
         "areaServed": ["CZ", "SK"]
     }
     </script>
 </head>
 <body>
+<script>try { if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark'); } catch (e) {}</script>
 <a class="skip-link" href="#obsah" data-i18n="skip_to_content">Přeskočit na obsah</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <defs>
         <linearGradient id="kraft-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#d3b484"/><stop offset="1" stop-color="#c4a06c"/>
+            <stop offset="0" stop-color="#d9bb8b"/><stop offset=".55" stop-color="#cfae7c"/><stop offset="1" stop-color="#bd9865"/>
+        </linearGradient>
+        <!-- světlo zleva: sáček je uprostřed vyboulený, ne placatý -->
+        <linearGradient id="kraft-light" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff" stop-opacity=".17"/>
+            <stop offset=".58" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#3b2710" stop-opacity=".1"/>
+        </linearGradient>
+        <linearGradient id="kraft-gusset" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3b2710" stop-opacity=".02"/><stop offset="1" stop-color="#3b2710" stop-opacity=".2"/>
         </linearGradient>
         <linearGradient id="kraft-edge" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset=".13" stop-color="#000" stop-opacity="0"/>
@@ -82,7 +129,7 @@
             <stop offset="0" stop-color="#e6e3dd"/><stop offset=".5" stop-color="#b9b5ad"/><stop offset="1" stop-color="#8f8b83"/>
         </linearGradient>
         <clipPath id="pouch-clip">
-            <path d="M14 6H186Q192 6 192 12V20L186 26L192 32Q196 140 196 238Q196 262 172 264Q100 270 28 264Q4 262 4 238Q4 140 8 32L14 26L8 20V12Q8 6 14 6Z"/>
+            <path clip-rule="evenodd" d="M16 5H184Q189 5 189 10V21L184.5 26.5L189 32C194 108 197.5 180 195.5 236Q194.5 259 172 262.5Q100 269.5 28 262.5Q5.5 259 4.5 236C2.5 180 6 108 11 32L15.5 26.5L11 21V10Q11 5 16 5ZM91 14.2h18a4.3 4.3 0 0 1 0 8.600H91a4.300 4.300 0 0 1 0-8.600Z"/>
         </clipPath>
     </defs>
 </svg>
@@ -94,7 +141,7 @@
 
 <!-- PROMO BAR -->
 <div id="promo-bar" class="promo-bar">
-    <span data-i18n="promo_text">🍵 Free shipping on orders over 500 Kč · Use code FIRSTBLEND for 10% off your first order</span>
+    <span data-i18n="promo_text">Doprava zdarma nad 500 Kč. S kódem FIRSTBLEND máš první nákup o 10 % levnější.</span>
     <button class="promo-close" onclick="dismissPromoBar()" aria-label="Zavřít" data-i18n-aria="aria_close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 </div>
 
@@ -107,15 +154,15 @@
         </button>
     </div>
     <ul class="sidebar-nav">
-        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('product-page')" data-i18n="nav_create">Namíchej si vlastní</button></li>
-        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); goToShelf()" data-i18n="nav_shelf">Naše směsi</button></li>
-        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('quiz-page')" data-i18n="nav_quiz">Najdi svůj blend</button></li>
-        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('ingredients-page')" data-i18n="nav_ingredients">Ingredience</button></li>
-        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('craft-page')" data-i18n="nav_craft">Mýdla a balzámy</button></li>
-        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('saved-page')" data-i18n="nav_blends">Moje blendy</button></li>
-        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('orders-page')" data-i18n="nav_orders">Moje objednávky</button></li>
-        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('process-page')" data-i18n="nav_process">Jak to děláme</button></li>
-        <li><button type="button" class="sidebar-link" onclick="closeSidebar(); showPage('about-page')" data-i18n="nav_about">O nás</button></li>
+        <li><a class="sidebar-link" href="?stranka=namichat" data-page="product-page" data-i18n="nav_create">Namíchej si vlastní</a></li>
+        <li><a class="sidebar-link" href="./#shelf" data-go="shelf" data-i18n="nav_shelf">Naše směsi</a></li>
+        <li><a class="sidebar-link" href="?stranka=kviz" data-page="quiz-page" data-i18n="nav_quiz">Kvíz</a></li>
+        <li><a class="sidebar-link" href="?stranka=suroviny" data-page="ingredients-page" data-i18n="nav_ingredients">Suroviny</a></li>
+        <li><a class="sidebar-link" href="?stranka=mydla" data-page="craft-page" data-i18n="nav_craft">Mýdla a balzámy</a></li>
+        <li><a class="sidebar-link" href="?stranka=moje-smesi" data-page="saved-page" data-i18n="nav_blends">Uložené směsi</a></li>
+        <li><a class="sidebar-link" href="?stranka=moje-objednavky" data-page="orders-page" data-i18n="nav_orders">Moje objednávky</a></li>
+        <li><a class="sidebar-link" href="?stranka=jak-michame" data-page="process-page" data-i18n="nav_process">Jak to děláme</a></li>
+        <li><a class="sidebar-link" href="?stranka=o-nas" data-page="about-page" data-i18n="nav_about">O nás</a></li>
     </ul>
     <div class="sidebar-foot">
         <button class="theme-switch" onclick="toggleDarkMode()">
@@ -129,16 +176,16 @@
 
 <header class="main-nav">
     <div class="nav-container">
-        <button class="icon-btn nav-menu-icon" onclick="openSidebar()" aria-label="Menu" data-i18n-aria="aria_menu">
+        <button class="icon-btn nav-menu-icon" onclick="openSidebar()" aria-label="Menu" data-i18n-aria="aria_menu" aria-expanded="false" aria-controls="sidebar">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
         </button>
-        <a class="nav-logo" href="./" onclick="event.preventDefault(); showPage('home-page')">Tease you</a>
+        <a class="nav-logo" href="./" data-page="home-page">Tease you</a>
         <nav class="nav-links" aria-label="Hlavní navigace" data-i18n-aria="aria_main_nav">
-            <button onclick="showPage('product-page')" data-page="product-page" data-i18n="nav_mix">Namíchat</button>
-            <button onclick="goToShelf()" data-i18n="nav_shelf">Naše směsi</button>
-            <button onclick="showPage('quiz-page')" data-page="quiz-page" data-i18n="nav_quiz_short">Kvíz</button>
-            <button onclick="showPage('ingredients-page')" data-page="ingredients-page" data-i18n="nav_ingredients">Ingredience</button>
-            <button onclick="showPage('craft-page')" data-page="craft-page" data-i18n="nav_craft_short">Mýdla</button>
+            <a href="?stranka=namichat" data-page="product-page" data-i18n="nav_mix">Namíchat</a>
+            <a href="./#shelf" data-go="shelf" data-i18n="nav_shelf">Naše směsi</a>
+            <a href="?stranka=kviz" data-page="quiz-page" data-i18n="nav_quiz_short">Kvíz</a>
+            <a href="?stranka=suroviny" data-page="ingredients-page" data-i18n="nav_ingredients">Suroviny</a>
+            <a href="?stranka=mydla" data-page="craft-page" data-i18n="nav_craft_short">Mýdla</a>
         </nav>
         <div class="nav-right">
             <select id="lang-select" class="lang-select" onchange="setLanguage(this.value)" aria-label="Jazyk webu / Language">
@@ -150,9 +197,9 @@
                 <svg class="dm-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
                 <svg class="dm-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
             </button>
-            <button class="icon-btn nav-cart-icon" onclick="showPage('cart-page')" aria-label="Košík" data-i18n-aria="nav_cart">
+            <a class="icon-btn nav-cart-icon" href="?stranka=kosik" data-page="cart-page" aria-label="Košík" data-i18n-aria="nav_cart">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.1a2 2 0 01-2 1.9H8.2a2 2 0 01-2-1.9L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>
-            </button>
+            </a>
         </div>
     </div>
 </header>
@@ -170,7 +217,7 @@
             <figcaption class="hero-blend">
                 <p class="hero-blend-mix" id="hero-mix" aria-live="polite"></p>
                 <div class="hero-blend-actions">
-                    <button class="btn btn-small btn-cream" id="hero-open" data-i18n="hero_pick">Chci tuhle</button>
+                    <a class="btn btn-small btn-cream" id="hero-open" href="./#shelf" data-i18n="hero_pick">Chci tuhle</a>
                     <button class="btn btn-small btn-on-dark" id="hero-shuffle">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0115.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 01-15.5 6.2L3 16M3 21v-5h5"/></svg>
                         <span data-i18n="hero_shuffle">Zamíchat jinak</span>
@@ -179,10 +226,10 @@
             </figcaption>
         </figure>
         <div class="hero-copy">
-            <p class="hero-lede" data-i18n="hero_lede">Vybereš základ, příchuť a doplněk. My směs čerstvě namícháme, zabalíme pod jménem, které jí dáš, a pošleme ti ji domů.</p>
+            <p class="hero-lede" data-i18n="hero_lede">Vyber až pět surovin a poměr, jaký chceš. Směs namícháme až po objednání a pošleme ti ji v sáčku se jménem, které jí dáš.</p>
             <div class="hero-actions">
-                <button class="btn btn-primary btn-lg" onclick="showPage('product-page')" data-i18n="btn_create_own">Namíchej si vlastní</button>
-                <button class="btn btn-link" onclick="showPage('quiz-page')" data-i18n="hero_quiz_link">Nevíš co? Poradí ti kvíz</button>
+                <a class="btn btn-primary btn-lg" href="?stranka=namichat" data-page="product-page" data-i18n="btn_create_own">Namíchej si vlastní</a>
+                <a class="btn btn-link" href="?stranka=kviz" data-page="quiz-page" data-i18n="hero_quiz_link">Nevíš, co vybrat? Poradí ti kvíz</a>
             </div>
             <p class="hero-note" id="hero-note"></p>
         </div>
@@ -195,7 +242,7 @@
             <p class="section-lede" id="how-lede"></p>
         </div>
         <ol class="formula" id="how-formula"></ol>
-        <button class="btn btn-primary how-cta" onclick="showPage('product-page')" data-i18n="how_cta">Začít míchat</button>
+        <a class="btn btn-primary how-cta" href="?stranka=namichat" data-page="product-page" data-i18n="how_cta">Začít míchat</a>
     </section>
 
     <section class="ready-made-section shelf-section" id="shelf" aria-labelledby="shelf-title">
@@ -214,7 +261,7 @@
             <p class="reviews-summary" id="reviews-home-summary"></p>
         </div>
         <div class="reviews-list" id="reviews-home-list"></div>
-        <p class="reviews-note" data-i18n="reviews_note">Recenze píšou jen zákazníci, kteří u nás nakoupili.</p>
+        <p class="reviews-note" data-i18n="reviews_note">Recenze píšou jen zákazníci, kteří u nás nakoupili: ověřujeme je číslem objednávky a e-mailem z ní a hodnotit jde až po odeslání. Zveřejňujeme kladné i kritické, nezveřejníme jen vulgární, nesouvisející nebo s cizími osobními údaji. Za recenze nic nedáváme.</p>
     </section>
 
     <section class="craft-band" id="craft-home" aria-labelledby="craft-home-title">
@@ -224,16 +271,16 @@
         </div>
         <div class="craft-flatlay" id="craft-home-items" aria-hidden="true"></div>
         <div class="craft-band-cta">
-            <button class="btn btn-quiet" onclick="showPage('craft-page')" data-i18n="craft_home_btn">Prohlédnout mýdla a balzámy</button>
+            <a class="btn btn-quiet" href="?stranka=mydla" data-page="craft-page" data-i18n="craft_home_btn">Prohlédnout mýdla a balzámy</a>
         </div>
     </section>
 
     <section class="quiz-band" aria-labelledby="quizband-title">
         <div class="quiz-band-copy">
             <h2 id="quizband-title" data-i18n="quizband_title">Nevíš, co by ti chutnalo?</h2>
-            <p data-i18n="quizband_text">Odpověz na pět krátkých otázek a doporučíme ti směs, která sedí tvé náladě i denní době.</p>
+            <p data-i18n="quizband_text">Pět krátkých otázek a doporučíme ti směs podle toho, kdy čaj piješ a jaké chutě máš v oblibě.</p>
         </div>
-        <button class="btn btn-lg" onclick="showPage('quiz-page')" data-i18n="quizband_btn">Spustit kvíz</button>
+        <a class="btn btn-lg" href="?stranka=kviz" data-page="quiz-page" data-i18n="quizband_btn">Spustit kvíz</a>
     </section>
 
     <section class="faq-section" aria-labelledby="faq-title">
@@ -244,42 +291,42 @@
         <div class="faq-list">
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">
-                    <span data-i18n="faq_q1">How long does delivery take?</span>
+                    <span data-i18n="faq_q1">Jak dlouho trvá doručení?</span>
                     <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div class="faq-a" data-i18n="faq_a1">Směs namícháme až po objednání a obvykle ji odešleme do 24 hodin. Česká republika: 2–3 pracovní dny přes Zásilkovnu nebo Českou poštu. Slovensko: 3–5 pracovních dní.</div>
+                <div class="faq-a" data-i18n="faq_a1">Směs namícháme až po objednání a obvykle ji odešleme do 24 hodin. Po Česku pak cesta trvá 2–3 pracovní dny (Zásilkovna nebo Česká pošta), na Slovensko 3–5 pracovních dní.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">
-                    <span data-i18n="faq_q2">What are the allergens?</span>
+                    <span data-i18n="faq_q2">Jaké jsou alergeny?</span>
                     <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="faq-a" data-i18n="faq_a2">Alergeny najdeš u každé směsi v části Složení a informace o potravině, a to podle specifikací od našich dodavatelů. Když máš silnou alergii, napiš nám před objednávkou a probereme to.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">
-                    <span data-i18n="faq_q3">Can I return or exchange an order?</span>
+                    <span data-i18n="faq_q3">Můžu objednávku vrátit?</span>
                     <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div class="faq-a" data-i18n="faq_a3">Směs namíchanou podle tebe děláme na zakázku, takže ji nejde vrátit bez udání důvodu. Hotovou směs z nabídky vrátit můžeš do 14 dnů, pokud je sáček neotevřený. Když cokoli dorazí poškozené nebo jiné, než jsi objednal, napiš nám a pošleme novou. Podrobnosti jsou v obchodních podmínkách.</div>
+                <div class="faq-a" data-i18n="faq_a3">Směs namíchanou podle tebe vyrábíme na zakázku, takže ji nejde vrátit bez udání důvodu. Hotovou směs z nabídky můžeš vrátit do 14 dnů, pokud je sáček neotevřený. Když cokoli dorazí poškozené nebo se liší od objednávky, napiš nám a pošleme novou. Podrobnosti jsou v obchodních podmínkách.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">
-                    <span data-i18n="faq_q4">How do I brew my blend?</span>
+                    <span data-i18n="faq_q4">Jak směs připravit?</span>
                     <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div class="faq-a" data-i18n="faq_a4">Use 2&ndash;3 grams per 200ml of water. Green and white teas: 75&ndash;80&deg;C for 2&ndash;3 minutes. Black and oolong: 90&ndash;95&deg;C for 3&ndash;4 minutes. Herbal (rooibos, chamomile): 100&deg;C for 5&ndash;7 minutes. Each package includes a brewing guide card.</div>
+                <div class="faq-a" data-i18n="faq_a4">Na 200 ml vody dej 2–3 gramy, tedy zhruba jednu čajovou lžičku. Zelený a bílý čaj: 75–80 °C, 2–3 minuty. Oolong: 85–90 °C, 3–4 minuty. Černý čaj: 90–95 °C, 3–4 minuty. Bylinky a rooibos: vroucí voda, 5–7 minut. Přesný postup pro svou směs najdeš na její stránce. Každé balení obsahuje kartičku s návodem na přípravu.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">
-                    <span data-i18n="faq_q5">Can I send a blend as a gift?</span>
+                    <span data-i18n="faq_q5">Můžu směs poslat jako dárek?</span>
                     <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div class="faq-a" data-i18n="faq_a5">Absolutely &mdash; it's one of our most popular uses! During checkout, add a personal message in the note field and we'll include a handwritten card. We also offer gift wrapping on request.</div>
+                <div class="faq-a" data-i18n="faq_a5">Určitě, je to jedno z nejoblíbenějších použití. Při objednávce napiš osobní vzkaz do poznámky a přiložíme ručně psanou kartičku. Na přání směs i dárkově zabalíme.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">
-                    <span data-i18n="faq_q6">How long does the tea stay fresh?</span>
+                    <span data-i18n="faq_q6">Jak dlouho čaj vydrží čerstvý?</span>
                     <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="faq-a" data-i18n="faq_a6">Balíme do opakovaně uzavíratelných sáčků pro potraviny. Na každém je datum minimální trvanlivosti, obvykle rok od namíchání. Skladuj v suchu a temnu při pokojové teplotě a po otevření sáček dobře zavři.</div>
@@ -293,7 +340,7 @@
 <!-- ═══ DETAIL HOTOVÉ SMĚSI ═══ -->
 <section id="product-detail-page" class="page detail">
     <div class="page-wrap">
-        <button type="button" class="back-btn" onclick="goToShelf()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span data-i18n="back_to_shelf">Naše směsi</span></button>
+        <a class="back-btn" href="./#shelf" data-go="shelf"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span data-i18n="back_to_shelf">Naše směsi</span></a>
         <div class="detail-layout">
             <figure class="detail-stage">
                 <img id="detail-photo" class="detail-photo" alt="" hidden>
@@ -323,7 +370,7 @@
                     <h2 id="detail-reviews-title" data-i18n="reviews_title_blend">Hodnocení</h2>
                     <p class="reviews-summary" id="detail-reviews-summary"></p>
                     <div class="reviews-list" id="detail-reviews-list"></div>
-                    <p class="reviews-note" data-i18n="reviews_note">Recenze píšou jen zákazníci, kteří u nás nakoupili.</p>
+                    <p class="reviews-note" data-i18n="reviews_note">Recenze píšou jen zákazníci, kteří u nás nakoupili: ověřujeme je číslem objednávky a e-mailem z ní a hodnotit jde až po odeslání. Zveřejňujeme kladné i kritické, nezveřejníme jen vulgární, nesouvisející nebo s cizími osobními údaji. Za recenze nic nedáváme.</p>
                 </section>
                 <aside class="detail-craft" id="detail-craft" hidden aria-labelledby="detail-craft-title">
                     <h2 class="brew-title" id="detail-craft-title" data-i18n="craft_same_title">Ze stejných surovin</h2>
@@ -388,7 +435,7 @@
             <section class="mix-recipe" id="mix-recipe" aria-labelledby="mix-recipe-title" hidden>
                 <div class="mix-recipe-head">
                     <h2 class="mix-recipe-title" id="mix-recipe-title" tabindex="-1"><span data-i18n="mix_title">Tvoje směs</span> <span class="mix-recipe-count" id="mix-recipe-count"></span></h2>
-                    <div class="seg" id="mix-recipe-sizes" role="group" aria-label="Spočítat pro velikost" data-i18n-aria="mix_size_label"></div>
+                    <div class="seg" id="mix-recipe-sizes" role="group" aria-label="Spočítat pro" data-i18n-aria="mix_size_label"></div>
                 </div>
                 <div class="mix-strip" id="mix-strip" aria-hidden="true"></div>
                 <ul class="mix-rows" id="mix-rows"></ul>
@@ -417,12 +464,14 @@
     <div class="page-wrap page-narrow">
         <header class="page-head">
             <h1 class="page-title" data-i18n="saved_title">Uložené směsi</h1>
-            <p class="page-lede" data-i18n="saved_lede">Směsi, které sis uložil v mixéru.</p>
+            <p class="page-lede" data-i18n="saved_lede">Směsi uložené z mixéru. Objednáš je jedním klepnutím.</p>
         </header>
         <div id="saved-list" class="saved-list"></div>
         <div id="saved-empty" class="empty-state">
-            <p data-i18n="saved_empty">Zatím tu nic není.</p>
-            <button class="btn btn-primary" onclick="showPage('product-page')" data-i18n="btn_create_first">Namíchat směs</button>
+            <div class="empty-pouch" aria-hidden="true"></div>
+            <p class="empty-title" data-i18n="saved_empty_title">Zatím žádná uložená směs</p>
+            <p data-i18n="saved_empty">V mixéru si můžeš každou směs uložit na později.</p>
+            <a class="btn btn-primary" href="?stranka=namichat" data-page="product-page" data-i18n="btn_create_first">Namíchat směs</a>
         </div>
     </div>
 </section>
@@ -432,12 +481,14 @@
     <div class="page-wrap page-narrow">
         <header class="page-head">
             <h1 class="page-title" data-i18n="orders_title">Moje objednávky</h1>
-            <p class="page-lede" data-i18n="orders_lede">Objednávky z tohohle prohlížeče.</p>
+            <p class="page-lede" data-i18n="orders_lede">Objednávky odeslané z tohohle prohlížeče.</p>
         </header>
         <div id="orders-list" class="orders-list"></div>
         <div id="orders-empty" class="empty-state">
-            <p data-i18n="orders_empty">Zatím tu nejsou žádné objednávky.</p>
-            <button class="btn btn-primary" onclick="showPage('product-page')" data-i18n="btn_create_first">Namíchat směs</button>
+            <div class="empty-pouch" aria-hidden="true"></div>
+            <p class="empty-title" data-i18n="orders_empty_title">Zatím žádná objednávka</p>
+            <p data-i18n="orders_empty">Až něco objednáš, najdeš to tady i s údaji k platbě.</p>
+            <a class="btn btn-primary" href="?stranka=namichat" data-page="product-page" data-i18n="btn_create_first">Namíchat směs</a>
         </div>
     </div>
 </section>
@@ -454,11 +505,12 @@
                 </div>
                 <ul id="cart-items-list" class="cart-list"></ul>
                 <div id="cart-empty" class="empty-state" style="display:none;">
+                    <div class="empty-pouch" aria-hidden="true"></div>
                     <p class="empty-title" data-i18n="cart_empty_title">Košík je prázdný</p>
-                    <p data-i18n="cart_empty">Vyber si hotovou směs, nebo si namíchej vlastní.</p>
+                    <p data-i18n="cart_empty">Vyber si některou z našich směsí, nebo si namíchej vlastní.</p>
                     <div class="empty-actions">
-                        <button class="btn btn-primary" onclick="showPage('product-page')" data-i18n="btn_create_own">Namíchej si vlastní</button>
-                        <button class="btn btn-quiet" onclick="goToShelf()" data-i18n="btn_browse_blends">Naše směsi</button>
+                        <a class="btn btn-primary" href="?stranka=namichat" data-page="product-page" data-i18n="btn_create_own">Namíchej si vlastní</a>
+                        <a class="btn btn-quiet" href="./#shelf" data-go="shelf" data-i18n="btn_browse_blends">Naše směsi</a>
                     </div>
                 </div>
             </div>
@@ -483,7 +535,7 @@
                 <p id="cart-shipping-line" class="sum-note"></p>
                 <p id="cart-closed-note" class="sales-closed-note" hidden data-i18n="sales_closed_note">Objednávky zatím nepřijímáme, prodej teprve chystáme. Košík ti tu zůstane.</p>
                 <button class="btn btn-primary btn-lg btn-block" id="cart-checkout-btn" onclick="showPage('checkout-page')" data-i18n="btn_checkout">Přejít k pokladně</button>
-                <button class="btn btn-link cart-continue" onclick="goToShelf()" data-i18n="btn_continue">Pokračovat v nákupu</button>
+                <a class="btn btn-link cart-continue" href="./#shelf" data-go="shelf" data-i18n="btn_continue">Pokračovat v nákupu</a>
             </aside>
         </div>
     </div>
@@ -492,7 +544,7 @@
 <!-- ═══ POKLADNA ═══ -->
 <section id="checkout-page" class="page">
     <div class="page-wrap">
-        <button type="button" class="back-btn" onclick="showPage('cart-page')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span data-i18n="cart_title">Košík</span></button>
+        <a class="back-btn" href="?stranka=kosik" data-page="cart-page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span data-i18n="cart_title">Košík</span></a>
         <h1 class="page-title" data-i18n="checkout_title">Pokladna</h1>
         <div class="checkout-layout">
             <aside class="checkout-summary">
@@ -529,17 +581,17 @@
                 <fieldset class="form-step">
                     <legend class="form-step-title"><span class="form-step-num">2</span><span data-i18n="checkout_shipping">Doprava</span></legend>
                     <div class="choice-list">
-                        <label class="choice shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="69" required onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name" data-i18n="ship_zasilkovna_name">Zásilkovna</span><span class="choice-desc shipping-desc" data-i18n="ship_zasilkovna_desc">Vyzvedneš na výdejním místě</span></span><span class="choice-price shipping-price">69 Kč</span></label>
+                        <label class="choice shipping-option"><input type="radio" name="shipping" value="zasilkovna" data-price="69" required onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name" data-i18n="ship_zasilkovna_name">Zásilkovna</span><span class="choice-desc shipping-desc" data-i18n="ship_zasilkovna_desc">Vyzvedneš na výdejním místě, 2–3 pracovní dny</span></span><span class="choice-price shipping-price">69 Kč</span></label>
                         <div id="packeta-picker" class="packeta-picker" style="display:none;" aria-live="polite">
                             <button type="button" id="packeta-choose-btn" class="btn btn-quiet packeta-choose-btn" onclick="openPacketaWidget()" data-i18n="packeta_choose">Vybrat výdejní místo</button>
                             <div id="packeta-selected" class="packeta-selected" style="display:none;">
                                 <span id="packeta-branch-name" class="packeta-branch-name">—</span>
                                 <button type="button" onclick="openPacketaWidget()" class="btn btn-link packeta-change-btn" data-i18n="packeta_change">Změnit</button>
                             </div>
-                            <span id="packeta-error" class="field-error" style="display:none;" data-i18n="packeta_required">Vyber výdejní místo</span>
+                            <span id="packeta-error" class="field-error" style="display:none;" data-i18n="packeta_required">Vyber prosím výdejní místo</span>
                         </div>
-                        <label class="choice shipping-option"><input type="radio" name="shipping" value="post" data-price="89" onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name">Česká pošta</span><span class="choice-desc shipping-desc" data-i18n="ship_post_desc">Doručení za 3–5 pracovních dní</span></span><span class="choice-price shipping-price">89 Kč</span></label>
-                        <label class="choice shipping-option"><input type="radio" name="shipping" value="dpd" data-price="119" onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name" data-i18n="ship_dpd_name">Kurýr DPD</span><span class="choice-desc shipping-desc" data-i18n="ship_dpd_desc">Doručení další pracovní den</span></span><span class="choice-price shipping-price">119 Kč</span></label>
+                        <label class="choice shipping-option"><input type="radio" name="shipping" value="post" data-price="89" onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name">Česká pošta</span><span class="choice-desc shipping-desc" data-i18n="ship_post_desc">Až domů, 3–5 pracovních dní</span></span><span class="choice-price shipping-price">89 Kč</span></label>
+                        <label class="choice shipping-option"><input type="radio" name="shipping" value="dpd" data-price="119" onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name" data-i18n="ship_dpd_name">Kurýr DPD</span><span class="choice-desc shipping-desc" data-i18n="ship_dpd_desc">Až domů, obvykle další pracovní den</span></span><span class="choice-price shipping-price">119 Kč</span></label>
                         <label class="choice shipping-option" style="display:none"><input type="radio" name="shipping" value="pickup" data-price="0" disabled onchange="handleShippingChange(this)"><span class="choice-body"><span class="choice-name shipping-name" data-i18n="ship_pickup_name">Osobní odběr</span><span class="choice-desc shipping-desc" id="pickup-note">Karlovy Vary, ozveme se, až bude připravená</span></span><span class="choice-price shipping-price">0 Kč</span></label>
                     </div>
                 </fieldset>
@@ -554,7 +606,7 @@
                     <div class="form-group">
                         <label class="field-label" for="f-country" data-i18n="lbl_country">Země *</label>
                         <select id="f-country" name="country" class="field field-select" required autocomplete="country">
-                            <option value="" data-i18n="country_select">Vyber</option>
+                            <option value="" data-i18n="country_select">Vyber zemi</option>
                             <option value="CZ" data-i18n="country_cz">Česko</option>
                             <option value="SK" data-i18n="country_sk">Slovensko</option>
                         </select>
@@ -563,8 +615,8 @@
                 <fieldset class="form-step">
                     <legend class="form-step-title"><span class="form-step-num">4</span><span data-i18n="pay_title">Platba</span></legend>
                     <div class="choice-list">
-                        <label class="choice payment-option"><input type="radio" name="payment" value="cod" required onchange="refreshCheckoutTotals()"><span class="choice-body"><span class="choice-name" data-i18n="pay_cod">Dobírka</span><span class="choice-desc" data-i18n="pay_cod_desc">Platba při převzetí (+39 Kč)</span></span></label>
-                        <label class="choice payment-option"><input type="radio" name="payment" value="transfer" onchange="refreshCheckoutTotals()"><span class="choice-body"><span class="choice-name" data-i18n="pay_transfer">Bankovní převod</span><span class="choice-desc" data-i18n="pay_transfer_desc">Instrukce pošleme e-mailem</span></span></label>
+                        <label class="choice payment-option"><input type="radio" name="payment" value="cod" required onchange="refreshCheckoutTotals()"><span class="choice-body"><span class="choice-name" data-i18n="pay_cod">Dobírka</span><span class="choice-desc" data-i18n="pay_cod_desc">Platíš při převzetí (+39 Kč)</span></span></label>
+                        <label class="choice payment-option"><input type="radio" name="payment" value="transfer" onchange="refreshCheckoutTotals()"><span class="choice-body"><span class="choice-name" data-i18n="pay_transfer">Bankovní převod</span><span class="choice-desc" data-i18n="pay_transfer_desc">Údaje k platbě pošleme e-mailem</span></span></label>
                     </div>
                 </fieldset>
                 <p id="payment-error" class="field-error" role="alert" style="display:none;" data-i18n="err_payment">Vyber, jak chceš zaplatit.</p>
@@ -583,8 +635,8 @@
                     <label class="field-label" for="f-note"><span data-i18n="checkout_note">Poznámka</span> <span class="field-opt" data-i18n="checkout_note_opt">(nepovinné)</span></label>
                     <textarea id="f-note" name="note" class="field" rows="3" placeholder="Třeba vzkaz na přání, když je to dárek" data-i18n-placeholder="note_placeholder2"></textarea>
                 </div>
-                <p class="checkout-note" data-i18n-html="checkout_withdraw_note">Směsi namíchané podle tvého výběru děláme na zakázku, takže je nejde vrátit do 14 dnů bez udání důvodu (§ 1837 písm. d) občanského zákoníku). Hotovou směs z nabídky vrátit můžeš, pokud zůstal sáček neotevřený.</p>
-                <p class="checkout-legal" data-i18n-html="checkout_legal">Odesláním objednávky souhlasíš s obchodními podmínkami.</p>
+                <p class="checkout-note" data-i18n-html="checkout_withdraw_note">Směsi namíchané podle tvého výběru děláme na zakázku, takže je nejde vrátit do 14 dnů bez udání důvodu (§ 1837 písm. d) občanského zákoníku). Hotovou směs z nabídky vrátit můžeš, pokud zůstal sáček neotevřený. Reklamovat můžeš obojí.</p>
+                <p class="checkout-legal" data-i18n-html="checkout_legal">Odesláním objednávky potvrzuješ, že ses seznámil s <a href="?stranka=obchodni-podminky" data-page="terms-page">obchodními podmínkami</a> a <a href="?stranka=ochrana-udaju" data-page="privacy-page">ochranou osobních údajů</a>.</p>
                 <button type="submit" class="btn btn-primary btn-lg btn-block checkout-submit" data-i18n="btn_complete_order">Objednat a zaplatit</button>
             </form>
         </div>
@@ -596,7 +648,7 @@
     <div class="page-wrap success">
         <div class="success-pouch" id="success-pouch" aria-hidden="true"></div>
         <h1 class="page-title" data-i18n="success_title">Díky, objednávka je u nás</h1>
-        <p class="page-lede" data-i18n="success_desc">Směs namícháme a obvykle do 24 hodin odešleme.</p>
+        <p class="page-lede" data-i18n="success_desc">Směs namícháme a obvykle do 24 hodin odešleme. Shrnutí najdeš v Moje objednávky.</p>
         <p class="success-num" id="success-order-num"></p>
         <section class="pay-box" id="success-pay" hidden aria-live="polite"></section>
         <ol class="success-steps">
@@ -605,8 +657,8 @@
             <li data-i18n="success_step3">Odešleme</li>
         </ol>
         <div class="success-actions">
-            <button class="btn btn-primary btn-lg" onclick="showPage('product-page')" data-i18n="btn_create_another">Namíchat další směs</button>
-            <button class="btn btn-link" onclick="showPage('orders-page')" data-i18n="nav_orders">Moje objednávky</button>
+            <a class="btn btn-primary btn-lg" href="?stranka=namichat" data-page="product-page" data-i18n="btn_create_another">Namíchat další směs</a>
+            <a class="btn btn-link" href="?stranka=moje-objednavky" data-page="orders-page" data-i18n="nav_orders">Moje objednávky</a>
         </div>
     </div>
 </section>
@@ -616,21 +668,21 @@
     <div class="page-wrap page-narrow">
         <header class="page-head">
             <h1 class="page-title" data-i18n="about_hero_title">Čaj je osobní.</h1>
-            <p class="page-lede" data-i18n="about_hero_subtitle">Ne verze nějaké značky. Tvoje.</p>
+            <p class="page-lede" data-i18n="about_hero_subtitle">Každému chutná jiný. Proto si u nás každý míchá ten svůj.</p>
         </header>
         <div class="prose">
-            <p data-i18n="about_story_p1"></p>
-            <p data-i18n="about_story_p2"></p>
-            <p class="prose-callout" data-i18n="about_callout_text"></p>
+            <p data-i18n="about_story_p1">Tease you začalo jako maturitní práce. Zakladatel kvůli ní měsíce obcházel čajovny a zjišťoval, proč se k některému šálku vracíš a k jinému ne.</p>
+            <p data-i18n="about_story_p2">Vyšlo mu, že to za tebe nikdo neurčí. Proto tu není jedna „nejlepší“ směs, ale mixér: vybereš základ, příchuť a doplněk, nastavíš poměr a směs pojmenuješ.</p>
+            <p class="prose-callout" data-i18n="about_callout_text">Každou směs mícháme až po objednání. Ne dřív.</p>
         </div>
         <div class="facts">
-            <div class="fact"><h2 data-i18n="about_card1_title">Pokaždé čerstvé</h2><p data-i18n="about_card1_desc"></p></div>
-            <div class="fact"><h2 data-i18n="about_card2_title">Tvůj recept</h2><p data-i18n="about_card2_desc"></p></div>
-            <div class="fact"><h2 data-i18n="about_card3_title">Skutečné suroviny</h2><p data-i18n="about_card3_desc"></p></div>
+            <div class="fact"><h2 data-i18n="about_card1_title">Mícháno na objednávku</h2><p data-i18n="about_card1_desc">Směs vzniká, až když si ji objednáš. Nic nečeká namíchané ve skladu.</p></div>
+            <div class="fact"><h2 data-i18n="about_card2_title">Tvůj recept</h2><p data-i18n="about_card2_desc">Poměr nastavíš po dílech a hned vidíš procenta, gramy i cenu. Recept si můžeš uložit a příště objednat znovu.</p></div>
+            <div class="fact"><h2 data-i18n="about_card3_title">Složení na očích</h2><p data-i18n="about_card3_desc">Čaje, byliny, ovoce a koření od ověřených dodavatelů. U každé směsi najdeš celé složení v procentech, alergeny i trvanlivost.</p></div>
         </div>
         <div class="page-cta">
             <p data-i18n="about_cta">Chceš si jednu namíchat?</p>
-            <button class="btn btn-primary btn-lg" onclick="showPage('product-page')" data-i18n="btn_start_creating2">Namíchat směs</button>
+            <a class="btn btn-primary btn-lg" href="?stranka=namichat" data-page="product-page" data-i18n="btn_start_creating2">Namíchat směs</a>
         </div>
     </div>
 </section>
@@ -700,7 +752,7 @@
             <h3>Směsi na míru</h3>
             <p>Směs namíchaná podle tvého výběru je zboží vyrobené podle požadavků spotřebitele. U ní právo na odstoupení bez udání důvodu nevzniká (§ 1837 písm. d) občanského zákoníku). Když ale dorazí vadná nebo jiná, než jsi objednal, platí pro ni reklamace níže.</p>
             <h3>Jak odstoupit</h3>
-            <p>Nejsnáz tlačítkem <strong>„Odstoupit od smlouvy“</strong> na stránce <a href="#" onclick="event.preventDefault(); showPage('withdrawal-page')">Odstoupení od smlouvy</a> nebo u objednávky v sekci Moje objednávky. Vyplníš číslo objednávky, jméno a e-mail a odstoupení potvrdíš. Hned uvidíš potvrzení s datem a časem a pošleme ti ho i e-mailem.</p>
+            <p>Nejsnáz tlačítkem <strong>„Odstoupit od smlouvy“</strong> na stránce <a href="?stranka=odstoupeni" data-page="withdrawal-page">Odstoupení od smlouvy</a> nebo u objednávky v sekci Moje objednávky. Vyplníš číslo objednávky, jméno a e-mail a odstoupení potvrdíš. Hned uvidíš potvrzení s datem a časem a pošleme ti ho i e-mailem.</p>
             <p>Odstoupit můžeš i jakoukoli jinou jasnou zprávou, třeba e-mailem na <a href="mailto:hello@teaseyou.cz" data-seller-mail>hello@teaseyou.cz</a>, se vzorovým formulářem, nebo bez něj. I takové odstoupení ti potvrdíme e-mailem.</p>
             <p>Zboží nám pošli do 14 dnů od odstoupení na adresu <span data-seller="address">[doplnit]</span>. Náklady na vrácení neseš ty. Zboží neposílej na dobírku.</p>
             <p>Peníze, včetně ceny dopravy v nejlevnější nabízené variantě, ti vrátíme do 14 dnů od odstoupení stejným způsobem, jakým jsi platil (u dobírky převodem na účet, který nám sdělíš). Peníze nevracíme dřív, než nám zboží dorazí nebo než doložíš, že jsi ho odeslal.</p>
@@ -713,7 +765,7 @@
             <p>Můžeš chtít novou směs bez vady, nebo, když to nedává smysl, přiměřenou slevu. Když vadu neodstraníme včas nebo se opakuje, můžeš od smlouvy odstoupit. Reklamaci vyřídíme nejpozději do 30 dnů od uplatnění. O výsledku ti dáme vědět e-mailem. Účelně vynaložené náklady na reklamaci ti uhradíme.</p>
 
             <h2>8. Osobní údaje</h2>
-            <p>Jak s osobními údaji zacházíme, popisuje stránka <a href="#" onclick="event.preventDefault(); showPage('privacy-page')">Ochrana osobních údajů</a>.</p>
+            <p>Jak s osobními údaji zacházíme, popisuje stránka <a href="?stranka=ochrana-udaju" data-page="privacy-page">Ochrana osobních údajů</a>.</p>
 
             <h2>9. Stížnosti a spory</h2>
             <p>S čímkoli nespokojeným se nejdřív ozvi nám, vyřešíme to. Spor, na kterém se nedohodneme, můžeš řešit mimosoudně u České obchodní inspekce (Štěpánská 567/15, 120 00 Praha 2, <a href="https://coi.gov.cz" rel="noopener" target="_blank">coi.gov.cz</a>, sekce Mimosoudní řešení sporů). Je to zdarma.</p>
@@ -723,7 +775,7 @@
             <p>Podmínky se řídí českým právem. Platí ve znění, které bylo na webu, když jsi objednávku odeslal. Pozdější změny se tvé objednávky netýkají. Předchozí znění ti na požádání pošleme.</p>
             <p class="legal-updated">Znění ze dne 9. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
         </div>
-        <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
+        <a class="btn btn-quiet" href="./" data-page="home-page" data-i18n="back_home">Zpět na úvod</a>
     </div>
 </section>
 
@@ -733,7 +785,7 @@
         <h1 class="page-title">Odstoupení od smlouvy</h1>
         <p class="legal-lang-note" data-legal-note hidden></p>
         <div class="legal-body">
-            <p class="legal-lede">Hotovou směs v neotevřeném sáčku můžeš vrátit do 14 dnů od převzetí bez udání důvodu. Směsi namíchané na míru vrátit nejde, ty můžeš jen reklamovat. Podrobnosti jsou v <a href="#" onclick="event.preventDefault(); showPage('terms-page')">obchodních podmínkách</a>, článek 6.</p>
+            <p class="legal-lede">Hotovou směs v neotevřeném sáčku můžeš vrátit do 14 dnů od převzetí bez udání důvodu. Směsi namíchané na míru vrátit nejde, ty můžeš jen reklamovat. Podrobnosti jsou v <a href="?stranka=obchodni-podminky" data-page="terms-page">obchodních podmínkách</a>, článek 6.</p>
 
             <section class="wd-online" aria-labelledby="wd-online-title">
                 <h2 id="wd-online-title">Odstoupit online</h2>
@@ -748,7 +800,7 @@
                     <div class="form-group"><label class="field-label" for="wd-note">Poznámka <span class="field-opt">(nepovinné)</span></label><textarea id="wd-note" name="note" class="field" rows="2" maxlength="1000"></textarea></div>
                     <p class="field-error" id="wd-error" role="alert" style="display:none;"></p>
                     <button type="submit" class="btn btn-primary btn-block" id="wd-confirm">Potvrdit odstoupení od smlouvy</button>
-                    <p class="field-hint">Odesláním odstupuješ od smlouvy. Zpracujeme jméno, e-mail a číslo účtu jen kvůli vyřízení (<a href="#" onclick="event.preventDefault(); showPage('privacy-page')">ochrana osobních údajů</a>).</p>
+                    <p class="field-hint">Odesláním odstupuješ od smlouvy. Zpracujeme jméno, e-mail a číslo účtu jen kvůli vyřízení (<a href="?stranka=ochrana-udaju" data-page="privacy-page">ochrana osobních údajů</a>).</p>
                 </form>
                 <div id="wd-done" class="wd-done" role="status" tabindex="-1" hidden></div>
             </section>
@@ -777,7 +829,7 @@
                 </ul>
             </div>
         </div>
-        <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
+        <a class="btn btn-quiet" href="./" data-page="home-page" data-i18n="back_home">Zpět na úvod</a>
     </div>
 </section>
 
@@ -826,7 +878,7 @@
             <p>Když nebudeš spokojený, můžeš si stěžovat u Úřadu pro ochranu osobních údajů (Pplk. Sochora 27, 170 00 Praha 7, <a href="https://uoou.gov.cz" rel="noopener" target="_blank">uoou.gov.cz</a>).</p>
 
             <h2>5. Co si web pamatuje v tvém prohlížeči</h2>
-            <p>Košík, uložené směsi a podobně se ukládají jen ve tvém prohlížeči a nikam se neposílají. Přehled je na stránce <a href="#" onclick="event.preventDefault(); showPage('cookies-page')">Cookies</a>. Analytiku ani reklamní cookies nepoužíváme. Písma máme uložená přímo u nás, takže se nic nenačítá z Googlu.</p>
+            <p>Košík, uložené směsi a podobně se ukládají jen ve tvém prohlížeči a nikam se neposílají. Přehled je na stránce <a href="?stranka=cookies" data-page="cookies-page">Cookies</a>. Analytiku ani reklamní cookies nepoužíváme. Písma máme uložená přímo u nás, takže se nic nenačítá z Googlu.</p>
             <p>Automatizovaně o tobě nerozhodujeme a nedělíme tě do skupin.</p>
 
             <h2>6. Jak údaje chráníme</h2>
@@ -837,7 +889,7 @@
             <p>Když zásady podstatně změníme, upozorníme na to tady na webu. Předchozí znění ti na požádání pošleme.</p>
             <p class="legal-updated">Znění ze dne 9. 11. 2026, platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
         </div>
-        <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
+        <a class="btn btn-quiet" href="./" data-page="home-page" data-i18n="back_home">Zpět na úvod</a>
     </div>
 </section>
 
@@ -873,7 +925,7 @@
             <p>V nastavení prohlížeče u tohoto webu smaž data stránek. Košík a uložené směsi tím zmizí.</p>
             <p class="legal-updated">Platné od <span data-shop="terms_date">[doplnit při spuštění prodeje]</span></p>
         </div>
-        <button class="btn btn-quiet" onclick="showPage('home-page')" data-i18n="back_home">Zpět na úvod</button>
+        <a class="btn btn-quiet" href="./" data-page="home-page" data-i18n="back_home">Zpět na úvod</a>
     </div>
 </section>
 
@@ -901,8 +953,8 @@
 <section id="ingredients-page" class="page">
     <div class="page-wrap">
         <header class="page-head">
-            <h1 class="page-title" data-i18n="ing_page_title">Ingredience</h1>
-            <p class="page-lede" data-i18n="ing_page_sub">Ze všeho tady se dá míchat.</p>
+            <h1 class="page-title" data-i18n="ing_page_title">Suroviny</h1>
+            <p class="page-lede" data-i18n="ing_page_sub">Ze všeho tady se dá míchat. U každé suroviny najdeš, jak chutná a s čím si rozumí.</p>
         </header>
         <section class="ing-section" aria-labelledby="ing-h-bases">
             <h2 class="section-title ing-cat-title" id="ing-h-bases" data-i18n="ing_cat_bases">Základy</h2>
@@ -924,18 +976,18 @@
     <div class="page-wrap page-narrow">
         <header class="page-head">
             <h1 class="page-title" data-i18n="process_title">Jak to děláme</h1>
-            <p class="page-lede" data-i18n="process_sub"></p>
+            <p class="page-lede" data-i18n="process_sub">Každá objednávka je jiná. Mícháme až po objednání, přesně podle tvého výběru.</p>
         </header>
         <ol class="process-list">
-            <li><h2 data-i18n="proc_1_title">Výběr surovin</h2><p data-i18n="proc_1_desc"></p></li>
-            <li><h2 data-i18n="proc_2_title">Přesné vážení</h2><p data-i18n="proc_2_desc"></p></li>
-            <li><h2 data-i18n="proc_3_title">Namíchání</h2><p data-i18n="proc_3_desc"></p></li>
-            <li><h2 data-i18n="proc_4_title">Balení</h2><p data-i18n="proc_4_desc"></p></li>
-            <li><h2 data-i18n="proc_5_title">Odeslání</h2><p data-i18n="proc_5_desc"></p></li>
+            <li><h2 data-i18n="proc_1_title">Výběr surovin</h2><p data-i18n="proc_1_desc">Ke každé surovině máme od dodavatele specifikaci (původ, alergeny, trvanlivost). Každou dodávku před použitím zkontrolujeme: barvu, vůni i chuť.</p></li>
+            <li><h2 data-i18n="proc_2_title">Přesné vážení</h2><p data-i18n="proc_2_desc">Každou surovinu vážíme na digitální váze přesně podle receptu, takže směs chutná pokaždé stejně.</p></li>
+            <li><h2 data-i18n="proc_3_title">Namíchání</h2><p data-i18n="proc_3_desc">Suroviny ručně promícháme, aby se rovnoměrně spojily a lístky zůstaly celé.</p></li>
+            <li><h2 data-i18n="proc_4_title">Balení</h2><p data-i18n="proc_4_desc">Balíme do opakovaně uzavíratelných sáčků pro potraviny. Na každém je jméno směsi, složení, datum minimální trvanlivosti a číslo šarže.</p></li>
+            <li><h2 data-i18n="proc_5_title">Odeslání</h2><p data-i18n="proc_5_desc">Balíky posíláme přes Zásilkovnu, Českou poštu nebo DPD, obvykle do 24 hodin od objednávky.</p></li>
         </ol>
         <div class="page-cta">
             <p data-i18n="process_cta_title">Chceš si jednu namíchat?</p>
-            <button class="btn btn-primary btn-lg" onclick="showPage('product-page')" data-i18n="btn_start_creating">Namíchat směs</button>
+            <a class="btn btn-primary btn-lg" href="?stranka=namichat" data-page="product-page" data-i18n="btn_start_creating">Namíchat směs</a>
         </div>
     </div>
 </section>
@@ -956,24 +1008,24 @@
         <div class="footer-col">
             <h2 class="footer-col-title" data-i18n="footer_shop">Obchod</h2>
             <ul class="footer-links">
-                <li><a href="#" onclick="event.preventDefault(); showPage('product-page')" data-i18n="nav_create">Namíchej si vlastní</a></li>
-                <li><a href="#" onclick="event.preventDefault(); goToShelf()" data-i18n="nav_shelf">Naše směsi</a></li>
-                <li><a href="#" onclick="event.preventDefault(); showPage('quiz-page')" data-i18n="nav_quiz">Najdi svůj blend</a></li>
-                <li><a href="#" onclick="event.preventDefault(); showPage('ingredients-page')" data-i18n="nav_ingredients">Ingredience</a></li>
-                <li><a href="#" onclick="event.preventDefault(); showPage('craft-page')" data-i18n="nav_craft">Mýdla a balzámy</a></li>
-                <li><a href="#" onclick="event.preventDefault(); showPage('saved-page')" data-i18n="nav_blends">Moje blendy</a></li>
-                <li><a href="#" onclick="event.preventDefault(); showPage('orders-page')" data-i18n="nav_orders">Moje objednávky</a></li>
+                <li><a href="?stranka=namichat" data-page="product-page" data-i18n="nav_create">Namíchej si vlastní</a></li>
+                <li><a href="./#shelf" data-go="shelf" data-i18n="nav_shelf">Naše směsi</a></li>
+                <li><a href="?stranka=kviz" data-page="quiz-page" data-i18n="nav_quiz">Kvíz</a></li>
+                <li><a href="?stranka=suroviny" data-page="ingredients-page" data-i18n="nav_ingredients">Suroviny</a></li>
+                <li><a href="?stranka=mydla" data-page="craft-page" data-i18n="nav_craft">Mýdla a balzámy</a></li>
+                <li><a href="?stranka=moje-smesi" data-page="saved-page" data-i18n="nav_blends">Uložené směsi</a></li>
+                <li><a href="?stranka=moje-objednavky" data-page="orders-page" data-i18n="nav_orders">Moje objednávky</a></li>
             </ul>
         </div>
         <div class="footer-col">
             <h2 class="footer-col-title" data-i18n="footer_info">Informace</h2>
             <ul class="footer-links">
-                <li><a href="#" onclick="event.preventDefault(); showPage('about-page')" data-i18n="nav_about">O nás</a></li>
-                <li><a href="#" onclick="event.preventDefault(); showPage('process-page')" data-i18n="nav_process">Jak to děláme</a></li>
-                <li><a href="#" onclick="event.preventDefault(); showPage('terms-page')" data-i18n="footer_terms">Obchodní podmínky</a></li>
-                <li><a href="#" onclick="event.preventDefault(); showPage('privacy-page')" data-i18n="footer_privacy">Ochrana osobních údajů</a></li>
-                <li><a href="#" onclick="event.preventDefault(); showPage('withdrawal-page')" data-i18n="footer_withdrawal">Odstoupení od smlouvy</a></li>
-                <li><a href="#" onclick="event.preventDefault(); showPage('cookies-page')" data-i18n="footer_cookies">Cookies</a></li>
+                <li><a href="?stranka=o-nas" data-page="about-page" data-i18n="nav_about">O nás</a></li>
+                <li><a href="?stranka=jak-michame" data-page="process-page" data-i18n="nav_process">Jak to děláme</a></li>
+                <li><a href="?stranka=obchodni-podminky" data-page="terms-page" data-i18n="footer_terms">Obchodní podmínky</a></li>
+                <li><a href="?stranka=ochrana-udaju" data-page="privacy-page" data-i18n="footer_privacy">Ochrana osobních údajů</a></li>
+                <li><a href="?stranka=odstoupeni" data-page="withdrawal-page" data-i18n="footer_withdrawal">Odstoupení od smlouvy</a></li>
+                <li><a href="?stranka=cookies" data-page="cookies-page" data-i18n="footer_cookies">Cookies</a></li>
             </ul>
         </div>
         <div class="footer-col footer-col-wide">
@@ -1003,34 +1055,27 @@
 
 <!-- MOBILE BOTTOM NAV -->
 <nav class="bottom-nav" id="bottom-nav" aria-label="Mobilní navigace" data-i18n-aria="aria_mobile_nav">
-    <button class="bottom-nav-item" onclick="showPage('home-page')" data-page="home-page">
+    <a class="bottom-nav-item" href="./" data-page="home-page">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l8-6 8 6v9a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z"/></svg>
         <span data-i18n="nav_home">Domů</span>
-    </button>
-    <button class="bottom-nav-item" onclick="showPage('product-page')" data-page="product-page">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="3" rx="1"/><path d="M7.5 5.5h9V19a2.5 2.5 0 01-2.5 2.5h-4A2.5 2.5 0 017.5 19z"/><path d="M7.5 13h9M7.5 17h9"/></svg>
+    </a>
+    <a class="bottom-nav-item" href="?stranka=namichat" data-page="product-page">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.500 3h11v3.200c1.300 4.300 1.800 8.300 1.500 12.300a2.700 2.700 0 01-2.700 2.500H7.700A2.700 2.700 0 015 18.500c-.300-4 .200-8 1.500-12.300V3z"/><path d="M6.500 6.200h11"/><rect x="8.700" y="10" width="6.600" height="6.500" rx=".8"/></svg>
         <span data-i18n="nav_mix">Namíchat</span>
-    </button>
-    <button class="bottom-nav-item" onclick="showPage('quiz-page')" data-page="quiz-page">
+    </a>
+    <a class="bottom-nav-item" href="?stranka=kviz" data-page="quiz-page">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.3a2.8 2.8 0 015.4 1c0 1.9-2.7 2.4-2.7 3.9"/><path d="M12 17.5h.01"/></svg>
         <span data-i18n="nav_quiz_short">Kvíz</span>
-    </button>
-    <button class="bottom-nav-item" onclick="showPage('saved-page')" data-page="saved-page">
+    </a>
+    <a class="bottom-nav-item" href="?stranka=moje-smesi" data-page="saved-page">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
         <span data-i18n="nav_saved_short">Uložené</span>
-    </button>
-    <button class="bottom-nav-item" onclick="showPage('cart-page')" data-page="cart-page" id="bottom-nav-cart">
+    </a>
+    <a class="bottom-nav-item" href="?stranka=kosik" data-page="cart-page" id="bottom-nav-cart">
         <span class="bottom-nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.1a2 2 0 01-2 1.9H8.2a2 2 0 01-2-1.9L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg><span class="cart-badge" id="bottom-cart-badge" style="display:none"></span></span>
         <span data-i18n="nav_cart">Košík</span>
-    </button>
+    </a>
 </nav>
-<script src="config.js"></script>
-<script src="db.js"></script>
-<script src="i18n-sk.js"></script>
-<script src="bank.js"></script>
-<script src="recipe.js"></script>
-<script src="icons.js"></script>
-<script src="script.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
