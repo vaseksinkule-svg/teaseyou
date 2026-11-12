@@ -6,6 +6,20 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Úvod a etiketa bez poskakování (12. 11. 2026)
+- **Úvodní sáček:** při „Zamíchat jinak“ se už nic neposouvá. Popis
+  a tlačítka jsou vždy na středu pod sáčkem a popis má místo na dva řádky.
+  Dřív se u delšího popisu tlačítka přesunula pod text a sáček na počítači
+  poskočil o 19 px.
+- **Etiketa sáčku** má pevnou osnovu: jméno má vždy místo na dva řádky,
+  čára pod ním je u každé směsi ve stejné výšce, suroviny začínají na
+  stejném místě ve stejné velikosti (menší jen u pěti surovin) a gramáž je
+  dole. Dlouhý název suroviny („Pomerančová kůra“) má o kousek menší písmo,
+  ať je na jednom řádku. Dřív u některých směsí (třeba Sunday Paper,
+  slovensky Morning Window) sjela gramáž až k okraji etikety a u dlouhého
+  jména se spodek etikety mohl uříznout.
+- Platí všude, kde je velký sáček: úvod, detail směsi, mixér, kvíz, O nás.
+
 ### Hotové směsi v2 (11. 11. 2026)
 - **Osm nových směsí**, celkem čtrnáct: Sunday Paper, Desk Hours, Garden Party,
   Pink Hour, After Dinner, Quiet Street, Snowed In a Mint Condition. Všechny
