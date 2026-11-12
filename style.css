@@ -453,12 +453,15 @@ body.dark svg.dm-dark { display: block; }
     background: radial-gradient(closest-side, rgba(25, 18, 8, .34), rgba(25, 18, 8, 0));
 }
 .pouch-bag { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* Etiketa má pevnou osnovu, ať každá směs vypadá stejně: jméno má vždy
+   místo na dva řádky (čára pod ním je pořád ve stejné výšce), suroviny
+   začínají hned pod čarou ve stejné velikosti a gramáž je vždy dole. */
 .pouch-label {
     position: absolute;
     left: 13.5%; right: 13.5%; top: 26%; bottom: 13.5%;
     display: flex; flex-direction: column; align-items: center;
-    gap: calc(var(--w) * .028);
-    padding: calc(var(--w) * .062) calc(var(--w) * .052) calc(var(--w) * .048);
+    gap: calc(var(--w) * .024);
+    padding: calc(var(--w) * .06) calc(var(--w) * .05) calc(var(--w) * .044);
     background: #fbf8f1;
     color: #1a1a18;
     border-radius: calc(var(--w) * .018);
@@ -472,12 +475,16 @@ body.dark svg.dm-dark { display: block; }
     letter-spacing: -.035em;
 }
 .pouch-name {
-    font: 600 calc(var(--w) * .086)/1.06 var(--head);
+    font: 600 calc(var(--w) * .08)/1.05 var(--head);
     letter-spacing: -.03em;
-    padding-bottom: calc(var(--w) * .035);
+    /* pevná výška na dva řádky základního písma, jméno je v ní na středu */
+    flex-shrink: 0;
+    height: calc(var(--w) * .2 + 1px);
+    display: flex; align-items: center; justify-content: center;
+    padding-bottom: calc(var(--w) * .03);
     border-bottom: 1px solid rgba(0,0,0,.15);
     width: 100%;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     text-wrap: balance;
 }
 /* hotová směs z nabídky: barevný pruh nahoře na etiketě = chvíle dne */
@@ -485,26 +492,27 @@ body.dark svg.dm-dark { display: block; }
     position: absolute; left: 0; right: 0; top: 0;
     height: max(4px, calc(var(--w) * .034)); background: var(--band);
 }
-/* delší jméno: menší písmo, ať je na etiketě celé */
-.pouch-label.is-long-name .pouch-name { font-size: calc(var(--w) * .072); }
-.pouch-label.is-xl-name .pouch-name { font-size: calc(var(--w) * .06); }
+/* delší jméno: menší písmo (nejdelší se vejde na tři řádky), výška zůstává */
+.pouch-label.is-long-name .pouch-name { font-size: calc(var(--w) * .068); }
+.pouch-label.is-xl-name .pouch-name { font-size: calc(var(--w) * .054); }
 .pouch-name.is-empty { color: #a5a196; }
 .pouch-ings {
-    display: grid; gap: calc(var(--w) * .022);
+    display: grid; gap: calc(var(--w) * .016);
     width: 100%;
-    font: 500 calc(var(--w) * .056)/1.2 var(--sans);
+    font: 500 calc(var(--w) * .05)/1.15 var(--sans);
     text-align: left;
 }
-.pouch-ings li { display: flex; align-items: center; gap: calc(var(--w) * .028); min-width: 0; }
-/* název suroviny se nikdy neuřezává: když se nevejde, zalomí se na dva řádky */
+.pouch-ings li { display: flex; align-items: center; gap: calc(var(--w) * .024); min-width: 0; min-height: calc(var(--w) * .066); }
+/* Dlouhý název suroviny má o kousek menší písmo, ať zůstane na jednom
+   řádku a řádky mají stejnou výšku. Neuřezává se: kdyby se ani tak
+   nevešel, zalomí se. */
 .pouch-ing { flex: 1; min-width: 0; line-height: 1.1; overflow-wrap: break-word; }
+.pouch-ing.is-long-ing { font-size: .88em; }
+.pouch-ing.is-xl-ing { font-size: .8em; }
 .pouch-ings b { flex-shrink: 0; font-weight: 600; color: #6c695f; font-variant-numeric: tabular-nums; }
-/* 4–5 surovin: menší písmo, ať se etiketa vejde i s dvouřádkovým jménem */
-.pouch-ings.is-long { gap: calc(var(--w) * .012); font-size: calc(var(--w) * .045); }
-.pouch-label.is-long { gap: calc(var(--w) * .02); padding-top: calc(var(--w) * .05); }
-.pouch-label.is-long .pouch-name { font-size: calc(var(--w) * .07); padding-bottom: calc(var(--w) * .025); }
-.pouch-label.is-long.is-long-name .pouch-name { font-size: calc(var(--w) * .062); }
-.pouch-label.is-long.is-xl-name .pouch-name { font-size: calc(var(--w) * .054); }
+/* 5 surovin: řádky trochu nižší, ať se vejdou nad gramáž */
+.pouch-ings.is-long { gap: calc(var(--w) * .01); font-size: calc(var(--w) * .045); }
+.pouch-ings.is-long li { min-height: calc(var(--w) * .056); }
 .pouch-ings li.is-empty { color: #a5a196; font-weight: 400; }
 .pouch-ings i, .pouch-dots i, .how-dots i, .bar-dots i, .checkout-dots i, .quiz-runnerup-dots i {
     display: block; flex-shrink: 0; border-radius: 50%;
@@ -512,9 +520,9 @@ body.dark svg.dm-dark { display: block; }
     box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
 }
 .pouch-ings i { width: calc(var(--w) * .05); height: calc(var(--w) * .05); }
-.pouch-ings .pouch-ico { width: calc(var(--w) * .078); height: calc(var(--w) * .078); box-shadow: none; }
+.pouch-ings .pouch-ico { width: calc(var(--w) * .066); height: calc(var(--w) * .066); box-shadow: none; }
 .pouch-ings .pouch-ico svg { width: 74%; height: 74%; stroke-width: 2; }
-.pouch-ings.is-long .pouch-ico { width: calc(var(--w) * .066); height: calc(var(--w) * .066); }
+.pouch-ings.is-long .pouch-ico { width: calc(var(--w) * .056); height: calc(var(--w) * .056); }
 body.dark .pouch-label .ing-ico {
     background-color: color-mix(in srgb, var(--c) 30%, #fffdf8);
     color: color-mix(in oklab, var(--c) 52%, #231f1a);
@@ -524,7 +532,7 @@ body.dark .pouch-label .ing-ico {
 .pouch-dots i { width: calc(var(--w) * .075); height: calc(var(--w) * .075); }
 .pouch-weight {
     margin-top: auto;
-    font: 600 calc(var(--w) * .05)/1 var(--sans);
+    font: 600 calc(var(--w) * .046)/1 var(--sans);
     color: #6c695f;
 }
 
@@ -533,7 +541,7 @@ body.dark .pouch-label .ing-ico {
 .pouch--xs { --w: 64px; }
 .pouch--sm .pouch-ings, .pouch--xs .pouch-ings { display: none; }
 .pouch--sm .pouch-dots, .pouch--xs .pouch-dots { display: flex; margin-top: auto; }
-.pouch--sm .pouch-name, .pouch--sm .pouch-label.is-long .pouch-name { font-size: calc(var(--w) * .1); border-bottom: 0; padding-bottom: 0; }
+.pouch--sm .pouch-name, .pouch--sm .pouch-label.is-long .pouch-name { font-size: calc(var(--w) * .1); border-bottom: 0; padding-bottom: 0; height: auto; display: block; }
 .pouch--sm .pouch-label.is-long-name .pouch-name { font-size: calc(var(--w) * .088); }
 .pouch--sm .pouch-label.is-xl-name .pouch-name { font-size: calc(var(--w) * .074); }
 .pouch--sm .pouch-brand { font-size: calc(var(--w) * .07); }
@@ -580,12 +588,16 @@ body.dark .pouch-label .ing-ico {
     display: grid; justify-items: center; gap: 26px;
 }
 .hero-pouch { display: flex; justify-content: center; }
+/* Popis a tlačítka pod sáčkem: vždy na středu pod sebou a popis má místo
+   na dva řádky, ať se při zamíchání nic neposouvá, ať je text krátký,
+   nebo dlouhý. */
 .hero-blend {
     width: 100%;
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px;
+    display: grid; justify-items: center; gap: 8px;
+    text-align: center;
 }
-.hero-blend-mix { font: 500 15px/1.4 var(--sans); }
-.hero-blend-actions { display: flex; gap: 2px; align-items: center; margin-right: -10px; }
+.hero-blend-mix { font: 500 15px/1.4 var(--sans); min-height: 2.8em; max-width: 40ch; text-wrap: balance; }
+.hero-blend-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; align-items: center; }
 .hero-copy { margin-top: 16px; }
 .hero-lede { color: rgba(245, 241, 233, .86); font-size: 17px; line-height: 1.5; max-width: 44ch; }
 .hero-actions { display: grid; gap: 4px; margin-top: 20px; }
@@ -616,7 +628,6 @@ body.dark .pouch-label .ing-ico {
     .hero-stage {
         grid-area: stage;
         margin: 0;
-        min-height: 500px;
         padding: 24px 0 0;
         align-content: end;
     }

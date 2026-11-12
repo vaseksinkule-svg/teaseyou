@@ -4332,8 +4332,10 @@ const LAYER_LABELS = ['glass_label_base', 'glass_label_flavor', 'glass_label_ext
 function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholders = false, weight = '', band = '' } = {}) {
     const comp = blendComposition(codes, parts);
     const real = Recipe.normalize(codes, parts).codes;
+    // Dlouhý název suroviny dostane menší písmo, ať je na jednom řádku jako ostatní.
+    const ingFit = s => s.length >= 19 ? ' is-xl-ing' : (s.length >= 16 ? ' is-long-ing' : '');
     const li = (code, pct) => `<li>${ingIconHtml(code, 'pouch-ico')}`
-        + `<span class="pouch-ing">${escHtml(tIng(code))}</span>${pct !== undefined ? `<b>${pct} %</b>` : ''}</li>`;
+        + `<span class="pouch-ing${ingFit(tIng(code))}">${escHtml(tIng(code))}</span>${pct !== undefined ? `<b>${pct} %</b>` : ''}</li>`;
     let rows;
     if (comp.length) rows = comp.map(c => li(c.code, c.pct)).join('');
     else if (real.length) rows = real.map(c => li(c)).join('');
@@ -4345,11 +4347,11 @@ function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholder
     const longest = Math.max(...shown.split(/\s+/).map(w => w.length));
     const fit = shown.length > 22 || longest > 12 ? ' is-xl-name' : (shown.length > 13 || longest > 9 ? ' is-long-name' : '');
     const bandColor = MOMENT_COLOR[band] || '';
-    return `<div class="pouch ${size}">${POUCH_SVG}<div class="pouch-label${dotCodes.length > 3 ? ' is-long' : ''}${fit}${bandColor ? ' has-band' : ''}">`
+    return `<div class="pouch ${size}">${POUCH_SVG}<div class="pouch-label${dotCodes.length > 4 ? ' is-long' : ''}${fit}${bandColor ? ' has-band' : ''}">`
         + (bandColor ? `<span class="pouch-band" style="--band:${bandColor}"></span>` : '')
         + `<span class="pouch-brand">Tease you</span>`
         + `<span class="pouch-name${name ? '' : ' is-empty'}">${escHtml(shown)}</span>`
-        + `<ul class="pouch-ings${dotCodes.length > 3 ? ' is-long' : ''}">${rows}</ul>`
+        + `<ul class="pouch-ings${dotCodes.length > 4 ? ' is-long' : ''}">${rows}</ul>`
         + `<span class="pouch-dots">${dots}</span>`
         + (weight ? `<span class="pouch-weight">${escHtml(weight)}</span>` : '')
         + `</div></div>`;
