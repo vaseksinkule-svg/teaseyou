@@ -6,6 +6,14 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Právní kontrola celého webu (22. 11. 2026)
+- Nový deník právních rozhodnutí `docs/pravni-kontrola.md`: trh, osobní
+  údaje a kde leží, třetí strany, cookies, právní stránky, výklad a otevřené
+  body. Čte se před každou kontrolou a mění se ve stejném PR jako kód.
+- `PRAVNI-KONTROLA.md`: doplněná měrná cena, zapečetěný sáček u odstoupení,
+  „uklidňující“ u heřmánku a levandule a recenze podle DSA.
+- Web samotný se nemění.
+
 ### Úvod a etiketa bez poskakování (12. 11. 2026)
 - **Úvodní sáček:** při „Zamíchat jinak“ se už nic neposouvá. Popis
   a tlačítka jsou vždy na středu pod sáčkem a popis má místo na dva řádky.
