@@ -453,6 +453,11 @@ body.dark svg.dm-dark { display: block; }
     background: radial-gradient(closest-side, rgba(25, 18, 8, .34), rgba(25, 18, 8, 0));
 }
 .pouch-bag { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* Render z Blenderu místo kresleného sáčku: stejný rámeček 200 : 270, aby se
+   nic neposunulo. Skutečný sáček je užší, stojí dole na středu a stín pod ním
+   je proto užší než u kresleného. */
+.pouch-render { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; display: block; }
+.pouch--render::after { left: 14%; right: 14%; bottom: calc(var(--w) * -.03); height: calc(var(--w) * .09); }
 /* Etiketa má pevnou osnovu, ať každá směs vypadá stejně: jméno má vždy
    místo na dva řádky (čára pod ním je pořád ve stejné výšce), suroviny
    začínají hned pod čarou ve stejné velikosti a gramáž je vždy dole. */
@@ -708,6 +713,8 @@ body.dark .pouch-label .ing-ico {
     overflow: hidden;
 }
 .ready-visual .pouch { transition: transform .3s var(--ease); }
+/* render je užší než kreslený sáček, na kartě ho proto trochu zvětšíme */
+.ready-visual .pouch--render { --w: 128px; }
 @media (hover: hover) {
     .ready-card:hover .ready-visual .pouch { transform: translateY(-4px) rotate(-2deg); }
 }
@@ -1279,6 +1286,8 @@ textarea.field { min-height: 96px; resize: vertical; line-height: 1.45; }
     background: var(--stage);
 }
 .detail-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.detail-render-note { position: absolute; left: var(--gutter); bottom: 12px; color: var(--on-stage); opacity: .88; font: 500 12px/1.3 var(--sans); }
+.detail-render-note[hidden] { display: none; }
 .detail-title { margin-bottom: 14px; }
 .detail-desc { color: var(--ink-2); font-size: 17px; line-height: 1.55; max-width: 52ch; }
 /* chuť a kofein jednou větou, spočítané ze složení */
