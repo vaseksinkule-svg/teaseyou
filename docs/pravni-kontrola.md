@@ -75,6 +75,10 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
   prodáváme jen vlastní zboží.
 - **Tvrzení o čajích:** prodáváme podle chuti a chvíle dne, ne podle účinků
   na zdraví (nařízení (ES) č. 1924/2006, čl. 10).
+- **Obrázky produktů:** rendery sáčků z Blenderu (`img/sacky/`) jsou ilustrační
+  a detail to u nich píše. Musí odpovídat skutečnému sáčku a etiketě (§ 5
+  zákona o ochraně spotřebitele). Etiketa na renderu se generuje ze stejných
+  dat jako informace o potravině na webu.
 
 ## Otevřené body a vědomě přijaté mezery
 
@@ -84,6 +88,9 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
   (anglicky „calming“, „soothing“, u medu „soothing“). Václav v listopadu
   2026 řekl zatím nic nemazat. Rozhodne.
 - 22. 11. 2026: v podmínkách chybí pravidla pro recenze podle DSA.
+- 23. 11. 2026: render Deep Winter je jen na zkoušku. Sáček ještě není vybraný
+  a etiketa na renderu nemá provozovatele ani název podle vyhlášky („Ochucený
+  černý čaj“). Před spuštěním prodeje opravit, nebo render nahradit fotkou.
 - Před spuštěním prodeje (viz checklist): živnost, oznámení SZPI, HACCP
   a šarže, údaje prodávajícího, kontrola advokátem, slovenské překlady
   právních stránek, EKO-KOM, u kosmetiky posudek bezpečnosti a CPNP.

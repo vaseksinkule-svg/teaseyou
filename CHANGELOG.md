@@ -6,6 +6,15 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### První render sáčku (23. 11. 2026)
+- **Deep Winter** má místo kresleného sáčku render z Blenderu, vyříznutý na
+  průhledné pozadí. Ukáže se na úvodu, na kartě, v detailu, v kvízu i na
+  stránce O nás. Detail pod ním píše „Ilustrační vizualizace balení 100 g“.
+- Vlastní směsi mají dál kreslený sáček s živou etiketou. Render se ukáže jen
+  u hotové směsi beze změn.
+- **Černý čaj** má v kolečku místo ikonky výřez z renderu.
+- Další rendery se přidají souborem do `img/sacky/` a řádkem v `POUCH_RENDERS`.
+
 ### Právní kontrola celého webu (22. 11. 2026)
 - Nový deník právních rozhodnutí `docs/pravni-kontrola.md`: trh, osobní
   údaje a kde leží, třetí strany, cookies, právní stránky, výklad a otevřené
