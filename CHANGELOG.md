@@ -6,6 +6,25 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Rendery všech hotových směsí a etikety (23. 11. 2026)
+- **Všech 14 hotových směsí** má místo kresleného sáčku render z Blenderu
+  s novou etiketou. Deep Winter je vyrenderovaný znovu, aby vypadal stejně
+  jako ostatní.
+- **Etiketa hotové směsi:** pruh v barvě chvíle („Na zimu“, 100 g), jméno,
+  název podle vyhlášky 187/2023 Sb. („Ochucený černý čaj“), popis, složení
+  s procenty, příprava, datum míchání, šarže, minimální trvanlivost,
+  skladování a kdo směs vyrobil.
+- **Etiketa vlastní směsi:** krémová kartička jako recept s razítkem
+  „Namícháno pro tebe“. Jméno je psané písmem Caveat (licence OFL). Na webu
+  se zatím neukazuje, vlastní směs má dál kreslený sáček.
+- Texty etiket generuje `tools/rendery/etikety.py` ze stejných dat jako
+  informace o potravině na webu. Šablona je `tools/rendery/etiketa.html`,
+  rendery dělá `tools/rendery/blender_sacky.py`.
+- **Zázvor a skořice** mají v kolečku místo ikonky výřez z renderu.
+- Dokud v administraci nejsou jméno a adresa prodávajícího, je na etiketě
+  jen „Tease you · teaseyou.cz“. Po vyplnění se etikety i rendery
+  přegenerují.
+
 ### První render sáčku (23. 11. 2026)
 - **Deep Winter** má místo kresleného sáčku render z Blenderu, vyříznutý na
   průhledné pozadí. Ukáže se na úvodu, na kartě, v detailu, v kvízu i na

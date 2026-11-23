@@ -6,7 +6,7 @@ přečti a porovnej s kódem. Co nesedí, oprav ve stejném PR.
 Podrobný checklist po bodech je v [`PRAVNI-KONTROLA.md`](../PRAVNI-KONTROLA.md).
 Tohle není právní rada. Podmínky a zásady má před spuštěním prodeje projít advokát.
 
-- **Naposledy zkontrolováno:** 22. 11. 2026 (celý web na `main`, commit 8a26619)
+- **Naposledy zkontrolováno:** 23. 11. 2026 (větev `rendery-sacku`: rendery všech hotových směsí a etikety)
 
 ## Trh a rozhodné právo
 
@@ -75,10 +75,19 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
   prodáváme jen vlastní zboží.
 - **Tvrzení o čajích:** prodáváme podle chuti a chvíle dne, ne podle účinků
   na zdraví (nařízení (ES) č. 1924/2006, čl. 10).
-- **Obrázky produktů:** rendery sáčků z Blenderu (`img/sacky/`) jsou ilustrační
-  a detail to u nich píše. Musí odpovídat skutečnému sáčku a etiketě (§ 5
-  zákona o ochraně spotřebitele). Etiketa na renderu se generuje ze stejných
-  dat jako informace o potravině na webu.
+- **Obrázky produktů:** rendery sáčků z Blenderu (`img/sacky/`, všech 14
+  hotových směsí) jsou ilustrační a detail to u nich píše. Musí odpovídat
+  skutečnému sáčku a etiketě (§ 5 zákona o ochraně spotřebitele). Datum,
+  šarže a trvanlivost na renderu jsou ukázkové.
+- **Etiketa sáčku:** texty generuje `tools/rendery/etikety.py` ze stejných dat
+  jako informace o potravině na webu (název podle vyhlášky 187/2023 Sb.,
+  složení s procenty, alergeny, příprava, trvanlivost, skladování,
+  provozovatel). Šablona `tools/rendery/etiketa.html` počítá s etiketou
+  88 × 120 mm na sáčku 100 g: malá písmena povinných údajů aspoň 1,2 mm
+  (nařízení (EU) č. 1169/2011, čl. 13 odst. 2 a příloha IV), číslice „100 g“
+  aspoň 3 mm (vyhláška č. 328/2000 Sb., příloha 1 bod 3.1.3), název
+  a hmotnost na stejné straně (čl. 13 odst. 5), šarže (směrnice 2011/91/EU).
+  Při jiné velikosti etikety velikosti písma znovu ověřit.
 
 ## Otevřené body a vědomě přijaté mezery
 
@@ -88,9 +97,14 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
   (anglicky „calming“, „soothing“, u medu „soothing“). Václav v listopadu
   2026 řekl zatím nic nemazat. Rozhodne.
 - 22. 11. 2026: v podmínkách chybí pravidla pro recenze podle DSA.
-- 23. 11. 2026: render Deep Winter je jen na zkoušku. Sáček ještě není vybraný
-  a etiketa na renderu nemá provozovatele ani název podle vyhlášky („Ochucený
-  černý čaj“). Před spuštěním prodeje opravit, nebo render nahradit fotkou.
+- 23. 11. 2026: sáček ještě není vybraný. Rendery ukazují model doypacku
+  s popiskem „Ilustrační vizualizace“. Až bude sáček vybraný, doladit model
+  nebo rendery nahradit fotkami.
+- 23. 11. 2026: na etiketě chybí jméno a adresa provozovatele (nařízení
+  (EU) č. 1169/2011, čl. 9 odst. 1 písm. h)), zatím jen „Tease you ·
+  teaseyou.cz“. Po vyplnění v administraci (Nastavení → Prodávající) znovu
+  spustit `etikety.py` a `blender_sacky.py`. Skutečné etikety bez adresy
+  tisknout nejde.
 - Před spuštěním prodeje (viz checklist): živnost, oznámení SZPI, HACCP
   a šarže, údaje prodávajícího, kontrola advokátem, slovenské překlady
   právních stránek, EKO-KOM, u kosmetiky posudek bezpečnosti a CPNP.

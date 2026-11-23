@@ -4347,7 +4347,20 @@ const LAYER_LABELS = ['glass_label_base', 'glass_label_flavor', 'glass_label_ext
    má vždy kreslený sáček, protože jméno a složení vymýšlí zákazník a etiketa
    se musí měnit živě. Soubory: <cesta>-480.webp a <cesta>-960.webp. */
 const POUCH_RENDERS = {
-    deep_winter: 'img/sacky/deep-winter',
+    morning_window: 'img/sacky/morning-window',
+    still_evening:  'img/sacky/still-evening',
+    deep_winter:    'img/sacky/deep-winter',
+    late_light:     'img/sacky/late-light',
+    open_air:       'img/sacky/open-air',
+    slow_tuesday:   'img/sacky/slow-tuesday',
+    sunday_paper:   'img/sacky/sunday-paper',
+    desk_hours:     'img/sacky/desk-hours',
+    garden_party:   'img/sacky/garden-party',
+    pink_hour:      'img/sacky/pink-hour',
+    after_dinner:   'img/sacky/after-dinner',
+    quiet_street:   'img/sacky/quiet-street',
+    snowed_in:      'img/sacky/snowed-in',
+    mint_condition: 'img/sacky/mint-condition',
 };
 function pouchRenderFor(b) { return (b && POUCH_RENDERS[b.id]) || ''; }
 /* Jak široký je sáček na stránce, aby si prohlížeč vybral správnou velikost. */

@@ -87,7 +87,7 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 
 | # | Bod | Stav | Podle čeho v ČR | Co je na webu / co zbývá |
 |---|---|---|---|---|
-| 33 | Licence obrázků, písem a kódu | ✅ | autorský zákon č. 121/2000 Sb. | Písma Unbounded a Albert Sans (OFL 1.1, `fonts/OFL.txt`), část ikon z Feather Icons (MIT), vše v `THIRD-PARTY-LICENSES.txt` a odkazem v patičce. Ilustrace jsou vlastní. |
+| 33 | Licence obrázků, písem a kódu | ✅ | autorský zákon č. 121/2000 Sb. | Písma Unbounded a Albert Sans (OFL 1.1, `fonts/OFL.txt`), na etiketách vlastních směsí Caveat (OFL 1.1, `tools/rendery/pisma/OFL.txt`), část ikon z Feather Icons (MIT), vše v `THIRD-PARTY-LICENSES.txt` a odkazem v patičce. Ilustrace a rendery sáčků a surovin jsou vlastní. |
 | 34 | Open-source licence | ✅ | – | Web nemá žádné knihovny, jen vlastní kód. Mapa Zásilkovny se načítá z jejich serveru podle jejich podmínek. |
 | 35 | Registrace agenta DMCA | ➖ ⏳ | americký zákon; v EU nařízení 2022/2065 (DSA) | DMCA se nás netýká. Recenze ale píšou zákazníci, takže pro ně jsme nejspíš hostingová služba podle DSA (čl. 11, 12, 14, 16 a 17 platí i pro mikropodniky). ⏳ Do podmínek doplnit pravidla pro recenze, jak nahlásit nezákonnou recenzi a kontaktní místo. Autorovi odmítnuté recenze napsat proč. |
 
