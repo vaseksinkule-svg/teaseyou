@@ -6,6 +6,42 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Rendery všech hotových směsí a etikety (23. 11. 2026)
+- **Všech 14 hotových směsí** má místo kresleného sáčku render z Blenderu
+  s novou etiketou. Deep Winter je vyrenderovaný znovu, aby vypadal stejně
+  jako ostatní.
+- **Etiketa hotové směsi:** pruh v barvě chvíle („Na zimu“, 100 g), jméno,
+  název podle vyhlášky 187/2023 Sb. („Ochucený černý čaj“), popis, složení
+  s procenty, příprava, datum míchání, šarže, minimální trvanlivost,
+  skladování a kdo směs vyrobil.
+- **Etiketa vlastní směsi:** krémová kartička jako recept s razítkem
+  „Namícháno pro tebe“. Jméno je psané písmem Caveat (licence OFL). Na webu
+  se zatím neukazuje, vlastní směs má dál kreslený sáček.
+- Texty etiket generuje `tools/rendery/etikety.py` ze stejných dat jako
+  informace o potravině na webu. Šablona je `tools/rendery/etiketa.html`,
+  rendery dělá `tools/rendery/blender_sacky.py`.
+- **Zázvor a skořice** mají v kolečku místo ikonky výřez z renderu.
+- Dokud v administraci nejsou jméno a adresa prodávajícího, je na etiketě
+  jen „Tease you · teaseyou.cz“. Po vyplnění se etikety i rendery
+  přegenerují.
+
+### První render sáčku (23. 11. 2026)
+- **Deep Winter** má místo kresleného sáčku render z Blenderu, vyříznutý na
+  průhledné pozadí. Ukáže se na úvodu, na kartě, v detailu, v kvízu i na
+  stránce O nás. Detail pod ním píše „Ilustrační vizualizace balení 100 g“.
+- Vlastní směsi mají dál kreslený sáček s živou etiketou. Render se ukáže jen
+  u hotové směsi beze změn.
+- **Černý čaj** má v kolečku místo ikonky výřez z renderu.
+- Další rendery se přidají souborem do `img/sacky/` a řádkem v `POUCH_RENDERS`.
+
+### Právní kontrola celého webu (22. 11. 2026)
+- Nový deník právních rozhodnutí `docs/pravni-kontrola.md`: trh, osobní
+  údaje a kde leží, třetí strany, cookies, právní stránky, výklad a otevřené
+  body. Čte se před každou kontrolou a mění se ve stejném PR jako kód.
+- `PRAVNI-KONTROLA.md`: doplněná měrná cena, zapečetěný sáček u odstoupení,
+  „uklidňující“ u heřmánku a levandule a recenze podle DSA.
+- Web samotný se nemění.
+
 ### Úvod a etiketa bez poskakování (12. 11. 2026)
 - **Úvodní sáček:** při „Zamíchat jinak“ se už nic neposouvá. Popis
   a tlačítka jsou vždy na středu pod sáčkem a popis má místo na dva řádky.

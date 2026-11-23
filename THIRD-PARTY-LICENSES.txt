@@ -31,3 +31,7 @@ SOFTWARE.
 
 3) Loga Instagramu, TikToku a Facebooku jsou ochranné známky svých vlastníků.
    Na webu slouží jen jako odkazy na profily Tease you.
+
+4) Písmo Caveat (jen na etiketách vlastních směsí, tools/rendery/pisma/)
+   Copyright 2014 The Caveat Project Authors (https://github.com/googlefonts/caveat)
+   SIL Open Font License 1.1, celý text je v souboru tools/rendery/pisma/OFL.txt.

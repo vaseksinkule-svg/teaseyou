@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>Etiketa sáčku</title>
+<!--
+  Šablona etikety na sáček 100 g (88 × 120 mm, 8 px = 1 mm).
+  Plní ji tools/rendery/etikety.py daty z webu, ručně se tu nic nepřepisuje.
+  Hotová směs: pruh v barvě chvíle. Vlastní směs: krémová karta jako recept.
+-->
+<style>
+/* Unbounded a Albert Sans: stejné soubory a rozsahy jako style.css webu */
+@font-face { font-family: 'Unbounded'; font-style: normal; font-weight: 600 700; font-display: swap; src: url(../../fonts/unbounded-latin-ext-wght-normal.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F; }
+@font-face { font-family: 'Unbounded'; font-style: normal; font-weight: 600 700; font-display: swap; src: url(../../fonts/unbounded-latin-600-700.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Unbounded'; font-style: normal; font-weight: 600 700; font-display: swap; src: url(../../fonts/unbounded-cs-sk-600-700.woff2) format('woff2'); unicode-range: U+010C-010F, U+011A-011B, U+0139-013A, U+013D-013E, U+0147-0148, U+0154-0155, U+0158-0159, U+0160-0161, U+0164-0165, U+016E-016F, U+017D-017E; }
+@font-face { font-family: 'Albert Sans'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(../../fonts/albert-sans-latin-ext-wght-normal.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F; }
+@font-face { font-family: 'Albert Sans'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(../../fonts/albert-sans-latin-400-700.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Albert Sans'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(../../fonts/albert-sans-cs-sk-400-700.woff2) format('woff2'); unicode-range: U+010C-010F, U+011A-011B, U+0139-013A, U+013D-013E, U+0147-0148, U+0154-0155, U+0158-0159, U+0160-0161, U+0164-0165, U+016E-016F, U+017D-017E; }
+@font-face { font-family: 'Caveat'; font-weight: 700; src: url(pisma/caveat-latin-ext-700-normal.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+2020, U+20A0-20C0, U+2113; }
+@font-face { font-family: 'Caveat'; font-weight: 700; src: url(pisma/caveat-latin-700-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF; }
+
+html, body { margin: 0; background: transparent; }
+* { box-sizing: border-box; }
+
+/* společné */
+.etiketa {
+  --ink: #1d1c19; --muted: #6c695f; --line: #ddd5c5; --forest: #3a5f3c;
+  width: 704px; height: 960px; border-radius: 20px; overflow: hidden; position: relative;
+  font-family: 'Albert Sans', sans-serif; color: var(--ink);
+  font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased;
+}
+.logo { font: 600 32px/1 'Unbounded', sans-serif; letter-spacing: -.035em; color: var(--forest); }
+.nadpis { font: 600 17px/1 'Albert Sans', sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.pruhslozeni { display: flex; gap: 4px; height: 14px; border-radius: 7px; overflow: hidden; }
+.pruhslozeni i { display: block; height: 100%; }
+.radek { display: flex; align-items: center; gap: 12px; font: 500 26px/1.3 'Albert Sans', sans-serif; }
+.radek .tecka { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.radek .pct { margin-left: auto; font-weight: 700; }
+.priprava { display: flex; justify-content: space-between; font: 500 24px/1 'Albert Sans', sans-serif; }
+.priprava span { display: inline-flex; align-items: center; gap: 9px; }
+.priprava svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.pata { font: 400 20.5px/1.32 'Albert Sans', sans-serif; color: #3f3c35; }
+.pata b { font-weight: 700; color: var(--ink); }
+.pata .dvoj { display: flex; justify-content: space-between; gap: 16px; }
+.pata .vpravo { text-align: right; }
+.pata p { margin: 0; }
+.pata .male { margin-top: 10px; }
+
+/* ── a) hotová směs ── */
+.hotova { background: #f4efe6; }
+.hotova .pruh { height: 80px; padding: 0 48px; display: flex; align-items: center; justify-content: space-between; background: var(--chvile); color: #fff; }
+.hotova .chvile { font: 700 25px/1 'Albert Sans', sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.hotova .gramaz { font: 700 38px/1 'Albert Sans', sans-serif; }
+.hotova .telo { height: 880px; padding: 34px 48px 30px; display: flex; flex-direction: column; }
+.hotova .jmeno { margin: 30px 0 0; font: 700 100px/.94 'Unbounded', sans-serif; letter-spacing: -.045em; }
+.hotova .pravni { margin-top: 22px; font: 700 25px/1.2 'Albert Sans', sans-serif; }
+.hotova .popis { margin-top: 8px; font: 400 26px/1.3 'Albert Sans', sans-serif; color: #4a4740; max-width: 560px; }
+.hotova .slozeni { margin-top: auto; padding-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+.hotova .slozeni .pruhslozeni { margin: 4px 0 4px; }
+.hotova .priprava { margin-top: 22px; }
+.hotova .pata { margin-top: 20px; padding-top: 16px; border-top: 2px solid var(--line); }
+
+/* ── b) vlastní směs: karta jako recept ── */
+.vlastni { background: #f7f0e0; }
+.vlastni::before { /* tenký vnitřní rámeček jako u kartičky */
+  content: ''; position: absolute; inset: 14px; border: 2px solid #e2d3b6; border-radius: 10px; pointer-events: none; }
+.vlastni .telo { position: relative; height: 960px; padding: 38px 48px 34px; display: flex; flex-direction: column; }
+.vlastni .hlava { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 3px solid #c9725a; }
+.vlastni .cislo { font: 600 21px/1 'Albert Sans', sans-serif; color: #5a5348; }
+.vlastni .tvoje { margin-top: 22px; }
+.vlastni .jmeno { margin: 4px 0 0; min-height: 100px; font: 700 100px/.95 'Caveat', cursive; color: #22304a; transform: rotate(-1.5deg); transform-origin: left center; }
+.vlastni .pod { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 8px; padding-bottom: 12px; border-bottom: 2px solid #e2d3b6; }
+.vlastni .pravni { font: 700 23px/1.2 'Albert Sans', sans-serif; }
+.vlastni .gramaz { font: 700 36px/1 'Albert Sans', sans-serif; }
+.vlastni .recept { margin-top: 22px; display: flex; flex-direction: column; }
+.vlastni .recept .nadpis { margin-bottom: 12px; }
+.vlastni .recept .radek { height: 46px; border-bottom: 1.5px solid #e6dac3; }
+.vlastni .recept .radek .vodit { flex: 1; align-self: flex-end; margin-bottom: 9px; border-bottom: 2px dotted #c9bba0; }
+.vlastni .recept .radek .pct { margin-left: 0; }
+.vlastni .recept .pruhslozeni { margin-top: 16px; }
+.vlastni .priprava { margin-top: auto; padding-top: 20px; }
+.vlastni .pata { margin-top: 18px; padding-top: 14px; border-top: 2px solid #e2d3b6; }
+.vlastni .razitko { position: absolute; right: 30px; top: 70px; width: 176px; height: 176px; transform: rotate(-13deg); color: #a9472f; opacity: .92; }
+.vlastni .razitko svg { width: 100%; height: 100%; overflow: visible; }
+.vlastni .razitko text { font: 700 16px 'Albert Sans', sans-serif; letter-spacing: .14em; fill: currentColor; }
+.vlastni .razitko .datum { font: 700 17px 'Albert Sans', sans-serif; letter-spacing: .02em; }
+
+/* prázdná etiketa (podklad pro web): proměnné texty zmizí, rozvržení zůstane */
+.prazdna [data-p] { visibility: hidden; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <filter id="inkoust" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="sum"/>
+      <feColorMatrix in="sum" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.5 1.5" result="maska"/>
+      <feComposite in="SourceGraphic" in2="maska" operator="in"/>
+    </filter>
+    <symbol id="i-teplota" viewBox="0 0 24 24"><path d="M10 13.5V5a2 2 0 0 1 4 0v8.5a4 4 0 1 1-4 0Z"/><path d="M12 9v6"/></symbol>
+    <symbol id="i-cas" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M10 2.5h4"/></symbol>
+    <symbol id="i-hrnek" viewBox="0 0 24 24"><path d="M5 10h11v4.5a4.5 4.5 0 0 1-4.5 4.5h-2A4.5 4.5 0 0 1 5 14.5V10Z"/><path d="M16 11.5h1.3a2.2 2.2 0 0 1 0 4.4H16"/><path d="M8.5 7c0-1.1.9-1.3.9-2.5M12 7c0-1.1.9-1.3.9-2.5"/></symbol>
+  </defs>
+</svg>
+
+<template id="t-hotova">
+  <div class="etiketa hotova">
+    <div class="pruh"><span class="chvile" data-k="chvile"></span><span class="gramaz" data-k="gramaz"></span></div>
+    <div class="telo">
+      <div class="logo">Tease you</div>
+      <h1 class="jmeno" data-k="jmeno"></h1>
+      <div class="pravni" data-k="pravni"></div>
+      <div class="popis" data-k="popis"></div>
+      <div class="slozeni">
+        <div class="nadpis">Složení</div>
+        <div class="pruhslozeni" data-k="pruh"></div>
+        <div data-k="radky"></div>
+      </div>
+      <div class="priprava" data-k="priprava"></div>
+      <div class="pata" data-k="pata"></div>
+    </div>
+  </div>
+</template>
+
+<template id="t-vlastni">
+  <div class="etiketa vlastni">
+    <div class="telo">
+      <div class="hlava"><div class="logo">Tease you</div><div class="cislo" data-k="cislo" data-p></div></div>
+      <div class="nadpis tvoje">Tvoje směs</div>
+      <h1 class="jmeno" data-k="jmeno" data-p></h1>
+      <div class="pod"><div class="pravni" data-k="pravni" data-p></div><div class="gramaz" data-k="gramaz" data-p></div></div>
+      <div class="recept">
+        <div class="nadpis">Složení</div>
+        <div data-k="radky"></div>
+        <div class="pruhslozeni" data-k="pruh" data-p></div>
+      </div>
+      <div class="priprava" data-k="priprava" data-p></div>
+      <div class="pata" data-k="pata"></div>
+      <div class="razitko" data-k="razitko"></div>
+    </div>
+  </div>
+</template>
+
+<div id="misto"></div>
+
+<script>
+/* Vytvoří prvek s textem (nikdy innerHTML z dat). */
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function ikona(id) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const s = document.createElementNS(ns, 'svg');
+  const u = document.createElementNS(ns, 'use');
+  u.setAttribute('href', '#i-' + id);
+  s.appendChild(u);
+  return s;
+}
+/* Barvy surovin jsou z webu (ingColor), pro tisk na krémový papír trochu ztmavené. */
+const tisk = c => `color-mix(in oklab, ${c} 80%, #4f3d27)`;
+
+/* d: data jedné etikety, sestavená v etikety.py */
+async function vykresli(d) {
+  const misto = document.getElementById('misto');
+  misto.replaceChildren(document.getElementById(d.druh === 'vlastni' ? 't-vlastni' : 't-hotova').content.cloneNode(true));
+  const root = misto.firstElementChild;
+  root.id = 'etiketa';
+  if (d.prazdna) root.classList.add('prazdna');
+  if (d.barva) root.style.setProperty('--chvile', d.barva);
+  const k = n => root.querySelector(`[data-k="${n}"]`);
+  const txt = (n, v) => { const e = k(n); if (e) e.textContent = v || ''; };
+  ['chvile', 'gramaz', 'jmeno', 'pravni', 'popis', 'cislo'].forEach(n => txt(n, d[n]));
+
+  // složení: pruh a řádky s procenty (u prázdné etikety jen linky)
+  const pruh = k('pruh');
+  const radky = k('radky');
+  // vlastní směs má vždy 5 linek jako kartička s receptem (víc surovin mít nejde)
+  const linek = d.druh === 'vlastni' ? 5 : 0;
+  const slozeni = d.prazdna ? Array.from({ length: 5 }, () => ({})) : d.slozeni.concat(Array.from({ length: Math.max(0, linek - d.slozeni.length) }, () => ({})));
+  slozeni.forEach(s => {
+    if (s.pct) { const i = el('i'); i.style.flexGrow = s.pct; i.style.background = tisk(s.barva || '#ccc'); pruh.appendChild(i); }
+    const r = el('div', 'radek');
+    const t = el('span', 'tecka'); t.style.background = s.barva ? tisk(s.barva) : 'transparent';
+    r.append(t, el('span', 'nazev', s.label || ''));
+    if (d.druh === 'vlastni' && s.label) r.appendChild(el('span', 'vodit'));
+    r.appendChild(el('span', 'pct', s.pct != null ? `${s.pct} %` : ''));
+    if (d.prazdna) [...r.children].forEach(c => c.setAttribute('data-p', ''));
+    radky.appendChild(r);
+  });
+
+  // příprava
+  const p = k('priprava');
+  [['teplota', d.teplota], ['cas', d.cas], ['hrnek', d.davka]].forEach(([i, v]) => {
+    const s = el('span'); s.append(ikona(i), document.createTextNode(v || '')); p.appendChild(s);
+  });
+
+  // pata: datum, šarže, trvanlivost, skladování, alergeny, kofein, kdo vyrobil
+  const pata = k('pata');
+  const dvoj = el('div', 'dvoj');
+  const vlevo = el('div');
+  const r1 = el('p'); r1.append(document.createTextNode('Namícháno ručně '), el('b', '', d.namichano)); r1.setAttribute('data-p', '');
+  const r2 = el('p'); r2.append(document.createTextNode('Šarže '), el('b', '', d.sarze)); r2.setAttribute('data-p', '');
+  vlevo.append(r1, r2);
+  const vpravo = el('div', 'vpravo');
+  vpravo.append(el('p', '', 'Minimální trvanlivost do:'));
+  const r3 = el('p'); r3.appendChild(el('b', '', d.trvanlivost)); r3.setAttribute('data-p', '');
+  vpravo.appendChild(r3);
+  dvoj.append(vlevo, vpravo);
+  pata.appendChild(dvoj);
+  const male = el('div', 'male');
+  (d.poznamky || []).forEach(t => { const x = el('p', '', t); x.setAttribute('data-p', ''); male.appendChild(x); });
+  male.appendChild(el('p', '', d.skladovani));
+  const v = el('p'); v.append(document.createTextNode(d.vyrobil_popis + ' '), el('b', '', d.vyrobil));
+  male.appendChild(v);
+  pata.appendChild(male);
+
+  // razítko vlastní směsi
+  const raz = k('razitko');
+  if (raz) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 176 176');
+    const g = document.createElementNS(ns, 'g');
+    g.setAttribute('filter', 'url(#inkoust)');
+    const kruh = (r, w) => { const c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', 88); c.setAttribute('cy', 88); c.setAttribute('r', r); c.setAttribute('fill', 'none'); c.setAttribute('stroke', 'currentColor'); c.setAttribute('stroke-width', w); return c; };
+    g.append(kruh(85, 4), kruh(50, 2));
+    const cesta = document.createElementNS(ns, 'path');
+    cesta.setAttribute('id', 'oblouk');
+    cesta.setAttribute('d', 'M88 88 m-64 0 a64 64 0 1 1 128 0 a64 64 0 1 1 -128 0');
+    cesta.setAttribute('fill', 'none');
+    const text = document.createElementNS(ns, 'text');
+    const tp = document.createElementNS(ns, 'textPath');
+    tp.setAttribute('href', '#oblouk');
+    tp.setAttribute('textLength', 398);
+    tp.setAttribute('lengthAdjust', 'spacing');
+    tp.textContent = 'NAMÍCHÁNO PRO TEBE · NAMÍCHÁNO PRO TEBE · ';
+    text.appendChild(tp);
+    const stred = document.createElementNS(ns, 'text');
+    stred.setAttribute('x', 88); stred.setAttribute('y', 95); stred.setAttribute('text-anchor', 'middle'); stred.setAttribute('class', 'datum');
+    stred.textContent = d.prazdna ? '' : d.razitko_datum;
+    // lísteček nad datem
+    const list = document.createElementNS(ns, 'path');
+    list.setAttribute('d', 'M88 62c7 3 9 9 6 14-5-1-8-4-6-14Zm0 0c-7 3-9 9-6 14 5-1 8-4 6-14Z');
+    list.setAttribute('fill', 'currentColor');
+    g.append(cesta, text, stred, list);
+    svg.appendChild(g);
+    raz.appendChild(svg);
+  }
+
+  // písma načíst dřív, než se měří
+  await Promise.all([
+    document.fonts.load(`700 90px Unbounded`, d.jmeno || 'Tease you'),
+    document.fonts.load(`600 30px Unbounded`, 'Tease you'),
+    document.fonts.load(`700 90px Caveat`, d.jmeno || 'a'),
+    document.fonts.load(`400 20px "Albert Sans"`, 'ěščřžýáíéůú'),
+    document.fonts.load(`700 20px "Albert Sans"`, 'ěščřžýáíéůú'),
+  ]);
+  await document.fonts.ready;
+  // dlouhé jméno zmenšit, ať se vejde na 2 řádky
+  const jm = k('jmeno');
+  const maxRadku = 2;
+  let size = parseFloat(getComputedStyle(jm).fontSize);
+  const sirka = d.druh === 'vlastni' ? 430 : 540;
+  jm.style.maxWidth = sirka + 'px';
+  const radku = () => { const r = document.createRange(); r.selectNodeContents(jm);
+    return new Set([...r.getClientRects()].map(x => Math.round(x.top))).size; };
+  const zmensi = (radky, min) => {
+    while (size > min && (radku() > radky || jm.scrollWidth > sirka + 1)) { size -= 2; jm.style.fontSize = size + 'px'; }
+    return radku() <= radky && jm.scrollWidth <= sirka + 1;
+  };
+  // vlastní směs radši na jeden řádek, dlouhé jméno smí na dva
+  if (!(d.druh === 'vlastni' && zmensi(1, 66))) {
+    size = parseFloat(getComputedStyle(jm).fontSize) && (d.druh === 'vlastni' ? 100 : size);
+    jm.style.fontSize = size + 'px';
+    zmensi(maxRadku, 40);
+  }
+  return true;
+}
+</script>
+</body>
+</html>

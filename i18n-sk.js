@@ -530,4 +530,5 @@ self.TEASEYOU_I18N_SK = {
     moment_for_summer:     'Na leto',
     detail_story_title:    'Prečo to funguje',
     brew_tip:              'Tip',
+    render_note:           'Ilustračná vizualizácia balenia 100 g',
 };

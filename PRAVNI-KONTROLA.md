@@ -4,7 +4,9 @@ Kontrola podle checklistu „The App Launch Checklist“ (35 bodů, stav k říj
 přepočítaná na český e-shop se sypaným čajem. U každého bodu je, jestli se nás týká,
 podle čeho v Česku, co je hotové a co zbývá.
 
-- **Stav ke dni:** 9. 11. 2026
+- **Stav ke dni:** 9. 11. 2026, body 27 a 35 a měrná cena doplněné 22. 11. 2026.
+  Rozhodnutí a výklad, ze kterého kontroly vycházejí, jsou v
+  [`docs/pravni-kontrola.md`](docs/pravni-kontrola.md).
 - **Projít znovu:** nejpozději 5. 11. 2027, a vždycky, když přibude nová funkce, dodavatel,
   druh údajů, způsob placení nebo nová země prodeje. Úkol na to je v administraci
   (Nákup → Úkoly).
@@ -74,7 +76,7 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 
 | # | Bod | Stav | Podle čeho v ČR | Co je na webu / co zbývá |
 |---|---|---|---|---|
-| 27 | Nepodložená tvrzení | ✅ ⏳ | zákon o ochraně spotřebitele § 5 (klamavé praktiky); nařízení 1924/2006 (zdravotní tvrzení); 1169/2011 čl. 7 | Pryč: „500+ kombinací“ (je jich 486), „certifikovaní dodavatelé“, „žádné šarže“, „čerstvost 12–18 měsíců“, „bez umělých aromatizátorů“, „mícháme ve stejný den“, „sledovací číslo e-mailem“, vymyšlený telefon v datech pro vyhledávače, zdravotní tvrzení. Termíny jsou „obvykle do 24 hodin“, jak říkají podmínky. ⏳ Potvrdit, že sedí příběh v *O nás* (maturitní práce). Zelená tvrzení („eko“, „šetrné k přírodě“) nepoužívat, novela zákona podle směrnice 2024/825 prošla Sněmovnou 14. 10. 2026. |
+| 27 | Nepodložená tvrzení | ✅ ⏳ | zákon o ochraně spotřebitele § 5 (klamavé praktiky); nařízení 1924/2006 (zdravotní tvrzení); 1169/2011 čl. 7 | Pryč: „500+ kombinací“ (je jich 486), „certifikovaní dodavatelé“, „žádné šarže“, „čerstvost 12–18 měsíců“, „bez umělých aromatizátorů“, „mícháme ve stejný den“, „sledovací číslo e-mailem“, vymyšlený telefon v datech pro vyhledávače, zdravotní tvrzení. ⏳ Zbývá „uklidňující“ u heřmánku a levandule (anglicky „calming“, „soothing“, u medu „soothing“), Václav zatím nechce mazat. Zdravotní tvrzení smí být jen povolená (nařízení 1924/2006 čl. 10 odst. 1) a s doplňujícími informacemi (čl. 10 odst. 2), platí to i pro web a reklamu. Termíny jsou „obvykle do 24 hodin“, jak říkají podmínky. ⏳ Potvrdit, že sedí příběh v *O nás* (maturitní práce). Zelená tvrzení („eko“, „šetrné k přírodě“) nepoužívat, novela zákona podle směrnice 2024/825 prošla Sněmovnou 14. 10. 2026. |
 | 28 | Falešné recenze | ✅ | zákon o ochraně spotřebitele § 5a odst. 5 | Hodnotit jde jen z Moje objednávky: databáze ověří číslo objednávky a e-mail z ní a pustí to až po odeslání. Na web jde recenze až po schválení v administraci. U recenzí na úvodu i u směsi je napsané, jak ověřujeme, že zveřejňujeme i kritické a že za recenze nic nedáváme. Administrace připomíná: odmítnout jen vulgární, nesouvisející nebo s cizími osobními údaji. Zveřejnění se jménem jen se souhlasem (zaškrtávátko), v zásadách ochrany údajů je nový řádek „Recenze“. ⏳ Za recenzi nedávat slevu ani dárek. |
 | 29 | Falešné certifikáty bezpečnosti | ➖ | § 5 zákona o ochraně spotřebitele | Žádné „SOC 2“, „ISO“ ani „GDPR certified“. Zásady popisují jen to, co opravdu děláme. |
 | 30 | Slib dostupnosti | ➖ | – | Nic takového neslibujeme. |
@@ -85,9 +87,9 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 
 | # | Bod | Stav | Podle čeho v ČR | Co je na webu / co zbývá |
 |---|---|---|---|---|
-| 33 | Licence obrázků, písem a kódu | ✅ | autorský zákon č. 121/2000 Sb. | Písma Unbounded a Albert Sans (OFL 1.1, `fonts/OFL.txt`), část ikon z Feather Icons (MIT), vše v `THIRD-PARTY-LICENSES.txt` a odkazem v patičce. Ilustrace jsou vlastní. |
+| 33 | Licence obrázků, písem a kódu | ✅ | autorský zákon č. 121/2000 Sb. | Písma Unbounded a Albert Sans (OFL 1.1, `fonts/OFL.txt`), na etiketách vlastních směsí Caveat (OFL 1.1, `tools/rendery/pisma/OFL.txt`), část ikon z Feather Icons (MIT), vše v `THIRD-PARTY-LICENSES.txt` a odkazem v patičce. Ilustrace a rendery sáčků a surovin jsou vlastní. |
 | 34 | Open-source licence | ✅ | – | Web nemá žádné knihovny, jen vlastní kód. Mapa Zásilkovny se načítá z jejich serveru podle jejich podmínek. |
-| 35 | Registrace agenta DMCA | ➖ | americký zákon; v EU nařízení 2022/2065 (DSA) | Zákazníci nic nenahrávají, nejsme hostingová služba. |
+| 35 | Registrace agenta DMCA | ➖ ⏳ | americký zákon; v EU nařízení 2022/2065 (DSA) | DMCA se nás netýká. Recenze ale píšou zákazníci, takže pro ně jsme nejspíš hostingová služba podle DSA (čl. 11, 12, 14, 16 a 17 platí i pro mikropodniky). ⏳ Do podmínek doplnit pravidla pro recenze, jak nahlásit nezákonnou recenzi a kontaktní místo. Autorovi odmítnuté recenze napsat proč. |
 
 ## Navíc podle českých předpisů (mimo checklist)
 
@@ -98,6 +100,8 @@ Značky: ✅ hotovo · ⏳ zbývá udělat · ➖ netýká se nás (s důvodem)
 | Živnost | ⏳ | zákon č. 455/1991 Sb. | Obory Velkoobchod a maloobchod + Výroba potravinářských výrobků. |
 | HACCP a šarže | ⏳ | nařízení (ES) 852/2004 a 178/2002 čl. 18 | Sepsat postupy, vést šarže a dodávky. |
 | Obaly | ⏳ | nařízení (EU) 2025/40 (PPWR, od 12. 8. 2026); zákon č. 477/2001 Sb. | Zeptat se EKO-KOM. |
+| Měrná cena | ⏳ | zákon č. 526/1990 Sb. o cenách, § 13 odst. 4 a 5 (znění od 13. 5. 2026) | U balených potravin se kromě ceny uvádí i cena za měrnou jednotku, základně za 1 kg (jinou jednotku jen podle zvyklostí). Na webu zatím chybí u hotových směsí, v mixéru i v košíku. |
+| Odstoupení: zapečetěný sáček | ⏳ | § 1837 písm. g) OZ (aktuální znění: „zboží v zapečetěném obalu“) | Výjimka pro otevřené hotové směsi platí jen u sáčku, na kterém je poznat, že byl otevřený. Kupovat sáčky se zátavem nad zipem a v podmínkách psát „zapečetěný (zatavený) sáček“. |
 | Kosmetika (mýdla, balzámy) | ⏳ | nařízení (ES) 1223/2009 | Před prodejem posudek bezpečnosti, CPNP, oznámení hygieně. Zatím jen „Dej mi vědět“. |
 | Prodej na Slovensko: štítek | ✅ ⏳ | slovenský zákon č. 152/1995 Z. z. o potravinách, § 9 ods. 1 (označení v kodifikované podobě státního jazyka); nařízení (EU) 1169/2011 čl. 15 | Web ve slovenštině ukazuje název a složení slovensky („Ochutený zelený čaj“, „zelený čaj 60 %…“). Administrace u objednávky na Slovensko ukáže text na štítek slovensky. ⏳ Na sáčky do SK tisknout slovenský štítek (název, složení, trvanlivost, skladování, výrobce). |
 | Prodej na Slovensko: smlouva a informace | ⏳ | slovenský zákon č. 108/2024 Z. z. o ochraně spotřebitele, § 4 ods. 1 písm. g) (informace a dokumenty slovensky, jinak v jiném srozumitelném jazyce se souhlasem spotřebitele) | Web, košík a pokladna jsou slovensky. Obchodní podmínky, ochrana údajů a odstoupení zůstávají česky (jazyk smlouvy) a ve slovenštině i angličtině mají nahoře poznámku. ⏳ Rozhodnout: přeložit tyto tři stránky do slovenštiny, nebo si v pokladně u adresy na Slovensku vyžádat souhlas s češtinou. Projít s advokátem. |

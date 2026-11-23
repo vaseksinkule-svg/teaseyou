@@ -1241,8 +1241,15 @@ function openDetail(name, desc, price, ingredientsIn, colors, partsIn, opts = {}
 function renderDetailVisual(name, ingredients, parts) {
     const weight = parseInt(currentProduct.weight, 10) || 0;
     const box = document.getElementById('detail-pouch');
-    const band = momentOf(catalogBlends.find(b => b.name === name));
-    if (box) box.innerHTML = pouchHtml({ name, codes: ingredients, parts, size: 'pouch--hero', weight: weight ? weight + ' g' : '', band });
+    const blend = catalogBlends.find(b => b.name === name);
+    const band = momentOf(blend);
+    // Render jen u hotové směsi beze změn: stejné jméno, suroviny i díly.
+    const same = blend && blend.ingredients.join('|') === ingredients.join('|')
+        && (blend.parts || []).join('|') === (parts || []).join('|');
+    const render = same ? pouchRenderFor(blend) : '';
+    if (box) box.innerHTML = pouchHtml({ name, codes: ingredients, parts, size: 'pouch--hero', weight: weight ? weight + ' g' : '', band, render });
+    const note = document.getElementById('detail-render-note');
+    if (note) note.hidden = !render;
     const list = document.getElementById('detail-ingredients-list');
     const r = recipeOf(ingredients, parts, weight);
     if (list) list.innerHTML = r.rows.map(row =>
@@ -2716,7 +2723,7 @@ function renderQuizResult() {
                     <button type="button" class="btn btn-link" onclick="startQuiz()">${escHtml(t('btn_try_again'))}</button>
                 </div>
             </div>
-            <figure class="quiz-stage" aria-hidden="true">${pouchHtml({ name: best.name, codes: best.ingredients, parts: best.parts, size: 'pouch--hero', weight: '100 g', band: momentOf(best) })}</figure>
+            <figure class="quiz-stage" aria-hidden="true">${pouchHtml({ name: best.name, codes: best.ingredients, parts: best.parts, size: 'pouch--hero', weight: '100 g', band: momentOf(best), render: pouchRenderFor(best) })}</figure>
             ${runnerUp ? `
             <div class="quiz-runnerup">
                 <p>${escHtml(t('quiz_also'))}</p>
@@ -3009,6 +3016,13 @@ function mixErrorText(r) {
    pozadím), fotka suroviny (oříznutá do kruhu), jinak vestavěná kresba
    z icons.js. Podklad je světlý odstín barvy suroviny.
    cls: velikost (ing-ico--sm, --xs) nebo jiná třída podle místa. */
+/* Fotky a rendery surovin, které jsou přímo na webu (img/suroviny/). Fotka
+   nahraná v administraci má přednost. */
+const ING_PHOTOS = {
+    'Black Tea': 'img/suroviny/cerny-caj-400.webp',
+    'Ginger':    'img/suroviny/zazvor-400.webp',
+    'Cinnamon':  'img/suroviny/skorice-400.webp',
+};
 function ingIconHtml(code, cls = '') {
     const ing = ingByCode(code) || {};
     const color = /^#[0-9a-f]{6}$/i.test(ing.color || '') ? ing.color : '#cccccc';
@@ -3018,7 +3032,7 @@ function ingIconHtml(code, cls = '') {
         return `<span class="${klass} has-img" style="--c:${color}" aria-hidden="true">`
             + `<img src="${escHtml(icon)}" alt="" loading="lazy" decoding="async"></span>`;
     }
-    const photo = safePhoto(ing.photo);
+    const photo = safePhoto(ing.photo) || ING_PHOTOS[code] || '';
     if (photo) return `<span class="${klass} has-photo" style="--c:${color};background-image:url('${escHtml(photo)}')" aria-hidden="true"></span>`;
     const kind = ing.kind || (ing.category === 'base' ? 'tea' : '');
     return `<span class="${klass}" style="--c:${color}" aria-hidden="true">${IngIcons.svg(IngIcons.keyFor(code, kind))}</span>`;
@@ -3482,7 +3496,7 @@ function blendCardHtml(b) {
     const photo = safePhoto(b.photo_url);
     const visual = photo
         ? `<div class="ready-photo"><img src="${escHtml(photo)}" alt="" loading="lazy" decoding="async"></div>`
-        : pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--sm', band: momentOf(b) });
+        : pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--sm', band: momentOf(b), render: pouchRenderFor(b) });
     const soldOut = outOfStockIn(b.ingredients).length
         ? `<span class="ing-out-badge">${escHtml(t('ing_sold_out'))}</span>` : '';
     const tint = ingColor(b.ingredients[1]) || ingColor(b.ingredients[0]) || '';
@@ -3537,7 +3551,7 @@ function renderAboutStage() {
     if (!stage) return;
     const picks = catalogBlends.slice(0, 3);
     stage.hidden = picks.length < 3;
-    stage.innerHTML = picks.map(b => pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--about', weight: '100 g', band: momentOf(b) })).join('');
+    stage.innerHTML = picks.map(b => pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--about', weight: '100 g', band: momentOf(b), render: pouchRenderFor(b) })).join('');
 }
 
 /* Detail hotové směsi: chvíle dne nad názvem, „Proč to funguje“ a tip
@@ -4328,8 +4342,39 @@ const POUCH_SVG = `<svg class="pouch-bag" viewBox="0 0 200 270" preserveAspectRa
 </svg>`;
 const LAYER_LABELS = ['glass_label_base', 'glass_label_flavor', 'glass_label_extras'];
 
-/* Sáček s etiketou: jméno, suroviny s podílem (od největšího) a gramáž. */
-function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholders = false, weight = '', band = '' } = {}) {
+/* Rendery sáčků hotových směsí z Blenderu (průhledné pozadí, img/sacky/).
+   Když má směs render, ukáže se všude místo kresleného sáčku. Vlastní směs
+   má vždy kreslený sáček, protože jméno a složení vymýšlí zákazník a etiketa
+   se musí měnit živě. Soubory: <cesta>-480.webp a <cesta>-960.webp. */
+const POUCH_RENDERS = {
+    morning_window: 'img/sacky/morning-window',
+    still_evening:  'img/sacky/still-evening',
+    deep_winter:    'img/sacky/deep-winter',
+    late_light:     'img/sacky/late-light',
+    open_air:       'img/sacky/open-air',
+    slow_tuesday:   'img/sacky/slow-tuesday',
+    sunday_paper:   'img/sacky/sunday-paper',
+    desk_hours:     'img/sacky/desk-hours',
+    garden_party:   'img/sacky/garden-party',
+    pink_hour:      'img/sacky/pink-hour',
+    after_dinner:   'img/sacky/after-dinner',
+    quiet_street:   'img/sacky/quiet-street',
+    snowed_in:      'img/sacky/snowed-in',
+    mint_condition: 'img/sacky/mint-condition',
+};
+function pouchRenderFor(b) { return (b && POUCH_RENDERS[b.id]) || ''; }
+/* Jak široký je sáček na stránce, aby si prohlížeč vybral správnou velikost. */
+const POUCH_RENDER_SIZES = { 'pouch--xs': '64px', 'pouch--sm': '112px', 'pouch--about': '216px' };
+
+/* Sáček s etiketou: jméno, suroviny s podílem (od největšího) a gramáž.
+   render: cesta k renderu hotové směsi (pouchRenderFor), jinak se kreslí. */
+function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholders = false, weight = '', band = '', render = '' } = {}) {
+    if (render) {
+        const sizes = POUCH_RENDER_SIZES[size] || '290px';
+        return `<div class="pouch pouch--render ${size}"><img class="pouch-render" src="${escHtml(render)}-480.webp"`
+            + ` srcset="${escHtml(render)}-480.webp 480w, ${escHtml(render)}-960.webp 960w" sizes="${sizes}"`
+            + ` alt="" decoding="async"></div>`;
+    }
     const comp = blendComposition(codes, parts);
     const real = Recipe.normalize(codes, parts).codes;
     // Dlouhý název suroviny dostane menší písmo, ať je na jednom řádku jako ostatní.
@@ -4386,7 +4431,7 @@ function renderHero(id, animate) {
     heroBlendId = b.id;
     const weights = sortedWeights();
     const weight = weights.includes(100) ? '100 g' : (weights[0] ? weights[0] + ' g' : '');
-    box.innerHTML = pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--hero', weight, band: momentOf(b) });
+    box.innerHTML = pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--hero', weight, band: momentOf(b), render: pouchRenderFor(b) });
     if (animate && !reduceMotion()) {
         box.classList.remove('is-swapping');
         void box.offsetWidth;
@@ -5053,6 +5098,7 @@ Object.assign(TRANSLATIONS.cs, {
     moment_for_summer:     'Na léto',
     detail_story_title:    'Proč to funguje',
     brew_tip:              'Tip',
+    render_note:           'Ilustrační vizualizace balení 100 g',
 });
 Object.assign(TRANSLATIONS.en, {
     moment_morning:        'Morning',
@@ -5067,6 +5113,7 @@ Object.assign(TRANSLATIONS.en, {
     moment_for_summer:     'For summer',
     detail_story_title:    'Why it works',
     brew_tip:              'Tip',
+    render_note:           'Illustrative render of the 100 g pouch',
 });
 
 const CRAFT_NOTIFIED_KEY = 'teaseyou_notified';
