@@ -82,7 +82,24 @@ def surovina(src: str, slug: str) -> None:
     ys, xs = np.where(pile)
     cy, cx = int(np.median(ys)), int(np.median(xs))
     side = int(min(xs.max() - xs.min(), ys.max() - ys.min()) * 0.7)
-    x0, y0 = max(0, cx - side // 2), max(0, cy - side // 2)
+    # U řidší hromádky (skořice) by ve středu prosvítalo pozadí. Čtverec se
+    # proto posune tam, kde ho hromádka pokryje nejvíc (při shodě blíž středu).
+    # mezery v hromádce: světlé a skoro šedé pixely (stín na pozadí)
+    jas, sytost = im.mean(2), im.max(2) - im.min(2)
+    plna = pile & ~((sytost < 25) & (jas > 140))
+    hust = plna.astype(np.float64).cumsum(0).cumsum(1)
+    hust = np.pad(hust, ((1, 0), (1, 0)))
+    best = None
+    krok = max(4, side // 40)
+    for y0 in range(max(0, cy - side), min(pile.shape[0] - side, cy) + 1, krok):
+        for x0 in range(max(0, cx - side), min(pile.shape[1] - side, cx) + 1, krok):
+            kryti = hust[y0 + side, x0 + side] - hust[y0, x0 + side] - hust[y0 + side, x0] + hust[y0, x0]
+            vzd = abs(y0 + side / 2 - cy) + abs(x0 + side / 2 - cx)
+            klic = (round(kryti / side ** 2, 3), -vzd)
+            if best is None or klic > best[0]:
+                best = (klic, x0, y0)
+    _, x0, y0 = best
+    cx, cy = x0 + side // 2, y0 + side // 2
     crop = Image.fromarray(im.astype(np.uint8)).crop((x0, y0, x0 + side, y0 + side))
     out = ROOT / 'img' / 'suroviny'
     out.mkdir(parents=True, exist_ok=True)

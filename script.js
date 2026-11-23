@@ -3020,6 +3020,8 @@ function mixErrorText(r) {
    nahraná v administraci má přednost. */
 const ING_PHOTOS = {
     'Black Tea': 'img/suroviny/cerny-caj-400.webp',
+    'Ginger':    'img/suroviny/zazvor-400.webp',
+    'Cinnamon':  'img/suroviny/skorice-400.webp',
 };
 function ingIconHtml(code, cls = '') {
     const ing = ingByCode(code) || {};
