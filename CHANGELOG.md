@@ -6,15 +6,18 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
-### Fotky čajů v kolečkách surovin (24. 11. 2026)
-- **Zelený, bílý, oolong, rooibos a černý čaj** mají v kolečku místo ikonky
-  makro záběr z Blenderu. Černý čaj je nově vymodelovaný, aby k ostatním
-  pasoval (dřív vypadal jako hladké červíky).
-- Každý čaj má vlastní tvar: sencha jehličky, zmačkané listy a stříbřité
-  pupeny bílého čaje, svinuté kuličky oolongu, nasekané jehličky rooibosu,
-  drátovité proužky černého čaje se zlatými tipy.
-- Hromádky staví `tools/rendery/blender_suroviny.py` (lístky se žilkou,
-  zmačkané a svinuté, vrstvené na sebe), výřez dělá
+### Fotky čajů, zázvoru a skořice v kolečkách surovin (24. 11. 2026)
+- **Zelený, bílý, oolong, rooibos, černý čaj, zázvor a skořice** mají
+  v kolečku místo ikonky makro záběr z Blenderu. Černý čaj, zázvor a skořice
+  jsou vymodelované znovu, aby k ostatním pasovaly.
+- Tvary a barvy jsou podle fotek běžných sypaných čajů do směsí:
+  - zelený jako China Sencha (ploché přeložené proužky, olivové)
+  - černý jako Ceylon OP (zvlněné drátovité proužky, černohnědé)
+  - bílý jako Pai Mu Tan (šedozelené listy a stříbřité pupeny)
+  - oolong jako Tie Guan Yin (svinuté vrásčité kuličky se stonky)
+  - rooibos (nasekané měděné jehličky), zázvor (béžové kousky),
+    skořice (třísky kůry, venku tmavé, uvnitř světlejší)
+- Hromádky staví `tools/rendery/blender_suroviny.py`, výřez dělá
   `tools/rendery/vyrez.py detail`.
 
 ### Rendery všech hotových směsí a etikety (23. 11. 2026)

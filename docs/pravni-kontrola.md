@@ -81,8 +81,9 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
   šarže a trvanlivost na renderu jsou ukázkové.
 - **Fotky surovin:** v kolečkách jsou vlastní rendery z Blenderu (`img/suroviny/`):
   černý, zelený, bílý čaj, oolong, rooibos, zázvor, skořice. Ukazují typický
-  vzhled suroviny (zelený jako sencha, oolong svinutý, bílý jako Bai Mu Dan),
-  ne konkrétní šarži. Kolečka jsou dekorace, název suroviny je vedle v textu.
+  vzhled podle fotek běžných druhů do směsí (Ceylon OP, China Sencha, Pai Mu
+  Tan, Tie Guan Yin, rooibos, zázvor a skořice nakrájené na čaj), ne
+  konkrétní šarži. Kolečka jsou dekorace, název suroviny je vedle v textu.
 - **Etiketa sáčku:** texty generuje `tools/rendery/etikety.py` ze stejných dat
   jako informace o potravině na webu (název podle vyhlášky 187/2023 Sb.,
   složení s procenty, alergeny, příprava, trvanlivost, skladování,
