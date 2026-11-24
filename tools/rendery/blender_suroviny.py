@@ -170,14 +170,14 @@ def _cerny_tip(rng):
 
 
 def _zeleny(rng):
-    L = rng.uniform(7, 14) * MM
-    return list_(rng, L, rng.uniform(1.5, 2.4) * MM, svinuti=rng.uniform(1.1, 1.6), zkrut=rng.uniform(-0.8, 0.8),
-                 ohyb=rng.uniform(-0.08, 0.08), zmac=rng.uniform(0.05, 0.12), spicka=1.2, nu=30, nv=9)
+    # sencha: svinutý list jako zploštělá jehlička, lehce zkroucená a hrbolatá
+    return trubka(rng, rng.uniform(5, 12) * MM, rng.uniform(0.42, 0.62) * MM, zplosteni=rng.uniform(0.5, 0.75),
+                  zkrut=rng.uniform(-2.5, 2.5), ohyb=rng.uniform(-0.12, 0.12), zuzeni=0.55, hrbol=0.18, nu=24, nv=8)
 
 
 def _zeleny_kousek(rng):
-    return list_(rng, rng.uniform(3, 6) * MM, rng.uniform(2, 3.5) * MM, svinuti=rng.uniform(0.2, 0.5),
-                 zmac=rng.uniform(0.2, 0.4), zkrut=rng.uniform(-0.6, 0.6), spicka=0.5, zaklad=0.5, nu=16, nv=9)
+    return trubka(rng, rng.uniform(2.2, 4.5) * MM, rng.uniform(0.4, 0.6) * MM, zplosteni=rng.uniform(0.45, 0.7),
+                  zkrut=rng.uniform(-1.5, 1.5), ohyb=rng.uniform(-0.1, 0.1), zuzeni=0.3, hrbol=0.2, nu=12, nv=8)
 
 
 def _bily_list(rng):
@@ -224,9 +224,10 @@ CAJE = {
     'cerny-caj': dict(R=30 * MM, H=15 * MM, kusy=[(0.9, _cerny, 0), (0.1, _cerny_tip, 1)], lezi=0.45, kolem=True,
                       barvy=dict(list=['#120c08', '#1d130c', '#2a1b10', '#3a2614'], pupen=['#8a5a26', '#b07a3a'], stonek=['#3a2a1a', '#4a3520']),
                       drsnost=0.5, lesk=0.35, pupen_chlup=0.6),
-    'zeleny-caj': dict(R=30 * MM, H=14 * MM, kusy=[(0.85, _zeleny, 0), (0.15, _zeleny_kousek, 0)], lezi=0.35, kolem=True,
-                       barvy=dict(list=['#1f2f12', '#2c4219', '#3b5622', '#4f6a2b'], pupen=['#7f9550', '#94a865'], stonek=['#6b7a3c', '#7f8c48']),
-                       drsnost=0.38, lesk=0.25, pupen_chlup=0.2),
+    'zeleny-caj': dict(R=30 * MM, H=12 * MM, kusy=[(0.7, _zeleny, 0), (0.3, _zeleny_kousek, 0)], lezi=0.2, kolem=True,
+                       min_kusu=9000, sedne=60,
+                       barvy=dict(list=['#17200f', '#202c14', '#2a3719', '#36431f', '#4a5228'], pupen=['#6f7a3e', '#808a48'], stonek=['#6b7a3c', '#7f8c48']),
+                       drsnost=0.4, lesk=0.25, pupen_chlup=0.2),
     'bily-caj': dict(R=32 * MM, H=15 * MM, kusy=[(0.55, _bily_list, 0), (0.33, _bily_pupen, 1), (0.12, _bily_stonek, 2)], lezi=0.35, kolem=False,
                      barvy=dict(list=['#4e5131', '#6b6a41', '#7f7349', '#8f7b52', '#5d4a30'], pupen=['#b9bba7', '#cfd0c0'], stonek=['#9c8a62', '#b29d6f']),
                      drsnost=0.62, lesk=0.3, pupen_chlup=1.0),
@@ -263,7 +264,7 @@ def hromadka(slug, seed=1, max_kusu=40000, bunka=0.2 * MM, variant=48):
     V, F, UV, NA, DR = [], [], [], [], []
     off = 0
     for n in range(max_kusu):
-        if n % 200 == 0 and n and (cil - hm)[uvnitr].clip(0).mean() < 0.25 * MM:
+        if n % 200 == 0 and n >= cfg.get('min_kusu', 0) and (cil - hm)[uvnitr].clip(0).mean() < 0.25 * MM:
             break
         tv, druh = sablony[rng.integers(len(sablony))]
         # náklon: list leží, trubky se točí kolem své osy
@@ -485,7 +486,7 @@ def kamery(slug, d):
     i = int((yy + d['ext']) / d['bunka'])
     j = int(d['ext'] / d['bunka'])
     zc = float(d['hm'][j, i])
-    _kamera('Kamera_' + slug + '_detail', (0, yy, zc), (0.15, -0.75, 0.9), 0.085, 100, fstop=7.1)
+    _kamera('Kamera_' + slug + '_detail', (0, yy, zc), (0.12, -0.6, 1.0), 0.075, 100, fstop=11)
 
 
 def jen(slug):
