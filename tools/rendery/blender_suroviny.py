@@ -89,7 +89,7 @@ def list_(rng, L, W, nu=26, nv=9, svinuti=0.0, zkrut=0.0, ohyb=0.0, zmac=0.0,
     return {'v': v3, 'f': _mrizka(nu, nv), 'uv': uv}
 
 
-def trubka(rng, L, r, nu=14, nv=7, zplosteni=1.0, zkrut=0.0, ohyb=0.0, zuzeni=0.6, hrbol=0.0):
+def trubka(rng, L, r, nu=14, nv=7, zplosteni=1.0, zkrut=0.0, ohyb=0.0, zuzeni=0.6, hrbol=0.0, vlna=0.0):
     """Jehlička nebo stonek: trubička délky L a poloměru r, konce zúžené."""
     u = np.linspace(0, 1, nu)
     a = np.linspace(0, 2 * np.pi, nv, endpoint=False)
@@ -105,10 +105,57 @@ def trubka(rng, L, r, nu=14, nv=7, zplosteni=1.0, zkrut=0.0, ohyb=0.0, zuzeni=0.
         y, z = _zkrut(y, z, zkrut * (U - 0.5))
     if ohyb:
         z = z + ohyb * L * (2 * (U - 0.5)) ** 2
+    if vlna:                                    # zvlnění do stran (drátovité proužky)
+        f1, f2 = rng.uniform(0.6, 1.6), rng.uniform(0.5, 1.3)
+        y = y + vlna * L * np.sin(2 * np.pi * f1 * U + rng.uniform(0, 6.3))
+        z = z + 0.5 * vlna * L * np.sin(2 * np.pi * f2 * U + rng.uniform(0, 6.3))
     v3 = np.stack([x, y, z], -1).reshape(-1, 3)
     v3 -= v3.mean(0)
     uv = np.stack([U, A / (2 * np.pi)], -1).reshape(-1, 2)
     return {'v': v3, 'f': _mrizka(nu, nv, cyklicky=True), 'uv': uv}
+
+
+def kostka(rng, a, nu=14, nv=16, hrany=0.35, vlakna=0.06):
+    """Nepravidelný kousek (sušený zázvor): zaoblený kvádr s otlučenými hranami
+    a podélnými vlákny."""
+    th = np.linspace(0.02, np.pi - 0.02, nu)
+    ph = np.linspace(0, 2 * np.pi, nv, endpoint=False)
+    T, P = np.meshgrid(th, ph, indexing='ij')
+    d = np.stack([np.sin(T) * np.cos(P), np.sin(T) * np.sin(P), np.cos(T)], -1)
+    # superelipsoid: malý exponent dělá z koule kvádr
+    q = np.abs(d) ** hrany * np.sign(d)
+    rozm = a * rng.uniform(0.55, 1.0, 3)
+    v3 = q * rozm
+    otluk = _vlny(rng, 6, 2 * np.pi / (0.7 * a))
+    v3 = v3 * (1 + 0.18 * otluk(v3[..., 0] + v3[..., 2], v3[..., 1] - v3[..., 2]))[..., None]
+    v3[..., 1] += vlakna * a * np.sin(v3[..., 2] * 2 * np.pi / (0.15 * a)) * (np.abs(d[..., 1]) > 0.3)
+    v3 = v3.reshape(-1, 3)
+    v3 -= v3.mean(0)
+    uv = np.stack([T / np.pi, P / (2 * np.pi)], -1).reshape(-1, 2)
+    return {'v': v3, 'f': _mrizka(nu, nv, cyklicky=True), 'uv': uv}
+
+
+def kura(rng, L, W, t, svinuti=0.4, nu=18, nv=28):
+    """Kousek kůry (skořice): prohnutá destička s tloušťkou, roztřepené konce.
+    Vnější strana má druh 1 (tmavá kůra), vnitřní 0 (světlá)."""
+    u = np.linspace(0, 1, nu)
+    a = np.linspace(0, 2 * np.pi, nv, endpoint=False)
+    U, A = np.meshgrid(u, a, indexing='ij')
+    ca, sa = np.cos(A), np.sin(A)
+    s = 0.5 * W * np.sign(ca) * np.abs(ca) ** 0.15      # přes šířku
+    z = 0.5 * t * np.sign(sa) * np.abs(sa) ** 0.15      # tloušťka
+    roztrep = 1 + 0.12 * _vlny(rng, 4, 2 * np.pi / (0.4 * W))(s, np.zeros_like(s))
+    x = L * (U - 0.5) * roztrep
+    y = s
+    if svinuti > 0:
+        R = W / (2 * np.pi * svinuti)
+        y, z = (R - z) * np.sin(s / R), R - (R - z) * np.cos(s / R)
+    z = z + 0.08 * L * (2 * (U - 0.5)) ** 2 * rng.uniform(-1, 1)
+    v3 = np.stack([x, y, z], -1).reshape(-1, 3)
+    v3 -= v3.mean(0)
+    uv = np.stack([U, (s / W + 0.5)], -1).reshape(-1, 2)
+    d = (sa < 0).astype(float).ravel()                  # spodní strana = vnější kůra
+    return {'v': v3, 'f': _mrizka(nu, nv, cyklicky=True), 'uv': uv, 'd': d}
 
 
 def kulicka(rng, r, protazeni=1.3, rasy=0.22, nu=30, nv=26):
@@ -136,15 +183,20 @@ def kulicka(rng, r, protazeni=1.3, rasy=0.22, nu=30, nv=26):
 
 def spoj(*casti):
     """Spojí několik tvarů do jednoho kusu (např. kulička se stonkem)."""
-    v, f, uv, off = [], [], [], 0
+    v, f, uv, d, off = [], [], [], [], 0
     for c in casti:
         v.append(c['v']); f.append(c['f'] + off); uv.append(c['uv']); off += len(c['v'])
-    return {'v': np.concatenate(v), 'f': np.concatenate(f), 'uv': np.concatenate(uv)}
+        d.append(c.get('d', np.full(len(c['v']), -1.0)))
+    return {'v': np.concatenate(v), 'f': np.concatenate(f), 'uv': np.concatenate(uv), 'd': np.concatenate(d)}
 
 
 def posun(c, t, rot=None):
     v = c['v'] @ rot.T if rot is not None else c['v']
-    return {'v': v + np.asarray(t), 'f': c['f'], 'uv': c['uv']}
+    return dict(c, v=v + np.asarray(t))
+
+
+def druh_casti(c, druh):
+    return dict(c, d=np.full(len(c['v']), float(druh)))
 
 
 def rot_xyz(rx, ry, rz):
@@ -159,10 +211,14 @@ def rot_xyz(rx, ry, rz):
 # Každý kus: (váha, funkce rng → tvar, druh) — druh 0 list, 1 pupen/tip, 2 stonek.
 # lezi: rozptyl náklonu (rad), kolem: náhodné otočení kolem vlastní osy (trubky).
 
+# Tvary a barvy podle fotek běžných sypaných čajů do směsí (Ceylon OP, China
+# Sencha, Pai Mu Tan, Tie Guan Yin, rooibos, zázvor a skořice nakrájené na čaj).
+
 def _cerny(rng):
-    # klasický černý čaj: svinuté a zkroucené proužky listu, drátovité a hrbolaté
-    return trubka(rng, rng.uniform(5, 11) * MM, rng.uniform(0.45, 0.75) * MM, zplosteni=rng.uniform(0.4, 0.65),
-                  zkrut=rng.uniform(-4.5, 4.5), ohyb=rng.uniform(-0.15, 0.15), zuzeni=0.45, hrbol=0.28, nu=28, nv=8)
+    # Ceylon OP: dlouhé drátovité proužky, zvlněné a zkroucené, černohnědé
+    return trubka(rng, rng.uniform(6, 13) * MM, rng.uniform(0.38, 0.6) * MM, zplosteni=rng.uniform(0.45, 0.7),
+                  zkrut=rng.uniform(-5, 5), ohyb=rng.uniform(-0.12, 0.12), zuzeni=0.5, hrbol=0.25,
+                  vlna=rng.uniform(0.03, 0.08), nu=34, nv=8)
 
 
 def _cerny_list(rng):
@@ -176,14 +232,21 @@ def _cerny_tip(rng):
 
 
 def _zeleny(rng):
-    # sencha: svinutý list jako zploštělá jehlička, lehce zkroucená a hrbolatá
-    return trubka(rng, rng.uniform(5, 12) * MM, rng.uniform(0.42, 0.62) * MM, zplosteni=rng.uniform(0.5, 0.75),
-                  zkrut=rng.uniform(-2.5, 2.5), ohyb=rng.uniform(-0.12, 0.12), zuzeni=0.55, hrbol=0.18, nu=24, nv=8)
+    # China Sencha: ploché proužky listu přeložené podél žilky, olivové až žlutozelené
+    return list_(rng, rng.uniform(5, 14) * MM, rng.uniform(1.6, 3.0) * MM, svinuti=rng.uniform(0.08, 0.3),
+                 prelozeni=rng.uniform(0.25, 0.45), zkrut=rng.uniform(-1.5, 1.5), ohyb=rng.uniform(-0.15, 0.15),
+                 zmac=rng.uniform(0.12, 0.28), spicka=1.2, nu=30, nv=9)
 
 
 def _zeleny_kousek(rng):
-    return trubka(rng, rng.uniform(2.2, 4.5) * MM, rng.uniform(0.4, 0.6) * MM, zplosteni=rng.uniform(0.45, 0.7),
-                  zkrut=rng.uniform(-1.5, 1.5), ohyb=rng.uniform(-0.1, 0.1), zuzeni=0.3, hrbol=0.2, nu=12, nv=8)
+    return list_(rng, rng.uniform(3, 7) * MM, rng.uniform(2.6, 5) * MM, svinuti=rng.uniform(0.1, 0.35),
+                 prelozeni=rng.uniform(0.1, 0.3), zmac=rng.uniform(0.3, 0.5), zkrut=rng.uniform(-1, 1),
+                 spicka=0.6, zaklad=0.5, nu=18, nv=11)
+
+
+def _zeleny_stonek(rng):
+    return trubka(rng, rng.uniform(4, 9) * MM, rng.uniform(0.22, 0.32) * MM, ohyb=rng.uniform(-0.1, 0.1),
+                  zuzeni=0.2, nu=12, nv=6)
 
 
 def _bily_list(rng):
@@ -203,11 +266,13 @@ def _bily_stonek(rng):
 
 
 def _oolong(rng):
-    k = kulicka(rng, rng.uniform(1.7, 3.0) * MM, protazeni=rng.uniform(1.1, 1.7), rasy=rng.uniform(0.35, 0.5))
-    if rng.random() < 0.4:                      # u některých trčí stonek
-        st = trubka(rng, rng.uniform(3, 6) * MM, 0.35 * MM, zuzeni=0.4)
+    # Tie Guan Yin: pevně svinuté vrásčité kuličky, často s hnědým stonkem
+    r = rng.uniform(1.7, 3.0) * MM
+    k = kulicka(rng, r, protazeni=rng.uniform(1.1, 1.7), rasy=rng.uniform(0.4, 0.55))
+    if rng.random() < 0.5:
+        st = druh_casti(trubka(rng, rng.uniform(2.5, 5) * MM, 0.32 * MM, zuzeni=0.3, ohyb=0.1), 2)
         a = rng.uniform(0, 2 * np.pi)
-        k = spoj(k, posun(st, [2.2 * MM * math.cos(a), 2.2 * MM * math.sin(a), 0.6 * MM], rot_xyz(0, 0, a)))
+        k = spoj(k, posun(st, [1.6 * r * math.cos(a), 1.6 * r * math.sin(a), 0.4 * r], rot_xyz(0, rng.uniform(-0.4, 0.4), a)))
     return k
 
 
@@ -217,9 +282,24 @@ def _oolong_rozvinuty(rng):
 
 
 def _rooibos(rng):
-    # nasekané jehličky: tenké, hranaté, různě dlouhé
-    return trubka(rng, rng.uniform(1.8, 4.5) * MM, rng.uniform(0.22, 0.34) * MM, zplosteni=rng.uniform(0.6, 0.85),
+    # nasekané jehličky: tenké, hranaté, různě dlouhé, měděně červenohnědé
+    return trubka(rng, rng.uniform(1.2, 4.5) * MM, rng.uniform(0.18, 0.3) * MM, zplosteni=rng.uniform(0.6, 0.85),
                   zkrut=rng.uniform(-3, 3), ohyb=rng.uniform(-0.2, 0.2), zuzeni=0.2, hrbol=0.3, nu=10, nv=5)
+
+
+def _zazvor(rng):
+    # sušený zázvor nakrájený na čaj: drobné nepravidelné kousky, světle béžové
+    return kostka(rng, rng.uniform(2.0, 4.2) * MM, hrany=rng.uniform(0.25, 0.45))
+
+
+def _zazvor_slupka(rng):
+    return druh_casti(kostka(rng, rng.uniform(1.8, 3.4) * MM, hrany=0.3, vlakna=0.03), 1)
+
+
+def _skorice(rng):
+    # skořice nakrájená na čaj: prohnuté třísky kůry, venku tmavá, uvnitř světlejší
+    return kura(rng, rng.uniform(3, 8) * MM, rng.uniform(1.4, 3.8) * MM, rng.uniform(0.35, 0.7) * MM,
+                svinuti=rng.uniform(0.1, 0.45))
 
 
 def _rooibos_stonek(rng):
@@ -228,22 +308,28 @@ def _rooibos_stonek(rng):
 
 
 CAJE = {
-    'cerny-caj': dict(R=27 * MM, H=15 * MM, kusy=[(0.76, _cerny, 0), (0.18, _cerny_list, 0), (0.06, _cerny_tip, 1)], lezi=0.25, kolem=True, sedne=40,
-                      barvy=dict(list=['#100a07', '#180f0a', '#21150d', '#2d1c11', '#3b2616'], pupen=['#5e3d1f', '#74502a', '#8a6334'], stonek=['#3a2a1a', '#4a3520']),
-                      drsnost=0.52, lesk=0.35, pupen_chlup=0.6),
-    'zeleny-caj': dict(R=27 * MM, H=15 * MM, kusy=[(0.7, _zeleny, 0), (0.3, _zeleny_kousek, 0)], lezi=0.2, kolem=True,
-                       sedne=40,
-                       barvy=dict(list=['#17200f', '#1d2812', '#243116', '#2c3a1a', '#36431f', '#454d24'], pupen=['#6f7a3e', '#808a48'], stonek=['#6b7a3c', '#7f8c48']),
-                       drsnost=0.46, lesk=0.25, pupen_chlup=0.2),
+    'cerny-caj': dict(R=27 * MM, H=15 * MM, kusy=[(0.88, _cerny, 0), (0.12, _cerny_list, 0)], lezi=0.25, kolem=True, sedne=40,
+                      barvy=dict(list=['#120b08', '#1a100b', '#24150e', '#2e1a11', '#3a2216', '#45291a'], pupen=['#5e3d1f', '#74502a'], stonek=['#3a2a1a', '#4a3520']),
+                      drsnost=0.45, lesk=0.35, pupen_chlup=0.3),
+    'zeleny-caj': dict(R=27 * MM, H=15 * MM, kusy=[(0.68, _zeleny, 0), (0.24, _zeleny_kousek, 0), (0.08, _zeleny_stonek, 2)],
+                       lezi=0.3, kolem=False, sedne=40,
+                       barvy=dict(list=['#2e3319', '#3a4020', '#474e26', '#555c2c', '#646833', '#73743a', '#5a5030'], pupen=['#6f7a3e', '#808a48'], stonek=['#8f8a4c', '#a09a5a']),
+                       drsnost=0.5, lesk=0.3, pupen_chlup=0.2),
     'bily-caj': dict(R=30 * MM, H=16 * MM, kusy=[(0.55, _bily_list, 0), (0.33, _bily_pupen, 1), (0.12, _bily_stonek, 2)], lezi=0.3, kolem=False, sedne=45,
-                     barvy=dict(list=['#2f3a22', '#434d2e', '#57583a', '#6a6142', '#5a4c33', '#3d3526'], pupen=['#7f8770', '#959a83'], stonek=['#8a7a58', '#9c8a62']),
+                     barvy=dict(list=['#43502b', '#556338', '#677545', '#7a8452', '#6e6441', '#57492f'], pupen=['#b4b8a4', '#c8ccba'], stonek=['#8a7c5a', '#a0906a']),
                      drsnost=0.66, lesk=0.3, pupen_chlup=1.0),
-    'oolong': dict(R=26 * MM, H=14 * MM, kusy=[(0.88, _oolong, 0), (0.12, _oolong_rozvinuty, 0)], lezi=0.6, kolem=False, sedne=70,
-                   barvy=dict(list=['#141c0e', '#1b2613', '#233118', '#2c3a1d', '#26271a', '#353a22'], pupen=['#5d6b33', '#6d7a3c'], stonek=['#7a7246', '#8c8250']),
+    'oolong': dict(R=26 * MM, H=14 * MM, kusy=[(0.86, _oolong, 0), (0.14, _oolong_rozvinuty, 0)], lezi=0.6, kolem=False, sedne=70,
+                   barvy=dict(list=['#1c2416', '#28321d', '#364027', '#454f2f', '#565c36', '#68683c', '#2b2a1c'], pupen=['#5d6b33', '#6d7a3c'], stonek=['#8a6a40', '#a07a4c']),
                    drsnost=0.58, lesk=0.25, pupen_chlup=0.2),
-    'rooibos': dict(R=22 * MM, H=12 * MM, kusy=[(0.92, _rooibos, 0), (0.08, _rooibos_stonek, 2)], lezi=0.3, kolem=True, sedne=40,
-                    barvy=dict(list=['#4e1c0e', '#5e2412', '#6c2b16', '#7a331b', '#86401f'], pupen=['#8a4a2a', '#9a5632'], stonek=['#6e3a20', '#7e4628']),
+    'rooibos': dict(R=22 * MM, H=12 * MM, kusy=[(0.86, _rooibos, 0), (0.14, _rooibos_stonek, 2)], lezi=0.3, kolem=True, sedne=40,
+                    barvy=dict(list=['#5a220e', '#6c2a12', '#7e3417', '#8f3f1c', '#a04b22', '#3e1a0c'], pupen=['#8a4a2a', '#9a5632'], stonek=['#b06c36', '#c27e44']),
                     drsnost=0.78, lesk=0.1, pupen_chlup=0.1),
+    'zazvor': dict(R=22 * MM, H=11 * MM, kusy=[(0.85, _zazvor, 0), (0.15, _zazvor_slupka, 1)], lezi=0.6, kolem=False, sedne=40,
+                   barvy=dict(list=['#a8874e', '#b8975a', '#c4a466', '#d0b478', '#dcc48c'], pupen=['#8a6a42', '#9a7a4e'], stonek=['#8a6a42', '#9a7a4e']),
+                   drsnost=0.85, lesk=0.05, pupen_chlup=0.0, zilky=0.0, vlakna=0.5),
+    'skorice': dict(R=22 * MM, H=11 * MM, kusy=[(1.0, _skorice, 0)], lezi=0.35, kolem=False, sedne=55,
+                    barvy=dict(list=['#9a5a28', '#a8662e', '#b8743a', '#c48446'], pupen=['#5a321a', '#6a3a1e', '#7a4626'], stonek=['#6a3a1e', '#7a4626']),
+                    drsnost=0.78, lesk=0.05, pupen_chlup=0.0, zilky=0.0, vlakna=0.8),
 }
 
 
@@ -314,7 +400,9 @@ def hromadka(slug, seed=1, max_kusu=40000, bunka=0.2 * MM, variant=48):
                                  np.pad(top, ((0, 0), (0, 1)), constant_values=-np.inf)[:, 1:]])
         hm[x0:x0 + w, y0:y0 + h] = np.maximum(okno, top)
         V.append(loc + [px, py, z]); F.append(tv['f'] + off); UV.append(tv['uv'])
-        NA.append(np.full(len(loc), rng.random())); DR.append(np.full(len(loc), float(druh)))
+        NA.append(np.full(len(loc), rng.random()))
+        dd = tv.get('d')
+        DR.append(np.where(dd >= 0, dd, float(druh)) if dd is not None else np.full(len(loc), float(druh)))
         off += len(loc)
     return {'v': np.concatenate(V), 'f': np.concatenate(F), 'uv': np.concatenate(UV),
             'nahoda': np.concatenate(NA), 'druh': np.concatenate(DR), 'kusu': len(V), 'hm': hm, 'ext': ext, 'bunka': bunka}
@@ -409,6 +497,10 @@ def material(slug):
     zilky = math_('MULTIPLY', math_('SUBTRACT', vl, 0.82, -250, -450, clamp=True), 5.0, -100, -450, clamp=True)
     listy_jen = math_('SUBTRACT', 1.0, math_('MAXIMUM', je_pupen, je_stonek, -250, -600), -100, -600)
     zil = math_('MULTIPLY', math_('MAXIMUM', zilka, math_('MULTIPLY', zilky, 0.6, 50, -450)), listy_jen, 200, -450)
+    zil = math_('MULTIPLY', zil, cfg.get('zilky', 1.0), 260, -450)
+    # podélná vlákna (kůra skořice, zázvor)
+    vlk = math_('MULTIPLY', math_('ADD', math_('SINE', math_('MULTIPLY', sep.outputs['Y'], 160, -550, -900), None, -400, -900), 1.0, -250, -900),
+                0.5 * cfg.get('vlakna', 0.0), -100, -900)
     svetla = mix(c.outputs['Result'], rl.outputs['Color'], 0.0, 'SCREEN', 50, 200)
     Lk(math_('MULTIPLY', zil, 0.35, 350, -300), svetla.inputs['Factor'])
     # skvrnitost
@@ -417,12 +509,15 @@ def material(slug):
     nz.inputs['Scale'].default_value = 900; nz.inputs['Detail'].default_value = 4
     Lk(tc.outputs['Object'], nz.inputs['Vector'])
     skv = mix(svetla.outputs['Result'], nz.outputs['Color'], 0.12, 'OVERLAY', 400, 200)
+    tm = N('ShaderNodeRGB'); tm.location = (400, 400); tm.outputs[0].default_value = (0.55, 0.55, 0.55, 1)
+    skv = mix(skv.outputs['Result'], tm.outputs[0], math_('MULTIPLY', vlk, 0.35, 450, -900), 'MULTIPLY', 600, 200)
     Lk(skv.outputs['Result'], bs.inputs['Base Color'])
     # povrch: jemné vrásky + žilky
     nz2 = N('ShaderNodeTexNoise'); nz2.location = (-900, 900)
     nz2.inputs['Scale'].default_value = 3500; nz2.inputs['Detail'].default_value = 6
     Lk(tc.outputs['Object'], nz2.inputs['Vector'])
     vys = math_('ADD', math_('MULTIPLY', nz2.outputs['Fac'], 0.6, 500, -700), math_('MULTIPLY', zil, 0.8, 500, -800), 700, -750)
+    vys = math_('ADD', vys, math_('MULTIPLY', vlk, 0.7, 600, -900), 800, -850)
     bump = N('ShaderNodeBump'); bump.location = (900, -500)
     bump.inputs['Strength'].default_value = 0.5
     bump.inputs['Distance'].default_value = 0.00008
