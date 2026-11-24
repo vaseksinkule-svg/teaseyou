@@ -95,6 +95,7 @@ def trubka(rng, L, r, nu=14, nv=7, zplosteni=1.0, zkrut=0.0, ohyb=0.0, zuzeni=0.
     a = np.linspace(0, 2 * np.pi, nv, endpoint=False)
     U, A = np.meshgrid(u, a, indexing='ij')
     rr = r * (1 - zuzeni * np.abs(2 * U - 1) ** 3)
+    rr = rr * np.sqrt(np.clip(1 - np.abs(2 * U - 1) ** 10, 0, 1))   # zaoblené zavřené konce
     if hrbol:
         rr = rr * (1 + hrbol * _vlny(rng, 4, 2 * np.pi / (0.4 * L))(L * U, A * r))
     x = L * (U - 0.5)
@@ -110,18 +111,18 @@ def trubka(rng, L, r, nu=14, nv=7, zplosteni=1.0, zkrut=0.0, ohyb=0.0, zuzeni=0.
     return {'v': v3, 'f': _mrizka(nu, nv, cyklicky=True), 'uv': uv}
 
 
-def kulicka(rng, r, protazeni=1.3, rasy=0.22, nu=22, nv=18):
+def kulicka(rng, r, protazeni=1.3, rasy=0.22, nu=30, nv=26):
     """Lístek svinutý do kuličky (oolong): koule se záhyby, mírně protáhlá."""
     th = np.linspace(0.02, np.pi - 0.02, nu)
     ph = np.linspace(0, 2 * np.pi, nv, endpoint=False)
     T, P = np.meshgrid(th, ph, indexing='ij')
     d = np.stack([np.sin(T) * np.cos(P), np.sin(T) * np.sin(P), np.cos(T)], -1)
     zahyby = np.zeros(T.shape)
-    for _ in range(6):                          # ostré hřbety jako přeložený list
+    for _ in range(9):                          # ostré hřbety jako přeložený list
         k = rng.normal(size=3)
-        k = k / np.linalg.norm(k) * rng.uniform(5, 9)
+        k = k / np.linalg.norm(k) * rng.uniform(6, 14)
         zahyby += 1 - np.abs(np.sin(d @ k + rng.uniform(0, 6.3)))
-    zahyby = zahyby / 6 - 0.5
+    zahyby = zahyby / 9 - 0.5
     hlad = _vlny(rng, 5, 3.0)(d[..., 0] * 2, d[..., 1] * 2 + d[..., 2])
     rr = r * (1 + rasy * zahyby + 0.12 * hlad)
     v3 = d * rr[..., None]
@@ -186,14 +187,14 @@ def _zeleny_kousek(rng):
 
 
 def _bily_list(rng):
-    L = rng.uniform(12, 22) * MM
-    return list_(rng, L, L * rng.uniform(0.38, 0.5), svinuti=rng.uniform(0.15, 0.45), zkrut=rng.uniform(-1.2, 1.2),
-                 ohyb=rng.uniform(-0.15, 0.15), zmac=rng.uniform(0.25, 0.45), prelozeni=rng.uniform(0.05, 0.2),
-                 zubky=0.05, nu=30, nv=13)
+    L = rng.uniform(9, 17) * MM
+    return list_(rng, L, L * rng.uniform(0.38, 0.5), svinuti=rng.uniform(0.3, 0.75), zkrut=rng.uniform(-2, 2),
+                 ohyb=rng.uniform(-0.2, 0.2), zmac=rng.uniform(0.4, 0.65), prelozeni=rng.uniform(0.1, 0.3),
+                 zubky=0.05, nu=32, nv=15)
 
 
 def _bily_pupen(rng):
-    return list_(rng, rng.uniform(9, 14) * MM, rng.uniform(2.6, 3.6) * MM, svinuti=rng.uniform(0.9, 1.2),
+    return list_(rng, rng.uniform(8, 13) * MM, rng.uniform(3.2, 4.4) * MM, svinuti=rng.uniform(0.95, 1.25),
                  zkrut=rng.uniform(-0.5, 0.5), ohyb=rng.uniform(-0.1, 0.1), zmac=0.06, spicka=1.5, zaklad=0.6, nu=26)
 
 
@@ -202,8 +203,8 @@ def _bily_stonek(rng):
 
 
 def _oolong(rng):
-    k = kulicka(rng, rng.uniform(2.0, 3.4) * MM, protazeni=rng.uniform(1.1, 1.5))
-    if rng.random() < 0.3:                      # u některých trčí stonek
+    k = kulicka(rng, rng.uniform(1.7, 3.0) * MM, protazeni=rng.uniform(1.1, 1.7), rasy=rng.uniform(0.35, 0.5))
+    if rng.random() < 0.4:                      # u některých trčí stonek
         st = trubka(rng, rng.uniform(3, 6) * MM, 0.35 * MM, zuzeni=0.4)
         a = rng.uniform(0, 2 * np.pi)
         k = spoj(k, posun(st, [2.2 * MM * math.cos(a), 2.2 * MM * math.sin(a), 0.6 * MM], rot_xyz(0, 0, a)))
@@ -226,22 +227,22 @@ def _rooibos_stonek(rng):
 
 
 CAJE = {
-    'cerny-caj': dict(R=27 * MM, H=15 * MM, kusy=[(0.72, _cerny, 0), (0.18, _cerny_list, 0), (0.1, _cerny_tip, 1)], lezi=0.25, kolem=True, sedne=40,
-                      barvy=dict(list=['#100a07', '#180f0a', '#21150d', '#2d1c11', '#3b2616'], pupen=['#8a5a26', '#a66f33', '#b98242'], stonek=['#3a2a1a', '#4a3520']),
+    'cerny-caj': dict(R=27 * MM, H=15 * MM, kusy=[(0.76, _cerny, 0), (0.18, _cerny_list, 0), (0.06, _cerny_tip, 1)], lezi=0.25, kolem=True, sedne=40,
+                      barvy=dict(list=['#100a07', '#180f0a', '#21150d', '#2d1c11', '#3b2616'], pupen=['#5e3d1f', '#74502a', '#8a6334'], stonek=['#3a2a1a', '#4a3520']),
                       drsnost=0.52, lesk=0.35, pupen_chlup=0.6),
     'zeleny-caj': dict(R=27 * MM, H=15 * MM, kusy=[(0.7, _zeleny, 0), (0.3, _zeleny_kousek, 0)], lezi=0.2, kolem=True,
                        sedne=40,
                        barvy=dict(list=['#17200f', '#202c14', '#2a3719', '#36431f', '#4a5228', '#5d6030'], pupen=['#6f7a3e', '#808a48'], stonek=['#6b7a3c', '#7f8c48']),
                        drsnost=0.46, lesk=0.25, pupen_chlup=0.2),
     'bily-caj': dict(R=30 * MM, H=16 * MM, kusy=[(0.55, _bily_list, 0), (0.33, _bily_pupen, 1), (0.12, _bily_stonek, 2)], lezi=0.3, kolem=False, sedne=45,
-                     barvy=dict(list=['#4e5131', '#6b6a41', '#7f7349', '#8f7b52', '#5d4a30'], pupen=['#b9bba7', '#cfd0c0'], stonek=['#9c8a62', '#b29d6f']),
-                     drsnost=0.62, lesk=0.3, pupen_chlup=1.0),
+                     barvy=dict(list=['#2f3a22', '#434d2e', '#57583a', '#6a6142', '#5a4c33', '#3d3526'], pupen=['#8d937c', '#a3a790'], stonek=['#8a7a58', '#9c8a62']),
+                     drsnost=0.66, lesk=0.3, pupen_chlup=1.0),
     'oolong': dict(R=26 * MM, H=14 * MM, kusy=[(0.88, _oolong, 0), (0.12, _oolong_rozvinuty, 0)], lezi=0.6, kolem=False, sedne=70,
-                   barvy=dict(list=['#1b2a12', '#26381a', '#334620', '#405227', '#3a3320'], pupen=['#5d6b33', '#6d7a3c'], stonek=['#6e6a3a', '#857d45']),
-                   drsnost=0.45, lesk=0.3, pupen_chlup=0.2),
-    'rooibos': dict(R=24 * MM, H=13 * MM, kusy=[(0.88, _rooibos, 0), (0.12, _rooibos_stonek, 2)], lezi=0.3, kolem=True, sedne=40,
-                    barvy=dict(list=['#6e2612', '#86321a', '#9b3f1f', '#a84b26'], pupen=['#b8603a', '#c4704a'], stonek=['#b06b3e', '#c2814f']),
-                    drsnost=0.7, lesk=0.2, pupen_chlup=0.1),
+                   barvy=dict(list=['#141c0e', '#1b2613', '#233118', '#2c3a1d', '#26271a', '#353a22'], pupen=['#5d6b33', '#6d7a3c'], stonek=['#7a7246', '#8c8250']),
+                   drsnost=0.58, lesk=0.25, pupen_chlup=0.2),
+    'rooibos': dict(R=24 * MM, H=13 * MM, kusy=[(0.92, _rooibos, 0), (0.08, _rooibos_stonek, 2)], lezi=0.3, kolem=True, sedne=40,
+                    barvy=dict(list=['#4e1c0e', '#5e2412', '#6c2b16', '#7a331b', '#86401f'], pupen=['#8a4a2a', '#9a5632'], stonek=['#8a5232', '#9c6440']),
+                    drsnost=0.72, lesk=0.15, pupen_chlup=0.1),
 }
 
 
@@ -422,7 +423,7 @@ def material(slug):
     Lk(tc.outputs['Object'], nz2.inputs['Vector'])
     vys = math_('ADD', math_('MULTIPLY', nz2.outputs['Fac'], 0.6, 500, -700), math_('MULTIPLY', zil, 0.8, 500, -800), 700, -750)
     bump = N('ShaderNodeBump'); bump.location = (900, -500)
-    bump.inputs['Strength'].default_value = 0.35
+    bump.inputs['Strength'].default_value = 0.5
     bump.inputs['Distance'].default_value = 0.00008
     Lk(vys, bump.inputs['Height'])
     Lk(bump.outputs['Normal'], bs.inputs['Normal'])
@@ -491,7 +492,7 @@ def kamery(slug, d):
     i = int((yy + d['ext']) / d['bunka'])
     j = int(d['ext'] / d['bunka'])
     zc = float(d['hm'][j, i])
-    _kamera('Kamera_' + slug + '_detail', (0, yy, zc), (0.12, -0.6, 1.0), 0.075, 100, fstop=11)
+    _kamera('Kamera_' + slug + '_detail', (0, yy, zc), (0.1, -0.45, 1.0), 0.072, 100, fstop=11)
 
 
 def jen(slug):
