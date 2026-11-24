@@ -225,7 +225,7 @@ CAJE = {
                       barvy=dict(list=['#120c08', '#1d130c', '#2a1b10', '#3a2614'], pupen=['#8a5a26', '#b07a3a'], stonek=['#3a2a1a', '#4a3520']),
                       drsnost=0.5, lesk=0.35, pupen_chlup=0.6),
     'zeleny-caj': dict(R=30 * MM, H=12 * MM, kusy=[(0.7, _zeleny, 0), (0.3, _zeleny_kousek, 0)], lezi=0.2, kolem=True,
-                       min_kusu=9000, sedne=60,
+                       sedne=40,
                        barvy=dict(list=['#17200f', '#202c14', '#2a3719', '#36431f', '#4a5228'], pupen=['#6f7a3e', '#808a48'], stonek=['#6b7a3c', '#7f8c48']),
                        drsnost=0.4, lesk=0.25, pupen_chlup=0.2),
     'bily-caj': dict(R=32 * MM, H=15 * MM, kusy=[(0.55, _bily_list, 0), (0.33, _bily_pupen, 1), (0.12, _bily_stonek, 2)], lezi=0.35, kolem=False,
