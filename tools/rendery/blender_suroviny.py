@@ -218,7 +218,7 @@ def _oolong_rozvinuty(rng):
 
 def _rooibos(rng):
     # nasekané jehličky: tenké, hranaté, různě dlouhé
-    return trubka(rng, rng.uniform(1.8, 4.5) * MM, rng.uniform(0.22, 0.36) * MM, zplosteni=rng.uniform(0.4, 0.65),
+    return trubka(rng, rng.uniform(1.8, 4.5) * MM, rng.uniform(0.22, 0.34) * MM, zplosteni=rng.uniform(0.6, 0.85),
                   zkrut=rng.uniform(-3, 3), ohyb=rng.uniform(-0.2, 0.2), zuzeni=0.2, hrbol=0.3, nu=10, nv=5)
 
 
@@ -243,7 +243,7 @@ CAJE = {
                    drsnost=0.58, lesk=0.25, pupen_chlup=0.2),
     'rooibos': dict(R=22 * MM, H=12 * MM, kusy=[(0.92, _rooibos, 0), (0.08, _rooibos_stonek, 2)], lezi=0.3, kolem=True, sedne=40,
                     barvy=dict(list=['#4e1c0e', '#5e2412', '#6c2b16', '#7a331b', '#86401f'], pupen=['#8a4a2a', '#9a5632'], stonek=['#6e3a20', '#7e4628']),
-                    drsnost=0.72, lesk=0.15, pupen_chlup=0.1),
+                    drsnost=0.78, lesk=0.1, pupen_chlup=0.1),
 }
 
 
@@ -493,7 +493,7 @@ def kamery(slug, d):
     i = int((yy + d['ext']) / d['bunka'])
     j = int(d['ext'] / d['bunka'])
     zc = float(d['hm'][j, i])
-    _kamera('Kamera_' + slug + '_detail', (0, yy, zc), (0.1, -0.45, 1.0), 0.072, 100, fstop=11)
+    _kamera('Kamera_' + slug + '_detail', (0, yy, zc), (0.1, -0.45, 1.0), 0.072 * min(1.0, R / (27 * MM)), 100, fstop=11)
 
 
 def jen(slug):
