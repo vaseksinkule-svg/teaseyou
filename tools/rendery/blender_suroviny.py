@@ -127,7 +127,7 @@ def kostka(rng, a, nu=14, nv=16, hrany=0.35, vlakna=0.06):
     rozm = a * rng.uniform(0.55, 1.0, 3)
     v3 = q * rozm
     otluk = _vlny(rng, 6, 2 * np.pi / (0.7 * a))
-    v3 = v3 * (1 + 0.18 * otluk(v3[..., 0] + v3[..., 2], v3[..., 1] - v3[..., 2]))[..., None]
+    v3 = v3 * (1 + 0.3 * otluk(v3[..., 0] + v3[..., 2], v3[..., 1] - v3[..., 2]))[..., None]
     v3[..., 1] += vlakna * a * np.sin(v3[..., 2] * 2 * np.pi / (0.15 * a)) * (np.abs(d[..., 1]) > 0.3)
     v3 = v3.reshape(-1, 3)
     v3 -= v3.mean(0)
@@ -290,16 +290,16 @@ def _rooibos(rng):
 
 def _zazvor(rng):
     # sušený zázvor nakrájený na čaj: drobné nepravidelné kousky, světle béžové
-    return kostka(rng, rng.uniform(1.6, 3.4) * MM, hrany=rng.uniform(0.18, 0.35))
+    return kostka(rng, rng.uniform(1.0, 2.3) * MM, hrany=rng.uniform(0.18, 0.35), vlakna=0.08)
 
 
 def _zazvor_slupka(rng):
-    return druh_casti(kostka(rng, rng.uniform(1.5, 3.0) * MM, hrany=0.25, vlakna=0.03), 1)
+    return druh_casti(kostka(rng, rng.uniform(1.0, 2.0) * MM, hrany=0.25, vlakna=0.03), 1)
 
 
 def _skorice(rng):
     # skořice nakrájená na čaj: prohnuté třísky kůry, venku tmavá, uvnitř světlejší
-    return kura(rng, rng.uniform(2.5, 6) * MM, rng.uniform(1.2, 3.0) * MM, rng.uniform(0.5, 0.95) * MM,
+    return kura(rng, rng.uniform(1.8, 4.5) * MM, rng.uniform(1.0, 2.4) * MM, rng.uniform(0.4, 0.8) * MM,
                 svinuti=rng.uniform(0.05, 0.3))
 
 
@@ -326,10 +326,10 @@ CAJE = {
                     barvy=dict(list=['#4e1d0c', '#5e2410', '#6e2c14', '#7c3418', '#8a3e1d', '#38170a'], pupen=['#8a4a2a', '#9a5632'], stonek=['#94562c', '#a06236']),
                     drsnost=0.78, lesk=0.1, pupen_chlup=0.1),
     'zazvor': dict(R=22 * MM, H=11 * MM, kusy=[(0.8, _zazvor, 0), (0.2, _zazvor_slupka, 1)], lezi=0.6, kolem=False, sedne=40,
-                   barvy=dict(list=['#8a6e40', '#977a47', '#a3854e', '#b09258', '#7c6238'], pupen=['#6a4e2e', '#7a5a36'], stonek=['#6a4e2e', '#7a5a36']),
+                   barvy=dict(list=['#6e5836', '#7a623c', '#866c42', '#927648', '#9e8050', '#625030'], pupen=['#54402a', '#5e4830'], stonek=['#54402a', '#5e4830']),
                    drsnost=0.9, lesk=0.05, pupen_chlup=0.0, zilky=0.0, vlakna=0.5),
     'skorice': dict(R=22 * MM, H=11 * MM, kusy=[(1.0, _skorice, 0)], lezi=0.35, kolem=False, sedne=55,
-                    barvy=dict(list=['#8a4e22', '#985a28', '#a6662e', '#b47236'], pupen=['#4a2a16', '#58321a', '#663a1e'], stonek=['#58321a', '#663a1e']),
+                    barvy=dict(list=['#6e4222', '#7a4a26', '#86522a', '#925c30'], pupen=['#3a2214', '#462a18', '#52321c'], stonek=['#462a18', '#52321c']),
                     drsnost=0.78, lesk=0.05, pupen_chlup=0.0, zilky=0.0, vlakna=0.8),
 }
 
