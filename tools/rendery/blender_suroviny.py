@@ -217,13 +217,14 @@ def _oolong_rozvinuty(rng):
 
 
 def _rooibos(rng):
-    return trubka(rng, rng.uniform(2.5, 6) * MM, rng.uniform(0.35, 0.55) * MM, zplosteni=rng.uniform(0.5, 0.8),
-                  zkrut=rng.uniform(-2, 2), ohyb=rng.uniform(-0.15, 0.15), zuzeni=0.25, hrbol=0.15, nu=10, nv=6)
+    # nasekané jehličky: tenké, hranaté, různě dlouhé
+    return trubka(rng, rng.uniform(1.8, 4.5) * MM, rng.uniform(0.22, 0.36) * MM, zplosteni=rng.uniform(0.4, 0.65),
+                  zkrut=rng.uniform(-3, 3), ohyb=rng.uniform(-0.2, 0.2), zuzeni=0.2, hrbol=0.3, nu=10, nv=5)
 
 
 def _rooibos_stonek(rng):
-    return trubka(rng, rng.uniform(4, 9) * MM, rng.uniform(0.5, 0.75) * MM, ohyb=rng.uniform(-0.1, 0.1),
-                  zuzeni=0.15, hrbol=0.1, nu=12, nv=7)
+    return trubka(rng, rng.uniform(3, 7) * MM, rng.uniform(0.35, 0.5) * MM, ohyb=rng.uniform(-0.1, 0.1),
+                  zuzeni=0.15, hrbol=0.12, nu=12, nv=6)
 
 
 CAJE = {
@@ -232,16 +233,16 @@ CAJE = {
                       drsnost=0.52, lesk=0.35, pupen_chlup=0.6),
     'zeleny-caj': dict(R=27 * MM, H=15 * MM, kusy=[(0.7, _zeleny, 0), (0.3, _zeleny_kousek, 0)], lezi=0.2, kolem=True,
                        sedne=40,
-                       barvy=dict(list=['#17200f', '#202c14', '#2a3719', '#36431f', '#4a5228', '#5d6030'], pupen=['#6f7a3e', '#808a48'], stonek=['#6b7a3c', '#7f8c48']),
+                       barvy=dict(list=['#17200f', '#1d2812', '#243116', '#2c3a1a', '#36431f', '#454d24'], pupen=['#6f7a3e', '#808a48'], stonek=['#6b7a3c', '#7f8c48']),
                        drsnost=0.46, lesk=0.25, pupen_chlup=0.2),
     'bily-caj': dict(R=30 * MM, H=16 * MM, kusy=[(0.55, _bily_list, 0), (0.33, _bily_pupen, 1), (0.12, _bily_stonek, 2)], lezi=0.3, kolem=False, sedne=45,
-                     barvy=dict(list=['#2f3a22', '#434d2e', '#57583a', '#6a6142', '#5a4c33', '#3d3526'], pupen=['#8d937c', '#a3a790'], stonek=['#8a7a58', '#9c8a62']),
+                     barvy=dict(list=['#2f3a22', '#434d2e', '#57583a', '#6a6142', '#5a4c33', '#3d3526'], pupen=['#7f8770', '#959a83'], stonek=['#8a7a58', '#9c8a62']),
                      drsnost=0.66, lesk=0.3, pupen_chlup=1.0),
     'oolong': dict(R=26 * MM, H=14 * MM, kusy=[(0.88, _oolong, 0), (0.12, _oolong_rozvinuty, 0)], lezi=0.6, kolem=False, sedne=70,
                    barvy=dict(list=['#141c0e', '#1b2613', '#233118', '#2c3a1d', '#26271a', '#353a22'], pupen=['#5d6b33', '#6d7a3c'], stonek=['#7a7246', '#8c8250']),
                    drsnost=0.58, lesk=0.25, pupen_chlup=0.2),
-    'rooibos': dict(R=24 * MM, H=13 * MM, kusy=[(0.92, _rooibos, 0), (0.08, _rooibos_stonek, 2)], lezi=0.3, kolem=True, sedne=40,
-                    barvy=dict(list=['#4e1c0e', '#5e2412', '#6c2b16', '#7a331b', '#86401f'], pupen=['#8a4a2a', '#9a5632'], stonek=['#8a5232', '#9c6440']),
+    'rooibos': dict(R=22 * MM, H=12 * MM, kusy=[(0.92, _rooibos, 0), (0.08, _rooibos_stonek, 2)], lezi=0.3, kolem=True, sedne=40,
+                    barvy=dict(list=['#4e1c0e', '#5e2412', '#6c2b16', '#7a331b', '#86401f'], pupen=['#8a4a2a', '#9a5632'], stonek=['#6e3a20', '#7e4628']),
                     drsnost=0.72, lesk=0.15, pupen_chlup=0.1),
 }
 
