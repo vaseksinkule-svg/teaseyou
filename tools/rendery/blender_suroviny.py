@@ -159,14 +159,19 @@ def rot_xyz(rx, ry, rz):
 # lezi: rozptyl náklonu (rad), kolem: náhodné otočení kolem vlastní osy (trubky).
 
 def _cerny(rng):
-    L = rng.uniform(6, 12) * MM
-    return list_(rng, L, rng.uniform(1.6, 3.0) * MM, svinuti=rng.uniform(0.8, 1.3), zkrut=rng.uniform(-3, 3),
-                 ohyb=rng.uniform(-0.12, 0.12), zmac=rng.uniform(0.15, 0.35), nu=30)
+    # klasický černý čaj: svinuté a zkroucené proužky listu, drátovité a hrbolaté
+    return trubka(rng, rng.uniform(5, 11) * MM, rng.uniform(0.45, 0.75) * MM, zplosteni=rng.uniform(0.4, 0.65),
+                  zkrut=rng.uniform(-4.5, 4.5), ohyb=rng.uniform(-0.15, 0.15), zuzeni=0.45, hrbol=0.28, nu=28, nv=8)
+
+
+def _cerny_list(rng):
+    return list_(rng, rng.uniform(4, 8) * MM, rng.uniform(2.5, 4) * MM, svinuti=rng.uniform(0.5, 0.9),
+                 zkrut=rng.uniform(-2, 2), zmac=rng.uniform(0.3, 0.5), prelozeni=0.1, nu=20, nv=11)
 
 
 def _cerny_tip(rng):
-    return list_(rng, rng.uniform(5, 8) * MM, rng.uniform(1.4, 2.0) * MM, svinuti=1.2, zkrut=rng.uniform(-1.5, 1.5),
-                 ohyb=rng.uniform(-0.1, 0.1), zmac=0.12, spicka=1.4, nu=24)
+    return trubka(rng, rng.uniform(4, 8) * MM, rng.uniform(0.4, 0.6) * MM, zplosteni=0.7, zkrut=rng.uniform(-2, 2),
+                  ohyb=rng.uniform(-0.12, 0.12), zuzeni=0.7, hrbol=0.15, nu=22, nv=8)
 
 
 def _zeleny(rng):
@@ -221,20 +226,20 @@ def _rooibos_stonek(rng):
 
 
 CAJE = {
-    'cerny-caj': dict(R=30 * MM, H=15 * MM, kusy=[(0.9, _cerny, 0), (0.1, _cerny_tip, 1)], lezi=0.45, kolem=True,
-                      barvy=dict(list=['#120c08', '#1d130c', '#2a1b10', '#3a2614'], pupen=['#8a5a26', '#b07a3a'], stonek=['#3a2a1a', '#4a3520']),
-                      drsnost=0.5, lesk=0.35, pupen_chlup=0.6),
-    'zeleny-caj': dict(R=30 * MM, H=12 * MM, kusy=[(0.7, _zeleny, 0), (0.3, _zeleny_kousek, 0)], lezi=0.2, kolem=True,
+    'cerny-caj': dict(R=27 * MM, H=15 * MM, kusy=[(0.72, _cerny, 0), (0.18, _cerny_list, 0), (0.1, _cerny_tip, 1)], lezi=0.25, kolem=True, sedne=40,
+                      barvy=dict(list=['#100a07', '#180f0a', '#21150d', '#2d1c11', '#3b2616'], pupen=['#8a5a26', '#a66f33', '#b98242'], stonek=['#3a2a1a', '#4a3520']),
+                      drsnost=0.52, lesk=0.35, pupen_chlup=0.6),
+    'zeleny-caj': dict(R=27 * MM, H=15 * MM, kusy=[(0.7, _zeleny, 0), (0.3, _zeleny_kousek, 0)], lezi=0.2, kolem=True,
                        sedne=40,
-                       barvy=dict(list=['#17200f', '#202c14', '#2a3719', '#36431f', '#4a5228'], pupen=['#6f7a3e', '#808a48'], stonek=['#6b7a3c', '#7f8c48']),
-                       drsnost=0.4, lesk=0.25, pupen_chlup=0.2),
-    'bily-caj': dict(R=32 * MM, H=15 * MM, kusy=[(0.55, _bily_list, 0), (0.33, _bily_pupen, 1), (0.12, _bily_stonek, 2)], lezi=0.35, kolem=False,
+                       barvy=dict(list=['#17200f', '#202c14', '#2a3719', '#36431f', '#4a5228', '#5d6030'], pupen=['#6f7a3e', '#808a48'], stonek=['#6b7a3c', '#7f8c48']),
+                       drsnost=0.46, lesk=0.25, pupen_chlup=0.2),
+    'bily-caj': dict(R=30 * MM, H=16 * MM, kusy=[(0.55, _bily_list, 0), (0.33, _bily_pupen, 1), (0.12, _bily_stonek, 2)], lezi=0.3, kolem=False, sedne=45,
                      barvy=dict(list=['#4e5131', '#6b6a41', '#7f7349', '#8f7b52', '#5d4a30'], pupen=['#b9bba7', '#cfd0c0'], stonek=['#9c8a62', '#b29d6f']),
                      drsnost=0.62, lesk=0.3, pupen_chlup=1.0),
-    'oolong': dict(R=28 * MM, H=13 * MM, kusy=[(0.88, _oolong, 0), (0.12, _oolong_rozvinuty, 0)], lezi=0.6, kolem=False,
+    'oolong': dict(R=26 * MM, H=14 * MM, kusy=[(0.88, _oolong, 0), (0.12, _oolong_rozvinuty, 0)], lezi=0.6, kolem=False, sedne=70,
                    barvy=dict(list=['#1b2a12', '#26381a', '#334620', '#405227', '#3a3320'], pupen=['#5d6b33', '#6d7a3c'], stonek=['#6e6a3a', '#857d45']),
                    drsnost=0.45, lesk=0.3, pupen_chlup=0.2),
-    'rooibos': dict(R=24 * MM, H=11 * MM, kusy=[(0.88, _rooibos, 0), (0.12, _rooibos_stonek, 2)], lezi=0.4, kolem=True,
+    'rooibos': dict(R=24 * MM, H=13 * MM, kusy=[(0.88, _rooibos, 0), (0.12, _rooibos_stonek, 2)], lezi=0.3, kolem=True, sedne=40,
                     barvy=dict(list=['#6e2612', '#86321a', '#9b3f1f', '#a84b26'], pupen=['#b8603a', '#c4704a'], stonek=['#b06b3e', '#c2814f']),
                     drsnost=0.7, lesk=0.2, pupen_chlup=0.1),
 }
@@ -273,7 +278,7 @@ def hromadka(slug, seed=1, max_kusu=40000, bunka=0.2 * MM, variant=48):
         s = rng.uniform(0.85, 1.15)
         loc = tv['v'] @ Rm.T * s
         # kam: z několika míst to, kde kopečku nejvíc chybí (občas zatoulaný kus okolo)
-        if rng.random() < 0.02:
+        if rng.random() < 0.012:
             a, r = rng.uniform(0, 2 * np.pi), R * rng.uniform(0.95, 1.45)
             px, py = r * math.cos(a), r * math.sin(a)
         else:
