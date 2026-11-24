@@ -326,7 +326,7 @@ CAJE = {
                     barvy=dict(list=['#4e1d0c', '#5e2410', '#6e2c14', '#7c3418', '#8a3e1d', '#38170a'], pupen=['#8a4a2a', '#9a5632'], stonek=['#94562c', '#a06236']),
                     drsnost=0.78, lesk=0.1, pupen_chlup=0.1),
     'zazvor': dict(R=22 * MM, H=11 * MM, kusy=[(0.8, _zazvor, 0), (0.2, _zazvor_slupka, 1)], lezi=0.6, kolem=False, sedne=40,
-                   barvy=dict(list=['#6e5836', '#7a623c', '#866c42', '#927648', '#9e8050', '#625030'], pupen=['#54402a', '#5e4830'], stonek=['#54402a', '#5e4830']),
+                   barvy=dict(list=['#7a5c3a', '#86663f', '#927044', '#9e7a4a', '#aa8552', '#6a4e32'], pupen=['#56402a', '#604830'], stonek=['#56402a', '#604830']),
                    drsnost=0.9, lesk=0.05, pupen_chlup=0.0, zilky=0.0, vlakna=0.5),
     'skorice': dict(R=22 * MM, H=11 * MM, kusy=[(1.0, _skorice, 0)], lezi=0.35, kolem=False, sedne=55,
                     barvy=dict(list=['#6e4222', '#7a4a26', '#86522a', '#925c30'], pupen=['#3a2214', '#462a18', '#52321c'], stonek=['#462a18', '#52321c']),
