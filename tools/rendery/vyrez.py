@@ -17,6 +17,13 @@ Surovina:
 
   Čtverec z hustého středu hromádky, aby kolečko na webu vyplnily lístky.
 
+Surovina z makro detailu (tools/rendery/blender_suroviny.py, čtvercový záběr
+plný lístků):
+    python3 tools/rendery/vyrez.py detail RENDER_detail.png zeleny-caj
+    -> img/suroviny/zeleny-caj-400.webp
+
+  Bere střed obrázku (90 %), okraje s nejsilnějším rozostřením odřízne.
+
 Pak přidej řádek do POUCH_RENDERS (podle id směsi) nebo ING_PHOTOS
 (podle kódu suroviny) ve script.js.
 
@@ -107,7 +114,18 @@ def surovina(src: str, slug: str) -> None:
     print(f'čtverec {side} px kolem ({cx}, {cy}) → {out}/{slug}-400.webp')
 
 
+def detail(src: str, slug: str) -> None:
+    im = Image.open(src).convert('RGB')
+    side = int(min(im.size) * 0.9)
+    x0, y0 = (im.width - side) // 2, (im.height - side) // 2
+    out = ROOT / 'img' / 'suroviny'
+    out.mkdir(parents=True, exist_ok=True)
+    im.crop((x0, y0, x0 + side, y0 + side)).resize((400, 400), Image.LANCZOS).save(
+        out / f'{slug}-400.webp', 'WEBP', quality=84, method=6)
+    print(f'střed {side} px → {out}/{slug}-400.webp')
+
+
 if __name__ == '__main__':
-    if len(sys.argv) != 4 or sys.argv[1] not in ('sacek', 'surovina'):
+    if len(sys.argv) != 4 or sys.argv[1] not in ('sacek', 'surovina', 'detail'):
         sys.exit(__doc__)
-    {'sacek': sacek, 'surovina': surovina}[sys.argv[1]](sys.argv[2], sys.argv[3])
+    {'sacek': sacek, 'surovina': surovina, 'detail': detail}[sys.argv[1]](sys.argv[2], sys.argv[3])

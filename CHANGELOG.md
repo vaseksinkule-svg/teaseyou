@@ -6,6 +6,17 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Fotky čajů v kolečkách surovin (24. 11. 2026)
+- **Zelený, bílý, oolong, rooibos a černý čaj** mají v kolečku místo ikonky
+  makro záběr z Blenderu. Černý čaj je nově vymodelovaný, aby k ostatním
+  pasoval (dřív vypadal jako hladké červíky).
+- Každý čaj má vlastní tvar: sencha jehličky, zmačkané listy a stříbřité
+  pupeny bílého čaje, svinuté kuličky oolongu, nasekané jehličky rooibosu,
+  drátovité proužky černého čaje se zlatými tipy.
+- Hromádky staví `tools/rendery/blender_suroviny.py` (lístky se žilkou,
+  zmačkané a svinuté, vrstvené na sebe), výřez dělá
+  `tools/rendery/vyrez.py detail`.
+
 ### Rendery všech hotových směsí a etikety (23. 11. 2026)
 - **Všech 14 hotových směsí** má místo kresleného sáčku render z Blenderu
   s novou etiketou. Deep Winter je vyrenderovaný znovu, aby vypadal stejně

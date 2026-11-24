@@ -3019,9 +3019,13 @@ function mixErrorText(r) {
 /* Fotky a rendery surovin, které jsou přímo na webu (img/suroviny/). Fotka
    nahraná v administraci má přednost. */
 const ING_PHOTOS = {
-    'Black Tea': 'img/suroviny/cerny-caj-400.webp',
-    'Ginger':    'img/suroviny/zazvor-400.webp',
-    'Cinnamon':  'img/suroviny/skorice-400.webp',
+    'Black Tea':  'img/suroviny/cerny-caj-400.webp',
+    'Green Tea':  'img/suroviny/zeleny-caj-400.webp',
+    'White Tea':  'img/suroviny/bily-caj-400.webp',
+    'Oolong Tea': 'img/suroviny/oolong-400.webp',
+    'Rooibos':    'img/suroviny/rooibos-400.webp',
+    'Ginger':     'img/suroviny/zazvor-400.webp',
+    'Cinnamon':   'img/suroviny/skorice-400.webp',
 };
 function ingIconHtml(code, cls = '') {
     const ing = ingByCode(code) || {};
