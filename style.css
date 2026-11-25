@@ -465,7 +465,7 @@ body.dark svg.dm-dark { display: block; }
 .scene--hero { width: clamp(260px, 84vw, 440px); }
 .hero-pouch.is-swapping .scene { animation: pouchSwap .45s var(--ease); }
 /* Pohled Suroviny: hromádky vedle sebe, pod každou jméno a podíl.
-   Tři do řádku, při čtyřech a pěti surovinách dva řádky. */
+   Jedna až tři v řádku, čtyři do čtverce 2 × 2, pět ve dvou řádcích. */
 .piles {
     list-style: none; margin: 0; padding: 0;
     width: min(100%, 560px);
@@ -473,18 +473,20 @@ body.dark svg.dm-dark { display: block; }
     gap: 14px 2%;
     --pile: 31%;
 }
+.piles[data-n="1"] { --pile: 66%; }
+.piles[data-n="2"], .piles[data-n="4"] { --pile: 46%; }
 .pile { width: calc(var(--pile) * var(--k, 1)); display: grid; justify-items: center; gap: 2px; text-align: center; color: var(--on-stage); }
 .pile-img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: contain; }
 .pile-ico { display: grid; place-items: center; width: 100%; aspect-ratio: 3 / 2; }
 .pile-ico .ing-ico { width: 56%; height: auto; aspect-ratio: 1; }
 .pile-name { font: 600 14px/1.25 var(--sans); text-wrap: balance; }
-.pile-pct { font: 500 13px/1.2 var(--sans); opacity: .88; }
-.piles-empty { color: var(--on-stage); opacity: .88; font-size: 15px; text-align: center; max-width: 26ch; }
+.pile-pct { font: 500 13px/1.2 var(--sans); }
+.piles-empty { color: var(--on-stage); font-size: 15px; text-align: center; max-width: 26ch; }
 /* Přepínač Sáček / Suroviny (na zelené ploše) */
 .view-switch {
     display: inline-flex; gap: 2px; padding: 3px;
     border-radius: var(--r-pill);
-    background: color-mix(in srgb, var(--on-stage) 16%, transparent);
+    background: color-mix(in srgb, var(--on-stage) 10%, transparent);
 }
 .view-btn {
     min-height: 36px; padding: 0 16px;
@@ -502,7 +504,6 @@ body.dark svg.dm-dark { display: block; }
 .mixer-view--final .view-btn { color: var(--ink); }
 .mixer-view--final .view-btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 .mixer-view--final .view-btn:focus-visible { outline-color: var(--ink); }
-.final-pouch .piles { --pile: 31%; }
 .final-pouch .pile, .final-pouch .piles-empty { color: var(--ink); }
 /* Etiketa má pevnou osnovu, ať každá směs vypadá stejně: jméno má vždy
    místo na dva řádky (čára pod ním je pořád ve stejné výšce), suroviny
