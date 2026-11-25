@@ -171,9 +171,9 @@ def hromadka(src: str, slug: str) -> None:
     print(f'hromádka {w}×{h} px → {out}/{slug}-hromadka-480.webp')
 
 
-# Pevný výřez scény (zlomky šířky a výšky renderu 1600 × 2000): čtverec, ve
-# kterém se vejde sáček i hromádky u všech 14 směsí. Nastaveno podle renderů.
-SCENA_VYREZ = (0.0, 0.1, 1.0, 0.9)
+# Pevný výřez scény (zlomky šířky a výšky renderu 1800 × 1800). Kamera
+# v blender_sceny.py už má čtvercový záběr, takže se bere celý.
+SCENA_VYREZ = (0.0, 0.0, 1.0, 1.0)
 
 
 def scena(src: str, slug: str) -> None:

@@ -10,7 +10,7 @@ Spouští se v Blenderu (soubor ~/TeaseYou-3D/teaseyou-rendery.blend, scéna
     blender -b ~/TeaseYou-3D/teaseyou-rendery.blend -P tools/rendery/blender_sceny.py -- \\
         ~/TeaseYou-3D/etikety ~/TeaseYou-3D/rendery [--jen deep_winter,still_evening]
 
-Uloží rendery/scena_<id>.png: 1600 × 2000 px, průhledné pozadí, stín na podlaze.
+Uloží rendery/scena_<id>.png: 1800 × 1800 px, průhledné pozadí, stín na podlaze.
 Pro web: python3 tools/rendery/vyrez.py scena rendery/scena_<id>.png deep-winter
 
 Hromádky stojí v oblouku před sáčkem, největší díl uprostřed vpředu.
@@ -44,13 +44,15 @@ SLUG = {'Black Tea': 'cerny-caj', 'Green Tea': 'zeleny-caj', 'White Tea': 'bily-
 # Kde stojí hromádky (x, y v metrech, sáček má střed v počátku a přední
 # stěnu asi na y = −0,034) a jak jsou velké. Pořadí = od největšího dílu.
 ROZLOZENI = {
-    1: [(0.0, -0.105, 1.3)],
-    2: [(-0.04, -0.105, 1.2), (0.075, -0.08, 1.0)],
-    3: [(0.0, -0.112, 1.22), (-0.082, -0.072, 1.0), (0.082, -0.072, 1.0)],
-    4: [(-0.03, -0.118, 1.15), (0.068, -0.122, 0.95), (-0.1, -0.066, 0.95), (0.1, -0.066, 0.95)],
-    5: [(0.0, -0.122, 1.1), (-0.085, -0.115, 0.92), (0.085, -0.115, 0.92), (-0.11, -0.05, 0.85), (0.11, -0.05, 0.85)],
+    1: [(0.0, -0.1, 1.3)],
+    2: [(-0.045, -0.105, 1.2), (0.075, -0.085, 1.0)],
+    3: [(0.0, -0.112, 1.15), (-0.095, -0.07, 0.95), (0.095, -0.07, 0.95)],
+    4: [(-0.04, -0.118, 1.1), (0.06, -0.13, 0.92), (-0.108, -0.058, 0.9), (0.108, -0.058, 0.9)],
+    5: [(0.0, -0.13, 1.05), (-0.088, -0.118, 0.88), (0.088, -0.118, 0.88), (-0.118, -0.05, 0.85), (0.118, -0.05, 0.85)],
 }
 R_VZOR = 0.026      # hromádky mají různý poloměr, srovnají se k tomuhle
+SKALA = 1.45        # hromádky jsou větší než skutečné 10 g, ať jsou vedle sáčku vidět
+VYSKA = 1.15        # a trochu vyšší (kopeček místo placky)
 
 
 def smesi(script_js):
@@ -58,8 +60,9 @@ def smesi(script_js):
     m = re.search(r'const BUILTIN_BLENDS = (\[.*?\n\]);', script_js, re.S)
     if not m:
         raise ValueError('V script.js chybí BUILTIN_BLENDS.')
+    pole = re.sub(r',\s*\]$', ']', m.group(1))      # v JS smí být za poslední položkou čárka
     return [{'id': b['id'], 'name': b['name'], 'suroviny': list(zip(b['ingredients'], b['parts']))}
-            for b in json.loads(m.group(1))]
+            for b in json.loads(pole)]
 
 
 def _kamera():
@@ -72,9 +75,11 @@ def _kamera():
     cil = bpy.data.objects.get(KAMERA + '_cil') or bpy.data.objects.new(KAMERA + '_cil', None)
     if cil.name not in sc.collection.objects:
         sc.collection.objects.link(cil)
-    # o něco výš než u samotného sáčku, ať je vidět na hromádky shora
-    cil.location = (0.0, -0.04, 0.083)
-    cam.location = (0.0, -0.86, 0.33)
+    # o něco výš než u samotného sáčku (20°), ať je vidět na hromádky shora;
+    # čtvercový záběr, do kterého se vejdou hromádky po stranách
+    cil.location = (0.0, -0.05, 0.085)
+    D, uhel = 0.9, math.radians(20)
+    cam.location = (0.0, -0.05 - D * math.cos(uhel), 0.085 + D * math.sin(uhel))
     cam.data.dof.use_dof = False
     con = cam.constraints.get('Track') or cam.constraints.new('TRACK_TO')
     con.name = 'Track'
@@ -110,8 +115,8 @@ def postav(smes):
         R = _polomer(me)
         ob = bpy.data.objects.new('Scena_' + slug, me)
         col.objects.link(ob)
-        k = s * (R_VZOR / R) ** 0.6
-        ob.scale = (k, k, k)
+        k = SKALA * s * (R_VZOR / R) ** 0.6
+        ob.scale = (k, k, k * VYSKA)
         ob.location = (x, y, 0.0)
         ob.rotation_euler = (0.0, 0.0, (zlib.crc32((smes['id'] + slug).encode()) % 628) / 100)
     return chybi
@@ -141,7 +146,8 @@ def renderuj(smes, etikety, rendery, vzorku=192, procent=100):
     img.filepath = os.path.join(etikety, f"textura_{smes['id']}.png")
     img.reload()
     r = sc.render
-    r.resolution_x, r.resolution_y, r.resolution_percentage = 1600, 2000, procent
+    puv_rozliseni = (r.resolution_x, r.resolution_y)
+    r.resolution_x, r.resolution_y, r.resolution_percentage = 1800, 1800, procent
     sc.cycles.samples = vzorku
     sc.camera = _kamera()
     poz = bpy.data.objects[POZADI]
@@ -155,6 +161,7 @@ def renderuj(smes, etikety, rendery, vzorku=192, procent=100):
         r.film_transparent = False
         poz.is_shadow_catcher = False
         r.image_settings.color_mode = 'RGB'
+        r.resolution_x, r.resolution_y = puv_rozliseni
         r.resolution_percentage = 100
         sc.camera = puv_kamera
         col = bpy.data.collections.get(KOLEKCE)
