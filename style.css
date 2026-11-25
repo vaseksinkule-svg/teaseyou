@@ -475,6 +475,8 @@ body.dark svg.dm-dark { display: block; }
 }
 .piles[data-n="1"] { --pile: 66%; }
 .piles[data-n="2"], .piles[data-n="4"] { --pile: 46%; }
+/* v úzkém sloupci mixéru jsou tři hromádky ve dvou řádcích, ať nejsou drobné */
+.mixer-pouch .piles[data-n="3"] { --pile: 46%; }
 .pile { width: calc(var(--pile) * var(--k, 1)); display: grid; justify-items: center; gap: 2px; text-align: center; color: var(--on-stage); }
 .pile-img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: contain; }
 .pile-ico { display: grid; place-items: center; width: 100%; aspect-ratio: 3 / 2; }

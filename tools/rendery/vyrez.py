@@ -182,6 +182,11 @@ def scena(src: str, slug: str) -> None:
     W, H = im.size
     cut = im.crop((round(x0 * W), round(y0 * H), round(x1 * W), round(y1 * H)))
     arr = np.asarray(cut).astype(np.float32)
+    # Stín z Blenderu (černé pixely s alfou) má i daleko od sáčku slabý závoj
+    # kolem 5 %, na webu by z něj byl vidět tmavší čtverec. Ten se odečte,
+    # kontaktní stíny pod sáčkem a hromádkami zůstanou.
+    stin = arr[..., :3].max(2) < 8
+    arr[..., 3] = np.where(stin, np.clip((arr[..., 3] - 18) / (255 - 18), 0, 1) * 255, arr[..., 3])
     arr[..., 3] = _okraje_do_ztracena(arr[..., 3], 0.03)
     cut = Image.fromarray(arr.clip(0, 255).astype(np.uint8), 'RGBA')
     out = ROOT / 'img' / 'sceny'
