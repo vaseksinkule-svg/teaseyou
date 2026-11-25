@@ -6,6 +6,20 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Fotky čajů, zázvoru a skořice v kolečkách surovin (24. 11. 2026)
+- **Zelený, bílý, oolong, rooibos, černý čaj, zázvor a skořice** mají
+  v kolečku místo ikonky makro záběr z Blenderu. Černý čaj, zázvor a skořice
+  jsou vymodelované znovu, aby k ostatním pasovaly.
+- Tvary a barvy jsou podle fotek běžných sypaných čajů do směsí:
+  - zelený jako China Sencha (ploché přeložené proužky, olivové)
+  - černý jako Ceylon OP (zvlněné drátovité proužky, černohnědé)
+  - bílý jako Pai Mu Tan (šedozelené listy a stříbřité pupeny)
+  - oolong jako Tie Guan Yin (svinuté vrásčité kuličky se stonky)
+  - rooibos (nasekané měděné jehličky), zázvor (béžové kousky),
+    skořice (třísky kůry, venku tmavé, uvnitř světlejší)
+- Hromádky staví `tools/rendery/blender_suroviny.py`, výřez dělá
+  `tools/rendery/vyrez.py detail`.
+
 ### Rendery všech hotových směsí a etikety (23. 11. 2026)
 - **Všech 14 hotových směsí** má místo kresleného sáčku render z Blenderu
   s novou etiketou. Deep Winter je vyrenderovaný znovu, aby vypadal stejně

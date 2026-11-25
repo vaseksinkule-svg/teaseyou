@@ -6,7 +6,7 @@ přečti a porovnej s kódem. Co nesedí, oprav ve stejném PR.
 Podrobný checklist po bodech je v [`PRAVNI-KONTROLA.md`](../PRAVNI-KONTROLA.md).
 Tohle není právní rada. Podmínky a zásady má před spuštěním prodeje projít advokát.
 
-- **Naposledy zkontrolováno:** 23. 11. 2026 (větev `rendery-sacku`: rendery všech hotových směsí a etikety)
+- **Naposledy zkontrolováno:** 24. 11. 2026 (větev `suroviny-caje`: fotky čajů v kolečkách surovin)
 
 ## Trh a rozhodné právo
 
@@ -79,6 +79,11 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
   hotových směsí) jsou ilustrační a detail to u nich píše. Musí odpovídat
   skutečnému sáčku a etiketě (§ 5 zákona o ochraně spotřebitele). Datum,
   šarže a trvanlivost na renderu jsou ukázkové.
+- **Fotky surovin:** v kolečkách jsou vlastní rendery z Blenderu (`img/suroviny/`):
+  černý, zelený, bílý čaj, oolong, rooibos, zázvor, skořice. Ukazují typický
+  vzhled podle fotek běžných druhů do směsí (Ceylon OP, China Sencha, Pai Mu
+  Tan, Tie Guan Yin, rooibos, zázvor a skořice nakrájené na čaj), ne
+  konkrétní šarži. Kolečka jsou dekorace, název suroviny je vedle v textu.
 - **Etiketa sáčku:** texty generuje `tools/rendery/etikety.py` ze stejných dat
   jako informace o potravině na webu (název podle vyhlášky 187/2023 Sb.,
   složení s procenty, alergeny, příprava, trvanlivost, skladování,
@@ -97,6 +102,9 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
   (anglicky „calming“, „soothing“, u medu „soothing“). Václav v listopadu
   2026 řekl zatím nic nemazat. Rozhodne.
 - 22. 11. 2026: v podmínkách chybí pravidla pro recenze podle DSA.
+- 24. 11. 2026: fotky surovin jsou ilustrační rendery. Až budou vybraní
+  dodavatelé, porovnat se skutečnou surovinou (hlavně druh zeleného čaje
+  a oolongu) a případně nahradit fotkami (§ 5 zákona o ochraně spotřebitele).
 - 23. 11. 2026: sáček ještě není vybraný. Rendery ukazují model doypacku
   s popiskem „Ilustrační vizualizace“. Až bude sáček vybraný, doladit model
   nebo rendery nahradit fotkami.
