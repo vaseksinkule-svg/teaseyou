@@ -1338,6 +1338,7 @@ textarea.field { min-height: 96px; resize: vertical; line-height: 1.45; }
 .detail-render-note { position: absolute; left: var(--gutter); bottom: 12px; color: var(--on-stage); opacity: .88; font: 500 12px/1.3 var(--sans); }
 .detail-view { position: absolute; top: 14px; left: 0; right: 0; z-index: 1; display: flex; justify-content: center; }
 .detail-stage:has(.detail-view:not(:empty)) { padding-top: 68px; }
+.detail-stage:has(.piles) { padding-bottom: 52px; }
 .detail-render-note[hidden] { display: none; }
 .detail-title { margin-bottom: 14px; }
 .detail-desc { color: var(--ink-2); font-size: 17px; line-height: 1.55; max-width: 52ch; }
