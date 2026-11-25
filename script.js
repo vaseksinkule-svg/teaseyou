@@ -1247,9 +1247,20 @@ function renderDetailVisual(name, ingredients, parts) {
     const same = blend && blend.ingredients.join('|') === ingredients.join('|')
         && (blend.parts || []).join('|') === (parts || []).join('|');
     const render = same ? pouchRenderFor(blend) : '';
-    if (box) box.innerHTML = pouchHtml({ name, codes: ingredients, parts, size: 'pouch--hero', weight: weight ? weight + ' g' : '', band, render });
+    const scene = same ? sceneRenderFor(blend) : '';
+    const ings = pouchView === 'ings';
+    if (box) box.innerHTML = ings ? pilesHtml(ingredients, parts)
+        : scene ? sceneHtml(scene, 'scene--detail')
+        : pouchHtml({ name, codes: ingredients, parts, size: 'pouch--hero', weight: weight ? weight + ' g' : '', band, render });
+    // Fotka z administrace nahrazuje sáček i hromádky, přepínač pak nedává smysl.
+    const photo = blend ? safePhoto(blend.photo_url) : '';
+    const sw = document.getElementById('detail-view');
+    if (sw) sw.innerHTML = photo ? '' : viewSwitchHtml();
     const note = document.getElementById('detail-render-note');
-    if (note) note.hidden = !render;
+    if (note) {
+        note.hidden = !!photo || !(ings || render || scene);
+        note.textContent = t(ings ? 'render_note_ings' : 'render_note');
+    }
     const list = document.getElementById('detail-ingredients-list');
     const r = recipeOf(ingredients, parts, weight);
     if (list) list.innerHTML = r.rows.map(row =>
@@ -3018,15 +3029,23 @@ function mixErrorText(r) {
    cls: velikost (ing-ico--sm, --xs) nebo jiná třída podle místa. */
 /* Fotky a rendery surovin, které jsou přímo na webu (img/suroviny/). Fotka
    nahraná v administraci má přednost. */
-const ING_PHOTOS = {
-    'Black Tea':  'img/suroviny/cerny-caj-400.webp',
-    'Green Tea':  'img/suroviny/zeleny-caj-400.webp',
-    'White Tea':  'img/suroviny/bily-caj-400.webp',
-    'Oolong Tea': 'img/suroviny/oolong-400.webp',
-    'Rooibos':    'img/suroviny/rooibos-400.webp',
-    'Ginger':     'img/suroviny/zazvor-400.webp',
-    'Cinnamon':   'img/suroviny/skorice-400.webp',
+/* Fotky surovin z Blenderu (tools/rendery/blender_suroviny.py), podle kódu suroviny:
+     img/suroviny/<slug>-400.webp               makro detail do koleček
+     img/suroviny/<slug>-hromadka-480.webp      celá hromádka na průhledném pozadí
+                                                (pohled „Suroviny“ u sáčku)
+   Nová surovina z administrace tu není: v kolečku má svou nahranou fotku nebo
+   barvu a v pohledu Suroviny kolečko místo hromádky. */
+const ING_SLUGS = {
+    'Black Tea': 'cerny-caj', 'Green Tea': 'zeleny-caj', 'White Tea': 'bily-caj', 'Oolong Tea': 'oolong',
+    'Rooibos': 'rooibos', 'Chamomile': 'hermanek', 'Lemon Balm': 'medunka', 'Linden': 'lipa',
+    'Mint': 'mata-peprna', 'Apple': 'jablko', 'Strawberry': 'jahoda', 'Raspberry': 'malina',
+    'Blueberry': 'boruvka', 'Rose Hip': 'sipek', 'Hibiscus': 'ibisek', 'Rose': 'ruze',
+    'Spearmint': 'mata-kaderava', 'Lemongrass': 'citronova-trava', 'Fennel': 'fenykl',
+    'Orange': 'pomerancova-kura', 'Lemon': 'citronova-kura', 'Ginger': 'zazvor', 'Cinnamon': 'skorice',
+    'Lavender': 'levandule', 'Cardamom': 'kardamom',
 };
+const ING_PHOTOS = Object.fromEntries(Object.entries(ING_SLUGS).map(([code, slug]) => [code, `img/suroviny/${slug}-400.webp`]));
+function ingPileFor(code) { return ING_SLUGS[code] ? `img/suroviny/${ING_SLUGS[code]}-hromadka-480.webp` : ''; }
 function ingIconHtml(code, cls = '') {
     const ing = ingByCode(code) || {};
     const color = /^#[0-9a-f]{6}$/i.test(ing.color || '') ? ing.color : '#cccccc';
@@ -4367,6 +4386,76 @@ const POUCH_RENDERS = {
     mint_condition: 'img/sacky/mint-condition',
 };
 function pouchRenderFor(b) { return (b && POUCH_RENDERS[b.id]) || ''; }
+
+/* Scény hotových směsí z Blenderu (tools/rendery/blender_sceny.py): sáček
+   a před ním hromádky jejích surovin, průhledné pozadí se stínem.
+   Soubory img/sceny/<slug>-480.webp a -960.webp, všechny ve stejném rámečku
+   (SCENE_RATIO), ať se při zamíchání na úvodní stránce nic neposouvá. */
+const SCENE_RENDERS = {
+    morning_window: 'img/sceny/morning-window',
+    still_evening:  'img/sceny/still-evening',
+    deep_winter:    'img/sceny/deep-winter',
+    late_light:     'img/sceny/late-light',
+    open_air:       'img/sceny/open-air',
+    slow_tuesday:   'img/sceny/slow-tuesday',
+    sunday_paper:   'img/sceny/sunday-paper',
+    desk_hours:     'img/sceny/desk-hours',
+    garden_party:   'img/sceny/garden-party',
+    pink_hour:      'img/sceny/pink-hour',
+    after_dinner:   'img/sceny/after-dinner',
+    quiet_street:   'img/sceny/quiet-street',
+    snowed_in:      'img/sceny/snowed-in',
+    mint_condition: 'img/sceny/mint-condition',
+};
+const SCENE_SIZE = [960, 960];
+function sceneRenderFor(b) { return (b && SCENE_RENDERS[b.id]) || ''; }
+function sceneHtml(src, size = '') {
+    return `<div class="scene ${size}"><img class="scene-img" src="${escHtml(src)}-480.webp"`
+        + ` srcset="${escHtml(src)}-480.webp 480w, ${escHtml(src)}-960.webp 960w" sizes="(min-width: 900px) 440px, 88vw"`
+        + ` width="${SCENE_SIZE[0]}" height="${SCENE_SIZE[1]}" alt="" decoding="async"></div>`;
+}
+
+/* Pohled „Suroviny“: hromádky surovin vedle sebe s podílem, pro každou směs
+   (i vlastní). Větší díl = o něco větší hromádka, ale i špetka je vidět. */
+function pilesHtml(codes, parts) {
+    const comp = blendComposition(codes, parts);
+    const list = comp.length ? comp : Recipe.normalize(codes, parts).codes.map(code => ({ code }));
+    if (!list.length) return `<p class="piles-empty">${escHtml(t('piles_empty'))}</p>`;
+    const max = Math.max(...list.map(c => c.pct || 0)) || 1;
+    return `<ul class="piles" data-n="${list.length}">` + list.map(c => {
+        const k = c.pct !== undefined ? .7 + .3 * Math.sqrt(c.pct / max) : 1;
+        const src = ingPileFor(c.code);
+        const pic = src ? `<img class="pile-img" src="${escHtml(src)}" alt="" decoding="async" loading="lazy">`
+                        : `<span class="pile-ico">${ingIconHtml(c.code)}</span>`;
+        return `<li class="pile" style="--k:${k.toFixed(2)}">${pic}`
+            + `<span class="pile-name">${escHtml(tIng(c.code))}</span>`
+            + (c.pct !== undefined ? `<b class="pile-pct">${c.pct} %</b>` : '') + `</li>`;
+    }).join('') + `</ul>`;
+}
+
+/* Přepínač Sáček / Suroviny na detailu a v mixéru. Volba platí pro celou
+   návštěvu (nikam se neukládá). */
+let pouchView = 'bag';
+function viewSwitchHtml() {
+    const b = (v, key) => `<button type="button" class="view-btn" data-view="${v}" aria-pressed="${pouchView === v}">${escHtml(t(key))}</button>`;
+    return `<div class="view-switch" role="group" aria-label="${escHtml(t('view_label'))}">${b('bag', 'view_bag')}${b('ings', 'view_ings')}</div>`;
+}
+function setPouchView(v) {
+    if (v !== 'bag' && v !== 'ings') return;
+    pouchView = v;
+    if (document.getElementById('product-detail-page')?.classList.contains('active') && currentProduct)
+        renderDetailVisual(currentProduct.name, currentProduct.ingredients, currentProduct.parts);
+    if (document.getElementById('product-page')?.classList.contains('active')) updateMixerUI();
+}
+document.addEventListener('click', e => {
+    const btn = e.target.closest('.view-switch .view-btn');
+    if (!btn) return;
+    const box = btn.closest('[id]');
+    setPouchView(btn.dataset.view);
+    // fokus zůstane na stejném tlačítku i po překreslení
+    const again = box && document.getElementById(box.id)?.querySelector(`.view-btn[data-view="${btn.dataset.view}"]`);
+    if (again) again.focus();
+});
 /* Jak široký je sáček na stránce, aby si prohlížeč vybral správnou velikost. */
 const POUCH_RENDER_SIZES = { 'pouch--xs': '64px', 'pouch--sm': '112px', 'pouch--about': '216px' };
 
@@ -4435,7 +4524,9 @@ function renderHero(id, animate) {
     heroBlendId = b.id;
     const weights = sortedWeights();
     const weight = weights.includes(100) ? '100 g' : (weights[0] ? weights[0] + ' g' : '');
-    box.innerHTML = pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--hero', weight, band: momentOf(b), render: pouchRenderFor(b) });
+    const scene = sceneRenderFor(b);
+    box.innerHTML = scene ? sceneHtml(scene, 'scene--hero')
+        : pouchHtml({ name: b.name, codes: b.ingredients, parts: b.parts, size: 'pouch--hero', weight, band: momentOf(b), render: pouchRenderFor(b) });
     if (animate && !reduceMotion()) {
         box.classList.remove('is-swapping');
         void box.offsetWidth;
@@ -4776,10 +4867,16 @@ function updateMixerUI() {
 
     const weightLabel = mixerWeight ? mixerWeight + ' g' : '';
     const pouch = pouchHtml({ name, codes, parts, size: 'pouch--mixer', placeholders: true, weight: weightLabel });
+    // Pohled Suroviny: hromádky vybraných surovin místo sáčku (až když něco je vybrané)
+    const piles = pouchView === 'ings' && codes.length ? pilesHtml(codes, parts) : '';
     const aside = document.getElementById('mixer-pouch');
-    if (aside) aside.innerHTML = pouch;
+    if (aside) aside.innerHTML = piles || pouch;
     const final = document.getElementById('mixer-pouch-final');
-    if (final && mixerStep === 4) final.innerHTML = pouch.replace('pouch--mixer', 'pouch--final');
+    if (final && mixerStep === 4) final.innerHTML = piles || pouch.replace('pouch--mixer', 'pouch--final');
+    for (const id of ['mixer-view', 'mixer-view-final']) {
+        const sw = document.getElementById(id);
+        if (sw) sw.innerHTML = codes.length ? viewSwitchHtml() : '';
+    }
 
     renderMixRecipe();
     renderMixerSizes();
@@ -5103,6 +5200,11 @@ Object.assign(TRANSLATIONS.cs, {
     detail_story_title:    'Proč to funguje',
     brew_tip:              'Tip',
     render_note:           'Ilustrační vizualizace balení 100 g',
+    render_note_ings:      'Ilustrační vizualizace surovin',
+    view_label:            'Zobrazit',
+    view_bag:              'Sáček',
+    view_ings:             'Suroviny',
+    piles_empty:           'Vyber suroviny a uvidíš je tady.',
 });
 Object.assign(TRANSLATIONS.en, {
     moment_morning:        'Morning',
@@ -5118,6 +5220,11 @@ Object.assign(TRANSLATIONS.en, {
     detail_story_title:    'Why it works',
     brew_tip:              'Tip',
     render_note:           'Illustrative render of the 100 g pouch',
+    render_note_ings:      'Illustrative render of the ingredients',
+    view_label:            'Show',
+    view_bag:              'Pouch',
+    view_ings:             'Ingredients',
+    piles_empty:           'Pick ingredients to see them here.',
 });
 
 const CRAFT_NOTIFIED_KEY = 'teaseyou_notified';

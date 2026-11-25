@@ -6,6 +6,27 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Fotky všech surovin, scény hotových směsí a přepínač Sáček / Suroviny (25. 11. 2026)
+- **Všech 25 surovin** má v kolečku makro záběr z Blenderu. Nově byliny,
+  květy, ovoce a koření, tvary a barvy podle fotek, jak se prodávají do směsí:
+  - heřmánek (žluté terče se scvrklými bílými lístky), meduňka, máta peprná
+    a kadeřavá (nakrájený zmačkaný list), lípa (světlé listeny a kvítky)
+  - jablko (kostičky s kouskem slupky), jahoda a malina (sušené mrazem),
+    borůvka (tmavé vrásčité kuličky), šípek (lesklé červené slupky)
+  - ibišek (tmavě vínový kalich), růže (zaprášeně růžové lístky),
+    citronová tráva (rovně uříznuté proužky), levandule (šedofialová poupata)
+  - fenykl (žebrované plody), kardamom (zelené tobolky a semínka),
+    pomerančová a citronová kůra (kostičky se slupkou a bílou vrstvou)
+- **Scény hotových směsí:** na úvodní stránce a na detailu je u všech 14
+  hotových směsí sáček a před ním hromádky jejích surovin (Blender,
+  `tools/rendery/blender_sceny.py`). Složení scény se bere ze stejných dat
+  jako web.
+- **Přepínač Sáček / Suroviny** na detailu a v mixéru: ukáže hromádky
+  surovin vedle sebe s podílem, u hotové i vlastní směsi. Volba se nikam
+  neukládá.
+- `vyrez.py` má režimy `hromadka` (hromádka na průhledném pozadí, 480 × 320)
+  a `scena` (čtverec 480 a 960 px). `sw.js` verze v21.
+
 ### Fotky čajů, zázvoru a skořice v kolečkách surovin (24. 11. 2026)
 - **Zelený, bílý, oolong, rooibos, černý čaj, zázvor a skořice** mají
   v kolečku místo ikonky makro záběr z Blenderu. Černý čaj, zázvor a skořice

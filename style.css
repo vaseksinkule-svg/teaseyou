@@ -458,6 +458,55 @@ body.dark svg.dm-dark { display: block; }
    je proto užší než u kresleného. */
 .pouch-render { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; display: block; }
 .pouch--render::after { left: 14%; right: 14%; bottom: calc(var(--w) * -.03); height: calc(var(--w) * .09); }
+/* Scéna hotové směsi z Blenderu: sáček a před ním hromádky surovin, stín je
+   už v obrázku. Všechny scény mají stejný rámeček (width/height na img). */
+.scene { width: min(100%, 440px); }
+.scene-img { display: block; width: 100%; height: auto; }
+.scene--hero { width: clamp(260px, 84vw, 440px); }
+.hero-pouch.is-swapping .scene { animation: pouchSwap .45s var(--ease); }
+/* Pohled Suroviny: hromádky vedle sebe, pod každou jméno a podíl.
+   Jedna až tři v řádku, čtyři do čtverce 2 × 2, pět ve dvou řádcích. */
+.piles {
+    list-style: none; margin: 0; padding: 0;
+    width: min(100%, 560px);
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;
+    gap: 14px 2%;
+    --pile: 31%;
+}
+.piles[data-n="1"] { --pile: 66%; }
+.piles[data-n="2"], .piles[data-n="4"] { --pile: 46%; }
+/* v úzkém sloupci mixéru jsou tři hromádky ve dvou řádcích, ať nejsou drobné */
+.mixer-pouch .piles[data-n="3"] { --pile: 46%; }
+.pile { width: calc(var(--pile) * var(--k, 1)); display: grid; justify-items: center; gap: 2px; text-align: center; color: var(--on-stage); }
+.pile-img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: contain; }
+.pile-ico { display: grid; place-items: center; width: 100%; aspect-ratio: 3 / 2; }
+.pile-ico .ing-ico { width: 56%; height: auto; aspect-ratio: 1; }
+.pile-name { font: 600 14px/1.25 var(--sans); text-wrap: balance; }
+.pile-pct { font: 500 13px/1.2 var(--sans); }
+.piles-empty { color: var(--on-stage); font-size: 15px; text-align: center; max-width: 26ch; }
+/* Přepínač Sáček / Suroviny (na zelené ploše) */
+.view-switch {
+    display: inline-flex; gap: 2px; padding: 3px;
+    border-radius: var(--r-pill);
+    background: color-mix(in srgb, var(--on-stage) 10%, transparent);
+}
+.view-btn {
+    min-height: 36px; padding: 0 16px;
+    border: 0; border-radius: var(--r-pill);
+    background: transparent; color: var(--on-stage);
+    font: 600 14px/1 var(--sans); cursor: pointer;
+}
+.view-btn[aria-pressed="true"] { background: var(--on-stage); color: var(--stage); }
+.view-btn:focus-visible { outline: 2px solid var(--on-stage); outline-offset: 2px; }
+.mixer-view:empty, .detail-view:empty { display: none; }
+.mixer-view { display: flex; justify-content: center; margin-bottom: 22px; }
+/* v posledním kroku na mobilu je přepínač na papíře, ne na zelené */
+.mixer-view--final { margin: 18px 0 -6px; }
+.mixer-view--final .view-switch { background: var(--paper-2); }
+.mixer-view--final .view-btn { color: var(--ink); }
+.mixer-view--final .view-btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.mixer-view--final .view-btn:focus-visible { outline-color: var(--ink); }
+.final-pouch .pile, .final-pouch .piles-empty { color: var(--ink); }
 /* Etiketa má pevnou osnovu, ať každá směs vypadá stejně: jméno má vždy
    místo na dva řádky (čára pod ním je pořád ve stejné výšce), suroviny
    začínají hned pod čarou ve stejné velikosti a gramáž je vždy dole. */
@@ -1103,7 +1152,7 @@ body:not([data-page="product-page"]) .mixer-bar { display: none; }
     .options-column { padding: 0; max-width: 620px; }
     .btn-grid { margin-inline: 0; }
     .ingredient-btn { padding-inline: 12px; }
-    .final-pouch { display: none; }
+    .final-pouch, .mixer-view--final { display: none; }
     .final-links { justify-content: flex-start; margin-left: -8px; }
     .mixer-bar {
         position: static; z-index: auto;
@@ -1287,6 +1336,9 @@ textarea.field { min-height: 96px; resize: vertical; line-height: 1.45; }
 }
 .detail-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .detail-render-note { position: absolute; left: var(--gutter); bottom: 12px; color: var(--on-stage); opacity: .88; font: 500 12px/1.3 var(--sans); }
+.detail-view { position: absolute; top: 14px; left: 0; right: 0; z-index: 1; display: flex; justify-content: center; }
+.detail-stage:has(.detail-view:not(:empty)) { padding-top: 68px; }
+.detail-stage:has(.piles) { padding-bottom: 52px; }
 .detail-render-note[hidden] { display: none; }
 .detail-title { margin-bottom: 14px; }
 .detail-desc { color: var(--ink-2); font-size: 17px; line-height: 1.55; max-width: 52ch; }

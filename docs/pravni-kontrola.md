@@ -76,14 +76,20 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
 - **Tvrzení o čajích:** prodáváme podle chuti a chvíle dne, ne podle účinků
   na zdraví (nařízení (ES) č. 1924/2006, čl. 10).
 - **Obrázky produktů:** rendery sáčků z Blenderu (`img/sacky/`, všech 14
-  hotových směsí) jsou ilustrační a detail to u nich píše. Musí odpovídat
-  skutečnému sáčku a etiketě (§ 5 zákona o ochraně spotřebitele). Datum,
-  šarže a trvanlivost na renderu jsou ukázkové.
-- **Fotky surovin:** v kolečkách jsou vlastní rendery z Blenderu (`img/suroviny/`):
-  černý, zelený, bílý čaj, oolong, rooibos, zázvor, skořice. Ukazují typický
-  vzhled podle fotek běžných druhů do směsí (Ceylon OP, China Sencha, Pai Mu
-  Tan, Tie Guan Yin, rooibos, zázvor a skořice nakrájené na čaj), ne
-  konkrétní šarži. Kolečka jsou dekorace, název suroviny je vedle v textu.
+  hotových směsí) a scény sáčku s hromádkami surovin (`img/sceny/`, úvod
+  a detail) jsou ilustrační a detail to u nich píše. Musí odpovídat
+  skutečnému sáčku, etiketě a surovinám (§ 5 zákona o ochraně spotřebitele;
+  u potravin i obrázky a vzhled podle nařízení (EU) č. 1169/2011, čl. 7
+  odst. 1 a 4). Datum, šarže a trvanlivost na renderu jsou ukázkové.
+  Hromádky ve scéně jsou větší, než kolik suroviny je v sáčku, ukazují jen,
+  co v něm je; podíly jsou v textu vedle.
+- **Fotky surovin:** v kolečkách a v pohledu Suroviny (detail a mixér) jsou
+  vlastní rendery z Blenderu (`img/suroviny/`, všech 25 surovin). Ukazují
+  typický vzhled podle fotek běžných druhů nakrájených do směsí (Ceylon OP,
+  China Sencha, Pai Mu Tan, Tie Guan Yin; jahody a maliny sušené mrazem;
+  kardamom jako zelené tobolky s pár semeny), ne konkrétní šarži. Kolečka
+  i hromádky jsou dekorace, název suroviny a podíl jsou v textu.
+  Pohled Suroviny má popisek „Ilustrační vizualizace surovin“.
 - **Etiketa sáčku:** texty generuje `tools/rendery/etikety.py` ze stejných dat
   jako informace o potravině na webu (název podle vyhlášky 187/2023 Sb.,
   složení s procenty, alergeny, příprava, trvanlivost, skladování,
@@ -105,6 +111,13 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
 - 24. 11. 2026: fotky surovin jsou ilustrační rendery. Až budou vybraní
   dodavatelé, porovnat se skutečnou surovinou (hlavně druh zeleného čaje
   a oolongu) a případně nahradit fotkami (§ 5 zákona o ochraně spotřebitele).
+- 25. 11. 2026: rendery jahody a maliny ukazují sušení mrazem (světlé,
+  pórovité kousky). Kdyby dodavatel dodal jinak sušené (tmavší, gumovité),
+  upravit render (nařízení (EU) č. 1169/2011, čl. 7 odst. 1 písm. a)
+  a odst. 4: způsob výroby, vzhled).
+- 25. 11. 2026: kardamom má na etiketě „kardamom (semeno)“, render ukazuje
+  hlavně zelené tobolky. Až bude jasné, jestli půjdou do směsí celé
+  tobolky, nebo jen semena, srovnat název na etiketě a render.
 - 23. 11. 2026: sáček ještě není vybraný. Rendery ukazují model doypacku
   s popiskem „Ilustrační vizualizace“. Až bude sáček vybraný, doladit model
   nebo rendery nahradit fotkami.

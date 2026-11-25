@@ -347,8 +347,9 @@
         <div class="detail-layout">
             <figure class="detail-stage">
                 <img id="detail-photo" class="detail-photo" alt="" hidden>
+                <div class="detail-view" id="detail-view"></div>
                 <div class="detail-pouch" id="detail-pouch" aria-hidden="true"></div>
-                <figcaption class="detail-render-note" id="detail-render-note" hidden data-i18n="render_note">Ilustrační vizualizace balení 100&nbsp;g</figcaption>
+                <figcaption class="detail-render-note" id="detail-render-note" hidden>Ilustrační vizualizace balení 100&nbsp;g</figcaption>
             </figure>
             <div class="detail-info">
                 <p class="detail-moment" id="detail-moment" hidden></p>
@@ -432,6 +433,7 @@
 
             <div class="selection-group step-final" data-step="4">
                 <h2 class="step-question" tabindex="-1" data-i18n="q_4">Hotovo. Pojmenuj ji.</h2>
+                <div class="mixer-view mixer-view--final" id="mixer-view-final"></div>
                 <div class="final-pouch" id="mixer-pouch-final" aria-hidden="true"></div>
                 <label class="field-label" for="mix-name" data-i18n="name_label">Jméno na sáček</label>
                 <div class="name-row">
@@ -465,10 +467,11 @@
             </div>
         </div>
 
-        <aside class="visualizer-column" aria-hidden="true">
-            <div class="mixer-pouch" id="mixer-pouch"></div>
-            <p class="mixer-pouch-note" id="mixer-price"></p>
-        </aside>
+        <div class="visualizer-column">
+            <div class="mixer-view" id="mixer-view"></div>
+            <div class="mixer-pouch" id="mixer-pouch" aria-hidden="true"></div>
+            <p class="mixer-pouch-note" id="mixer-price" aria-hidden="true"></p>
+        </div>
     </div>
 
 </section>

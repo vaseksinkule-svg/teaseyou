@@ -531,4 +531,9 @@ self.TEASEYOU_I18N_SK = {
     detail_story_title:    'Prečo to funguje',
     brew_tip:              'Tip',
     render_note:           'Ilustračná vizualizácia balenia 100 g',
+    render_note_ings:      'Ilustračná vizualizácia surovín',
+    view_label:            'Zobraziť',
+    view_bag:              'Vrecko',
+    view_ings:             'Suroviny',
+    piles_empty:           'Vyber suroviny a uvidíš ich tu.',
 };
