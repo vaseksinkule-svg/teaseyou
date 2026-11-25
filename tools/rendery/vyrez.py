@@ -24,8 +24,22 @@ plný lístků):
 
   Bere střed obrázku (90 %), okraje s nejsilnějším rozostřením odřízne.
 
-Pak přidej řádek do POUCH_RENDERS (podle id směsi) nebo ING_PHOTOS
-(podle kódu suroviny) ve script.js.
+Hromádka na průhledném pozadí (blender_suroviny.py, renderuj(..., pruhledne=True)):
+    python3 tools/rendery/vyrez.py hromadka RENDER_vyrez.png jablko
+    -> img/suroviny/jablko-hromadka-480.webp
+
+  Ořízne hromádku i se stínem a postaví ji dolů doprostřed rámečku 3 : 2
+  (480 × 320 px), aby měly všechny hromádky na webu stejnou výšku řádku.
+
+Scéna hotové směsi (blender_sceny.py, průhledné pozadí se stínem):
+    python3 tools/rendery/vyrez.py scena RENDER.png deep-winter
+    -> img/sceny/deep-winter-480.webp a img/sceny/deep-winter-960.webp
+
+  Všechny scény mají stejnou kameru, proto se ořezávají stejným pevným
+  výřezem SCENA_VYREZ (čtverec). Na webu se nic neposouvá.
+
+Pak přidej řádek do POUCH_RENDERS / SCENE_RENDERS (podle id směsi) nebo
+ING_SLUGS (podle kódu suroviny) ve script.js.
 
 Potřebuje: numpy, scipy, Pillow.
 """
@@ -125,7 +139,61 @@ def detail(src: str, slug: str) -> None:
     print(f'střed {side} px → {out}/{slug}-400.webp')
 
 
+def _okraje_do_ztracena(a, podil=0.05):
+    """Alfa na krajích výřezu plynule do nuly, ať slabý stín neskončí rovnou čarou."""
+    h, w = a.shape
+    ry = np.clip(np.minimum(np.arange(h), np.arange(h)[::-1]) / (podil * h), 0, 1)
+    rx = np.clip(np.minimum(np.arange(w), np.arange(w)[::-1]) / (podil * w), 0, 1)
+    return a * np.minimum.outer(ry, rx)
+
+
+def hromadka(src: str, slug: str) -> None:
+    im = np.asarray(Image.open(src).convert('RGBA')).astype(np.float32)
+    a = im[..., 3]
+    ys, xs = np.where(a > 20)
+    if not len(xs):
+        sys.exit('V obrázku jsem nenašel hromádku.')
+    x0, x1, y0, y1 = xs.min(), xs.max() + 1, ys.min(), ys.max() + 1
+    # okraj kolem (stín je měkký), pak rámeček 3 : 2 s hromádkou dole na středu
+    m = int(0.06 * (x1 - x0))
+    x0, x1, y0, y1 = max(0, x0 - m), min(im.shape[1], x1 + m), max(0, y0 - m), min(im.shape[0], y1 + m // 2)
+    cut = im[y0:y1, x0:x1].copy()
+    cut[..., 3] = _okraje_do_ztracena(cut[..., 3])
+    h, w = cut.shape[:2]
+    bw, bh = max(w, round(h * 1.5)), max(h, round(w / 1.5))
+    box = np.zeros((bh, bw, 4), np.float32)
+    ox, oy = (bw - w) // 2, bh - h
+    box[oy:oy + h, ox:ox + w] = cut
+    out = ROOT / 'img' / 'suroviny'
+    out.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(box.clip(0, 255).astype(np.uint8), 'RGBA').resize((480, 320), Image.LANCZOS).save(
+        out / f'{slug}-hromadka-480.webp', 'WEBP', quality=82, method=6)
+    print(f'hromádka {w}×{h} px → {out}/{slug}-hromadka-480.webp')
+
+
+# Pevný výřez scény (zlomky šířky a výšky renderu 1600 × 2000): čtverec, ve
+# kterém se vejde sáček i hromádky u všech 14 směsí. Nastaveno podle renderů.
+SCENA_VYREZ = (0.0, 0.1, 1.0, 0.9)
+
+
+def scena(src: str, slug: str) -> None:
+    im = Image.open(src).convert('RGBA')
+    x0, y0, x1, y1 = SCENA_VYREZ
+    W, H = im.size
+    cut = im.crop((round(x0 * W), round(y0 * H), round(x1 * W), round(y1 * H)))
+    arr = np.asarray(cut).astype(np.float32)
+    arr[..., 3] = _okraje_do_ztracena(arr[..., 3], 0.03)
+    cut = Image.fromarray(arr.clip(0, 255).astype(np.uint8), 'RGBA')
+    out = ROOT / 'img' / 'sceny'
+    out.mkdir(parents=True, exist_ok=True)
+    for width in (960, 480):
+        cut.resize((width, round(width * cut.height / cut.width)), Image.LANCZOS).save(
+            out / f'{slug}-{width}.webp', 'WEBP', quality=84, method=6)
+    print(f'scéna {cut.width}×{cut.height} px → {out}/{slug}-480|960.webp')
+
+
 if __name__ == '__main__':
-    if len(sys.argv) != 4 or sys.argv[1] not in ('sacek', 'surovina', 'detail'):
+    rezimy = {'sacek': sacek, 'surovina': surovina, 'detail': detail, 'hromadka': hromadka, 'scena': scena}
+    if len(sys.argv) != 4 or sys.argv[1] not in rezimy:
         sys.exit(__doc__)
-    {'sacek': sacek, 'surovina': surovina, 'detail': detail}[sys.argv[1]](sys.argv[2], sys.argv[3])
+    rezimy[sys.argv[1]](sys.argv[2], sys.argv[3])
