@@ -250,7 +250,7 @@ def kvitek(rng, r, okvet=14, zachovano=0.8):
         k = rng.normal(size=3)
         hrb += np.abs(np.sin(d @ (k / np.linalg.norm(k) * rng.uniform(14, 22)) + rng.uniform(0, 6.3)))
     v = d * (r * (1 + 0.07 * (hrb / 6 - 0.5)))[..., None]
-    v[..., 2] = np.where(v[..., 2] > 0, v[..., 2] * rng.uniform(0.95, 1.35), v[..., 2] * 0.4)
+    v[..., 2] = np.where(v[..., 2] > 0, v[..., 2] * rng.uniform(0.8, 1.15), v[..., 2] * 0.4)
     terc = {'v': v.reshape(-1, 3), 'f': _mrizka(nu, nv, cyklicky=True),
             'uv': np.stack([T / np.pi, P / (2 * np.pi)], -1).reshape(-1, 2),
             'd': np.where(d[..., 2] > -0.2, 1.0, 2.0).ravel()}
@@ -258,8 +258,8 @@ def kvitek(rng, r, okvet=14, zachovano=0.8):
     for i in range(okvet):
         if rng.random() > zachovano:
             continue
-        Lp = r * rng.uniform(1.0, 1.7)
-        p = druh_casti(list_(rng, Lp, r * rng.uniform(0.35, 0.55), nu=9, nv=5, svinuti=rng.uniform(0.1, 0.45),
+        Lp = r * rng.uniform(1.3, 2.2)
+        p = druh_casti(list_(rng, Lp, r * rng.uniform(0.45, 0.62), nu=9, nv=5, svinuti=rng.uniform(0.1, 0.45),
                              zmac=0.45, zkrut=rng.uniform(-1.5, 1.5), spicka=0.5, zaklad=0.9), 0)
         phi = 2 * np.pi * i / okvet + rng.normal(0, 0.12)
         p = posun(dict(p, v=p['v'] + [0.5 * Lp, 0, 0]), [0.9 * r * math.cos(phi), 0.9 * r * math.sin(phi), 0],
@@ -419,11 +419,11 @@ def _rooibos_stonek(rng):
 
 def _hermanek(rng):
     # sušené úbory: žlutý vypouklý terč, scvrklé krémově bílé okvětní lístky
-    return kvitek(rng, rng.uniform(1.5, 2.5) * MM, okvet=int(rng.integers(12, 18)), zachovano=rng.uniform(0.45, 0.95))
+    return kvitek(rng, rng.uniform(1.2, 2.0) * MM, okvet=int(rng.integers(13, 19)), zachovano=rng.uniform(0.6, 1.0))
 
 
 def _hermanek_holy(rng):
-    return kvitek(rng, rng.uniform(1.3, 2.3) * MM, zachovano=rng.uniform(0.0, 0.3))
+    return kvitek(rng, rng.uniform(1.1, 1.9) * MM, zachovano=rng.uniform(0.0, 0.3))
 
 
 def _okvetni(rng):
@@ -438,7 +438,7 @@ def _stonek_tenky(rng):
 
 def _list_bylina(rng, zmac=(0.5, 0.8)):
     # nakrájený list (meduňka, máty): zmačkané kousky se zoubkovaným okrajem
-    return list_(rng, rng.uniform(3.5, 9) * MM, rng.uniform(3, 6) * MM, svinuti=rng.uniform(0.1, 0.45),
+    return list_(rng, rng.uniform(2.5, 7) * MM, rng.uniform(2, 5) * MM, svinuti=rng.uniform(0.1, 0.45),
                  zmac=rng.uniform(*zmac), zkrut=rng.uniform(-1.5, 1.5), ohyb=rng.uniform(-0.15, 0.15),
                  prelozeni=rng.uniform(0, 0.2), zubky=0.12, spicka=0.45, zaklad=0.45, nu=18, nv=13)
 
@@ -495,7 +495,7 @@ def _malina(rng):
 
 def _boruvka(rng):
     # sušené borůvky: tmavé, vrásčité kuličky, nahoře světlejší korunka
-    c = kulicka(rng, rng.uniform(1.8, 2.8) * MM, protazeni=rng.uniform(1.0, 1.15), rasy=rng.uniform(0.35, 0.5), nu=24, nv=22)
+    c = kulicka(rng, rng.uniform(1.8, 2.8) * MM, protazeni=rng.uniform(1.0, 1.15), rasy=rng.uniform(0.5, 0.65), nu=24, nv=22)
     c['d'] = (c['uv'][:, 0] < 0.1).astype(float)
     return c
 
@@ -541,7 +541,7 @@ def _trava_stonek(rng):
 def _fenykl(rng):
     # podlouhlé žebrované plody, šedozelené, žebra světlejší
     L = rng.uniform(4, 6.5) * MM
-    s = semeno(rng, L, L * rng.uniform(0.15, 0.2), zebra=5, vyska_zeber=0.16, ostrost=4, spicka=(0.55, 0.55),
+    s = semeno(rng, L, L * rng.uniform(0.15, 0.19), zebra=5, vyska_zeber=0.14, ostrost=4, spicka=(0.3, 0.3),
                ohyb=rng.uniform(-0.08, 0.08), plocha=rng.uniform(0.2, 0.45))
     if rng.random() < 0.35:
         Ls = rng.uniform(1, 2.5) * MM
@@ -552,7 +552,7 @@ def _fenykl(rng):
 def _levandule(rng):
     # poupata: drobná, šedě modrofialová, s jemnými podélnými žebry
     L = rng.uniform(3.2, 5.0) * MM
-    return semeno(rng, L, L * rng.uniform(0.15, 0.2), zebra=int(rng.integers(10, 14)), vyska_zeber=0.08, ostrost=3,
+    return semeno(rng, L, L * rng.uniform(0.13, 0.16), zebra=int(rng.integers(10, 14)), vyska_zeber=0.08, ostrost=3,
                   spicka=(1.1, 0.45), ohyb=rng.uniform(-0.1, 0.1), nu=16, nv=26)
 
 
@@ -601,61 +601,61 @@ CAJE = {
     # otoc: jak často kus leží vzhůru nohama (heřmánek spíš terčem nahoru)
     # detail: o kolik dál je makro kamera (velké kusy jako tobolky kardamomu)
     # porez: pórovitý povrch (ovoce), drsnost_pupen: drsnost slupky (druh 1)
-    'hermanek': dict(R=24 * MM, H=12 * MM, kusy=[(0.55, _hermanek, 1), (0.25, _hermanek_holy, 1), (0.13, _okvetni, 0), (0.07, _stonek_tenky, 2)],
+    'hermanek': dict(R=24 * MM, H=12 * MM, kusy=[(0.65, _hermanek, 1), (0.13, _hermanek_holy, 1), (0.16, _okvetni, 0), (0.06, _stonek_tenky, 2)],
                      lezi=0.5, kolem=False, sedne=50, otoc=0.25,
-                     barvy=dict(list=['#b4ac94', '#c0b89e', '#a89e84', '#bcb294', '#9c907a'], pupen=['#8a6618', '#a47d1f', '#b08a26', '#94701a', '#bc962c'], stonek=['#6e6e46', '#7a7850', '#868456']),
+                     barvy=dict(list=['#a09680', '#aca48c', '#b8b09a', '#beb49a', '#c4bca6'], pupen=['#7e6224', '#8a6c24', '#94782c', '#a08434', '#ac8e3c'], stonek=['#6a6a48', '#74724e', '#7e7c56']),
                      drsnost=0.75, lesk=0.1, pupen_chlup=0.0, zilky=0.2, porez=0.5, porez_pupen=True),
     'medunka': dict(R=26 * MM, H=13 * MM, kusy=[(0.92, _list_bylina, 0), (0.08, _stonek_ctyrhranny, 2)], lezi=0.35, kolem=False, sedne=45,
-                    barvy=dict(list=['#3c4a28', '#465530', '#505e36', '#5a663c', '#444a2c', '#4c5634'], pupen=['#5a663c', '#66704a'], stonek=['#5a5a3a', '#66643f']),
+                    barvy=dict(list=['#444c30', '#4a5236', '#545c3c', '#5c6242', '#4e5034', '#62603e'], pupen=['#5c6242', '#66684a'], stonek=['#5a5a3a', '#66643f']),
                     drsnost=0.7, lesk=0.1, pupen_chlup=0.0, zilky=0.8),
     'lipa': dict(R=28 * MM, H=13 * MM, kusy=[(0.55, _lipa_listen, 0), (0.35, _lipa_kvet, 1), (0.10, _stonek_tenky, 2)], lezi=0.3, kolem=False, sedne=45, detail=1.3,
                  barvy=dict(list=['#8a8654', '#948f5c', '#9e9864', '#a8a06a', '#80784c', '#b0a874'], pupen=['#9a8048', '#a48c56', '#b09a62', '#8e7442'], stonek=['#7c6c44', '#887648']),
                  drsnost=0.75, lesk=0.1, pupen_chlup=0.3, zilky=1.0),
     'mata-peprna': dict(R=26 * MM, H=13 * MM, kusy=[(0.9, _list_bylina, 0), (0.1, _stonek_ctyrhranny, 2)], lezi=0.35, kolem=False, sedne=45,
-                        barvy=dict(list=['#24301a', '#2b3a1f', '#304024', '#38482a', '#2c3420', '#3a3e26'], pupen=['#38482a', '#40502e'], stonek=['#4a3a32', '#56443a']),
+                        barvy=dict(list=['#2a2e20', '#2e3424', '#34382a', '#363c2a', '#3c4430', '#424434'], pupen=['#3c4430', '#444a34'], stonek=['#4a3a32', '#56443a']),
                         drsnost=0.65, lesk=0.1, pupen_chlup=0.0, zilky=0.8),
     'mata-kaderava': dict(R=26 * MM, H=13 * MM, kusy=[(0.9, _list_kaderavy, 0), (0.1, _stonek_ctyrhranny, 2)], lezi=0.35, kolem=False, sedne=45,
-                          barvy=dict(list=['#4c5a3a', '#566142', '#5e6a48', '#68724e', '#525638', '#606a4a'], pupen=['#68724e', '#727c56'], stonek=['#6a6448', '#76704f']),
+                          barvy=dict(list=['#4e5440', '#545c44', '#5e664c', '#666c52', '#6c6e56'], pupen=['#666c52', '#70745a'], stonek=['#6a6448', '#76704f']),
                           drsnost=0.72, lesk=0.15, pupen_chlup=0.0, zilky=0.8),
     'jablko': dict(R=24 * MM, H=12 * MM, kusy=[(1.0, _jablko, 0)], lezi=0.6, kolem=False, sedne=45, detail=1.1,
-                   barvy=dict(list=['#8e7650', '#9c845c', '#a89066', '#b49c70', '#c0a87c'], pupen=['#5c2414', '#6d2717', '#7a301c', '#8a4a24', '#6a4a20'], stonek=['#8e7650', '#9c845c']),
-                   drsnost=0.85, lesk=0.05, pupen_chlup=0.0, zilky=0.0, porez=0.6, drsnost_pupen=0.6),
+                   barvy=dict(list=['#9c8458', '#a89060', '#b49c68', '#c0a874', '#ac9464'], pupen=['#5c2414', '#6d2717', '#7a301c', '#8a4a24', '#6a4a20'], stonek=['#a89060', '#b49c68']),
+                   drsnost=0.85, lesk=0.05, pupen_chlup=0.0, zilky=0.0, porez=0.4, porez_meritko=4500, drsnost_pupen=0.6),
     'jahoda': dict(R=22 * MM, H=11 * MM, kusy=[(1.0, _jahoda, 0)], lezi=0.6, kolem=False, sedne=45,
-                   barvy=dict(list=['#9c5a62', '#a87074', '#b48585', '#c09090', '#c8a0a0'], pupen=['#7c121c', '#8c1720', '#9c1c26', '#a82430'], stonek=['#9c5a62', '#a87074']),
-                   drsnost=0.9, lesk=0.05, pupen_chlup=0.0, zilky=0.0, porez=0.9, drsnost_pupen=0.75),
+                   barvy=dict(list=['#a87c80', '#b49090', '#c0a0a0', '#9c6c72', '#b88a8c'], pupen=['#6c141c', '#7a1a22', '#8a2028', '#94262e'], stonek=['#a87c80', '#b49090']),
+                   drsnost=0.9, lesk=0.05, pupen_chlup=0.0, zilky=0.0, porez=0.5, porez_meritko=6000, drsnost_pupen=0.75),
     'malina': dict(R=22 * MM, H=11 * MM, kusy=[(1.0, _malina, 0)], lezi=0.6, kolem=False, sedne=45,
-                   barvy=dict(list=['#7a2238', '#862840', '#942f46', '#a0364e', '#ac4058', '#b85a70'], pupen=['#942f46', '#a0364e'], stonek=['#942f46', '#a0364e']),
+                   barvy=dict(list=['#7a2232', '#8a2a3a', '#9a3242', '#a83c4c', '#b44c5a'], pupen=['#9a3242', '#a83c4c'], stonek=['#9a3242', '#a83c4c']),
                    drsnost=0.85, lesk=0.15, pupen_chlup=0.0, zilky=0.0, porez=0.4),
     'boruvka': dict(R=22 * MM, H=11 * MM, kusy=[(1.0, _boruvka, 0)], lezi=0.6, kolem=False, sedne=60,
-                    barvy=dict(list=['#141220', '#171523', '#1c1a2c', '#211e34', '#262238'], pupen=['#3a3448', '#443e52'], stonek=['#3a3448', '#443e52']),
-                    drsnost=0.45, lesk=0.5, pupen_chlup=0.0, zilky=0.0),
+                    barvy=dict(list=['#100e14', '#121018', '#16131e', '#1a1622', '#1e1a28'], pupen=['#38323e', '#423c48'], stonek=['#38323e', '#423c48']),
+                    drsnost=0.55, lesk=0.7, pupen_chlup=0.0, zilky=0.0),
     'sipek': dict(R=23 * MM, H=11 * MM, kusy=[(1.0, _sipek, 0)], lezi=0.5, kolem=False, sedne=50,
-                  barvy=dict(list=['#986236', '#a46d3e', '#b07a48', '#bc8a56'], pupen=['#7c2410', '#88280f', '#942f17', '#a0361a', '#ac4020'], stonek=['#a46d3e', '#b07a48']),
-                  drsnost=0.85, lesk=0.05, pupen_chlup=0.0, zilky=0.0, porez=0.3, drsnost_pupen=0.35),
+                  barvy=dict(list=['#8c5e3a', '#9a6a44', '#a8784e'], pupen=['#6c2412', '#7a2a14', '#8a3018', '#94381c', '#a04420'], stonek=['#9a6a44', '#a8784e']),
+                  drsnost=0.85, lesk=0.05, pupen_chlup=0.0, zilky=0.0, porez=0.15, porez_meritko=4000, drsnost_pupen=0.4),
     'ibisek': dict(R=26 * MM, H=13 * MM, kusy=[(1.0, _ibisek, 0)], lezi=0.35, kolem=False, sedne=45, detail=1.2,
                    barvy=dict(list=['#2e080e', '#3a0a12', '#460c17', '#52101c', '#5e1422', '#6a1a28'], pupen=['#6a1a28', '#7a2232'], stonek=['#5e1422', '#6a1a28']),
-                   drsnost=0.55, lesk=0.15, pupen_chlup=0.0, zilky=1.2),
+                   drsnost=0.68, lesk=0.15, pupen_chlup=0.0, zilky=1.4),
     'ruze': dict(R=26 * MM, H=13 * MM, kusy=[(1.0, _ruze, 0)], lezi=0.35, kolem=False, sedne=45, detail=1.2,
-                 barvy=dict(list=['#6e3446', '#7c3c50', '#8c465a', '#9a5066', '#a65c72', '#b46a80'], pupen=['#a8946d', '#b4a078'], stonek=['#8c465a', '#9a5066']),
+                 barvy=dict(list=['#6c3c48', '#7a4652', '#86505c', '#925a66', '#9c6470', '#a87480'], pupen=['#a8946d', '#b4a078'], stonek=['#86505c', '#925a66']),
                  drsnost=0.65, lesk=0.3, pupen_chlup=0.0, zilky=0.5),
     'citronova-trava': dict(R=24 * MM, H=12 * MM, kusy=[(0.85, _trava, 0), (0.15, _trava_stonek, 2)], lezi=0.3, kolem=False, sedne=45,
-                            barvy=dict(list=['#706c44', '#7a764a', '#858152', '#8e8a58', '#989260', '#a09a68'], pupen=['#989260', '#a09a68'], stonek=['#a89c76', '#b4a880']),
+                            barvy=dict(list=['#7a7650', '#858158', '#8e8a5e', '#989466', '#a29c6c', '#8a8250'], pupen=['#989466', '#a29c6c'], stonek=['#a89c76', '#b4a880']),
                             drsnost=0.75, lesk=0.1, pupen_chlup=0.0, zilky=0.3, vlakna=0.9),
     'fenykl': dict(R=22 * MM, H=11 * MM, kusy=[(1.0, _fenykl, 0)], lezi=0.3, kolem=True, sedne=50,
-                   barvy=dict(list=['#525638', '#5c6040', '#656946', '#6e724c', '#787a52'], pupen=['#8c8a62', '#989670'], stonek=['#6a5e3e', '#766a46']),
+                   barvy=dict(list=['#525638', '#5c6040', '#656946', '#6e724c', '#787a52'], pupen=['#767654', '#7e7c58', '#888660'], stonek=['#6a5e3e', '#766a46']),
                    drsnost=0.75, lesk=0.05, pupen_chlup=0.0, zilky=0.0, vlakna=0.3),
-    'pomerancova-kura': dict(R=22 * MM, H=11 * MM, kusy=[(1.0, _kura_citrus, 0)], lezi=0.5, kolem=False, sedne=50,
-                             barvy=dict(list=['#a48c62', '#b0986d', '#bca478'], pupen=['#8e4410', '#9c4c12', '#a85617', '#b45e1a', '#c0681e'], stonek=['#b0986d', '#bca478']),
+    'pomerancova-kura': dict(R=22 * MM, H=11 * MM, kusy=[(1.0, _kura_citrus, 0)], lezi=0.5, kolem=False, sedne=50, otoc=0.35,
+                             barvy=dict(list=['#9c8456', '#a8905e', '#b49a68'], pupen=['#7e3c12', '#8c4214', '#9a4a18', '#a8541c', '#b45e22'], stonek=['#a8905e', '#b49a68']),
                              drsnost=0.85, lesk=0.05, pupen_chlup=0.0, zilky=0.0, porez=0.5, porez_meritko=4000, drsnost_pupen=0.55),
-    'citronova-kura': dict(R=22 * MM, H=11 * MM, kusy=[(1.0, _kura_citrus, 0)], lezi=0.5, kolem=False, sedne=50,
-                           barvy=dict(list=['#ac9c78', '#b8aa86', '#c4b690'], pupen=['#8e7a32', '#9c8436', '#a8903e', '#b49a44', '#c0a64c'], stonek=['#b8aa86', '#c4b690']),
+    'citronova-kura': dict(R=22 * MM, H=11 * MM, kusy=[(1.0, _kura_citrus, 0)], lezi=0.5, kolem=False, sedne=50, otoc=0.35,
+                           barvy=dict(list=['#9c8e6c', '#a89a76', '#b4a682'], pupen=['#8a7634', '#94803a', '#a08a3e', '#ac9446', '#b49e52'], stonek=['#a89a76', '#b4a682']),
                            drsnost=0.85, lesk=0.05, pupen_chlup=0.0, zilky=0.0, porez=0.5, porez_meritko=4000, drsnost_pupen=0.55),
     'levandule': dict(R=20 * MM, H=10 * MM, kusy=[(0.94, _levandule, 0), (0.06, _stonek_tenky, 2)], lezi=0.3, kolem=True, sedne=50,
-                      barvy=dict(list=['#40385a', '#463e62', '#4e466d', '#564e78', '#5e5682', '#625a7c'], pupen=['#6c6490', '#746c98'], stonek=['#5a6048', '#646a50']),
+                      barvy=dict(list=['#2e2a3a', '#363044', '#3c364c', '#423a54', '#48405a', '#3a3a48'], pupen=['#4c4660', '#544c66'], stonek=['#4e5440', '#585e48']),
                       drsnost=0.7, lesk=0.3, pupen_chlup=0.0, zilky=0.0),
-    'kardamom': dict(R=24 * MM, H=12 * MM, kusy=[(0.85, _kardamom, 0), (0.15, _kardamom_semeno, 1)], lezi=0.3, kolem=True, sedne=55, detail=1.5,
-                     barvy=dict(list=['#5c6a38', '#64743e', '#6d7d46', '#768650', '#808c58', '#6a7444'], pupen=['#2a1c14', '#34241a', '#3e2c1e'], stonek=['#6d7d46', '#768650']),
-                     drsnost=0.7, lesk=0.05, pupen_chlup=0.0, zilky=0.0, vlakna=0.5),
+    'kardamom': dict(R=24 * MM, H=12 * MM, kusy=[(0.85, _kardamom, 0), (0.15, _kardamom_semeno, 1)], lezi=0.3, kolem=True, sedne=55, detail=1.8,
+                     barvy=dict(list=['#545c3a', '#5a6440', '#626a40', '#646c46', '#6c744e', '#747a54'], pupen=['#2a1c14', '#34241a', '#3e2c1e'], stonek=['#646c46', '#6c744e']),
+                     drsnost=0.8, lesk=0.05, pupen_chlup=0.0, zilky=0.0, vlakna=1.0),
 }
 
 # kód suroviny ve script.js → slug
