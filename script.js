@@ -654,6 +654,7 @@ function applyTranslations() {
         el.hidden = LANG === 'cs';
         el.textContent = LANG === 'cs' ? '' : t('legal_lang_note');
     });
+    fillPromoParts();
     const langSel = document.getElementById('lang-select');
     if (langSel) langSel.value = LANG;
     document.querySelectorAll('.footer-lang').forEach(b => {
@@ -888,6 +889,24 @@ function escHtml(str) {
 }
 
 /* ─── PROMO BAR ──────────────────────────────── */
+/* Na telefonu má lišta jen první větu textu (třeba „Doprava zdarma nad
+   500 Kč.“), ať zabírá jeden řádek. Zbytek (slevový kód) se ukáže v košíku
+   u „Mám slevový kód“. Text lišty jde změnit v administraci. */
+function promoParts() {
+    const full = (t('promo_text') || '').trim();
+    const m = full.match(/^(.+?[.!?])\s+(\S[\s\S]*)$/);
+    return m ? { short: m[1], rest: m[2] } : { short: full, rest: '' };
+}
+function fillPromoParts() {
+    const p = promoParts();
+    const short = document.getElementById('promo-short');
+    if (short) short.textContent = p.short;
+    const hint = document.getElementById('promo-hint');
+    // promoBarEnabled se nastaví až z nastavení obchodu; do té doby platí, že lišta je zapnutá
+    let enabled = true;
+    try { enabled = promoBarEnabled; } catch (e) { /* ještě není deklarovaná */ }
+    if (hint) { hint.textContent = p.rest; hint.hidden = !p.rest || !enabled; }
+}
 function dismissPromoBar() {
     document.getElementById('promo-bar').style.display = 'none';
     localStorage.setItem('teaseyou_promo_dismissed', '1');
@@ -1261,6 +1280,7 @@ function renderDetailVisual(name, ingredients, parts) {
         note.hidden = !!photo || !(ings || render || scene);
         note.textContent = t(ings ? 'render_note_ings' : 'render_note');
     }
+    syncDetailBuy();
     const list = document.getElementById('detail-ingredients-list');
     const r = recipeOf(ingredients, parts, weight);
     if (list) list.innerHTML = r.rows.map(row =>
@@ -1268,6 +1288,45 @@ function renderDetailVisual(name, ingredients, parts) {
         + `<span><strong>${escHtml(tIng(row.code))}</strong><span>${row.pct} %${weight ? ` · ${escHtml(fmtGrams(row.grams))}` : ''}</span></span></li>`
     ).join('');
     renderFoodInfo(document.getElementById('detail-food'), ingredients, parts, currentProduct.weight);
+}
+
+/* Cena pod názvem a spodní lišta na telefonu. Obojí se řídí hlavním
+   tlačítkem Do košíku (text, cena, jestli jde zmáčknout), takže stačí
+   sledovat jeho změny a nic dalšího se volat nemusí. */
+function syncDetailBuy() {
+    const add = document.getElementById('detail-add-btn');
+    if (!add) return;
+    const w = parseInt(currentProduct.weight, 10) || 0;
+    const price = document.getElementById('detail-price');
+    if (price) {
+        price.innerHTML = w && currentProduct.priceBase
+            ? `<strong>${escHtml(fmt(currentProduct.priceBase))}</strong> ${escHtml(t('detail_price_for').replace('{w}', w + ' g'))}`
+            : '';
+    }
+    const btn = document.getElementById('buybar-add');
+    if (btn) {
+        btn.textContent = add.textContent;
+        btn.disabled = add.disabled;
+        btn.classList.toggle('disabled', add.disabled);
+    }
+    const name = document.getElementById('buybar-name');
+    if (name) name.textContent = currentProduct.name || '';
+    const meta = document.getElementById('buybar-meta');
+    if (meta) meta.textContent = w ? w + ' g' : '';
+}
+function initDetailBuybar() {
+    const add = document.getElementById('detail-add-btn');
+    const bar = document.getElementById('detail-buybar');
+    if (!add || !bar) return;
+    new MutationObserver(syncDetailBuy).observe(add, { attributes: true, childList: true, characterData: true, subtree: true });
+    if (!('IntersectionObserver' in window)) return;
+    let addVisible = true;
+    const update = () => {
+        const onDetail = document.body.dataset.page === 'product-detail-page';
+        bar.hidden = addVisible || !onDetail;
+    };
+    new IntersectionObserver(([e]) => { addVisible = e.isIntersecting; update(); }).observe(add);
+    new MutationObserver(update).observe(document.body, { attributes: true, attributeFilter: ['data-page'] });
 }
 
 /* Na detailu je rovnou vybraná prostřední velikost (100 g), ať jde
@@ -1699,7 +1758,7 @@ function renderCart() {
         row.className = 'cart-item';
         const id = Number(item.id);
         row.innerHTML = `
-            <div class="cart-pouch" aria-hidden="true">${pouchHtml({ name: item.name, codes: item.ingredients, parts: item.parts, size: 'pouch--xs' })}</div>
+            <div class="cart-pouch" aria-hidden="true">${pouchHtml({ name: item.name, codes: item.ingredients, parts: item.parts, size: 'pouch--xs', render: readyRenderFor(item.name, item.ingredients, item.parts) })}</div>
             <div class="cart-text">
                 <h2 class="cart-name">${escHtml(item.name)}</h2>
                 <p class="cart-mix">${escHtml(blendSubtitle(item.ingredients))}</p>
@@ -1755,6 +1814,9 @@ function updateCartTotal() {
     const promoInput = document.getElementById('promo-input');
     if (promoInput && appliedPromo && !promoInput.value) promoInput.value = appliedPromo.code;
     if (appliedPromo) setPromoFeedback(`${t('promo_applied')}: ${appliedPromo.label || '−' + Math.round(appliedPromo.rate*100) + ' %'}`, true);
+    // Uplatněný kód je vidět rovnou, jinak je pole schované pod „Mám slevový kód“.
+    const promoBox = document.getElementById('promo-box');
+    if (promoBox && appliedPromo) promoBox.open = true;
 
     const shipLine = document.getElementById('cart-shipping-line');
     if (shipLine) shipLine.textContent = totals.freeShip ? t('ship_free') : t('ship_calculated');
@@ -1943,7 +2005,7 @@ function submitOrder(e) {
         if (el) el.textContent = t('order_num_prefix') + order.num;
         const pouch = document.getElementById('success-pouch');
         const first = order.items[0];
-        if (pouch && first) pouch.innerHTML = pouchHtml({ name: first.name, codes: first.ingredients, parts: first.parts, size: 'pouch--sm' });
+        if (pouch && first) pouch.innerHTML = pouchHtml({ name: first.name, codes: first.ingredients, parts: first.parts, size: 'pouch--sm', render: readyRenderFor(first.name, first.ingredients, first.parts) });
         renderPaymentBox(document.getElementById('success-pay'), order);
         const giftBox = document.getElementById('f-gift');
         if (giftBox) { giftBox.checked = false; const m = document.getElementById('f-gift-message'); if (m) m.value = ''; syncGiftFields(); }
@@ -2523,6 +2585,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initReveal();
     applySeller();
     initBackToTop();
+    initDetailBuybar();
     refreshLinks();
     updateCartBadge();   // restore badge from persisted cart
     renderIngredientEncyclopedia();
@@ -3453,6 +3516,7 @@ function renderCatalogDom() {
     renderShippingOptions();
     const bar = document.getElementById('promo-bar');
     if (bar && !promoBarEnabled) bar.style.display = 'none';
+    fillPromoParts();
     applySalesState();
 }
 
@@ -3492,10 +3556,10 @@ function renderIngredientButtons() {
             const out = ing.inStock === false;
             const selected = !out && mixItems.some(x => x.code === ing.code);
             const cls = ['ingredient-btn', out && 'is-out', selected && 'selected'].filter(Boolean).join(' ');
-            const tags = [
-                ing.surcharge ? `<span class="ing-tag ing-tag--premium">${escHtml(t('mix_premium_tag'))}</span>` : '',
-                isPinchIng(ing) ? `<span class="ing-tag">${escHtml(t('mix_pinch'))}</span>` : '',
-            ].join('');
+            // Příplatek rovnou v korunách místo štítku „prémiová“. Že stačí
+            // špetka, říká u levandule a kardamomu už popis.
+            const tags = ing.surcharge
+                ? `<span class="ing-tag ing-tag--premium">${escHtml(t('mix_premium_row').replace('{price}', fmt(ing.surcharge)))}</span>` : '';
             return `<button type="button" class="${cls}" data-color="${ing.color}"`
                 + ` data-name="${escHtml(ing.code)}" aria-pressed="${selected}"${out ? ' aria-disabled="true"' : ''}>`
                 + ingIconHtml(ing.code)
@@ -4386,6 +4450,14 @@ const POUCH_RENDERS = {
     mint_condition: 'img/sacky/mint-condition',
 };
 function pouchRenderFor(b) { return (b && POUCH_RENDERS[b.id]) || ''; }
+/* Render sáčku jen u hotové směsi beze změn (stejné jméno, suroviny i díly),
+   třeba v košíku. Upravená nebo vlastní směs má kreslený sáček. */
+function readyRenderFor(name, codes, parts) {
+    const b = catalogBlends.find(x => x.name === name);
+    const same = b && b.ingredients.join('|') === (codes || []).join('|')
+        && (b.parts || []).join('|') === (parts || []).join('|');
+    return same ? pouchRenderFor(b) : '';
+}
 
 /* Scény hotových směsí z Blenderu (tools/rendery/blender_sceny.py): sáček
    a před ním hromádky jejích surovin, průhledné pozadí se stínem.
@@ -4532,8 +4604,11 @@ function renderHero(id, animate) {
         void box.offsetWidth;
         box.classList.add('is-swapping');
     }
+    const name = document.getElementById('hero-name');
+    if (name) name.textContent = b.name;
     const mix = document.getElementById('hero-mix');
-    if (mix) mix.textContent = blendSubtitle(b.ingredients);
+    const from = weights.length ? unitPrice(b.ingredients, b.parts, weights[0]) : 0;
+    if (mix) mix.textContent = blendSubtitle(b.ingredients) + (from ? ' · ' + t('hero_from').replace('{price}', fmt(from)) : '');
     const open = document.getElementById('hero-open');
     if (open) { open.dataset.blend = b.id; open.setAttribute('href', blendHref(b.id)); }
 }
@@ -4727,13 +4802,16 @@ function renderMixerSizes() {
 function renderMixRecipe() {
     const box = document.getElementById('mix-recipe');
     if (!box) return;
-    box.hidden = !mixItems.length;
-    if (!mixItems.length) return;
+    // Poměry se ladí až v posledním kroku. V krocích 1–3 se jen vybírá,
+    // co je ve směsi, ukazuje spodní lišta (a na počítači sáček vpravo).
+    box.hidden = !mixItems.length || mixerStep !== 4;
+    if (box.hidden) return;
     const r = mixRecipe();
     const codes = mixCodes(), parts = mixParts();
+    // Velikost se v posledním kroku vybírá tlačítky s cenou nad panelem,
+    // druhý přepínač velikosti v panelu by byl navíc.
     const sizes = document.getElementById('mix-recipe-sizes');
-    if (sizes) sizes.innerHTML = sortedWeights().map(w =>
-        `<button type="button" class="seg-btn" data-size="${w}" aria-pressed="${w === mixerWeight}">${w} g</button>`).join('');
+    if (sizes) { sizes.hidden = true; sizes.innerHTML = ''; }
     const count = document.getElementById('mix-recipe-count');
     if (count) count.textContent = t('mix_count').replace('{n}', mixItems.length).replace('{max}', Recipe.MAX_ITEMS);
 
@@ -5008,7 +5086,7 @@ Object.assign(TRANSLATIONS.cs, {
     craft_err_many:     'Z tohohle e-mailu už je zájemců dost. Zkus to zítra.',
     craft_err_other:    'Teď se to nepovedlo uložit. Napiš nám na hello@teaseyou.cz.',
     craft_mail_subject: 'Chci vědět, až bude',
-    craft_also_in:      'Najdeš i v:',
+    craft_also_in:      'Taky v mýdlech a balzámech:',
     craft_same_title:   'Ze stejných surovin',
 });
 Object.assign(TRANSLATIONS.en, {
@@ -5035,7 +5113,7 @@ Object.assign(TRANSLATIONS.en, {
     craft_err_many:     'Too many sign-ups from this e-mail. Try again tomorrow.',
     craft_err_other:    'We could not save it right now. Write to hello@teaseyou.cz.',
     craft_mail_subject: 'Let me know when it is ready',
-    craft_also_in:      'Also in:',
+    craft_also_in:      'Also in our soaps and balms:',
     craft_same_title:   'Made from the same',
 });
 
@@ -5205,6 +5283,10 @@ Object.assign(TRANSLATIONS.cs, {
     view_bag:              'Sáček',
     view_ings:             'Suroviny',
     piles_empty:           'Vyber suroviny a uvidíš je tady.',
+    nav_shelf_short:       'Směsi',
+    promo_toggle:          'Mám slevový kód',
+    detail_price_for:      'za {w}',
+    hero_from:             'od {price}',
 });
 Object.assign(TRANSLATIONS.en, {
     moment_morning:        'Morning',
@@ -5225,6 +5307,10 @@ Object.assign(TRANSLATIONS.en, {
     view_bag:              'Pouch',
     view_ings:             'Ingredients',
     piles_empty:           'Pick ingredients to see them here.',
+    nav_shelf_short:       'Blends',
+    promo_toggle:          'I have a discount code',
+    detail_price_for:      'for {w}',
+    hero_from:             'from {price}',
 });
 
 const CRAFT_NOTIFIED_KEY = 'teaseyou_notified';

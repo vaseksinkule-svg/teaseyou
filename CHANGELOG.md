@@ -6,6 +6,26 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Přehlednější web na telefonu (26. 11. 2026)
+- **Detail směsi:** pod obrázkem je hned název, cena vybrané velikosti,
+  velikost a Do košíku. „Proč to funguje“, složení a příprava jsou až pod
+  tlačítkem. Na telefonu je obrázek menší a dole je lišta se jménem, cenou
+  a Do košíku, dokud hlavní tlačítko není vidět (místo spodní navigace).
+- **Méně lišt:** akční lišta má na telefonu jen první větu (jeden řádek),
+  spodní navigace má čtyři položky (Domů, Namíchat, Směsi, Košík) a košík
+  v hlavičce je na telefonu jen tam, kde spodní navigace není. V pokladně
+  není akční lišta ani spodní navigace.
+- **Úvod:** u scény je jméno směsi a cena „od“. Mýdla a balzámy jsou až za
+  častými otázkami.
+- **Mixér:** v krocích 1–3 se jen vybírá, poměry se ladí až v posledním
+  kroku. Velikost se vybírá jen jednou. U prémiových surovin je místo
+  štítku „prémiová“ rovnou příplatek v Kč, štítek „špetka“ zmizel (říká to
+  popis).
+- **Košík:** slevový kód je sbalený pod „Mám slevový kód“ a u něj je
+  zbytek akčního textu. Hotová směs má v košíku a pokladně render sáčku.
+- **Suroviny:** „Taky v mýdlech a balzámech“ místo „Najdeš i v“.
+- `sw.js` verze v22.
+
 ### Fotky všech surovin, scény hotových směsí a přepínač Sáček / Suroviny (25. 11. 2026)
 - **Všech 25 surovin** má v kolečku makro záběr z Blenderu. Nově byliny,
   květy, ovoce a koření, tvary a barvy podle fotek, jak se prodávají do směsí:

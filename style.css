@@ -296,6 +296,16 @@ a { color: var(--forest); }
 }
 @media (min-width: 900px) { .promo-bar { font-size: 13px; padding: 8px 48px; } }
 body.dark .promo-bar { background: #26402a; color: #e8f0e4; }
+/* Na telefonu jen první věta (jeden řádek), celý text zůstane čtečce. */
+.promo-short { display: none; }
+@media (max-width: 699px) {
+    .promo-bar { padding: 6px 40px; }
+    .promo-bar:has(.promo-short:not(:empty)) .promo-full {
+        position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+        overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+    .promo-short:not(:empty) { display: inline; }
+}
 
 /* Před spuštěním prodeje (zapíná se v administraci). Nejde zavřít. */
 .launch-bar {
@@ -462,7 +472,7 @@ body.dark svg.dm-dark { display: block; }
    už v obrázku. Všechny scény mají stejný rámeček (width/height na img). */
 .scene { width: min(100%, 440px); }
 .scene-img { display: block; width: 100%; height: auto; }
-.scene--hero { width: clamp(260px, 84vw, 440px); }
+.scene--hero { width: clamp(240px, 76vw, 440px); }
 .hero-pouch.is-swapping .scene { animation: pouchSwap .45s var(--ease); }
 /* Pohled Suroviny: hromádky vedle sebe, pod každou jméno a podíl.
    Jedna až tři v řádku, čtyři do čtverce 2 × 2, pět ve dvou řádcích. */
@@ -650,6 +660,8 @@ body.dark .pouch-label .ing-ico {
     display: grid; justify-items: center; gap: 8px;
     text-align: center;
 }
+.hero-blend-name { font: 700 19px/1.2 var(--head); letter-spacing: -.02em; color: #f5f1e9; }
+.hero-blend-name:empty { display: none; }
 .hero-blend-mix { font: 500 15px/1.4 var(--sans); min-height: 2.8em; max-width: 40ch; text-wrap: balance; }
 .hero-blend-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; align-items: center; }
 .hero-copy { margin-top: 16px; }
@@ -1177,7 +1189,7 @@ body:not([data-page="product-page"]) .mixer-bar { display: none; }
 /* ─── SPODNÍ NAVIGACE (mobil) ────────────────── */
 .bottom-nav {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
-    display: grid; grid-template-columns: repeat(5, 1fr);
+    display: grid; grid-template-columns: repeat(4, 1fr);
     padding: 6px 4px max(6px, env(safe-area-inset-bottom));
     background: color-mix(in srgb, var(--paper) 94%, transparent);
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
@@ -1198,6 +1210,13 @@ body { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
 @media (min-width: 900px) {
     .bottom-nav { display: none; }
     body { padding-bottom: 0; }
+}
+@media (max-width: 899px) {
+    /* košík je ve spodní liště; v hlavičce jen tam, kde lišta není */
+    body:not([data-page="product-detail-page"]):not([data-page="checkout-page"]) .nav-cart-icon { display: none; }
+    /* pokladna bez rušení: žádná lišta s akcí ani spodní navigace */
+    body[data-page="checkout-page"] .bottom-nav,
+    body[data-page="checkout-page"] .promo-bar { display: none; }
 }
 
 /* ─── PATIČKA ────────────────────────────────── */
@@ -1340,7 +1359,14 @@ textarea.field { min-height: 96px; resize: vertical; line-height: 1.45; }
 .detail-stage:has(.detail-view:not(:empty)) { padding-top: 68px; }
 .detail-stage:has(.piles) { padding-bottom: 52px; }
 .detail-render-note[hidden] { display: none; }
-.detail-title { margin-bottom: 14px; }
+.detail-title { margin-bottom: 8px; }
+/* cena vybrané velikosti hned pod názvem */
+.detail-price { margin: 0 0 14px; color: var(--ink-2); font: 500 16px/1.3 var(--sans); }
+.detail-price strong { margin-right: 4px; color: var(--ink); font: 700 24px/1 var(--head); letter-spacing: -.02em; }
+.detail-price:empty { display: none; }
+/* příběh a složení až pod tlačítkem Do košíku */
+.detail-actions + .blend-story { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
+.detail-actions + .blend-story[hidden] + .detail-ings { margin-top: 32px; }
 .detail-desc { color: var(--ink-2); font-size: 17px; line-height: 1.55; max-width: 52ch; }
 /* chuť a kofein jednou větou, spočítané ze složení */
 .detail-profile {
@@ -1379,6 +1405,31 @@ textarea.field { min-height: 96px; resize: vertical; line-height: 1.45; }
 .detail-ings strong + span { color: var(--muted); font-size: 14px; }
 .stock-note { margin: -8px 0 20px; padding: 10px 12px; border-radius: var(--r-sm); background: var(--warn-pale); color: var(--warn); font-size: 14px; }
 .detail-actions { display: grid; gap: 8px; margin-top: 20px; }
+.detail-info > .field-label { margin-top: 20px; }
+/* Telefon: menší obrázek, ať je název a cena vidět bez posouvání */
+@media (max-width: 899px) {
+    .detail .back-btn { margin-bottom: 4px; }
+    .detail-stage { min-height: 0; padding-top: 20px; padding-bottom: 24px; }
+    .detail-stage:has(.detail-view:not(:empty)) { padding-top: 56px; }
+    .detail-stage .scene--detail { width: min(100%, 236px); }
+    .detail-layout { gap: 20px; }
+}
+/* Spodní lišta s cenou a Do košíku na telefonu, místo navigace */
+.buybar { display: none; }
+@media (max-width: 899px) {
+    .buybar:not([hidden]) {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 55;
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px var(--gutter) max(10px, env(safe-area-inset-bottom));
+        background: color-mix(in srgb, var(--paper) 96%, transparent);
+        -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+        border-top: 1px solid var(--line);
+    }
+    .buybar-text { flex: 1; min-width: 0; display: grid; color: var(--ink-2); font-size: 13px; line-height: 1.3; }
+    .buybar-text strong { overflow: hidden; color: var(--ink); font: 700 15px/1.25 var(--sans); white-space: nowrap; text-overflow: ellipsis; }
+    .buybar .btn { flex: none; min-height: 48px; padding: 0 18px; }
+    body[data-page="product-detail-page"] .bottom-nav { display: none; }
+}
 .brew { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--line); }
 .brew-title { font: 700 18px/1.3 var(--sans); margin-bottom: 14px; }
 .brew-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; }
@@ -1485,6 +1536,15 @@ textarea.field { min-height: 96px; resize: vertical; line-height: 1.45; }
 .cart-line-price { grid-area: price; justify-self: end; font: 700 17px var(--sans); white-space: nowrap; }
 .cart-summary { display: grid; gap: 14px; align-content: start; padding: 20px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
 .promo-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.promo-toggle {
+    display: flex; align-items: center; min-height: 44px; cursor: pointer; list-style: none;
+    color: var(--ink); font: 600 15px/1.3 var(--sans);
+    text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
+}
+.promo-toggle::-webkit-details-marker { display: none; }
+.promo-box[open] > .promo-toggle { margin-bottom: 6px; }
+.promo-hint { margin: 0 0 12px; color: var(--ink-2); font-size: 14px; line-height: 1.45; }
+.promo-hint[hidden] { display: none; }
 .promo-row .btn { min-height: 52px; }
 .promo-feedback { margin-top: 8px; font-size: 14px; }
 .promo-feedback:empty { display: none; }
