@@ -143,7 +143,8 @@
 
 <!-- PROMO BAR -->
 <div id="promo-bar" class="promo-bar">
-    <span data-i18n="promo_text">Doprava zdarma nad 500&nbsp;Kč. S&nbsp;kódem FIRSTBLEND máš první nákup o&nbsp;10&nbsp;% levnější.</span>
+    <span class="promo-full" data-i18n="promo_text">Doprava zdarma nad 500&nbsp;Kč. S&nbsp;kódem FIRSTBLEND máš první nákup o&nbsp;10&nbsp;% levnější.</span>
+    <span class="promo-short" id="promo-short" aria-hidden="true"></span>
     <button class="promo-close" onclick="dismissPromoBar()" aria-label="Zavřít" data-i18n-aria="aria_close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 </div>
 
@@ -216,8 +217,9 @@
         <h1 class="hero-title" data-i18n="hero_title">Namíchej si čaj. Pojmenuj ho.</h1>
         <figure class="hero-stage">
             <div class="hero-pouch" id="hero-pouch" aria-hidden="true"></div>
-            <figcaption class="hero-blend">
-                <p class="hero-blend-mix" id="hero-mix" aria-live="polite"></p>
+            <figcaption class="hero-blend" aria-live="polite">
+                <p class="hero-blend-name" id="hero-name"></p>
+                <p class="hero-blend-mix" id="hero-mix"></p>
                 <div class="hero-blend-actions">
                     <a class="btn btn-small btn-cream" id="hero-open" href="./#shelf" data-i18n="hero_pick">Chci tuhle</a>
                     <button class="btn btn-small btn-on-dark" id="hero-shuffle">
@@ -265,17 +267,6 @@
         </div>
         <div class="reviews-list" id="reviews-home-list"></div>
         <p class="reviews-note" data-i18n="reviews_note">Recenze píšou jen zákazníci, kteří u&nbsp;nás nakoupili: ověřujeme je číslem objednávky a&nbsp;e-mailem z&nbsp;ní a&nbsp;hodnotit jde až po odeslání. Zveřejňujeme kladné i&nbsp;kritické, nezveřejníme jen vulgární, nesouvisející nebo s&nbsp;cizími osobními údaji. Za recenze nic nedáváme.</p>
-    </section>
-
-    <section class="craft-band" id="craft-home" aria-labelledby="craft-home-title">
-        <div class="craft-band-copy">
-            <h2 class="section-title" id="craft-home-title" data-i18n="craft_home_title">Ze stejných bylinek i&nbsp;mýdla</h2>
-            <p class="section-lede" data-i18n="craft_home_lede">Levanduli, heřmánek nebo zelený čaj nedáváme jen do čaje. Ručně z&nbsp;nich vyrábíme mýdla a&nbsp;balzámy na rty, v&nbsp;malých várkách.</p>
-        </div>
-        <div class="craft-flatlay" id="craft-home-items" aria-hidden="true"></div>
-        <div class="craft-band-cta">
-            <a class="btn btn-quiet" href="?stranka=mydla" data-page="craft-page" data-i18n="craft_home_btn">Prohlédnout mýdla a&nbsp;balzámy</a>
-        </div>
     </section>
 
     <section class="quiz-band" aria-labelledby="quizband-title">
@@ -337,6 +328,17 @@
         </div>
     </section>
 
+    <section class="craft-band" id="craft-home" aria-labelledby="craft-home-title">
+        <div class="craft-band-copy">
+            <h2 class="section-title" id="craft-home-title" data-i18n="craft_home_title">Ze stejných bylinek i&nbsp;mýdla</h2>
+            <p class="section-lede" data-i18n="craft_home_lede">Levanduli, heřmánek nebo zelený čaj nedáváme jen do čaje. Ručně z&nbsp;nich vyrábíme mýdla a&nbsp;balzámy na rty, v&nbsp;malých várkách.</p>
+        </div>
+        <div class="craft-flatlay" id="craft-home-items" aria-hidden="true"></div>
+        <div class="craft-band-cta">
+            <a class="btn btn-quiet" href="?stranka=mydla" data-page="craft-page" data-i18n="craft_home_btn">Prohlédnout mýdla a&nbsp;balzámy</a>
+        </div>
+    </section>
+
 </section>
 
 
@@ -354,13 +356,9 @@
             <div class="detail-info">
                 <p class="detail-moment" id="detail-moment" hidden></p>
                 <h1 id="detail-title" class="page-title detail-title">Směs</h1>
+                <p class="detail-price" id="detail-price"></p>
                 <p id="detail-desc" class="detail-desc"></p>
                 <p id="detail-profile" class="detail-profile" hidden></p>
-                <section class="blend-story" id="detail-story" hidden aria-labelledby="detail-story-title">
-                    <h2 class="brew-title" id="detail-story-title" data-i18n="detail_story_title">Proč to funguje</h2>
-                    <p id="detail-story-text"></p>
-                </section>
-                <ul id="detail-ingredients-list" class="detail-ings"></ul>
                 <p id="detail-stock-note" class="stock-note" hidden></p>
                 <p class="field-label" data-i18n="size_label">Velikost</p>
                 <div class="qty-options"></div>
@@ -368,6 +366,11 @@
                     <button id="detail-add-btn" class="btn btn-primary btn-lg disabled" onclick="confirmOrder()" disabled data-i18n="mixer_add">Do košíku</button>
                     <button class="btn btn-quiet btn-lg" onclick="modifyReadyMade()" data-i18n="btn_edit_in_mixer">Upravit v&nbsp;mixéru</button>
                 </div>
+                <section class="blend-story" id="detail-story" hidden aria-labelledby="detail-story-title">
+                    <h2 class="brew-title" id="detail-story-title" data-i18n="detail_story_title">Proč to funguje</h2>
+                    <p id="detail-story-text"></p>
+                </section>
+                <ul id="detail-ingredients-list" class="detail-ings"></ul>
                 <section class="brew" aria-labelledby="brew-title">
                     <h2 class="brew-title" id="brew-title" data-i18n="brew_title">Jak ji připravit</h2>
                     <dl class="brew-facts">
@@ -394,6 +397,11 @@
             <h2 class="section-title" id="detail-more-title" data-i18n="detail_more">Další směsi</h2>
             <div class="more-grid" id="detail-more-grid"></div>
         </section>
+    </div>
+    <!-- Na telefonu: dole jméno, cena a Do košíku, dokud hlavní tlačítko není vidět -->
+    <div class="buybar" id="detail-buybar" hidden>
+        <p class="buybar-text"><strong id="buybar-name"></strong> <span id="buybar-meta"></span></p>
+        <button type="button" class="btn btn-primary" id="buybar-add" onclick="confirmOrder()">Do košíku</button>
     </div>
 </section>
 
@@ -533,7 +541,9 @@
                 </div>
             </div>
             <aside class="cart-summary">
-                <div class="promo-box">
+                <details class="promo-box" id="promo-box">
+                    <summary class="promo-toggle" data-i18n="promo_toggle">Mám slevový kód</summary>
+                    <p class="promo-hint" id="promo-hint"></p>
                     <label class="field-label" for="promo-input" data-i18n="lbl_promo">Slevový kód</label>
                     <div class="promo-row">
                         <input type="text" id="promo-input" class="field" autocomplete="off" autocapitalize="characters"
@@ -541,7 +551,7 @@
                         <button class="btn btn-quiet promo-apply" type="button" onclick="applyPromo()" data-i18n="btn_apply">Použít</button>
                     </div>
                     <p id="promo-feedback" class="promo-feedback"></p>
-                </div>
+                </details>
                 <dl class="sum-lines">
                     <div class="sum-line"><dt data-i18n="lbl_subtotal">Mezisoučet</dt><dd id="cart-subtotal">0 Kč</dd></div>
                     <div class="sum-line sum-line-discount" id="cart-discount-line" style="display:none;">
@@ -1083,13 +1093,9 @@
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.500 3h11v3.200c1.300 4.300 1.800 8.300 1.500 12.300a2.700 2.700 0 01-2.700 2.500H7.700A2.700 2.700 0 015 18.500c-.300-4 .200-8 1.500-12.300V3z"/><path d="M6.500 6.200h11"/><rect x="8.700" y="10" width="6.600" height="6.500" rx=".8"/></svg>
         <span data-i18n="nav_mix">Namíchat</span>
     </a>
-    <a class="bottom-nav-item" href="?stranka=kviz" data-page="quiz-page">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.3a2.8 2.8 0 015.4 1c0 1.9-2.7 2.4-2.7 3.9"/><path d="M12 17.5h.01"/></svg>
-        <span data-i18n="nav_quiz_short">Kvíz</span>
-    </a>
-    <a class="bottom-nav-item" href="?stranka=moje-smesi" data-page="saved-page">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-        <span data-i18n="nav_saved_short">Uložené</span>
+    <a class="bottom-nav-item" href="./#shelf" data-go="shelf">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h7v11H4zM13 9h7v11h-7z"/><path d="M5.5 9V6.5h4V9M14.5 9V6.5h4V9"/></svg>
+        <span data-i18n="nav_shelf_short">Směsi</span>
     </a>
     <a class="bottom-nav-item" href="?stranka=kosik" data-page="cart-page" id="bottom-nav-cart">
         <span class="bottom-nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.1a2 2 0 01-2 1.9H8.2a2 2 0 01-2-1.9L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg><span class="cart-badge" id="bottom-cart-badge" style="display:none"></span></span>

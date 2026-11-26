@@ -90,6 +90,13 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
   kardamom jako zelené tobolky s pár semeny), ne konkrétní šarži. Kolečka
   i hromádky jsou dekorace, název suroviny a podíl jsou v textu.
   Pohled Suroviny má popisek „Ilustrační vizualizace surovin“.
+- **Ceny a akce na webu:** u hotové směsi je cena vybrané velikosti pod
+  názvem i v tlačítku Do košíku, v mixéru je u prémiové suroviny příplatek
+  rovnou v korunách („+25 Kč/100 g“). Konečná cena s dopravou je v pokladně
+  před odesláním (§ 12 zákona o ochraně spotřebitele, § 13 zákona o cenách).
+  „Od 49 Kč“ u scény na úvodu je nejnižší cena té směsi (50 g). Na telefonu
+  ukazuje akční lišta jen první větu textu z administrace, slevový kód je
+  v košíku pod „Mám slevový kód“ a na počítači v liště celý.
 - **Etiketa sáčku:** texty generuje `tools/rendery/etikety.py` ze stejných dat
   jako informace o potravině na webu (název podle vyhlášky 187/2023 Sb.,
   složení s procenty, alergeny, příprava, trvanlivost, skladování,

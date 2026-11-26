@@ -439,7 +439,7 @@ self.TEASEYOU_I18N_SK = {
     craft_err_many:         'Z tohto e-mailu je už záujemcov dosť. Skús to zajtra.',
     craft_err_other:        'Teraz sa to nepodarilo uložiť. Napíš nám na hello@teaseyou.cz.',
     craft_mail_subject:     'Chcem vedieť, keď to bude',
-    craft_also_in:          'Nájdeš aj v:',
+    craft_also_in:          'Aj v mydlách a balzamoch:',
     craft_same_title:       'Z rovnakých surovín',
 
     // Jazyk
@@ -536,4 +536,8 @@ self.TEASEYOU_I18N_SK = {
     view_bag:              'Vrecko',
     view_ings:             'Suroviny',
     piles_empty:           'Vyber suroviny a uvidíš ich tu.',
+    nav_shelf_short:       'Zmesi',
+    promo_toggle:          'Mám zľavový kód',
+    detail_price_for:      'za {w}',
+    hero_from:             'od {price}',
 };
