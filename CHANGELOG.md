@@ -6,6 +6,16 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Na telefonu bez spodní navigace (27. 11. 2026)
+- Spodní lišta (Domů, Namíchat, Směsi, Košík) zmizela. Zabírala kus obrazovky
+  (na iPhonu ještě nad adresním řádkem Safari) a dvě položky vedly na stejnou
+  stránku.
+- Košík s počtem kusů je na telefonu vždycky vpravo nahoře v hlavičce.
+- Výběr jazyka je na telefonu v menu (a dál v patičce), hlavička je tak jen
+  menu, logo a košík. Na počítači se nic nemění.
+- Dole na obrazovce je teď jen tlačítko akce dané stránky: v mixéru „Další“,
+  na detailu „Do košíku“.
+
 ### Oprava: po nasazení se místo textů ukazovaly názvy klíčů (27. 11. 2026)
 - Při první návštěvě po nasazení dostalo nové HTML starší `script.js`
   a `style.css` z cache. Místo textů se pak ukázaly názvy klíčů

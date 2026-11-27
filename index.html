@@ -32,7 +32,7 @@
     <link rel="preload" href="fonts/unbounded-cs-sk-600-700.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/albert-sans-latin-400-700.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/albert-sans-cs-sk-400-700.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="style.css?v=23">
+    <link rel="stylesheet" href="style.css?v=24">
     <link rel="icon" href="favicon.ico" sizes="32x32">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -69,12 +69,12 @@
     <!-- defer: skripty nebrzdí vykreslení stránky. Přednost při stahování (fetchpriority)
          jsem zkoušel a první vykreslení to zpomalilo, protože pak soupeří se styly. -->
     <script defer src="config.js"></script>
-    <script defer src="db.js?v=23"></script>
-    <script defer src="i18n-sk.js?v=23"></script>
-    <script defer src="bank.js?v=23"></script>
-    <script defer src="recipe.js?v=23"></script>
-    <script defer src="icons.js?v=23"></script>
-    <script defer src="script.js?v=23"></script>
+    <script defer src="db.js?v=24"></script>
+    <script defer src="i18n-sk.js?v=24"></script>
+    <script defer src="bank.js?v=24"></script>
+    <script defer src="recipe.js?v=24"></script>
+    <script defer src="icons.js?v=24"></script>
+    <script defer src="script.js?v=24"></script>
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -168,6 +168,11 @@
         <li><a class="sidebar-link" href="?stranka=o-nas" data-page="about-page" data-i18n="nav_about">O&nbsp;nás</a></li>
     </ul>
     <div class="sidebar-foot">
+        <div class="sidebar-langs" role="group" aria-label="Jazyk webu / Language">
+            <button type="button" class="sidebar-lang" lang="cs" data-lang="cs" onclick="setLanguage('cs')">Čeština</button>
+            <button type="button" class="sidebar-lang" lang="sk" data-lang="sk" onclick="setLanguage('sk')">Slovenčina</button>
+            <button type="button" class="sidebar-lang" lang="en" data-lang="en" onclick="setLanguage('en')">English</button>
+        </div>
         <button class="theme-switch" onclick="toggleDarkMode()">
             <svg class="dm-light" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
             <svg class="dm-dark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -1084,24 +1089,6 @@
 <div id="toast" class="toast" aria-live="polite"></div>
 
 <!-- MOBILE BOTTOM NAV -->
-<nav class="bottom-nav" id="bottom-nav" aria-label="Mobilní navigace" data-i18n-aria="aria_mobile_nav">
-    <a class="bottom-nav-item" href="./" data-page="home-page">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l8-6 8 6v9a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z"/></svg>
-        <span data-i18n="nav_home">Domů</span>
-    </a>
-    <a class="bottom-nav-item" href="?stranka=namichat" data-page="product-page">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.500 3h11v3.200c1.300 4.300 1.800 8.300 1.500 12.300a2.700 2.700 0 01-2.700 2.500H7.700A2.700 2.700 0 015 18.500c-.300-4 .200-8 1.500-12.300V3z"/><path d="M6.500 6.200h11"/><rect x="8.700" y="10" width="6.600" height="6.500" rx=".8"/></svg>
-        <span data-i18n="nav_mix">Namíchat</span>
-    </a>
-    <a class="bottom-nav-item" href="./#shelf" data-go="shelf">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h7v11H4zM13 9h7v11h-7z"/><path d="M5.5 9V6.5h4V9M14.5 9V6.5h4V9"/></svg>
-        <span data-i18n="nav_shelf_short">Směsi</span>
-    </a>
-    <a class="bottom-nav-item" href="?stranka=kosik" data-page="cart-page" id="bottom-nav-cart">
-        <span class="bottom-nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.1a2 2 0 01-2 1.9H8.2a2 2 0 01-2-1.9L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg><span class="cart-badge" id="bottom-cart-badge" style="display:none"></span></span>
-        <span data-i18n="nav_cart">Košík</span>
-    </a>
-</nav>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));

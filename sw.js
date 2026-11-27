@@ -10,7 +10,7 @@
  * verzi stylů a skriptů.
  */
 
-const VERSION = 'v23';
+const VERSION = 'v24';
 const CACHE = `teaseyou-${VERSION}`;
 
 // Styly a skripty mají v HTML adresu s verzí (style.css?v=23). Nové HTML si

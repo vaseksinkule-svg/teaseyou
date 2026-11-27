@@ -666,7 +666,7 @@ function applyTranslations() {
     fillPromoParts();
     const langSel = document.getElementById('lang-select');
     if (langSel) langSel.value = LANG;
-    document.querySelectorAll('.footer-lang').forEach(b => {
+    document.querySelectorAll('.footer-lang, .sidebar-lang').forEach(b => {
         if (b.dataset.lang === LANG) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
     });
     // Sync <html lang> with the detected language
@@ -1057,8 +1057,8 @@ function showPage(pageId, opts = {}) {
     if (pageId === 'quiz-page')         setTimeout(startQuiz, 0);
     if (pageId === 'ingredients-page')  renderIngredientEncyclopedia();
     if (pageId === 'craft-page')        renderCraft();
-    // Update bottom nav active state
-    document.querySelectorAll('.bottom-nav-item, .nav-links [data-page]').forEach(btn => {
+    // zvýraznit aktivní položku v horní navigaci (počítač)
+    document.querySelectorAll('.nav-links [data-page]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.page === pageId);
     });
     document.body.dataset.page = pageId;
@@ -1740,8 +1740,6 @@ function updateCartBadge() {
     }
     badge.textContent = total;
     badge.style.display = total > 0 ? 'flex' : 'none';
-    const bottom = document.getElementById('bottom-cart-badge');
-    if (bottom) { bottom.textContent = total; bottom.style.display = total > 0 ? 'flex' : 'none'; }
 }
 
 /* ─── RENDER CART ────────────────────────────── */
@@ -4005,7 +4003,6 @@ Object.assign(TRANSLATIONS.cs, {
     aria_menu:         'Menu',
     aria_close:        'Zavřít',
     aria_theme:        'Přepnout tmavý režim',
-    aria_mobile_nav:   'Mobilní navigace',
     aria_main_nav:     'Hlavní navigace',
     ship_zasilkovna_name: 'Zásilkovna',
     toast_shared_loaded: 'Sdílená směs je načtená.',
@@ -4049,7 +4046,6 @@ Object.assign(TRANSLATIONS.en, {
     aria_menu:         'Menu',
     aria_close:        'Close',
     aria_theme:        'Toggle dark mode',
-    aria_mobile_nav:   'Mobile navigation',
     aria_main_nav:     'Main navigation',
     ship_zasilkovna_name: 'Zásilkovna (Packeta)',
     toast_shared_loaded: 'Shared blend loaded.',
@@ -5292,7 +5288,6 @@ Object.assign(TRANSLATIONS.cs, {
     view_bag:              'Sáček',
     view_ings:             'Suroviny',
     piles_empty:           'Vyber suroviny a uvidíš je tady.',
-    nav_shelf_short:       'Směsi',
     promo_toggle:          'Mám slevový kód',
     detail_price_for:      'za {w}',
     hero_from:             'od {price}',
@@ -5316,7 +5311,6 @@ Object.assign(TRANSLATIONS.en, {
     view_bag:              'Pouch',
     view_ings:             'Ingredients',
     piles_empty:           'Pick ingredients to see them here.',
-    nav_shelf_short:       'Blends',
     promo_toggle:          'I have a discount code',
     detail_price_for:      'for {w}',
     hero_from:             'from {price}',
