@@ -15,8 +15,9 @@ const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 const m = sw.match(/const VERSION = 'v(\d+)'/);
 if (!m) { console.error('V sw.js chybí VERSION.'); process.exit(1); }
 const v = m[1];
-const soubory = ['style.css', 'db.js', 'i18n-sk.js', 'bank.js', 'recipe.js', 'icons.js', 'script.js'];
-const stranky = ['index.html', 'offline.html', '404.html'];
+const soubory = ['style.css', 'db.js', 'i18n-sk.js', 'bank.js', 'recipe.js', 'icons.js', 'script.js', 'admin.js', 'admin.css'];
+// administrace načítá sdílené skripty přes ../ (../db.js) a svoje vedle sebe
+const stranky = ['index.html', 'offline.html', '404.html', 'admin/index.html'];
 const check = process.argv.includes('--check');
 let chyby = 0;
 for (const stranka of stranky) {
@@ -26,8 +27,8 @@ for (const stranka of stranky) {
     let nove = puv;
     for (const f of soubory) {
         const esc = f.replace(/[.]/g, '\\.');
-        // src="script.js", href="/style.css", případně už s ?v=…
-        nove = nove.replace(new RegExp(`((?:src|href)="/?)${esc}(?:\\?v=\\d+)?"`, 'g'), `$1${f}?v=${v}"`);
+        // src="script.js", href="/style.css", src="../db.js", případně už s ?v=…
+        nove = nove.replace(new RegExp(`((?:src|href)="(?:/|\\.\\./)?)${esc}(?:\\?v=\\d+)?"`, 'g'), `$1${f}?v=${v}"`);
     }
     if (nove !== puv) {
         if (check) { console.error(`${stranka}: verze nesedí s sw.js (v${v}).`); chyby++; }

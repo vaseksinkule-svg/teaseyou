@@ -68,8 +68,10 @@ self.addEventListener('fetch', event => {
     if (url.origin !== self.location.origin) return;
 
     // Administrace jede vždycky čistě ze sítě. Zastaralý admin.js by mohl
-    // zapisovat do databáze podle starých pravidel.
+    // zapisovat do databáze podle starých pravidel. Platí i pro sdílené
+    // skripty, které si administrace bere z kořene (../db.js, ../recipe.js).
     if (url.pathname.includes('/admin/')) return;
+    if (req.referrer && new URL(req.referrer).pathname.includes('/admin/')) return;
 
     // Navigace: vždy síť. Bez připojení padáme na uloženou homepage,
     // a když ani ta není, na offline stránku.

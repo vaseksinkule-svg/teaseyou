@@ -14,6 +14,10 @@ takže se řadí podle data.
   nové HTML si vždycky stáhne i nový skript. Verzi podle `sw.js` dorovná
   `node tools/verze.js` (`--check` jen kontroluje).
 - Pojistka: neznámý klíč se už nikdy neukáže, zůstane český text z HTML.
+- Administrace: sdílené skripty (`../db.js`, `../recipe.js`, `../icons.js`)
+  braly po nasazení starší verzi z cache webu, takže nová administrace mohla
+  běžet se starým `db.js`. Mají teď verzi v adrese a service worker je pro
+  administraci nebere z cache.
 - `sw.js` verze v23.
 
 ### Přehlednější web na telefonu (26. 11. 2026)
