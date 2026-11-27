@@ -276,7 +276,6 @@ self.TEASEYOU_I18N_SK = {
     aria_menu:              'Menu',
     aria_close:             'Zavrieť',
     aria_theme:             'Prepnúť tmavý režim',
-    aria_mobile_nav:        'Mobilná navigácia',
     aria_main_nav:          'Hlavná navigácia',
     ship_zasilkovna_name:   'Packeta',
 
@@ -536,7 +535,6 @@ self.TEASEYOU_I18N_SK = {
     view_bag:              'Vrecko',
     view_ings:             'Suroviny',
     piles_empty:           'Vyber suroviny a uvidíš ich tu.',
-    nav_shelf_short:       'Zmesi',
     promo_toggle:          'Mám zľavový kód',
     detail_price_for:      'za {w}',
     hero_from:             'od {price}',
