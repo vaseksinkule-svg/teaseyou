@@ -147,14 +147,14 @@ def postav_sacek(W, H, G, kolekce=None):
     vg = ob.vertex_groups.new(name='mackani')
     for vtx in me.vertices:
         x, y, z = vtx.co.x / MM, vtx.co.y / MM, vtx.co.z / MM
-        w = 0.35 + 0.65 * smooth((z - z_napln + 20) / 45.0)
+        w = 0.4 + 0.6 * smooth((z - z_napln + 30) / 50.0)
         if z > z_svar - 1:
             w = 0.2
         if y < -(G / 2 - 4) and abs(x) < ew / 2 + 4 and z_et - 4 < z < z_et + eh + 4:
             w *= 0.25
         vg.add([vtx.index], min(1.0, w), 'REPLACE')
-    for nazev, typ, meritko, sila in (('Vlny', 'CLOUDS', 0.022, 1.6), ('Plosky', 'VORONOI', 0.011, 0.55),
-                                      ('Vrasky', 'CLOUDS', 0.0045, 0.22)):
+    for nazev, typ, meritko, sila in (('Vlny', 'CLOUDS', 0.03, 2.6), ('Plosky', 'VORONOI', 0.014, 1.2),
+                                      ('Vrasky', 'CLOUDS', 0.005, 0.32)):
         tex = bpy.data.textures.new(nazev, typ)
         tex.noise_scale = meritko
         if typ == 'CLOUDS':
