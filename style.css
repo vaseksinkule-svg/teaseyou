@@ -572,7 +572,7 @@ body.dark svg.dm-dark { display: block; }
 /* delší jméno: menší písmo (nejdelší se vejde na tři řádky), výška zůstává */
 .pouch-label.is-long-name .pouch-name { font-size: calc(var(--w) * .068); }
 .pouch-label.is-xl-name .pouch-name { font-size: calc(var(--w) * .054); }
-.pouch-name.is-empty { color: #a5a196; }
+.pouch-name.is-empty { color: #75716a; }   /* zástupný text, ale čitelný (4,6 : 1) */
 .pouch-ings {
     display: grid; gap: calc(var(--w) * .016);
     width: 100%;
@@ -590,7 +590,7 @@ body.dark svg.dm-dark { display: block; }
 /* 5 surovin: řádky trochu nižší, ať se vejdou nad gramáž */
 .pouch-ings.is-long { gap: calc(var(--w) * .01); font-size: calc(var(--w) * .045); }
 .pouch-ings.is-long li { min-height: calc(var(--w) * .056); }
-.pouch-ings li.is-empty { color: #a5a196; font-weight: 400; }
+.pouch-ings li.is-empty { color: #75716a; font-weight: 400; }
 .pouch-ings i, .pouch-dots i, .how-dots i, .bar-dots i, .checkout-dots i, .quiz-runnerup-dots i {
     display: block; flex-shrink: 0; border-radius: 50%;
     background: var(--c, transparent);
