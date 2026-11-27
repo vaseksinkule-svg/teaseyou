@@ -59,11 +59,12 @@ def profil(W, H, G):
     return f, z_napln, z_svar
 
 
-def prurez(W, G, D, boule, zip_bump, n_front=36, n_bok=10):
+def prurez(W, G, D, boule, zip_bump, n_front=36, n_bok=10, v_min=0.0):
     """Body průřezu proti směru hodinek, začíná vlevo vpředu."""
     w, g = W / 2, G / 2
     d = D / 2
-    v = math.sqrt(max(0.0, g * g - d * d))      # jak hluboko je bok zalomený dovnitř
+    # jak hluboko je bok zalomený dovnitř; i plný sáček má na boku přehyb
+    v = max(math.sqrt(max(0.0, g * g - d * d)), v_min)
     body = []
     # předek (y záporné), vyboulení ke středu
     for i in range(n_front + 1):
@@ -111,7 +112,7 @@ def postav_sacek(W, H, G, kolekce=None):
         D, boule = f(z)
         # zip: dvě úzké lišty těsně pod sebou
         zb = MM * (1.1 * math.exp(-((z - z_zip) / 0.9) ** 2) + 0.7 * math.exp(-((z - z_zip + 3.2) / 0.8) ** 2))
-        pts = prurez(W * MM, G * MM, D, boule, zb)
+        pts = prurez(W * MM, G * MM, D, boule, zb, v_min=1.3 * MM * smooth((z - 4) / 18.0))
         # dno se trochu zaoblí (sáček nestojí na ostré hraně)
         stah = 1.0 - 0.035 * (1 - smooth(z / 5.0))
         kruhy.append([bm.verts.new((x * stah, y * stah, z * MM)) for x, y in pts])
@@ -134,51 +135,97 @@ def postav_sacek(W, H, G, kolekce=None):
     ob = bpy.data.objects.new('SacekDno', me)
     _link(ob, kolekce)
 
-    # jemné zvlnění papíru, víc v horní části, kde se sáček mačká
-    tex = bpy.data.textures.new('Zmackani', 'CLOUDS')
-    tex.noise_scale = 0.018
-    tex.noise_depth = 2
+    # Papír není dokonale hladký: síť se zjemní (bez vyhlazení, rohy zůstanou
+    # ostré) a pak se třikrát zdeformuje: velké vlny, zalomené plošky jako
+    # u zmačkaného papíru a drobné vrásky. Nahoře, kde se bok skládá, víc;
+    # pod etiketou málo (etiketa je tužší a text se nesmí kroutit).
+    sub = ob.modifiers.new('Jemnejsi', 'SUBSURF')
+    sub.subdivision_type = 'SIMPLE'
+    sub.levels = sub.render_levels = 2
+    ew, eh = ETIKETA_MM
+    z_et = max(18.0, z_napln + 10 - eh)
     vg = ob.vertex_groups.new(name='mackani')
     for vtx in me.vertices:
-        z = vtx.co.z / MM
-        w = 0.25 + 0.75 * smooth((z - z_napln + 15) / 40.0)
+        x, y, z = vtx.co.x / MM, vtx.co.y / MM, vtx.co.z / MM
+        w = 0.4 + 0.6 * smooth((z - z_napln + 30) / 50.0)
         if z > z_svar - 1:
-            w = 0.15
-        vg.add([vtx.index], w, 'REPLACE')
-    disp = ob.modifiers.new('Zmackani', 'DISPLACE')
-    disp.texture = tex
-    disp.strength = 0.0011
-    disp.mid_level = 0.5
-    disp.vertex_group = 'mackani'
+            w = 0.2
+        if y < -(G / 2 - 4) and abs(x) < ew / 2 + 4 and z_et - 4 < z < z_et + eh + 4:
+            w *= 0.25
+        if abs(z - (H - 31.5)) < 6:     # zip je tuhý, ať se lišta nelame
+            w *= 0.3
+        vg.add([vtx.index], min(1.0, w), 'REPLACE')
+    for nazev, typ, meritko, sila in (('Vlny', 'CLOUDS', 0.03, 2.6), ('Plosky', 'VORONOI', 0.014, 1.2),
+                                      ('Vrasky', 'CLOUDS', 0.005, 0.32)):
+        tex = bpy.data.textures.new(nazev, typ)
+        tex.noise_scale = meritko
+        if typ == 'CLOUDS':
+            tex.noise_depth = 2
+        else:
+            tex.distance_metric = 'DISTANCE'
+            tex.color_mode = 'INTENSITY'
+        disp = ob.modifiers.new(nazev, 'DISPLACE')
+        disp.texture = tex
+        disp.strength = sila * MM
+        disp.mid_level = 0.5
+        disp.vertex_group = 'mackani'
     return ob, z_napln, z_svar
 
 
 def material_kraft(z_svar_mm=None):
+    """Kraftový papír: dvě vrstvy skvrnitosti, světlejší a tmavší vlákna,
+    řídké tmavé tečky a drsný povrch s vlákny a vráskami (bump)."""
     m = bpy.data.materials.new('Kraft')
     m.use_nodes = True
     nt = m.node_tree
     n, l = nt.nodes, nt.links
     bsdf = n['Principled BSDF']
     tc = n.new('ShaderNodeTexCoord')
-    # barva: dvě skvrnité vrstvy a tmavší vlákna
-    noise = n.new('ShaderNodeTexNoise')
-    noise.inputs['Scale'].default_value = 140
-    noise.inputs['Detail'].default_value = 8
+    obj = tc.outputs['Object']
+
+    def sum_(scale, detail=4, distortion=0.0, rough=0.55):
+        t = n.new('ShaderNodeTexNoise')
+        t.inputs['Scale'].default_value = scale
+        t.inputs['Detail'].default_value = detail
+        t.inputs['Roughness'].default_value = rough
+        t.inputs['Distortion'].default_value = distortion
+        l.new(obj, t.inputs['Vector'])
+        return t.outputs['Fac']
+
+    def math_(op, a, b):
+        mth = n.new('ShaderNodeMath')
+        mth.operation = op
+        for i, v in enumerate((a, b)):
+            if isinstance(v, (int, float)):
+                mth.inputs[i].default_value = v
+            else:
+                l.new(v, mth.inputs[i])
+        return mth.outputs['Value']
+
+    def rozsah(v, a0, a1, b0, b1):
+        mr = n.new('ShaderNodeMapRange')
+        mr.inputs['From Min'].default_value, mr.inputs['From Max'].default_value = a0, a1
+        mr.inputs['To Min'].default_value, mr.inputs['To Max'].default_value = b0, b1
+        l.new(v, mr.inputs['Value'])
+        return mr.outputs['Result']
+
+    # barva: velké skvrny (cm) a menší mraky (mm)
+    skvrny = math_('ADD', math_('MULTIPLY', sum_(16, 3), 0.55), math_('MULTIPLY', sum_(130, 8), 0.45))
     ramp = n.new('ShaderNodeValToRGB')
-    ramp.color_ramp.elements[0].color = (0.46, 0.31, 0.17, 1)
-    ramp.color_ramp.elements[1].color = (0.55, 0.39, 0.23, 1)
-    l.new(tc.outputs['Object'], noise.inputs['Vector'])
-    l.new(noise.outputs['Fac'], ramp.inputs['Fac'])
+    el = ramp.color_ramp.elements
+    el[0].position, el[0].color = 0.3, (0.43, 0.29, 0.155, 1)
+    el[1].position, el[1].color = 0.7, (0.56, 0.40, 0.235, 1)
+    l.new(skvrny, ramp.inputs['Fac'])
+    # vlákna: zkroucený jemný šum, světlejší i tmavší
+    vlakna = rozsah(sum_(520, 3, distortion=4.0), 0.3, 0.7, 0.86, 1.1)
+    # tečky: Voronoi se pár procent buněk, jen tam, kde to dovolí další šum
     vor = n.new('ShaderNodeTexVoronoi')
-    vor.inputs['Scale'].default_value = 900
-    vor.feature = 'DISTANCE_TO_EDGE'
-    l.new(tc.outputs['Object'], vor.inputs['Vector'])
-    vlak = n.new('ShaderNodeMapRange')
-    vlak.inputs['From Min'].default_value = 0.0
-    vlak.inputs['From Max'].default_value = 0.05
-    vlak.inputs['To Min'].default_value = 0.82
-    vlak.inputs['To Max'].default_value = 1.0
-    l.new(vor.outputs['Distance'], vlak.inputs['Value'])
+    vor.inputs['Scale'].default_value = 240
+    l.new(obj, vor.inputs['Vector'])
+    tecka = rozsah(vor.outputs['Distance'], 0.03, 0.08, 0.0, 1.0)          # 0 = tečka
+    povoleno = rozsah(sum_(40, 2), 0.55, 0.62, 1.0, 0.0)                    # 1 = tečka nesmí
+    tecky = rozsah(math_('MAXIMUM', tecka, povoleno), 0.0, 1.0, 0.62, 1.0)
+    jas = math_('MULTIPLY', vlakna, tecky)
     mix = n.new('ShaderNodeMix')
     mix.data_type = 'RGBA'
     mix.blend_type = 'MULTIPLY'
@@ -186,44 +233,27 @@ def material_kraft(z_svar_mm=None):
     l.new(ramp.outputs['Color'], mix.inputs[6])
     comb = n.new('ShaderNodeCombineColor')
     for k in ('Red', 'Green', 'Blue'):
-        l.new(vlak.outputs['Result'], comb.inputs[k])
+        l.new(jas, comb.inputs[k])
     l.new(comb.outputs['Color'], mix.inputs[7])
     l.new(mix.outputs[2], bsdf.inputs['Base Color'])
-    bsdf.inputs['Roughness'].default_value = 0.78
-    # struktura papíru
-    nb = n.new('ShaderNodeTexNoise')
-    nb.inputs['Scale'].default_value = 2200
-    nb.inputs['Detail'].default_value = 4
-    l.new(tc.outputs['Object'], nb.inputs['Vector'])
+    # papír je matný, vlákna trochu mění lesk
+    l.new(rozsah(vlakna, 0.86, 1.1, 0.88, 0.74), bsdf.inputs['Roughness'])
+    # povrch: vlákna (jemně) + vrásky (víc)
+    vyska = math_('ADD', math_('MULTIPLY', sum_(1600, 5, distortion=2.0), 0.55),
+                  math_('MULTIPLY', sum_(140, 6), 0.45))
     bump = n.new('ShaderNodeBump')
-    bump.inputs['Strength'].default_value = 0.12
-    vyska = nb.outputs['Fac']
+    bump.inputs['Strength'].default_value = 0.28
     if z_svar_mm is not None:
         # svár nahoře: jemné vodorovné rýhy po svařovacích čelistech
         sep = n.new('ShaderNodeSeparateXYZ')
-        l.new(tc.outputs['Object'], sep.inputs['Vector'])
-        maska = n.new('ShaderNodeMath')
-        maska.operation = 'GREATER_THAN'
-        maska.inputs[1].default_value = z_svar_mm * MM
-        l.new(sep.outputs['Z'], maska.inputs[0])
+        l.new(obj, sep.inputs['Vector'])
+        maska = math_('GREATER_THAN', sep.outputs['Z'], z_svar_mm * MM)
         vlna = n.new('ShaderNodeTexWave')
         vlna.wave_type = 'BANDS'
         vlna.bands_direction = 'Z'
         vlna.inputs['Scale'].default_value = 900
-        l.new(tc.outputs['Object'], vlna.inputs['Vector'])
-        ryhy = n.new('ShaderNodeMath')
-        ryhy.operation = 'MULTIPLY'
-        l.new(vlna.outputs['Fac'], ryhy.inputs[0])
-        l.new(maska.outputs['Value'], ryhy.inputs[1])
-        nasob = n.new('ShaderNodeMath')
-        nasob.operation = 'MULTIPLY'
-        nasob.inputs[1].default_value = 4.0
-        l.new(ryhy.outputs['Value'], nasob.inputs[0])
-        soucet = n.new('ShaderNodeMath')
-        soucet.operation = 'ADD'
-        l.new(nb.outputs['Fac'], soucet.inputs[0])
-        l.new(nasob.outputs['Value'], soucet.inputs[1])
-        vyska = soucet.outputs['Value']
+        l.new(obj, vlna.inputs['Vector'])
+        vyska = math_('ADD', vyska, math_('MULTIPLY', math_('MULTIPLY', vlna.outputs['Fac'], maska), 3.0))
     l.new(vyska, bump.inputs['Height'])
     l.new(bump.outputs['Normal'], bsdf.inputs['Normal'])
     return m

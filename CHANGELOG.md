@@ -6,6 +6,16 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Sáček z papíru a se skutečným stínem (27. 11. 2026)
+- Sáček má kraftovou texturu: skvrnitost, vlákna, drobné tečky a matný
+  povrch. Papír je jemně zmačkaný a na boku má přehyb, takže už nepůsobí
+  jako hladký model. Pod etiketou a na zipu je zmačkání slabší.
+- Stín pod sáčkem je vyrenderovaný v obrázku a sedí k natočenému sáčku.
+  Kreslená elipsa pod ním zmizela (police, košík, pokladna, kvíz, vlastní
+  směs).
+- Nové rendery všech 14 směsí, prázdného sáčku i scén a nový náhled pro
+  sdílení (`og-image.jpg?v=4`).
+
 ### Sáček s plochým dnem (27. 11. 2026)
 - Všechny obrázky sáčku jsou nově kraftový sáček s plochým dnem a zipem
   (typ, který se bude objednávat u 22pack), místo doypacku: 14 hotových
