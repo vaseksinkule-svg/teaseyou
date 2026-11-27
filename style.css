@@ -471,10 +471,10 @@ body.dark svg.dm-dark { display: block; }
     background: radial-gradient(closest-side, rgba(25, 18, 8, .34), rgba(25, 18, 8, 0));
 }
 /* Sáček s plochým dnem je render z Blenderu (hotová směs i s etiketou,
-   vlastní směs prázdný). Rámeček 200 : 270, sáček stojí dole na středu
-   a je užší než rámeček, proto je i stín pod ním užší. */
+   vlastní směs prázdný). Rámeček 200 : 270, sáček stojí na středu
+   a skutečný stín na podlaze je už v obrázku, web žádný nekreslí. */
 .pouch-render { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; display: block; }
-.pouch--render::after, .pouch--blank::after { left: 14%; right: 14%; bottom: calc(var(--w) * -.03); height: calc(var(--w) * .09); }
+.pouch--render::after, .pouch--blank::after { display: none; }
 /* Scéna hotové směsi z Blenderu: sáček a před ním hromádky surovin, stín je
    už v obrázku. Všechny scény mají stejný rámeček (width/height na img). */
 .scene { width: min(100%, 440px); margin-inline: auto; }
