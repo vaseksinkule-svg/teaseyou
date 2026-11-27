@@ -225,39 +225,76 @@ def _sacek_do_ramecku(im: Image.Image, bbox, out: Path, slug: str):
     return (bw, bh), (ox - bbox[0], oy - bbox[1])
 
 
+def _stin_do_ztracena(arr, zavoj: float, okraj: float):
+    """Stín (černé pixely s alfou) bez slabého závoje a ke krajům do ztracena,
+    sáček a hromádky zůstanou."""
+    stin = arr[..., :3].max(2) < 8
+    a_stin = np.clip((arr[..., 3] - zavoj) / (255 - zavoj), 0, 1) * 255
+    if okraj:
+        a_stin = _okraje_do_ztracena(a_stin, okraj)
+    arr[..., 3] = np.where(stin, a_stin, arr[..., 3])
+    return arr
+
+
+def _ramecek_sacku(prazdny: Image.Image):
+    """Výřez 200 : 270 kolem sáčku: sáček na středu, nahoře 1 % a pod ním
+    místo na stín (sáček měří bez stínu, ten je černý)."""
+    a = np.asarray(prazdny)
+    sacek = (a[..., 3] > 200) & (a[..., :3].max(2) >= 8)
+    ys, xs = np.where(sacek)
+    x0, x1, y0, y1 = xs.min(), xs.max() + 1, ys.min(), ys.max() + 1
+    vyska = y1 - y0
+    H = round(vyska * 1.07)
+    W = round(H * 200 / 270)
+    left = round((x0 + x1) / 2 - W / 2)
+    top = y0 - round(vyska * 0.01)
+    return (left, top, left + W, top + H)
+
+
+def _sacek_se_stinem(im: Image.Image, rect, out: Path, slug: str) -> None:
+    arr = np.asarray(im.crop(rect)).astype(np.float32)      # mimo obrázek je průhledno
+    arr = _stin_do_ztracena(arr, 20, 0.12)
+    box = Image.fromarray(arr.clip(0, 255).astype(np.uint8), 'RGBA')
+    out.mkdir(parents=True, exist_ok=True)
+    for width in (960, 480):
+        box.resize((width, round(width * box.height / box.width)), Image.LANCZOS).save(
+            out / f'{slug}-{width}.webp', 'WEBP', quality=86, method=6)
+
+
 def dno(slozka: str) -> None:
     """Všechny rendery sáčku s plochým dnem z blender_dno_rendery.py naráz.
 
     Sáčky mají stejnou kameru i tvar, proto se všechny ořezávají výřezem
-    prázdného sáčku (dno_prazdny.png) a na webu sedí na stejném místě.
+    podle prázdného sáčku (dno_prazdny.png) a na webu sedí na stejném místě.
+    Stín z renderu zůstává (web už žádný nekreslí), ke krajům mizí.
     Vypíše, kam na rámeček patří etiketa vlastní směsi (.pouch-label)."""
     import json
     d = Path(slozka).expanduser()
     prazdny = Image.open(d / 'dno_prazdny.png').convert('RGBA')
-    a = np.asarray(prazdny)[..., 3]
-    ys, xs = np.where(a > 8)
-    bbox = (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
+    rect = _ramecek_sacku(prazdny)
+    W, H = rect[2] - rect[0], rect[3] - rect[1]
     out = ROOT / 'img' / 'sacky-dno'
-    (bw, bh), (dx, dy) = _sacek_do_ramecku(prazdny, bbox, out, 'prazdny')
+    _sacek_se_stinem(prazdny, rect, out, 'prazdny')
     info = json.loads((d / 'dno_prazdny.json').read_text())
     k = prazdny.width / info['obrazek'][0]
-    # rohy etikety v px rámečku přepočtené na šířku rámečku (F = 1)
-    (x0, y0), (x1, y1), (x2, y2), (x3, y3) = [((x * k + dx) / bw, (y * k + dy) / bw) for x, y in info['etiketa']]
+    # rohy etikety v rámečku, v podílech šířky rámečku (F = 1)
+    (x0, y0), (x1, y1), (x2, y2), (x3, y3) = [((x * k - rect[0]) / W, (y * k - rect[1]) / W)
+                                              for x, y in info['etiketa']]
     # etiketa na webu má rozvržení BOX_W × BOX_H (podíl šířky a výšky rámečku)
     # a matrix() ji z levého horního rohu natáhne na rohy z renderu
     BOX_W, BOX_H = 0.73, 0.76
-    bw_f, bh_f = BOX_W, BOX_H * bh / bw
+    bw_f, bh_f = BOX_W, BOX_H * H / W
     a, b = (x1 - x0) / bw_f, (y1 - y0) / bw_f
     c, dd = (x3 - x0) / bh_f, (y3 - y0) / bh_f
-    print(f'prázdný sáček: výřez {bbox}, rámeček {bw}×{bh}')
-    print(f'.pouch-label {{ left: {x0 * 100:.2f}%; top: {y0 * bw / bh * 100:.2f}%; '
+    print(f'prázdný sáček: výřez {rect}, rámeček {W}×{H}')
+    print(f'.pouch-label {{ left: {x0 * 100:.2f}%; top: {y0 * W / H * 100:.2f}%; '
           f'width: {BOX_W * 100:.0f}%; height: {BOX_H * 100:.0f}%; '
           f'transform: matrix({a:.4f}, {b:.4f}, {c:.4f}, {dd:.4f}, 0, 0); }}')
     rel = [(0, 0), (x1 - x0, y1 - y0), (x2 - x0, y2 - y0), (x3 - x0, y3 - y0)]
     print('const POUCH_LABEL_QUAD = [' + ', '.join(f'[{x:.4f}, {y:.4f}]' for x, y in rel) + '];')
     for f in sorted(d.glob('dno_sacek_*.png')):
         slug = f.stem[len('dno_sacek_'):].replace('_', '-')
-        _sacek_do_ramecku(Image.open(f).convert('RGBA'), bbox, out, slug)
+        _sacek_se_stinem(Image.open(f).convert('RGBA'), rect, out, slug)
         print('sáček', slug)
     for f in sorted(d.glob('dno_scena_*.png')):
         scena(str(f), f.stem[len('dno_scena_'):].replace('_', '-'), 'sceny-dno', zavoj=30, okraj_stinu=0.2)

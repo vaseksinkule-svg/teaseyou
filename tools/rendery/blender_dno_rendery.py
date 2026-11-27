@@ -11,8 +11,8 @@ a sáček natočený o 32°, takže je vidět bok a dno. Soubor .blend se neukl�
     ... -- prazdny ~/TeaseYou-3D/etikety ~/TeaseYou-3D/rendery
     ... -- sceny ~/TeaseYou-3D/etikety ~/TeaseYou-3D/rendery [--jen deep_winter]
 
-sacky    dno_sacek_<id>.png: sáček hotové směsi, průhledné pozadí bez stínu
-         (stín kreslí web), 1200 × 1620 px
+sacky    dno_sacek_<id>.png: sáček hotové směsi, průhledné pozadí se
+         skutečným stínem na podlaze, 1200 × 1620 px
 prazdny  dno_prazdny.png: sáček bez etikety pro vlastní směs (etiketu kreslí
          web) a dno_prazdny.json s rohy místa pro etiketu v px obrázku
 sceny    dno_scena_<id>.png: sáček a před ním hromádky surovin, průhledné
@@ -123,7 +123,7 @@ def sacek_studio(sc, textura):
     s, _ = dno.postav(750, textura, kolekce=sc.collection, otoceni=-UHEL,
                       oblast=ETIKETA_NA_TEXTURE if textura else None)
     cil = (0, 0, H * 0.47 * dno.MM)
-    studio(sc, cil)
+    studio(sc, cil, stin=True)
     vzd = (H * dno.MM / 0.80) / (2 * math.tan(FOV / 2))
     kamera(sc, cil, (0.0, -vzd, vzd * 0.30))
     sc.render.resolution_x, sc.render.resolution_y = 1200, 1620
