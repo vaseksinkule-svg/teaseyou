@@ -687,25 +687,36 @@ body.dark .pouch-label .ing-ico {
     .hero-actions .btn-link { justify-self: start; }
 }
 @media (min-width: 900px) {
+    /* Text vlevo je jako celek svisle uprostřed vedle sáčku (prázdné řádky
+       nad a pod ním se dělí o volné místo rovným dílem). */
     .hero {
         grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
-        grid-template-rows: 1fr auto;
-        grid-template-areas: "title stage" "copy stage";
+        grid-template-rows: 1fr auto auto 1fr;
+        grid-template-areas: ". stage" "title stage" "copy stage" ". stage";
         column-gap: 64px;
         padding-top: 56px;
-        padding-bottom: 64px;
+        padding-bottom: 56px;
     }
-    .hero-title { grid-area: title; align-self: end; font-size: clamp(50px, 5vw, 68px); }
-    .hero-copy { grid-area: copy; margin-top: 28px; align-self: start; padding-bottom: 24px; }
+    /* render má nahoře a dole průhledný okraj (asi 8 % a 6 %); bez něj by
+       sáček opticky seděl níž než text a mezera pod hromádkami by byla moc velká */
+    .hero-pouch .scene--hero { width: min(100%, 440px); margin: -7.5% 0 -5.5%; }
+    .hero-title { grid-area: title; font-size: clamp(50px, 5vw, 68px); }
+    .hero-copy { grid-area: copy; margin-top: 28px; align-self: start; }
     .hero-lede { font-size: 19px; }
     .hero-actions { margin-top: 32px; }
     .hero-stage {
         grid-area: stage;
         margin: 0;
-        padding: 24px 0 0;
-        align-content: end;
+        padding: 0;
+        align-content: center;
     }
     .hero-pouch { flex: 1; align-items: center; }
+}
+/* užší počítač a tablet na šířku: menší sáček a odkaz na kvíz pod tlačítkem,
+   ať se text vlevo nemačká a tlačítko se nezalomí */
+@media (min-width: 900px) and (max-width: 1099px) {
+    .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 400px); column-gap: 48px; }
+    .hero-actions { grid-auto-flow: row; justify-items: start; gap: 8px; }
 }
 
 /* Jak to funguje: rovnice základ + příchuť + doplněk = sáček */
@@ -737,12 +748,14 @@ body.dark .pouch-label .ing-ico {
         column-gap: 72px;
         margin: 16px 0 44px;
     }
+    /* obrázky na jedné ose, popisky všechny ve stejné výšce */
     .formula-item {
         position: relative;
         grid-template-columns: 1fr; grid-template-rows: 96px auto;
         row-gap: 18px; padding: 0;
-        justify-items: start;
+        justify-items: start; align-items: start; align-content: start;
     }
+    .formula-item .ing-ico, .formula-pouch { align-self: center; }
     .formula-op { position: absolute; left: -52px; top: 30px; width: 32px; font-size: 36px; }
     .formula-item .ing-ico { grid-column: 1; grid-row: 1; justify-self: start; width: 72px; height: 72px; }
     .formula-pouch { grid-column: 1; grid-row: 1; }
@@ -1237,6 +1250,8 @@ body.dark .site-footer { background: #0d0d0c; }
 }
 @media (min-width: 900px) {
     .footer-inner { grid-template-columns: 1.4fr 1fr 1fr 1.4fr; gap: 48px; padding-top: 72px; padding-bottom: 48px; }
+    /* spodní řádek ve stejných sloupcích jako odkazy nad ním */
+    .footer-bottom { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.4fr; column-gap: 48px; align-items: center; }
     .footer-brand, .footer-col-wide { grid-column: auto; }
     .footer-logo { font-size: 40px; }
 }
@@ -1353,7 +1368,7 @@ textarea.field { min-height: 96px; resize: vertical; line-height: 1.45; }
 .detail-desc { color: var(--ink-2); font-size: 17px; line-height: 1.55; max-width: 52ch; }
 /* chuť a kofein jednou větou, spočítané ze složení */
 .detail-profile {
-    margin-top: 14px; padding: 10px 14px; max-width: 52ch;
+    width: fit-content; margin-top: 14px; padding: 10px 14px; max-width: 52ch;
     border-left: 3px solid var(--leaf); background: var(--leaf-pale);
     border-radius: 0 var(--r-md) var(--r-md) 0;
     color: var(--ink); font-size: 15px; line-height: 1.45;
@@ -1694,8 +1709,10 @@ textarea.field { min-height: 96px; resize: vertical; line-height: 1.45; }
 .ing-card.is-out { opacity: .65; }
 
 /* ─── KVÍZ ───────────────────────────────────── */
-.quiz { max-width: calc(1040px + 2 * var(--gutter)); }
-.quiz-top, .quiz-question, .quiz-options, .quiz-back { max-width: 680px; }
+/* Otázky ve sloupci uprostřed (stejně široký jako O nás nebo podmínky),
+   výsledek se sáčkem vedle má místa víc. */
+.quiz { max-width: calc(760px + 2 * var(--gutter)); }
+.quiz:has(.quiz-result) { max-width: calc(1040px + 2 * var(--gutter)); }
 .quiz-top { display: grid; justify-items: start; gap: 8px; margin: 8px 0 24px; }
 .quiz-top:empty { display: none; }
 .quiz-top .mixer-progress-bar { width: 200px; }

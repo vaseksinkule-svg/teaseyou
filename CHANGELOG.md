@@ -16,6 +16,17 @@ takže se řadí podle data.
 - Dole na obrazovce je teď jen tlačítko akce dané stránky: v mixéru „Další“,
   na detailu „Do košíku“.
 
+### Zarovnání na počítači (27. 11. 2026)
+- Úvod: text vlevo je svisle uprostřed vedle sáčku a nad i pod obsahem
+  zelené plochy je stejná mezera. Dřív text seděl níž než sáček.
+  Na užším počítači (900–1099 px) je sáček menší a odkaz na kvíz je pod
+  tlačítkem, aby se tlačítko nezalamovalo.
+- Jak to funguje: popisky pod obrázky jsou všechny ve stejné výšce.
+- Kvíz: otázky jsou ve sloupci uprostřed stránky, dřív byly posunuté doleva.
+- Patička: spodní řádek (©, Mícháme v Česku, licence, jazyky) je ve stejných
+  sloupcích jako odkazy nad ním.
+- Detail směsi: rámeček s chutí je jen tak široký jako jeho text.
+
 ### Oprava: po nasazení se místo textů ukazovaly názvy klíčů (27. 11. 2026)
 - Při první návštěvě po nasazení dostalo nové HTML starší `script.js`
   a `style.css` z cache. Místo textů se pak ukázaly názvy klíčů
