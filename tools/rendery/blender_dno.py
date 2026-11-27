@@ -152,6 +152,8 @@ def postav_sacek(W, H, G, kolekce=None):
             w = 0.2
         if y < -(G / 2 - 4) and abs(x) < ew / 2 + 4 and z_et - 4 < z < z_et + eh + 4:
             w *= 0.25
+        if abs(z - (H - 31.5)) < 6:     # zip je tuhý, ať se lišta nelame
+            w *= 0.3
         vg.add([vtx.index], min(1.0, w), 'REPLACE')
     for nazev, typ, meritko, sila in (('Vlny', 'CLOUDS', 0.03, 2.6), ('Plosky', 'VORONOI', 0.014, 1.2),
                                       ('Vrasky', 'CLOUDS', 0.005, 0.32)):
