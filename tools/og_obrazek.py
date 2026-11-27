@@ -28,7 +28,7 @@ h1 {{ position: absolute; left: 72px; top: 180px; width: 560px; font: 700 56px/1
 p {{ position: absolute; left: 72px; top: 330px; width: 520px; font: 400 25px/1.42 'Albert Sans'; color: #e7e2d6; }}
 .url {{ position: absolute; left: 72px; bottom: 56px; font: 600 24px/1 'Albert Sans'; color: #e9c98f; }}
 .sacky {{ position: absolute; right: 40px; bottom: 34px; width: 560px; height: 560px; }}
-.sacky img {{ position: absolute; bottom: 0; height: auto; filter: drop-shadow(0 18px 18px rgba(10, 25, 12, .35)); }}
+.sacky img {{ position: absolute; bottom: 0; height: auto; }}
 .vlevo {{ left: 40px; width: 272px; bottom: 26px !important; }}
 .vpravo {{ right: 0; width: 330px; }}
 </style></head><body>

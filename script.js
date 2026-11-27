@@ -4414,7 +4414,7 @@ const POUCH_BLANK = 'img/sacky-dno/prazdny';
    tools/rendery/vyrez.py dno): vlevo nahoře, vpravo nahoře, vpravo dole,
    vlevo dole, vůči levému hornímu rohu, v podílech šířky rámečku. CSS má
    jen přibližný tvar (matrix), přesný dopočítá warpPouchLabel. */
-const POUCH_LABEL_QUAD = [[0, 0], [0.4273, 0.0213], [0.4192, 0.7281], [0.0014, 0.6592]];
+const POUCH_LABEL_QUAD = [[0, 0], [0.3996, 0.0199], [0.3922, 0.6812], [0.0013, 0.6167]];
 const POUCH_LABEL_BOX = [0.73, 0.76 * 270 / 200];   // rozvržení etikety (šířka, výška) v šířkách rámečku
 function warpPouchLabel(pouch) {
     const label = pouch.querySelector('.pouch-label');
