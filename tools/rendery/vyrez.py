@@ -38,6 +38,12 @@ Scéna hotové směsi (blender_sceny.py, průhledné pozadí se stínem):
   Všechny scény mají stejnou kameru, proto se ořezávají stejným pevným
   výřezem SCENA_VYREZ (čtverec). Na webu se nic neposouvá.
 
+Sáček s plochým dnem (blender_dno_rendery.py: dno_prazdny.png/.json,
+dno_sacek_<id>.png, dno_scena_<id>.png ve složce rendery) naráz:
+    python3 tools/rendery/vyrez.py dno ~/TeaseYou-3D/rendery
+    -> img/sacky-dno/<slug>-480|960.webp, img/sacky-dno/prazdny-…,
+       img/sceny-dno/<slug>-480|960.webp a vypíše místo pro etiketu (CSS)
+
 Pak přidej řádek do POUCH_RENDERS / SCENE_RENDERS (podle id směsi) nebo
 ING_SLUGS (podle kódu suroviny) ve script.js.
 
@@ -176,7 +182,7 @@ def hromadka(src: str, slug: str) -> None:
 SCENA_VYREZ = (0.0, 0.0, 1.0, 1.0)
 
 
-def scena(src: str, slug: str) -> None:
+def scena(src: str, slug: str, slozka: str = 'sceny') -> None:
     im = Image.open(src).convert('RGBA')
     x0, y0, x1, y1 = SCENA_VYREZ
     W, H = im.size
@@ -189,7 +195,7 @@ def scena(src: str, slug: str) -> None:
     arr[..., 3] = np.where(stin, np.clip((arr[..., 3] - 18) / (255 - 18), 0, 1) * 255, arr[..., 3])
     arr[..., 3] = _okraje_do_ztracena(arr[..., 3], 0.03)
     cut = Image.fromarray(arr.clip(0, 255).astype(np.uint8), 'RGBA')
-    out = ROOT / 'img' / 'sceny'
+    out = ROOT / 'img' / slozka
     out.mkdir(parents=True, exist_ok=True)
     for width in (960, 480):
         cut.resize((width, round(width * cut.height / cut.width)), Image.LANCZOS).save(
@@ -197,8 +203,57 @@ def scena(src: str, slug: str) -> None:
     print(f'scéna {cut.width}×{cut.height} px → {out}/{slug}-480|960.webp')
 
 
+def _sacek_do_ramecku(im: Image.Image, bbox, out: Path, slug: str):
+    """Výřez bbox postaví dolů doprostřed rámečku 200 : 270 (jako .pouch na webu)."""
+    cut = im.crop(bbox)
+    w, h = cut.size
+    bh, bw = h, round(h * 200 / 270)
+    if bw < w:
+        bw, bh = w, round(w * 270 / 200)
+    box = Image.new('RGBA', (bw, bh), (0, 0, 0, 0))
+    ox, oy = (bw - w) // 2, bh - h
+    box.alpha_composite(cut, (ox, oy))
+    out.mkdir(parents=True, exist_ok=True)
+    for width in (960, 480):
+        box.resize((width, round(width * bh / bw)), Image.LANCZOS).save(
+            out / f'{slug}-{width}.webp', 'WEBP', quality=86, method=6)
+    return (bw, bh), (ox - bbox[0], oy - bbox[1])
+
+
+def dno(slozka: str) -> None:
+    """Všechny rendery sáčku s plochým dnem z blender_dno_rendery.py naráz.
+
+    Sáčky mají stejnou kameru i tvar, proto se všechny ořezávají výřezem
+    prázdného sáčku (dno_prazdny.png) a na webu sedí na stejném místě.
+    Vypíše, kam na rámeček patří etiketa vlastní směsi (.pouch-label)."""
+    import json
+    d = Path(slozka).expanduser()
+    prazdny = Image.open(d / 'dno_prazdny.png').convert('RGBA')
+    a = np.asarray(prazdny)[..., 3]
+    ys, xs = np.where(a > 8)
+    bbox = (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
+    out = ROOT / 'img' / 'sacky-dno'
+    (bw, bh), (dx, dy) = _sacek_do_ramecku(prazdny, bbox, out, 'prazdny')
+    info = json.loads((d / 'dno_prazdny.json').read_text())
+    k = prazdny.width / info['obrazek'][0]
+    px = [((x * k + dx) / bw * 100, (y * k + dy) / bh * 100) for x, y in info['etiketa']]
+    l, r = min(p[0] for p in px), max(p[0] for p in px)
+    t, b = min(p[1] for p in px), max(p[1] for p in px)
+    print(f'prázdný sáček: výřez {bbox}, rámeček {bw}×{bh}')
+    print(f'.pouch-label {{ left: {l:.1f}%; right: {100 - r:.1f}%; top: {t:.1f}%; bottom: {100 - b:.1f}%; }}')
+    for f in sorted(d.glob('dno_sacek_*.png')):
+        slug = f.stem[len('dno_sacek_'):].replace('_', '-')
+        _sacek_do_ramecku(Image.open(f).convert('RGBA'), bbox, out, slug)
+        print('sáček', slug)
+    for f in sorted(d.glob('dno_scena_*.png')):
+        scena(str(f), f.stem[len('dno_scena_'):].replace('_', '-'), 'sceny-dno')
+
+
 if __name__ == '__main__':
     rezimy = {'sacek': sacek, 'surovina': surovina, 'detail': detail, 'hromadka': hromadka, 'scena': scena}
+    if len(sys.argv) == 3 and sys.argv[1] == 'dno':
+        dno(sys.argv[2])
+        sys.exit()
     if len(sys.argv) != 4 or sys.argv[1] not in rezimy:
         sys.exit(__doc__)
     rezimy[sys.argv[1]](sys.argv[2], sys.argv[3])

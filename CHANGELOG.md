@@ -6,6 +6,18 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Sáček s plochým dnem (27. 11. 2026)
+- Všechny obrázky sáčku jsou nově kraftový sáček s plochým dnem a zipem
+  (typ, který se bude objednávat u 22pack), místo doypacku: 14 hotových
+  směsí, scény se surovinami na úvodu a na detailu, police, košík, kvíz
+  a stránka O nás.
+- Vlastní směs má stejný sáček jako render a web na něj kreslí etiketu
+  se jménem a složením, takže vlastní a hotová směs vypadají stejně.
+- Náhled pro sdílení (og-image) ukazuje nový sáček a dnešní text z úvodu.
+- Rendery jsou podle rozměrů od dodavatele. Až přijdou vzorky, tvar
+  a barvu doladíme. Skripty: `tools/rendery/blender_dno.py`
+  a `blender_dno_rendery.py`, výřezy `vyrez.py dno`.
+
 ### Na telefonu bez spodní navigace (27. 11. 2026)
 - Spodní lišta (Domů, Namíchat, Směsi, Košík) zmizela. Zabírala kus obrazovky
   (na iPhonu ještě nad adresním řádkem Safari) a dvě položky vedly na stejnou

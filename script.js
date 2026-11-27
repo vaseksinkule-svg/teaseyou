@@ -4403,60 +4403,36 @@ Object.assign(TRANSLATIONS.en, {
 });
 
 /* ─── Sáček ─────────────────────────────────── */
-/* Kraftový sáček se zipem — tak, jak se čaj opravdu posílá. Na etiketě je
-   jméno směsi a její tři ingredience. Obrys a textura jsou v <svg><defs>
-   na začátku index.html, tady se na ně jen odkazuje. */
-/* Sáček v2: stojací kraftový sáček se zipem, svárem nahoře, otvorem na
-   zavěšení a skládaným dnem. Tvar (POUCH_PATH + POUCH_HOLE) je stejný i ve
-   výřezu #pouch-clip v index.html – když ho měníš, změň ho na obou místech. */
-const POUCH_PATH = 'M16 5H184Q189 5 189 10V21L184.5 26.5L189 32C194 108 197.5 180 195.5 236Q194.5 259 172 262.5Q100 269.5 28 262.5Q5.5 259 4.5 236C2.5 180 6 108 11 32L15.5 26.5L11 21V10Q11 5 16 5Z';
-const POUCH_HOLE = 'M91 14.2h18a4.3 4.3 0 0 1 0 8.600H91a4.300 4.300 0 0 1 0-8.600Z';
-const POUCH_SVG = `<svg class="pouch-bag" viewBox="0 0 200 270" preserveAspectRatio="none" focusable="false" aria-hidden="true">
-    <path d="${POUCH_PATH}${POUCH_HOLE}" fill-rule="evenodd" fill="url(#kraft-fill)"/>
-    <g clip-path="url(#pouch-clip)">
-        <rect width="200" height="270" fill="url(#kraft-light)"/>
-        <rect width="200" height="270" filter="url(#kraft-grain)" opacity=".38"/>
-        <rect y="5" width="200" height="28.500" fill="url(#kraft-crimp)"/>
-        <rect y="5" width="200" height="28.500" fill="#5a3d1c" fill-opacity=".06"/>
-        <rect y="33.200" width="200" height="1.300" fill="#000" fill-opacity=".17"/>
-        <rect y="34.500" width="200" height="1" fill="#fff" fill-opacity=".24"/>
-        <rect y="45" width="200" height="2.600" fill="#000" fill-opacity=".18"/>
-        <rect y="47.600" width="200" height="1.400" fill="#fff" fill-opacity=".3"/>
-        <rect y="52" width="200" height="1" fill="#000" fill-opacity=".07"/>
-        <path d="M38 62C33 122 36 186 31 238" stroke="#fff" stroke-opacity=".2" stroke-width="9" fill="none" stroke-linecap="round"/>
-        <path d="M164 68C169 130 164 192 168 236" stroke="#000" stroke-opacity=".07" stroke-width="11" fill="none" stroke-linecap="round"/>
-        <path d="M0 237Q100 253 200 237V270H0Z" fill="url(#kraft-gusset)"/>
-        <path d="M4 237.500Q100 253 196 237.500" stroke="#000" stroke-opacity=".2" stroke-width="1.400" fill="none"/>
-        <path d="M4 239.200Q100 254.700 196 239.200" stroke="#fff" stroke-opacity=".22" stroke-width="1" fill="none"/>
-        <rect width="200" height="270" fill="url(#kraft-edge)"/>
-    </g>
-    <path d="${POUCH_HOLE}" fill="none" stroke="#000" stroke-opacity=".28" stroke-width="1"/>
-</svg>`;
+/* Kraftový sáček s plochým dnem a zipem (rendery z Blenderu, skript
+   tools/rendery/blender_dno_rendery.py). Hotová směs má render i s etiketou,
+   vlastní směs prázdný sáček (img/sacky-dno/prazdny) a etiketu kreslí web,
+   protože jméno a složení vymýšlí zákazník a mění se živě. Místo pro
+   etiketu (.pouch-label ve style.css) sedí na etiketu z renderu. */
+const POUCH_BLANK = 'img/sacky-dno/prazdny';
 const LAYER_LABELS = ['glass_label_base', 'glass_label_flavor', 'glass_label_extras'];
 
-/* Rendery sáčků hotových směsí z Blenderu (průhledné pozadí, img/sacky/).
-   Když má směs render, ukáže se všude místo kresleného sáčku. Vlastní směs
-   má vždy kreslený sáček, protože jméno a složení vymýšlí zákazník a etiketa
-   se musí měnit živě. Soubory: <cesta>-480.webp a <cesta>-960.webp. */
+/* Rendery sáčků hotových směsí (průhledné pozadí, img/sacky-dno/).
+   Když má směs render, ukáže se všude místo prázdného sáčku s etiketou
+   z webu. Soubory: <cesta>-480.webp a <cesta>-960.webp. */
 const POUCH_RENDERS = {
-    morning_window: 'img/sacky/morning-window',
-    still_evening:  'img/sacky/still-evening',
-    deep_winter:    'img/sacky/deep-winter',
-    late_light:     'img/sacky/late-light',
-    open_air:       'img/sacky/open-air',
-    slow_tuesday:   'img/sacky/slow-tuesday',
-    sunday_paper:   'img/sacky/sunday-paper',
-    desk_hours:     'img/sacky/desk-hours',
-    garden_party:   'img/sacky/garden-party',
-    pink_hour:      'img/sacky/pink-hour',
-    after_dinner:   'img/sacky/after-dinner',
-    quiet_street:   'img/sacky/quiet-street',
-    snowed_in:      'img/sacky/snowed-in',
-    mint_condition: 'img/sacky/mint-condition',
+    morning_window: 'img/sacky-dno/morning-window',
+    still_evening:  'img/sacky-dno/still-evening',
+    deep_winter:    'img/sacky-dno/deep-winter',
+    late_light:     'img/sacky-dno/late-light',
+    open_air:       'img/sacky-dno/open-air',
+    slow_tuesday:   'img/sacky-dno/slow-tuesday',
+    sunday_paper:   'img/sacky-dno/sunday-paper',
+    desk_hours:     'img/sacky-dno/desk-hours',
+    garden_party:   'img/sacky-dno/garden-party',
+    pink_hour:      'img/sacky-dno/pink-hour',
+    after_dinner:   'img/sacky-dno/after-dinner',
+    quiet_street:   'img/sacky-dno/quiet-street',
+    snowed_in:      'img/sacky-dno/snowed-in',
+    mint_condition: 'img/sacky-dno/mint-condition',
 };
 function pouchRenderFor(b) { return (b && POUCH_RENDERS[b.id]) || ''; }
 /* Render sáčku jen u hotové směsi beze změn (stejné jméno, suroviny i díly),
-   třeba v košíku. Upravená nebo vlastní směs má kreslený sáček. */
+   třeba v košíku. Upravená nebo vlastní směs má prázdný sáček s etiketou z webu. */
 function readyRenderFor(name, codes, parts) {
     const b = catalogBlends.find(x => x.name === name);
     const same = b && b.ingredients.join('|') === (codes || []).join('|')
@@ -4464,25 +4440,25 @@ function readyRenderFor(name, codes, parts) {
     return same ? pouchRenderFor(b) : '';
 }
 
-/* Scény hotových směsí z Blenderu (tools/rendery/blender_sceny.py): sáček
-   a před ním hromádky jejích surovin, průhledné pozadí se stínem.
-   Soubory img/sceny/<slug>-480.webp a -960.webp, všechny ve stejném rámečku
+/* Scény hotových směsí z Blenderu (tools/rendery/blender_dno_rendery.py):
+   sáček a před ním hromádky jejích surovin, průhledné pozadí se stínem.
+   Soubory img/sceny-dno/<slug>-480.webp a -960.webp, všechny ve stejném rámečku
    (SCENE_RATIO), ať se při zamíchání na úvodní stránce nic neposouvá. */
 const SCENE_RENDERS = {
-    morning_window: 'img/sceny/morning-window',
-    still_evening:  'img/sceny/still-evening',
-    deep_winter:    'img/sceny/deep-winter',
-    late_light:     'img/sceny/late-light',
-    open_air:       'img/sceny/open-air',
-    slow_tuesday:   'img/sceny/slow-tuesday',
-    sunday_paper:   'img/sceny/sunday-paper',
-    desk_hours:     'img/sceny/desk-hours',
-    garden_party:   'img/sceny/garden-party',
-    pink_hour:      'img/sceny/pink-hour',
-    after_dinner:   'img/sceny/after-dinner',
-    quiet_street:   'img/sceny/quiet-street',
-    snowed_in:      'img/sceny/snowed-in',
-    mint_condition: 'img/sceny/mint-condition',
+    morning_window: 'img/sceny-dno/morning-window',
+    still_evening:  'img/sceny-dno/still-evening',
+    deep_winter:    'img/sceny-dno/deep-winter',
+    late_light:     'img/sceny-dno/late-light',
+    open_air:       'img/sceny-dno/open-air',
+    slow_tuesday:   'img/sceny-dno/slow-tuesday',
+    sunday_paper:   'img/sceny-dno/sunday-paper',
+    desk_hours:     'img/sceny-dno/desk-hours',
+    garden_party:   'img/sceny-dno/garden-party',
+    pink_hour:      'img/sceny-dno/pink-hour',
+    after_dinner:   'img/sceny-dno/after-dinner',
+    quiet_street:   'img/sceny-dno/quiet-street',
+    snowed_in:      'img/sceny-dno/snowed-in',
+    mint_condition: 'img/sceny-dno/mint-condition',
 };
 const SCENE_SIZE = [960, 960];
 function sceneRenderFor(b) { return (b && SCENE_RENDERS[b.id]) || ''; }
@@ -4534,7 +4510,7 @@ document.addEventListener('click', e => {
     if (again) again.focus();
 });
 /* Jak široký je sáček na stránce, aby si prohlížeč vybral správnou velikost. */
-const POUCH_RENDER_SIZES = { 'pouch--xs': '64px', 'pouch--sm': '112px', 'pouch--about': '216px' };
+const POUCH_RENDER_SIZES = { 'pouch--xs': '64px', 'pouch--sm': '112px', 'pouch--about': '216px', 'pouch--mixer': '240px', 'pouch--final': '210px' };
 
 /* Sáček s etiketou: jméno, suroviny s podílem (od největšího) a gramáž.
    render: cesta k renderu hotové směsi (pouchRenderFor), jinak se kreslí. */
@@ -4562,7 +4538,10 @@ function pouchHtml({ name = '', codes = [], parts = null, size = '', placeholder
     const longest = Math.max(...shown.split(/\s+/).map(w => w.length));
     const fit = shown.length > 22 || longest > 12 ? ' is-xl-name' : (shown.length > 13 || longest > 9 ? ' is-long-name' : '');
     const bandColor = MOMENT_COLOR[band] || '';
-    return `<div class="pouch ${size}">${POUCH_SVG}<div class="pouch-label${dotCodes.length > 4 ? ' is-long' : ''}${fit}${bandColor ? ' has-band' : ''}">`
+    const sizes = POUCH_RENDER_SIZES[size] || '290px';
+    const bag = `<img class="pouch-render" src="${POUCH_BLANK}-480.webp" srcset="${POUCH_BLANK}-480.webp 480w, ${POUCH_BLANK}-960.webp 960w"`
+        + ` sizes="${sizes}" alt="" decoding="async">`;
+    return `<div class="pouch pouch--blank ${size}">${bag}<div class="pouch-label${dotCodes.length > 4 ? ' is-long' : ''}${fit}${bandColor ? ' has-band' : ''}">`
         + (bandColor ? `<span class="pouch-band" style="--band:${bandColor}"></span>` : '')
         + `<span class="pouch-brand">Tease you</span>`
         + `<span class="pouch-name${name ? '' : ' is-empty'}">${escHtml(shown)}</span>`
