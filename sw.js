@@ -6,24 +6,26 @@
  * verzí. Při další návštěvě je aktuální.
  *
  * Když měníš seznam PRECACHE, zvyš VERSION — jinak se stará cache nezahodí.
+ * Po zvýšení VERSION spusť `node tools/verze.js`, ať HTML odkazuje na stejnou
+ * verzi stylů a skriptů.
  */
 
-const VERSION = 'v22';
+const VERSION = 'v23';
 const CACHE = `teaseyou-${VERSION}`;
+
+// Styly a skripty mají v HTML adresu s verzí (style.css?v=23). Nové HTML si
+// tak vždycky stáhne skript a styly ke stejné verzi a nikdy nedostane
+// starší script.js z cache. Verzi v HTML dorovná `node tools/verze.js`.
+const V = VERSION.replace(/^v/, '');
+const VERZOVANE = ['./style.css', './db.js', './i18n-sk.js', './bank.js', './recipe.js', './icons.js', './script.js'];
 
 // Minimum, aby se web offline vůbec vykreslil.
 const PRECACHE = [
     './',
     './index.html',
     './offline.html',
-    './style.css',
     './config.js',
-    './db.js',
-    './i18n-sk.js',
-    './bank.js',
-    './recipe.js',
-    './icons.js',
-    './script.js',
+    ...VERZOVANE.map(u => `${u}?v=${V}`),
     './manifest.json',
     './favicon.svg',
     './favicon.ico',

@@ -631,19 +631,28 @@ function applyTranslations() {
     // Text se přepisuje, jen když se liší. Česká stránka má stejné texty už
     // v HTML (hlídá to tools/sync-static.js), takže se jí nikdo nedotkne:
     // nic neproblikne a prohlížeč nepočítá hlavní nadpis jako nově vykreslený.
+    // Klíč, který skript nezná (třeba nové HTML se starším skriptem z cache),
+    // se nepřepisuje. Zůstane český text z HTML, ne název klíče.
+    const known = key => t(key) !== key;
     document.querySelectorAll('[data-i18n]').forEach(el => {
-        const text = t(el.getAttribute('data-i18n'));
+        const key = el.getAttribute('data-i18n');
+        if (!known(key)) return;
+        const text = t(key);
         if (el.textContent !== text) el.textContent = text;
     });
     document.querySelectorAll('[data-i18n-html]').forEach(el => {
-        const html = t(el.getAttribute('data-i18n-html'));
+        const key = el.getAttribute('data-i18n-html');
+        if (!known(key)) return;
+        const html = t(key);
         if (el.innerHTML !== html) el.innerHTML = html;
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (known(key)) el.placeholder = t(key);
     });
     document.querySelectorAll('[data-i18n-aria]').forEach(el => {
-        el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
+        const key = el.getAttribute('data-i18n-aria');
+        if (known(key)) el.setAttribute('aria-label', t(key));
     });
     // Translate ingredient button text and desc
     document.querySelectorAll('[data-i18n-desc]').forEach(el => {

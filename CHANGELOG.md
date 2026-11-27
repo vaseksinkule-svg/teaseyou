@@ -6,6 +6,16 @@ takže se řadí podle data.
 
 ## Nezveřejněno
 
+### Oprava: po nasazení se místo textů ukazovaly názvy klíčů (27. 11. 2026)
+- Při první návštěvě po nasazení dostalo nové HTML starší `script.js`
+  a `style.css` z cache. Místo textů se pak ukázaly názvy klíčů
+  („promo_toggle“, „nav_shelf_short“) a spodní lišta měla staré rozložení.
+- Styly a skripty mají teď v HTML adresu s verzí (`script.js?v=23`), takže
+  nové HTML si vždycky stáhne i nový skript. Verzi podle `sw.js` dorovná
+  `node tools/verze.js` (`--check` jen kontroluje).
+- Pojistka: neznámý klíč se už nikdy neukáže, zůstane český text z HTML.
+- `sw.js` verze v23.
+
 ### Přehlednější web na telefonu (26. 11. 2026)
 - **Detail směsi:** pod obrázkem je hned název, cena vybrané velikosti,
   velikost a Do košíku. „Proč to funguje“, složení a příprava jsou až pod
