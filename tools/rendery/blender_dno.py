@@ -29,6 +29,10 @@ ETIKETA_MM = (88, 120)
 MM = 0.001
 
 
+def _link(ob, kolekce):
+    (kolekce or bpy.context.collection).objects.link(ob)
+
+
 def smooth(t):
     t = max(0.0, min(1.0, t))
     return t * t * (3 - 2 * t)
@@ -90,7 +94,7 @@ def prurez(W, G, D, boule, zip_bump, n_front=36, n_bok=10):
     return body
 
 
-def postav_sacek(W, H, G):
+def postav_sacek(W, H, G, kolekce=None):
     f, z_napln, z_svar = profil(W, H, G)
     z_zip = H - 30
     vysky = []
@@ -128,7 +132,7 @@ def postav_sacek(W, H, G):
     bm.to_mesh(me)
     bm.free()
     ob = bpy.data.objects.new('SacekDno', me)
-    bpy.context.collection.objects.link(ob)
+    _link(ob, kolekce)
 
     # jemné zvlnění papíru, víc v horní části, kde se sáček mačká
     tex = bpy.data.textures.new('Zmackani', 'CLOUDS')
@@ -225,31 +229,53 @@ def material_kraft(z_svar_mm=None):
     return m
 
 
-def material_etiketa(cesta):
+def material_etiketa(cesta, oblast=None):
+    """oblast = (x, y, š, v) etikety v px na větší textuře (textura_<id>.png
+    z etikety.py má etiketu na 336, 960, 1408 × 1920 z 2080 × 3360)."""
     m = bpy.data.materials.new('Etiketa')
     m.use_nodes = True
     nt = m.node_tree
     n, l = nt.nodes, nt.links
     bsdf = n['Principled BSDF']
     img = n.new('ShaderNodeTexImage')
-    img.image = bpy.data.images.load(cesta)
+    img.image = bpy.data.images.load(cesta, check_existing=True)
     img.interpolation = 'Cubic'
+    img.extension = 'CLIP'
+    if oblast:
+        TW, TH = img.image.size
+        x, y, w, h = oblast
+        uv = n.new('ShaderNodeUVMap')
+        mp = n.new('ShaderNodeMapping')
+        mp.inputs['Scale'].default_value = (w / TW, h / TH, 1)
+        mp.inputs['Location'].default_value = (x / TW, 1 - (y + h) / TH, 0)
+        l.new(uv.outputs['UV'], mp.inputs['Vector'])
+        l.new(mp.outputs['Vector'], img.inputs['Vector'])
     l.new(img.outputs['Color'], bsdf.inputs['Base Color'])
     l.new(img.outputs['Alpha'], bsdf.inputs['Alpha'])
     bsdf.inputs['Roughness'].default_value = 0.6
     return m
 
 
-def postav_etiketu(sacek, z_napln, cesta, x=0.0):
+
+def postav_etiketu(sacek, z_napln, cesta, kolekce=None, oblast=None):
+    """Etiketa jako síť před přední stěnou, přilepená k sáčku (shrinkwrap).
+    Je dítě sáčku, takže se s ním otáčí."""
     ew, eh = ETIKETA_MM
     z_dole = max(18.0, z_napln + 10 - eh)
-    bpy.ops.mesh.primitive_grid_add(x_subdivisions=60, y_subdivisions=80, size=1)
-    et = bpy.context.active_object
-    et.name = 'Etiketa'
-    et.scale = (ew * MM, eh * MM, 1)
-    et.rotation_euler = (math.pi / 2, 0, 0)
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-    et.location = (x, -0.2, (z_dole + eh / 2) * MM)
+    bm = bmesh.new()
+    bm.loops.layers.uv.new('UVMap')
+    bmesh.ops.create_grid(bm, x_segments=60, y_segments=80, size=0.5, calc_uvs=True)
+    for v in bm.verts:
+        x, y = v.co.x, v.co.y
+        v.co = (x * ew * MM, -0.2, (z_dole + (y + 0.5) * eh) * MM)
+    for f in bm.faces:
+        f.smooth = True
+    me = bpy.data.meshes.new('Etiketa')
+    bm.to_mesh(me)
+    bm.free()
+    et = bpy.data.objects.new('Etiketa', me)
+    _link(et, kolekce)
+    et.parent = sacek
     sw = et.modifiers.new('Prilepit', 'SHRINKWRAP')
     sw.target = sacek
     sw.wrap_method = 'PROJECT'
@@ -257,19 +283,19 @@ def postav_etiketu(sacek, z_napln, cesta, x=0.0):
     sw.use_negative_direction = True
     sw.use_positive_direction = True
     sw.offset = 0.25 * MM
-    et.data.materials.append(material_etiketa(cesta))
-    for p in et.data.polygons:
-        p.use_smooth = True
+    me.materials.append(material_etiketa(cesta, oblast))
     return et
 
 
-def postav(velikost, etiketa, x=0.0):
+def postav(velikost, etiketa, x=0.0, kolekce=None, otoceni=0.0, oblast=None):
+    """Sáček (a etiketa, je-li zadaná) v dané velikosti. Vrací (sáček, etiketa)."""
     W, H, G = VELIKOSTI[velikost]
-    sacek, z_napln, z_svar = postav_sacek(W, H, G)
+    sacek, z_napln, z_svar = postav_sacek(W, H, G, kolekce)
     sacek.location.x = x
+    sacek.rotation_euler.z = otoceni
     sacek.data.materials.append(material_kraft(z_svar))
-    postav_etiketu(sacek, z_napln, etiketa, x)
-    return W, H, G
+    et = postav_etiketu(sacek, z_napln, etiketa, kolekce, oblast) if etiketa else None
+    return sacek, et
 
 
 def scena(pozadi, sirka_m, vyska_m, pohled, na_sirku):
@@ -343,7 +369,8 @@ def main(argv):
         scena(a.pozadi, sirka_m, vyska_m, 'skupina', True)
         rx, ry = a.sirka, int(a.sirka * 0.72)
     else:
-        W, H, G = postav(a.velikost, a.etiketa)
+        postav(a.velikost, a.etiketa)
+        W, H, G = VELIKOSTI[a.velikost]
         scena(a.pozadi, W * MM, H * MM, a.pohled, False)
         rx, ry = a.sirka, int(a.sirka * 1.35)
 
