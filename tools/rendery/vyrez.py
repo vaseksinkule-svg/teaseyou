@@ -38,6 +38,12 @@ Scéna hotové směsi (blender_sceny.py, průhledné pozadí se stínem):
   Všechny scény mají stejnou kameru, proto se ořezávají stejným pevným
   výřezem SCENA_VYREZ (čtverec). Na webu se nic neposouvá.
 
+Sáček s plochým dnem (blender_dno_rendery.py: dno_prazdny.png/.json,
+dno_sacek_<id>.png, dno_scena_<id>.png ve složce rendery) naráz:
+    python3 tools/rendery/vyrez.py dno ~/TeaseYou-3D/rendery
+    -> img/sacky-dno/<slug>-480|960.webp, img/sacky-dno/prazdny-…,
+       img/sceny-dno/<slug>-480|960.webp a vypíše místo pro etiketu (CSS)
+
 Pak přidej řádek do POUCH_RENDERS / SCENE_RENDERS (podle id směsi) nebo
 ING_SLUGS (podle kódu suroviny) ve script.js.
 
@@ -176,7 +182,7 @@ def hromadka(src: str, slug: str) -> None:
 SCENA_VYREZ = (0.0, 0.0, 1.0, 1.0)
 
 
-def scena(src: str, slug: str) -> None:
+def scena(src: str, slug: str, slozka: str = 'sceny', zavoj: float = 18, okraj_stinu: float = 0.0) -> None:
     im = Image.open(src).convert('RGBA')
     x0, y0, x1, y1 = SCENA_VYREZ
     W, H = im.size
@@ -186,10 +192,15 @@ def scena(src: str, slug: str) -> None:
     # kolem 5 %, na webu by z něj byl vidět tmavší čtverec. Ten se odečte,
     # kontaktní stíny pod sáčkem a hromádkami zůstanou.
     stin = arr[..., :3].max(2) < 8
-    arr[..., 3] = np.where(stin, np.clip((arr[..., 3] - 18) / (255 - 18), 0, 1) * 255, arr[..., 3])
+    a_stin = np.clip((arr[..., 3] - zavoj) / (255 - zavoj), 0, 1) * 255
+    if okraj_stinu:
+        # stín (jen stín, ne sáček a hromádky) plynule do ztracena ke krajům,
+        # ať na webu nekončí rovnou hranou obrázku
+        a_stin = _okraje_do_ztracena(a_stin, okraj_stinu)
+    arr[..., 3] = np.where(stin, a_stin, arr[..., 3])
     arr[..., 3] = _okraje_do_ztracena(arr[..., 3], 0.03)
     cut = Image.fromarray(arr.clip(0, 255).astype(np.uint8), 'RGBA')
-    out = ROOT / 'img' / 'sceny'
+    out = ROOT / 'img' / slozka
     out.mkdir(parents=True, exist_ok=True)
     for width in (960, 480):
         cut.resize((width, round(width * cut.height / cut.width)), Image.LANCZOS).save(
@@ -197,8 +208,66 @@ def scena(src: str, slug: str) -> None:
     print(f'scéna {cut.width}×{cut.height} px → {out}/{slug}-480|960.webp')
 
 
+def _sacek_do_ramecku(im: Image.Image, bbox, out: Path, slug: str):
+    """Výřez bbox postaví dolů doprostřed rámečku 200 : 270 (jako .pouch na webu)."""
+    cut = im.crop(bbox)
+    w, h = cut.size
+    bh, bw = h, round(h * 200 / 270)
+    if bw < w:
+        bw, bh = w, round(w * 270 / 200)
+    box = Image.new('RGBA', (bw, bh), (0, 0, 0, 0))
+    ox, oy = (bw - w) // 2, bh - h
+    box.alpha_composite(cut, (ox, oy))
+    out.mkdir(parents=True, exist_ok=True)
+    for width in (960, 480):
+        box.resize((width, round(width * bh / bw)), Image.LANCZOS).save(
+            out / f'{slug}-{width}.webp', 'WEBP', quality=86, method=6)
+    return (bw, bh), (ox - bbox[0], oy - bbox[1])
+
+
+def dno(slozka: str) -> None:
+    """Všechny rendery sáčku s plochým dnem z blender_dno_rendery.py naráz.
+
+    Sáčky mají stejnou kameru i tvar, proto se všechny ořezávají výřezem
+    prázdného sáčku (dno_prazdny.png) a na webu sedí na stejném místě.
+    Vypíše, kam na rámeček patří etiketa vlastní směsi (.pouch-label)."""
+    import json
+    d = Path(slozka).expanduser()
+    prazdny = Image.open(d / 'dno_prazdny.png').convert('RGBA')
+    a = np.asarray(prazdny)[..., 3]
+    ys, xs = np.where(a > 8)
+    bbox = (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
+    out = ROOT / 'img' / 'sacky-dno'
+    (bw, bh), (dx, dy) = _sacek_do_ramecku(prazdny, bbox, out, 'prazdny')
+    info = json.loads((d / 'dno_prazdny.json').read_text())
+    k = prazdny.width / info['obrazek'][0]
+    # rohy etikety v px rámečku přepočtené na šířku rámečku (F = 1)
+    (x0, y0), (x1, y1), (x2, y2), (x3, y3) = [((x * k + dx) / bw, (y * k + dy) / bw) for x, y in info['etiketa']]
+    # etiketa na webu má rozvržení BOX_W × BOX_H (podíl šířky a výšky rámečku)
+    # a matrix() ji z levého horního rohu natáhne na rohy z renderu
+    BOX_W, BOX_H = 0.73, 0.76
+    bw_f, bh_f = BOX_W, BOX_H * bh / bw
+    a, b = (x1 - x0) / bw_f, (y1 - y0) / bw_f
+    c, dd = (x3 - x0) / bh_f, (y3 - y0) / bh_f
+    print(f'prázdný sáček: výřez {bbox}, rámeček {bw}×{bh}')
+    print(f'.pouch-label {{ left: {x0 * 100:.2f}%; top: {y0 * bw / bh * 100:.2f}%; '
+          f'width: {BOX_W * 100:.0f}%; height: {BOX_H * 100:.0f}%; '
+          f'transform: matrix({a:.4f}, {b:.4f}, {c:.4f}, {dd:.4f}, 0, 0); }}')
+    rel = [(0, 0), (x1 - x0, y1 - y0), (x2 - x0, y2 - y0), (x3 - x0, y3 - y0)]
+    print('const POUCH_LABEL_QUAD = [' + ', '.join(f'[{x:.4f}, {y:.4f}]' for x, y in rel) + '];')
+    for f in sorted(d.glob('dno_sacek_*.png')):
+        slug = f.stem[len('dno_sacek_'):].replace('_', '-')
+        _sacek_do_ramecku(Image.open(f).convert('RGBA'), bbox, out, slug)
+        print('sáček', slug)
+    for f in sorted(d.glob('dno_scena_*.png')):
+        scena(str(f), f.stem[len('dno_scena_'):].replace('_', '-'), 'sceny-dno', zavoj=30, okraj_stinu=0.2)
+
+
 if __name__ == '__main__':
     rezimy = {'sacek': sacek, 'surovina': surovina, 'detail': detail, 'hromadka': hromadka, 'scena': scena}
+    if len(sys.argv) == 3 and sys.argv[1] == 'dno':
+        dno(sys.argv[2])
+        sys.exit()
     if len(sys.argv) != 4 or sys.argv[1] not in rezimy:
         sys.exit(__doc__)
     rezimy[sys.argv[1]](sys.argv[2], sys.argv[3])

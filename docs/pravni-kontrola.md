@@ -75,9 +75,10 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
   prodáváme jen vlastní zboží.
 - **Tvrzení o čajích:** prodáváme podle chuti a chvíle dne, ne podle účinků
   na zdraví (nařízení (ES) č. 1924/2006, čl. 10).
-- **Obrázky produktů:** rendery sáčků z Blenderu (`img/sacky/`, všech 14
-  hotových směsí) a scény sáčku s hromádkami surovin (`img/sceny/`, úvod
-  a detail) jsou ilustrační a detail to u nich píše. Musí odpovídat
+- **Obrázky produktů:** rendery sáčku s plochým dnem z Blenderu
+  (`img/sacky-dno/`, všech 14 hotových směsí a prázdný sáček pro vlastní
+  směs, na který web kreslí etiketu) a scény sáčku s hromádkami surovin
+  (`img/sceny-dno/`, úvod a detail) jsou ilustrační a detail to u nich píše. Musí odpovídat
   skutečnému sáčku, etiketě a surovinám (§ 5 zákona o ochraně spotřebitele;
   u potravin i obrázky a vzhled podle nařízení (EU) č. 1169/2011, čl. 7
   odst. 1 a 4). Datum, šarže a trvanlivost na renderu jsou ukázkové.
@@ -125,13 +126,18 @@ administrace. Žádosti o přístup a výmaz řeší záložka *Osobní údaje* 
 - 25. 11. 2026: kardamom má na etiketě „kardamom (semeno)“, render ukazuje
   hlavně zelené tobolky. Až bude jasné, jestli půjdou do směsí celé
   tobolky, nebo jen semena, srovnat název na etiketě a render.
-- 23. 11. 2026: sáček ještě není vybraný. Rendery ukazují model doypacku
-  s popiskem „Ilustrační vizualizace“. Až bude sáček vybraný, doladit model
-  nebo rendery nahradit fotkami.
+- 27. 11. 2026: vybraný typ sáčku je kraftový sáček s plochým dnem a zipem
+  (22pack, 300 / 750 / 1500 ml pro 50 / 100 / 250 g), vzorky jsou objednané.
+  Rendery jsou podle rozměrů od dodavatele, ne podle vzorku; popisek
+  „Ilustrační vizualizace balení 100 g“ zůstává. Až vzorky dorazí, doladit
+  tvar a barvu, nebo rendery nahradit fotkami (§ 5 zákona o ochraně
+  spotřebitele). U dodavatele vyžádat prohlášení o shodě pro styk
+  s potravinami (nařízení (EU) č. 10/2011, čl. 15) a skladbu vrstev kvůli
+  EKO-KOM.
 - 23. 11. 2026: na etiketě chybí jméno a adresa provozovatele (nařízení
   (EU) č. 1169/2011, čl. 9 odst. 1 písm. h)), zatím jen „Tease you ·
   teaseyou.cz“. Po vyplnění v administraci (Nastavení → Prodávající) znovu
-  spustit `etikety.py` a `blender_sacky.py`. Skutečné etikety bez adresy
+  spustit `etikety.py` a `blender_dno_rendery.py`. Skutečné etikety bez adresy
   tisknout nejde.
 - Před spuštěním prodeje (viz checklist): živnost, oznámení SZPI, HACCP
   a šarže, údaje prodávajícího, kontrola advokátem, slovenské překlady

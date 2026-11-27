@@ -9,7 +9,7 @@
     <meta property="og:description" content="Namíchej si vlastní sypaný čaj až z&nbsp;pěti surovin v&nbsp;poměru, jaký chceš. Mícháme až po objednání. Doprava zdarma nad 500&nbsp;Kč.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://teaseyou.cz/">
-    <meta property="og:image" content="https://teaseyou.cz/og-image.jpg?v=2">
+    <meta property="og:image" content="https://teaseyou.cz/og-image.jpg?v=3">
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -32,7 +32,7 @@
     <link rel="preload" href="fonts/unbounded-cs-sk-600-700.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/albert-sans-latin-400-700.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/albert-sans-cs-sk-400-700.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="style.css?v=24">
+    <link rel="stylesheet" href="style.css?v=25">
     <link rel="icon" href="favicon.ico" sizes="32x32">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -69,12 +69,12 @@
     <!-- defer: skripty nebrzdí vykreslení stránky. Přednost při stahování (fetchpriority)
          jsem zkoušel a první vykreslení to zpomalilo, protože pak soupeří se styly. -->
     <script defer src="config.js"></script>
-    <script defer src="db.js?v=24"></script>
-    <script defer src="i18n-sk.js?v=24"></script>
-    <script defer src="bank.js?v=24"></script>
-    <script defer src="recipe.js?v=24"></script>
-    <script defer src="icons.js?v=24"></script>
-    <script defer src="script.js?v=24"></script>
+    <script defer src="db.js?v=25"></script>
+    <script defer src="i18n-sk.js?v=25"></script>
+    <script defer src="bank.js?v=25"></script>
+    <script defer src="recipe.js?v=25"></script>
+    <script defer src="icons.js?v=25"></script>
+    <script defer src="script.js?v=25"></script>
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -83,7 +83,7 @@
         "description": "Namíchej si vlastní sypaný čaj až z pěti surovin v poměru, jaký chceš. Mícháme až po objednání.",
         "url": "https://teaseyou.cz/",
         "logo": "https://teaseyou.cz/icon-512.png",
-        "image": "https://teaseyou.cz/og-image.jpg?v=2",
+        "image": "https://teaseyou.cz/og-image.jpg?v=3",
         "email": "hello@teaseyou.cz",
         "areaServed": ["CZ", "SK"]
     }
@@ -97,21 +97,6 @@
         <linearGradient id="kraft-fill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="#d9bb8b"/><stop offset=".55" stop-color="#cfae7c"/><stop offset="1" stop-color="#bd9865"/>
         </linearGradient>
-        <!-- světlo zleva: sáček je uprostřed vyboulený, ne placatý -->
-        <linearGradient id="kraft-light" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff" stop-opacity=".17"/>
-            <stop offset=".58" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#3b2710" stop-opacity=".1"/>
-        </linearGradient>
-        <linearGradient id="kraft-gusset" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#3b2710" stop-opacity=".02"/><stop offset="1" stop-color="#3b2710" stop-opacity=".2"/>
-        </linearGradient>
-        <linearGradient id="kraft-edge" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset=".13" stop-color="#000" stop-opacity="0"/>
-            <stop offset=".87" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/>
-        </linearGradient>
-        <pattern id="kraft-crimp" width="4" height="10" patternUnits="userSpaceOnUse">
-            <rect width="2" height="10" fill="#000" fill-opacity=".09"/>
-        </pattern>
         <filter id="kraft-grain" x="0" y="0" width="100%" height="100%">
             <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4" result="n"/>
             <feColorMatrix in="n" type="matrix" values="0 0 0 0 .2  0 0 0 0 .14  0 0 0 0 .06  0 0 0 .55 0"/>
@@ -130,9 +115,6 @@
         <linearGradient id="tin-metal" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#e6e3dd"/><stop offset=".5" stop-color="#b9b5ad"/><stop offset="1" stop-color="#8f8b83"/>
         </linearGradient>
-        <clipPath id="pouch-clip">
-            <path clip-rule="evenodd" d="M16 5H184Q189 5 189 10V21L184.5 26.5L189 32C194 108 197.5 180 195.5 236Q194.5 259 172 262.5Q100 269.5 28 262.5Q5.5 259 4.5 236C2.5 180 6 108 11 32L15.5 26.5L11 21V10Q11 5 16 5ZM91 14.2h18a4.3 4.3 0 0 1 0 8.600H91a4.300 4.300 0 0 1 0-8.600Z"/>
-        </clipPath>
     </defs>
 </svg>
 

@@ -470,15 +470,14 @@ body.dark svg.dm-dark { display: block; }
     height: calc(var(--w) * .12);
     background: radial-gradient(closest-side, rgba(25, 18, 8, .34), rgba(25, 18, 8, 0));
 }
-.pouch-bag { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-/* Render z Blenderu místo kresleného sáčku: stejný rámeček 200 : 270, aby se
-   nic neposunulo. Skutečný sáček je užší, stojí dole na středu a stín pod ním
-   je proto užší než u kresleného. */
+/* Sáček s plochým dnem je render z Blenderu (hotová směs i s etiketou,
+   vlastní směs prázdný). Rámeček 200 : 270, sáček stojí dole na středu
+   a je užší než rámeček, proto je i stín pod ním užší. */
 .pouch-render { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; display: block; }
-.pouch--render::after { left: 14%; right: 14%; bottom: calc(var(--w) * -.03); height: calc(var(--w) * .09); }
+.pouch--render::after, .pouch--blank::after { left: 14%; right: 14%; bottom: calc(var(--w) * -.03); height: calc(var(--w) * .09); }
 /* Scéna hotové směsi z Blenderu: sáček a před ním hromádky surovin, stín je
    už v obrázku. Všechny scény mají stejný rámeček (width/height na img). */
-.scene { width: min(100%, 440px); }
+.scene { width: min(100%, 440px); margin-inline: auto; }
 .scene-img { display: block; width: 100%; height: auto; }
 .scene--hero { width: clamp(240px, 76vw, 440px); }
 .hero-pouch.is-swapping .scene { animation: pouchSwap .45s var(--ease); }
@@ -527,10 +526,16 @@ body.dark svg.dm-dark { display: block; }
 .final-pouch .pile, .final-pouch .piles-empty { color: var(--ink); }
 /* Etiketa má pevnou osnovu, ať každá směs vypadá stejně: jméno má vždy
    místo na dva řádky (čára pod ním je pořád ve stejné výšce), suroviny
-   začínají hned pod čarou ve stejné velikosti a gramáž je vždy dole. */
+   začínají hned pod čarou ve stejné velikosti a gramáž je vždy dole.
+   Sedí na místo etikety na prázdném sáčku (hodnoty vypíše
+   tools/rendery/vyrez.py dno). Rozvržení je 73 × 76 % rámečku, transform
+   ho zmenší a natočí podle boku sáčku; přesnou perspektivu (matrix3d)
+   dopočítá warpPouchLabel ve script.js. */
 .pouch-label {
     position: absolute;
-    left: 13.5%; right: 13.5%; top: 26%; bottom: 13.5%;
+    left: 19.14%; top: 32.50%;
+    width: 73%; height: 76%;
+    transform: matrix(0.5854, 0.0291, 0.0014, 0.6422, 0, 0); transform-origin: 0 0;
     display: flex; flex-direction: column; align-items: center;
     gap: calc(var(--w) * .024);
     padding: calc(var(--w) * .06) calc(var(--w) * .05) calc(var(--w) * .044);
@@ -697,9 +702,9 @@ body.dark .pouch-label .ing-ico {
         padding-top: 56px;
         padding-bottom: 56px;
     }
-    /* render má nahoře a dole průhledný okraj (asi 8 % a 6 %); bez něj by
-       sáček opticky seděl níž než text a mezera pod hromádkami by byla moc velká */
-    .hero-pouch .scene--hero { width: min(100%, 440px); margin: -7.5% 0 -5.5%; }
+    /* scéna má nahoře i dole průhledný okraj (asi 11 %, dole i stín); bez
+       něj by sáček opticky seděl níž než text a pod hromádkami by byla díra */
+    .hero-pouch .scene--hero { width: min(100%, 440px); margin-block: -10.5% -9.5%; }
     .hero-title { grid-area: title; font-size: clamp(50px, 5vw, 68px); }
     .hero-copy { grid-area: copy; margin-top: 28px; align-self: start; }
     .hero-lede { font-size: 19px; }
@@ -1628,7 +1633,7 @@ textarea.field { min-height: 96px; resize: vertical; line-height: 1.45; }
 /* O nás: tři sáčky z nabídky na zeleném pozadí (místo fotky) */
 .about-stage {
     display: flex; justify-content: center; align-items: flex-end;
-    padding: 28px 12px 0; margin: 4px 0 28px; overflow: hidden;
+    padding: 48px 12px 0; margin: 4px 0 28px; overflow: hidden;
     border-radius: var(--r-lg); background: var(--stage);
 }
 .about-stage[hidden] { display: none; }
