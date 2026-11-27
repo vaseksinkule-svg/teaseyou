@@ -182,7 +182,7 @@ def hromadka(src: str, slug: str) -> None:
 SCENA_VYREZ = (0.0, 0.0, 1.0, 1.0)
 
 
-def scena(src: str, slug: str, slozka: str = 'sceny') -> None:
+def scena(src: str, slug: str, slozka: str = 'sceny', zavoj: float = 18, okraj_stinu: float = 0.0) -> None:
     im = Image.open(src).convert('RGBA')
     x0, y0, x1, y1 = SCENA_VYREZ
     W, H = im.size
@@ -192,7 +192,12 @@ def scena(src: str, slug: str, slozka: str = 'sceny') -> None:
     # kolem 5 %, na webu by z něj byl vidět tmavší čtverec. Ten se odečte,
     # kontaktní stíny pod sáčkem a hromádkami zůstanou.
     stin = arr[..., :3].max(2) < 8
-    arr[..., 3] = np.where(stin, np.clip((arr[..., 3] - 18) / (255 - 18), 0, 1) * 255, arr[..., 3])
+    a_stin = np.clip((arr[..., 3] - zavoj) / (255 - zavoj), 0, 1) * 255
+    if okraj_stinu:
+        # stín (jen stín, ne sáček a hromádky) plynule do ztracena ke krajům,
+        # ať na webu nekončí rovnou hranou obrázku
+        a_stin = _okraje_do_ztracena(a_stin, okraj_stinu)
+    arr[..., 3] = np.where(stin, a_stin, arr[..., 3])
     arr[..., 3] = _okraje_do_ztracena(arr[..., 3], 0.03)
     cut = Image.fromarray(arr.clip(0, 255).astype(np.uint8), 'RGBA')
     out = ROOT / 'img' / slozka
@@ -236,17 +241,24 @@ def dno(slozka: str) -> None:
     (bw, bh), (dx, dy) = _sacek_do_ramecku(prazdny, bbox, out, 'prazdny')
     info = json.loads((d / 'dno_prazdny.json').read_text())
     k = prazdny.width / info['obrazek'][0]
-    px = [((x * k + dx) / bw * 100, (y * k + dy) / bh * 100) for x, y in info['etiketa']]
-    l, r = min(p[0] for p in px), max(p[0] for p in px)
-    t, b = min(p[1] for p in px), max(p[1] for p in px)
+    # rohy etikety v px rámečku přepočtené na šířku rámečku (F = 1)
+    (x0, y0), (x1, y1), _, (x3, y3) = [((x * k + dx) / bw, (y * k + dy) / bw) for x, y in info['etiketa']]
+    # etiketa na webu má rozvržení BOX_W × BOX_H (podíl šířky a výšky rámečku)
+    # a matrix() ji z levého horního rohu natáhne na rohy z renderu
+    BOX_W, BOX_H = 0.73, 0.76
+    bw_f, bh_f = BOX_W, BOX_H * bh / bw
+    a, b = (x1 - x0) / bw_f, (y1 - y0) / bw_f
+    c, dd = (x3 - x0) / bh_f, (y3 - y0) / bh_f
     print(f'prázdný sáček: výřez {bbox}, rámeček {bw}×{bh}')
-    print(f'.pouch-label {{ left: {l:.1f}%; right: {100 - r:.1f}%; top: {t:.1f}%; bottom: {100 - b:.1f}%; }}')
+    print(f'.pouch-label {{ left: {x0 * 100:.2f}%; top: {y0 * bw / bh * 100:.2f}%; '
+          f'width: {BOX_W * 100:.0f}%; height: {BOX_H * 100:.0f}%; '
+          f'transform: matrix({a:.4f}, {b:.4f}, {c:.4f}, {dd:.4f}, 0, 0); }}')
     for f in sorted(d.glob('dno_sacek_*.png')):
         slug = f.stem[len('dno_sacek_'):].replace('_', '-')
         _sacek_do_ramecku(Image.open(f).convert('RGBA'), bbox, out, slug)
         print('sáček', slug)
     for f in sorted(d.glob('dno_scena_*.png')):
-        scena(str(f), f.stem[len('dno_scena_'):].replace('_', '-'), 'sceny-dno')
+        scena(str(f), f.stem[len('dno_scena_'):].replace('_', '-'), 'sceny-dno', zavoj=30, okraj_stinu=0.2)
 
 
 if __name__ == '__main__':
