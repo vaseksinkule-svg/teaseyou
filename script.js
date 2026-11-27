@@ -4409,6 +4409,49 @@ Object.assign(TRANSLATIONS.en, {
    protože jméno a složení vymýšlí zákazník a mění se živě. Místo pro
    etiketu (.pouch-label ve style.css) sedí na etiketu z renderu. */
 const POUCH_BLANK = 'img/sacky-dno/prazdny';
+/* Etiketa vlastní směsi na prázdném sáčku. Sáček je z boku, proto etiketa
+   dostane perspektivu podle rohů etikety z renderu (vypíše je
+   tools/rendery/vyrez.py dno): vlevo nahoře, vpravo nahoře, vpravo dole,
+   vlevo dole, vůči levému hornímu rohu, v podílech šířky rámečku. CSS má
+   jen přibližný tvar (matrix), přesný dopočítá warpPouchLabel. */
+const POUCH_LABEL_QUAD = [[0, 0], [0.4273, 0.0213], [0.4192, 0.7281], [0.0014, 0.6592]];
+const POUCH_LABEL_BOX = [0.73, 0.76 * 270 / 200];   // rozvržení etikety (šířka, výška) v šířkách rámečku
+function warpPouchLabel(pouch) {
+    const label = pouch.querySelector('.pouch-label');
+    const F = pouch.clientWidth;
+    if (!label || !F) return;
+    const w = POUCH_LABEL_BOX[0] * F, h = POUCH_LABEL_BOX[1] * F;
+    const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = POUCH_LABEL_QUAD.map(([x, y]) => [x * F, y * F]);
+    // čtverec → čtyřúhelník (Heckbert), pak zmenšení z rozměrů etikety
+    const dx1 = x1 - x2, dx2 = x3 - x2, dx3 = x0 - x1 + x2 - x3;
+    const dy1 = y1 - y2, dy2 = y3 - y2, dy3 = y0 - y1 + y2 - y3;
+    const den = dx1 * dy2 - dx2 * dy1;
+    const g = (dx3 * dy2 - dx2 * dy3) / den, k = (dx1 * dy3 - dx3 * dy1) / den;
+    const a = x1 - x0 + g * x1, b = x3 - x0 + k * x3;
+    const d = y1 - y0 + g * y1, e = y3 - y0 + k * y3;
+    const m = [a / w, d / w, 0, g / w, b / h, e / h, 0, k / h, 0, 0, 1, 0, x0, y0, 0, 1];
+    label.style.transform = `matrix3d(${m.map(v => +v.toFixed(6)).join(',')})`;
+}
+/* Sáčky se kreslí na mnoha místech (innerHTML), proto se hlídá celá stránka:
+   nový prázdný sáček dostane perspektivu hned a znovu, když změní velikost. */
+const pouchWarped = new Set();
+const pouchResize = typeof ResizeObserver === 'function'
+    ? new ResizeObserver(list => list.forEach(en => warpPouchLabel(en.target))) : null;
+let pouchScan = 0;
+function scanPouchLabels() {
+    pouchScan = 0;
+    for (const p of pouchWarped) if (!p.isConnected) { pouchResize?.unobserve(p); pouchWarped.delete(p); }
+    document.querySelectorAll('.pouch--blank').forEach(p => {
+        if (pouchWarped.has(p)) return;
+        pouchWarped.add(p);
+        warpPouchLabel(p);
+        pouchResize?.observe(p);
+    });
+}
+if (typeof MutationObserver === 'function') {
+    new MutationObserver(() => { if (!pouchScan) pouchScan = requestAnimationFrame(scanPouchLabels); })
+        .observe(document.documentElement, { childList: true, subtree: true });
+}
 const LAYER_LABELS = ['glass_label_base', 'glass_label_flavor', 'glass_label_extras'];
 
 /* Rendery sáčků hotových směsí (průhledné pozadí, img/sacky-dno/).

@@ -14,6 +14,10 @@ takže se řadí podle data.
 - Vlastní směs má stejný sáček jako render a web na něj kreslí etiketu
   se jménem a složením, takže vlastní a hotová směs vypadají stejně.
 - Náhled pro sdílení (og-image) ukazuje nový sáček a dnešní text z úvodu.
+- Sáček je natočený o 32° (je vidět bok a dno) a nasvícený jako první
+  návrh. Etiketa vlastní směsi dostane stejnou perspektivu.
+- Stín ve scénách plynule mizí, na zelené už není vidět okraj obrázku.
+  Scéna na detailu je na telefonu uprostřed.
 - Rendery jsou podle rozměrů od dodavatele. Až přijdou vzorky, tvar
   a barvu doladíme. Skripty: `tools/rendery/blender_dno.py`
   a `blender_dno_rendery.py`, výřezy `vyrez.py dno`.

@@ -477,7 +477,7 @@ body.dark svg.dm-dark { display: block; }
 .pouch--render::after, .pouch--blank::after { left: 14%; right: 14%; bottom: calc(var(--w) * -.03); height: calc(var(--w) * .09); }
 /* Scéna hotové směsi z Blenderu: sáček a před ním hromádky surovin, stín je
    už v obrázku. Všechny scény mají stejný rámeček (width/height na img). */
-.scene { width: min(100%, 440px); }
+.scene { width: min(100%, 440px); margin-inline: auto; }
 .scene-img { display: block; width: 100%; height: auto; }
 .scene--hero { width: clamp(240px, 76vw, 440px); }
 .hero-pouch.is-swapping .scene { animation: pouchSwap .45s var(--ease); }
@@ -527,14 +527,15 @@ body.dark svg.dm-dark { display: block; }
 /* Etiketa má pevnou osnovu, ať každá směs vypadá stejně: jméno má vždy
    místo na dva řádky (čára pod ním je pořád ve stejné výšce), suroviny
    začínají hned pod čarou ve stejné velikosti a gramáž je vždy dole.
-   Sedí přesně na místo etikety na prázdném sáčku (21,4 % zleva, 33,2 %
-   shora, 51,5 × 53,6 % rámečku, vypíše to tools/rendery/vyrez.py dno).
-   Vnitřek je navržený pro širší etiketu, proto se celá zmenší (scale). */
+   Sedí na místo etikety na prázdném sáčku (hodnoty vypíše
+   tools/rendery/vyrez.py dno). Rozvržení je 73 × 76 % rámečku, transform
+   ho zmenší a natočí podle boku sáčku; přesnou perspektivu (matrix3d)
+   dopočítá warpPouchLabel ve script.js. */
 .pouch-label {
     position: absolute;
-    left: 21.4%; top: 33.2%;
-    width: calc(51.5% / .705); height: calc(53.6% / .705);
-    transform: scale(.705); transform-origin: 0 0;
+    left: 19.14%; top: 32.50%;
+    width: 73%; height: 76%;
+    transform: matrix(0.5854, 0.0291, 0.0014, 0.6422, 0, 0); transform-origin: 0 0;
     display: flex; flex-direction: column; align-items: center;
     gap: calc(var(--w) * .024);
     padding: calc(var(--w) * .06) calc(var(--w) * .05) calc(var(--w) * .044);
@@ -701,9 +702,9 @@ body.dark .pouch-label .ing-ico {
         padding-top: 56px;
         padding-bottom: 56px;
     }
-    /* scéna má nahoře i dole průhledný okraj (asi 10 %); bez něj by sáček
-       opticky seděl níž než text a mezera pod hromádkami by byla moc velká */
-    .hero-pouch .scene--hero { width: min(100%, 440px); margin: -9.6% 0 -8.2%; }
+    /* scéna má nahoře i dole průhledný okraj (asi 11 %, dole i stín); bez
+       něj by sáček opticky seděl níž než text a pod hromádkami by byla díra */
+    .hero-pouch .scene--hero { width: min(100%, 440px); margin-block: -10.5% -9.5%; }
     .hero-title { grid-area: title; font-size: clamp(50px, 5vw, 68px); }
     .hero-copy { grid-area: copy; margin-top: 28px; align-self: start; }
     .hero-lede { font-size: 19px; }

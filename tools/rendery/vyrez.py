@@ -242,7 +242,7 @@ def dno(slozka: str) -> None:
     info = json.loads((d / 'dno_prazdny.json').read_text())
     k = prazdny.width / info['obrazek'][0]
     # rohy etikety v px rámečku přepočtené na šířku rámečku (F = 1)
-    (x0, y0), (x1, y1), _, (x3, y3) = [((x * k + dx) / bw, (y * k + dy) / bw) for x, y in info['etiketa']]
+    (x0, y0), (x1, y1), (x2, y2), (x3, y3) = [((x * k + dx) / bw, (y * k + dy) / bw) for x, y in info['etiketa']]
     # etiketa na webu má rozvržení BOX_W × BOX_H (podíl šířky a výšky rámečku)
     # a matrix() ji z levého horního rohu natáhne na rohy z renderu
     BOX_W, BOX_H = 0.73, 0.76
@@ -253,6 +253,8 @@ def dno(slozka: str) -> None:
     print(f'.pouch-label {{ left: {x0 * 100:.2f}%; top: {y0 * bw / bh * 100:.2f}%; '
           f'width: {BOX_W * 100:.0f}%; height: {BOX_H * 100:.0f}%; '
           f'transform: matrix({a:.4f}, {b:.4f}, {c:.4f}, {dd:.4f}, 0, 0); }}')
+    rel = [(0, 0), (x1 - x0, y1 - y0), (x2 - x0, y2 - y0), (x3 - x0, y3 - y0)]
+    print('const POUCH_LABEL_QUAD = [' + ', '.join(f'[{x:.4f}, {y:.4f}]' for x, y in rel) + '];')
     for f in sorted(d.glob('dno_sacek_*.png')):
         slug = f.stem[len('dno_sacek_'):].replace('_', '-')
         _sacek_do_ramecku(Image.open(f).convert('RGBA'), bbox, out, slug)
