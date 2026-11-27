@@ -150,7 +150,14 @@ def scenyr(sc, etikety, rendery, jen, procent):
     poz = sc.objects['Pozadi']
     poz.hide_render = False
     poz.is_shadow_catcher = True
-    sc.camera = sceny._kamera()
+    cam = sceny._kamera()
+    # sáček s plochým dnem je o 16 mm vyšší než doypack: kamera kousek dál
+    # a výš, ať se vejde i se svárem (hromádky zůstanou dole v záběru)
+    cil = bpy.data.objects[sceny.KAMERA + '_cil']
+    cil.location = (0.0, -0.05, 0.094)
+    D, uhel = 1.0, math.radians(20)
+    cam.location = (0.0, -0.05 - D * math.cos(uhel), 0.094 + D * math.sin(uhel))
+    sc.camera = cam
     for smes in vsechny:
         if jen and smes['id'] not in jen:
             continue
