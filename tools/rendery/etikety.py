@@ -14,7 +14,7 @@ Vlastní směs (jméno a suroviny v dílech, kódy jako na webu):
 Prázdná etiketa vlastní směsi (podklad pro web):
     python3 tools/rendery/etikety.py prazdna VYSTUP
 
-Volby: --datum 2026-11-23 (den míchání, výchozí dnes).
+Volby: --datum 2026-11-23 (den míchání, výchozí dnes), --gramaz "250 g" (výchozí 100 g).
 
 Do VYSTUP uloží pro každou etiketu:
   etiketa_<id>.png        samotná etiketa 1408 × 1920 px (88 × 120 mm, 16 px/mm)
@@ -109,7 +109,7 @@ def prvni_veta(text: str) -> str:
     return re.split(r'(?<=[.!?])\s', text.strip(), maxsplit=1)[0].rstrip('.')
 
 
-def etiketa(web: dict, b: dict, druh: str, den: dt.date, poradi: int, cislo: str = '', prazdna=False) -> dict:
+def etiketa(web: dict, b: dict, druh: str, den: dt.date, poradi: int, cislo: str = '', prazdna=False, gramaz: str = '100 g') -> dict:
     """Složí texty jedné etikety z dat webu."""
     trv = plus_mesice(den, web['durabilityMonths'])
     poznamky = []
@@ -121,7 +121,7 @@ def etiketa(web: dict, b: dict, druh: str, den: dt.date, poradi: int, cislo: str
     return {
         'id': b['id'], 'druh': druh, 'prazdna': prazdna,
         'jmeno': b['name'], 'chvile': b.get('momentLabel', ''), 'barva': b.get('momentColor', ''),
-        'gramaz': '100 g',
+        'gramaz': gramaz,
         'pravni': b.get('legalName', ''),
         'popis': prvni_veta(b.get('desc', '')),
         'slozeni': [{'label': c['label'], 'pct': c['pct'], 'barva': c['color']} for c in b.get('comp', [])],
@@ -148,6 +148,7 @@ def main():
     ap.add_argument('--jen', default='')
     ap.add_argument('--cislo', default='0427')
     ap.add_argument('--datum', default='')
+    ap.add_argument('--gramaz', default='100 g', help='hmotnost na etiketě, třeba "50 g" nebo "250 g"')
     a = ap.parse_args()
 
     den = dt.date.fromisoformat(a.datum) if a.datum else dt.date.today()
@@ -195,7 +196,7 @@ def main():
             if b.get('error'):
                 print(f"{b['id']}: {b['error']}", file=sys.stderr)
                 continue
-            d = etiketa(web, b, druh, den, poradi, a.cislo, prazdna=(a.co == 'prazdna'))
+            d = etiketa(web, b, druh, den, poradi, a.cislo, prazdna=(a.co == 'prazdna'), gramaz=a.gramaz)
             pg.evaluate('d => vykresli(d)', d)
             loc = pg.locator('#etiketa')
             png = out / f"etiketa_{b['id']}.png"
